@@ -316,7 +316,7 @@ if [ "$MINGW" != "yes" ] ; then
         TOOLCHAIN_FLAGS=
     else
         BUILD_WCHAR_FLAGS="--package-dir=\"$PACKAGE_DIR\""
-        TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.43-$HOST_TAG.tar.bz2\""
+        TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.4.3-$HOST_TAG.tar.bz2\""
     fi
     $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS $TOOLCHAIN_FLAGS
     if [ "$OPTION_TRY_X86" = "yes" ] ; then
