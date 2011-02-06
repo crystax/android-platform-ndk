@@ -141,6 +141,7 @@ endif
 $(call modules-clear)
 
 $(call ndk-stl-select,$(NDK_APP_STL))
+$(call import-module,wchar-support)
 
 # now parse the Android.mk for the application, this records all
 # module declarations, but does not populate the dependency graph yet.
