@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-WCHAR_SRC_FILES := wcstombs.c
+WCHAR_SRC_FILES :=
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := wchar_static
