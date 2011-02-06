@@ -197,7 +197,7 @@ endif
 # otherwise, check that the name is correct.
 APP_STL := $(strip $(APP_STL))
 ifndef APP_STL
-    APP_STL := system
+    APP_STL := gnustl_static
 else
     $(call ndk-stl-check,$(APP_STL))
 endif
