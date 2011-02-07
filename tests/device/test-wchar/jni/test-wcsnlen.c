@@ -35,6 +35,10 @@
 #include <string.h>
 #include <wchar.h>
 
+#ifndef roundup2
+#define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
+#endif
+
 static void *
 makebuf(size_t len, int guard_at_end)
 {
