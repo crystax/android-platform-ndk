@@ -288,6 +288,30 @@ fi
 # Rebuild prebuilt libraries
 if [ "$MINGW" != "yes" ] ; then
     if [ -z "$PACKAGE_DIR" ] ; then
+        BUILD_WCHAR_FLAGS="--ndk-dir=\"$NDK_DIR\""
+        TOOLCHAIN_FLAGS=
+    else
+        BUILD_WCHAR_FLAGS="--package-dir=\"$PACKAGE_DIR\""
+        TOOLCHAIN_FLAGS_ARM="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.4.3-$HOST_TAG.tar.bz2\""
+        TOOLCHAIN_FLAGS_X86="--toolchain-pkg=\"$PACKAGE_DIR/x86-4.4.3-$HOST_TAG.tar.bz2\""
+    fi
+    if [ $VERBOSE = yes ] ; then
+        BUILD_WCHAR_FLAGS="$BUILD_WCHAR_FLAGS --verbose"
+    fi
+    case "$ARCH" in
+    arm )
+        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS $TOOLCHAIN_FLAGS_ARM
+        ;;
+    x86 )
+        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS --abis=x86 $TOOLCHAIN_FLAGS_X86
+        ;;
+    esac
+else
+    dump "Skipping wchar support binaries build (--mingw option beeing used)"
+fi
+
+if [ "$MINGW" != "yes" ] ; then
+    if [ -z "$PACKAGE_DIR" ] ; then
         BUILD_STLPORT_FLAGS="--ndk-dir=\"$NDK_DIR\""
         TOOLCHAIN_FLAGS=
     else
@@ -308,25 +332,6 @@ if [ "$MINGW" != "yes" ] ; then
     esac
 else
     dump "Skipping STLport binaries build (--mingw option being used)"
-fi
-
-if [ "$MINGW" != "yes" ] ; then
-    if [ -z "$PACKAGE_DIR" ] ; then
-        BUILD_WCHAR_FLAGS="--ndk-dir=\"$NDK_DIR\""
-        TOOLCHAIN_FLAGS=
-    else
-        BUILD_WCHAR_FLAGS="--package-dir=\"$PACKAGE_DIR\""
-        TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.4.3-$HOST_TAG.tar.bz2\""
-    fi
-    $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS $TOOLCHAIN_FLAGS
-    if [ "$OPTION_TRY_X86" = "yes" ] ; then
-        if [ -n "$PACKAGE_DIR" ] ; then
-            TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/x86-4.2.1-$HOST_TAG.tar.bz2\""
-        fi
-        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS --abis=x86 $TOOLCHAIN_FLAGS
-    fi
-else
-    dump "Skipping wchar support binaries build (--mingw option beeing used)"
 fi
 
 # XXX: NOT YET NEEDED!
