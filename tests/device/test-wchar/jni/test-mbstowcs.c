@@ -33,7 +33,7 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbstowcs.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $");
+/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbstowcs.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
 
 #include <assert.h>
 #include <errno.h>
@@ -45,7 +45,7 @@ __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbstowcs.c,v 1.2.2
 #include <wchar.h>
 
 int
-main(int argc, char *argv[])
+test_mbstowcs()
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];

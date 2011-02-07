@@ -45,7 +45,7 @@
 #include <wchar.h>
 
 int
-test_mbstowcs()
+test_mbsrtowcs()
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];
