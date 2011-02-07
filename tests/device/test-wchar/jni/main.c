@@ -16,6 +16,8 @@ int main()
     DO_WCHAR_TEST(mbtowc);
     DO_WCHAR_TEST(towctrans);
     DO_WCHAR_TEST(wcrtomb);
+    DO_WCHAR_TEST(wcscasecmp);
+    DO_WCHAR_TEST(wcsnlen);
     DO_WCHAR_TEST(wcsnrtombs);
     DO_WCHAR_TEST(wcsrtombs);
     DO_WCHAR_TEST(wcstombs);

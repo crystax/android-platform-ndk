@@ -16,6 +16,8 @@ LOCAL_SRC_FILES := main.c \
 	test-mbtowc.c \
 	test-towctrans.c \
 	test-wcrtomb.c \
+	test-wcscasecmp.c \
+	test-wcsnlen.c \
 	test-wcsnrtombs.c \
 	test-wcsrtombs.c \
 	test-wcstombs.c \
