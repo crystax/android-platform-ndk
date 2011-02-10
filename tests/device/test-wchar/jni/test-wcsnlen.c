@@ -45,8 +45,9 @@ makebuf(size_t len, int guard_at_end)
 	char *buf;
 	size_t alloc_size = roundup2(len, PAGE_SIZE) + PAGE_SIZE;
 
-	buf = mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_ANON, -1, 0);
+	buf = mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	assert(buf);
+	assert(buf != MAP_FAILED);
 	if (guard_at_end) {
 		assert(munmap(buf + alloc_size - PAGE_SIZE, PAGE_SIZE) == 0);
 		return (buf + alloc_size - PAGE_SIZE - len);
