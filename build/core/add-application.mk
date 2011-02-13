@@ -202,7 +202,9 @@ else
     $(call ndk-stl-check,$(APP_STL))
 endif
 
-
+ifeq ($(APP_STL),gnustl_static)
+    TARGET_CXXFLAGS += -frtti -fexceptions
+endif
 
 $(if $(call get,$(_map),defined),\
   $(call __ndk_info,Weird, the application $(_app) is already defined by $(call get,$(_map),defined))\

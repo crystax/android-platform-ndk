@@ -156,7 +156,7 @@ for ABI in $ABIS; do
         *) PLATFORM=android-3
         ;;
     esac
-    (run cd "$NDK_DIR/$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_PLATFORM=$PLATFORM APP_ABI=$ABI -j$JOBS STLPORT_FORCE_REBUILD=true)
+    (run cd "$NDK_DIR/$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_PLATFORM=$PLATFORM APP_ABI=$ABI -j$JOBS STLPORT_FORCE_REBUILD=true)
     if [ $? != 0 ] ; then
         dump "ERROR: Could not build $ABI STLport binaries!!"
         exit 1
