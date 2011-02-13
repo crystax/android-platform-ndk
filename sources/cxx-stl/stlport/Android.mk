@@ -51,7 +51,7 @@ libstlport_src_files := \
         src/cxa.c \
 
 libstlport_cflags := -D_GNU_SOURCE
-libstlport_cppflags := -fuse-cxa-atexit
+libstlport_cppflags := -fuse-cxa-atexit -fno-rtti -fno-exceptions
 libstlport_c_includes := $(libstlport_path)/stlport
 
 # Note: For now, this implementation depends on the system libstdc++
