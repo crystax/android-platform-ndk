@@ -71,6 +71,7 @@
 #endif
 
 #include <stdio.h> /* for FILE* */
+#include <time.h> /* from struct tm */
 
 #if !defined(_WCHAR_T_DEFINED_) && !defined(__cplusplus)
 #define _WCHAR_T_DEFINED_
@@ -180,6 +181,20 @@ int fwide(FILE *, int);
 #define getwchar() getwc(stdin)
 #define putwc(wc, f) fputwc((wc), (f))
 #define putwchar(wc) putwc((wc), stdout)
+
+size_t  wcsftime(wchar_t * __restrict, size_t, const wchar_t * __restrict,
+      const struct tm * __restrict);
+
+int fwprintf(FILE * __restrict, const wchar_t * __restrict, ...);
+int fwscanf(FILE * __restrict, const wchar_t * __restrict, ...);
+int swprintf(wchar_t * __restrict, size_t n, const wchar_t * __restrict, ...);
+int swscanf(const wchar_t * __restrict, const wchar_t * __restrict, ...);
+int vfwprintf(FILE * __restrict, const wchar_t * __restrict, __va_list);
+int vswprintf(wchar_t * __restrict, size_t n, const wchar_t * __restrict, __va_list);
+int vwprintf(const wchar_t * __restrict, __va_list);
+int wprintf(const wchar_t * __restrict, ...);
+int wscanf(const wchar_t * __restrict, ...);
+
 __END_DECLS
 
 #endif /* !_WCHAR_H_ */
