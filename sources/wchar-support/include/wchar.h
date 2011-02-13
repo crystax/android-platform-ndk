@@ -71,7 +71,7 @@
 #endif
 
 #include <stdio.h> /* for FILE* */
-#include <time.h> /* from struct tm */
+#include <time.h> /* for struct tm */
 
 #if !defined(_WCHAR_T_DEFINED_) && !defined(__cplusplus)
 #define _WCHAR_T_DEFINED_
