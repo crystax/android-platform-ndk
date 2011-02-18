@@ -168,6 +168,25 @@ if [ "$ARCH" = "x86" ]; then
     dump "Forcing -nostartfiles: $ABI_LDFLAGS_FOR_TARGET"
 fi
 
+SRC_WCHAR=$ANDROID_NDK_ROOT/sources/wchar-support
+SRC_WCHAR_INCLUDE=$SRC_WCHAR/include
+SRC_WCHAR_LIB=$SRC_WCHAR/libs/armeabi
+DST_WCHAR_INCLUDE=$TOOLCHAIN_SYSROOT/usr/include
+DST_WCHAR_LIB=$TOOLCHAIN_SYSROOT/usr/lib
+dump "Sysroot  : Copying $SRC_WCHAR_INCLUDE --> $DST_WCHAR_INCLUDE"
+mkdir -p $DST_WCHAR_INCLUDE && (cd $SRC_WCHAR_INCLUDE && tar ch *) | (cd $DST_WCHAR_INCLUDE && tar x)
+if [ $? != 0] ; then
+    echo "Error while copying wchar include files. See $TMPLOG"
+    exit 1
+fi
+
+dump "Sysroot  : Copying $SRC_WCHAR_LIB --> $DST_WCHAR_LIB"
+mkdir -p $DST_WCHAR_LIB && (cd $SRC_WCHAR_LIB && tar ch *) | (cd $DST_WCHAR_LIB && tar x)
+if [ $? != 0 ] ; then
+    echo "Error while copying wchar lib files. See $TMPLOG"
+    exit 1
+fi
+
 # configure the toolchain
 #
 dump "Configure: $TOOLCHAIN toolchain build"

@@ -63,6 +63,9 @@ if [ ! -d "$NDK_DIR/platforms/$PLATFORM" ] ; then
     exit 1
 fi
 
+SRC_WCHAR_INCLUDE=$NDK_DIR/sources/wchar-support/include
+SRC_WCHAR_LIBS=$NDK_DIR/sources/wchar-support/libs/armeabi
+
 # Check toolchain name
 TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME"
 if [ ! -d "$TOOLCHAIN_PATH" ] ; then
@@ -129,6 +132,10 @@ dump "Copying sysroot headers and libraries..."
 # Copy the sysroot under $TMPDIR/sysroot. The toolchain was built to
 # expect the sysroot files to be placed there!
 run copy_directory_nolinks "$SRC_SYSROOT" "$TMPDIR/sysroot"
+
+dump "Copying wchar-support headers and libraries..."
+run copy_directory_nolinks "$SRC_WCHAR_INCLUDE" "$TMPDIR/sysroot/usr/include"
+run copy_directory_nolinks "$SRC_WCHAR_LIBS" "$TMPDIR/sysroot/usr/lib"
 
 dump "Copying libstdc++ headers and libraries..."
 `dirname $0`/copy-libstdcxx.sh --reverse "$TMPDIR" "$NDK_DIR"

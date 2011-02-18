@@ -60,7 +60,7 @@
 #define _WCHAR_H_
 
 #include <sys/cdefs.h>
-#include <sys/_types.h>
+#include <sys/types.h>
 
 #ifndef	NULL
 #ifdef	__GNUG__
@@ -72,6 +72,7 @@
 
 #include <stdio.h> /* for FILE* */
 #include <time.h> /* for struct tm */
+#include <sys/limits.h> /* for INT_MIN/INT_MAX */
 
 #if !defined(_WCHAR_T_DEFINED_) && !defined(__cplusplus)
 #define _WCHAR_T_DEFINED_
@@ -95,6 +96,14 @@ typedef	__wint_t	wint_t;
 #ifndef	_SIZE_T_DEFINED_
 #define	_SIZE_T_DEFINED_
 typedef	__size_t	size_t;
+#endif
+
+#ifndef WCHAR_MIN
+#define WCHAR_MIN INT_MIN
+#endif
+
+#ifndef WCHAR_MAX
+#define WCHAR_MAX INT_MAX
 #endif
 
 #ifndef WEOF
