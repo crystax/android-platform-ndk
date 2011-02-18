@@ -180,11 +180,13 @@ if [ $? != 0] ; then
     exit 1
 fi
 
-dump "Sysroot  : Copying $SRC_WCHAR_LIB --> $DST_WCHAR_LIB"
-mkdir -p $DST_WCHAR_LIB && (cd $SRC_WCHAR_LIB && tar ch *) | (cd $DST_WCHAR_LIB && tar x)
-if [ $? != 0 ] ; then
-    echo "Error while copying wchar lib files. See $TMPLOG"
-    exit 1
+if [ -d $SRC_WCHAR_LIB ] ; then
+    dump "Sysroot  : Copying $SRC_WCHAR_LIB --> $DST_WCHAR_LIB"
+    mkdir -p $DST_WCHAR_LIB && (cd $SRC_WCHAR_LIB && tar ch *) | (cd $DST_WCHAR_LIB && tar x)
+    if [ $? != 0 ] ; then
+        echo "Error while copying wchar lib files. See $TMPLOG"
+        exit 1
+    fi
 fi
 
 # configure the toolchain
