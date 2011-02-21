@@ -18,6 +18,8 @@ WCHAR_SRC_FILES := \
 	locale/__mb_cur_max.c \
 	locale/_wctrans.c \
 	locale/iswctype.c \
+	locale/mbstowcs.c \
+	locale/multibyte_citrus.c \
 	locale/rune.c \
 	locale/runeglue.c \
 	locale/runetable.c \
@@ -26,6 +28,7 @@ WCHAR_SRC_FILES := \
 	locale/wcstoimax.c \
 	locale/wcstol.c \
 	locale/wcstoll.c \
+	locale/wcstombs.c \
 	locale/wcstoul.c \
 	locale/wcstoull.c \
 	locale/wcstoumax.c \
