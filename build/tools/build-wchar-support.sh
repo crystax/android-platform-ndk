@@ -146,7 +146,7 @@ LIBRARIES="libwchar_static.a libwchar_shared.so"
 
 for ABI in $ABIS; do
     dump "Building $ABI wchar support binaries..."
-    (run cd "$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_ABI=$ABI -j$BUILD_JOBS WCHAR_FORCE_REBUILD=true)
+    (run cd "$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_ABI=$ABI -j$BUILD_JOBS WCHAR_FORCE_REBUILD=true)
     if [ $? != 0 ] ; then
         dump "ERROR: Could not build $ABI wchar support binaries!!"
         exit 1
