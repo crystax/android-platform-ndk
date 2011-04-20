@@ -334,6 +334,11 @@ for SYSTEM in $SYSTEMS; do
         if [ "$TRY_X86" = "yes" ] ; then
             unpack_libsupcxx gnu-libsupc++-x86.tar.bz2
         fi
+        unpack_prebuilt wchar-support-libs-armeabi.tar.bz2
+        unpack_prebuilt wchar-support-libs-armeabi-v7a.tar.bz2
+        if [ "$TRY_X86" = "yes" ] ; then
+            unpack_prebuilt wchar-support-libs-x86.tar.bz2
+        fi
         unpack_prebuilt stlport-libs-armeabi.tar.bz2
         unpack_prebuilt stlport-libs-armeabi-v7a.tar.bz2
         if [ "$TRY_X86" = "yes" ] ; then
