@@ -22,6 +22,7 @@ LOCAL_SRC_FILES := main.c \
 	test-wcsrtombs.c \
 	test-wcstombs.c \
 	test-wctomb.c \
+	test-wstring-erase.cpp \
 
 LOCAL_STATIC_LIBRARIES := wchar_static
 

@@ -22,5 +22,6 @@ int main()
     DO_WCHAR_TEST(wcsrtombs);
     DO_WCHAR_TEST(wcstombs);
     DO_WCHAR_TEST(wctomb);
+    DO_WCHAR_TEST(wstring_erase);
     return 0;
 }
