@@ -180,6 +180,7 @@ if [ -n "$DARWIN_SSH" ] ; then
     copy_directory "$ANDROID_NDK_ROOT/build" "$TMPDARWIN/ndk/build"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/android/libthread_db
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$STLPORT_SUBDIR"
+    copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$WCHAR_SUBDIR"
     dump "Prepare platforms files"
     `dirname $0`/build-platforms.sh --no-samples --dst-dir="$TMPDARWIN/ndk"
     dump "Copying NDK build scripts and platform files to remote..."
@@ -307,6 +308,25 @@ if [ "$MINGW" != "yes" ] ; then
     esac
 else
     dump "Skipping STLport binaries build (--mingw option being used)"
+fi
+
+if [ "$MINGW" != "yes" ] ; then
+    if [ -z "$PACKAGE_DIR" ] ; then
+        BUILD_WCHAR_FLAGS="--ndk-dir=\"$NDK_DIR\""
+        TOOLCHAIN_FLAGS=
+    else
+        BUILD_WCHAR_FLAGS="--package-dir=\"$PACKAGE_DIR\""
+        TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.43-$HOST_TAG.tar.bz2\""
+    fi
+    $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS $TOOLCHAIN_FLAGS
+    if [ "$OPTION_TRY_X86" = "yes" ] ; then
+        if [ -n "$PACKAGE_DIR" ] ; then
+            TOOLCHAIN_FLAGS="--toolchain-pkg=\"$PACKAGE_DIR/x86-4.2.1-$HOST_TAG.tar.bz2\""
+        fi
+        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS --abis=x86 $TOOLCHAIN_FLAGS
+    fi
+else
+    dump "Skipping wchar support binaries build (--mingw option beeing used)"
 fi
 
 # XXX: NOT YET NEEDED!
