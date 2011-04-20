@@ -1,0 +1,3 @@
+This project shall only be used by the build/tools/rebuild-wchar-support.sh script.
+Its purpose is to rebuild the wchar-support binaries with the NDK, so they can be
+copied to $WCHAR_PATH/<abi>/ directories.

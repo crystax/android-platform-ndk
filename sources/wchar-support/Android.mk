@@ -1,9 +1,15 @@
 LOCAL_PATH := $(call my-dir)
 
+WCHAR_SRC_FILES :=
+
 include $(CLEAR_VARS)
-
-LOCAL_MODULE := wchar-support
-LOCAL_SRC_FILES :=
+LOCAL_MODULE            := wchar_static
+LOCAL_SRC_FILES         := $(WCHAR_SRC_FILES)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
-
 include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := wchar_shared
+LOCAL_SRC_FILES         := $(WCHAR_SRC_FILES)
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
+include $(BUILD_SHARED_LIBRARY)
