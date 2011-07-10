@@ -238,14 +238,14 @@ __collate_err(int ex, const char *f)
 	int serrno = errno;
 
 	s = _getprogname();
-	_write(STDERR_FILENO, s, strlen(s));
-	_write(STDERR_FILENO, ": ", 2);
+	write(STDERR_FILENO, s, strlen(s));
+	write(STDERR_FILENO, ": ", 2);
 	s = f;
-	_write(STDERR_FILENO, s, strlen(s));
-	_write(STDERR_FILENO, ": ", 2);
+	write(STDERR_FILENO, s, strlen(s));
+	write(STDERR_FILENO, ": ", 2);
 	s = strerror(serrno);
-	_write(STDERR_FILENO, s, strlen(s));
-	_write(STDERR_FILENO, "\n", 1);
+	write(STDERR_FILENO, s, strlen(s));
+	write(STDERR_FILENO, "\n", 1);
 	exit(ex);
 }
 
