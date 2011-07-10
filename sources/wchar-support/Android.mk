@@ -55,7 +55,6 @@ WCHAR_SRC_FILES := \
 	locale/wcstof.c \
 	locale/wcstoimax.c \
 	locale/wcstol.c \
-	locale/wcstold.c \
 	locale/wcstoll.c \
 	locale/wcstombs.c \
 	locale/wcstoul.c \
