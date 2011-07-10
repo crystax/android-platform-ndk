@@ -68,8 +68,10 @@
 #define _WCHAR_H_
 
 #include <sys/cdefs.h>
-#include <sys/_types.h>
+#include <sys/types.h>
+#include <sys/limits.h>
 #include <_ctype.h>
+#include <stdarg.h>
 
 #ifndef _MBSTATE_T_DECLARED
 typedef	__mbstate_t	mbstate_t;
@@ -94,8 +96,11 @@ typedef	__wint_t	wint_t;
 #endif
 
 #ifndef	WCHAR_MIN 
-#define	WCHAR_MIN	__INT_MIN
-#define	WCHAR_MAX	__INT_MAX
+#define	WCHAR_MIN	INT_MIN
+#endif
+
+#ifndef WCHAR_MAX
+#define	WCHAR_MAX	INT_MAX
 #endif
 
 #ifndef WEOF
