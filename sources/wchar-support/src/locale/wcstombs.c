@@ -1,5 +1,3 @@
-/*	$OpenBSD: wcstombs.c,v 1.1 2010/07/27 16:59:04 stsp Exp $ */
-
 /*-
  * Copyright (c) 2002-2004 Tim J. Robbins.
  * All rights reserved.
@@ -27,19 +25,21 @@
  */
 
 #include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
 #include <limits.h>
 #include <stdlib.h>
-#include <string.h>
 #include <wchar.h>
+#include "mblocal.h"
 
 size_t
 wcstombs(char * __restrict s, const wchar_t * __restrict pwcs, size_t n)
 {
+	static const mbstate_t initial;
 	mbstate_t mbs;
 	const wchar_t *pwcsp;
 
-	memset(&mbs, 0, sizeof(mbs));
+	mbs = initial;
 	pwcsp = pwcs;
-	return (wcsrtombs(s, &pwcsp, n, &mbs));
+	return (__wcsnrtombs(s, &pwcsp, SIZE_T_MAX, n, &mbs));
 }

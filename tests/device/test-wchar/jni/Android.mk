@@ -4,7 +4,11 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := test_wchar
 
+LOCAL_C_INCLUDES := $(LOCAL_PATH)
+
 LOCAL_SRC_FILES := main.c \
+	test-wcslen-c.c \
+	test-wcslen-cpp.cpp \
 	test-btowc.c \
 	test-iswctype.c \
 	test-mblen.c \
@@ -22,8 +26,10 @@ LOCAL_SRC_FILES := main.c \
 	test-wcsrtombs.c \
 	test-wcstombs.c \
 	test-wctomb.c \
-	test-wstring-erase.cpp \
+	test-wstring.cpp \
 
 LOCAL_STATIC_LIBRARIES := wchar_static
+
+LOCAL_LDLIBS := -llog
 
 include $(BUILD_EXECUTABLE)

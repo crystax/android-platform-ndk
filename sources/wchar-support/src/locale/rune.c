@@ -1,32 +1,3 @@
-/*	$OpenBSD: rune.c,v 1.2 2006/04/02 21:38:57 djm Exp $ */
-/*	$NetBSD: rune.c,v 1.26 2004/05/09 11:26:33 kleink Exp $	*/
-
-/*-
- * Copyright (c)1999 Citrus Project,
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
-
 /*-
  * Copyright (c) 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -42,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the University nor the names of its contributors
+ * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -59,260 +30,231 @@
  * SUCH DAMAGE.
  */
 
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)rune.c	8.1 (Berkeley) 6/4/93";
+#endif /* LIBC_SCCS and not lint */
 #include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-#include <assert.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <runetype.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <wchar.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "rune.h"
-#include "rune_local.h"
 
-static int readrange(_RuneLocale *, _RuneRange *, _FileRuneRange *, void *, FILE *);
-static void _freeentry(_RuneRange *);
-static void _wctype_init(_RuneLocale *rl);
+#include "runefile.h"
 
-static int
-readrange(_RuneLocale *rl, _RuneRange *rr, _FileRuneRange *frr, void *lastp,
-	FILE *fp)
-{
-	uint32_t i;
-	_RuneEntry *re;
-	_FileRuneEntry fre;
+#ifdef ANDROID
+#include "android.h"
+#endif
 
-	re = (_RuneEntry *)rl->rl_variable;
-
-	rr->rr_nranges = ntohl(frr->frr_nranges);
-	if (rr->rr_nranges == 0) {
-		rr->rr_rune_ranges = NULL;
-		return 0;
-	}
-
-	rr->rr_rune_ranges = re;
-	for (i = 0; i < rr->rr_nranges; i++) {
-		if (fread(&fre, sizeof(fre), 1, fp) != 1)
-			return -1;
-
-		re->re_min = ntohl((u_int32_t)fre.fre_min);
-		re->re_max = ntohl((u_int32_t)fre.fre_max);
-		re->re_map = ntohl((u_int32_t)fre.fre_map);
-		re++;
-
-		if ((void *)re > lastp)
-			return -1;
-	}
-	rl->rl_variable = re;
-	return 0;
-}
-
-static int
-readentry(_RuneRange *rr, FILE *fp)
-{
-	_RuneEntry *re;
-	size_t l, i, j;
-	int error;
-
-	re = rr->rr_rune_ranges;
-	for (i = 0; i < rr->rr_nranges; i++) {
-		if (re[i].re_map != 0) {
-			re[i].re_rune_types = NULL;
-			continue;
-		}
-
-		l = re[i].re_max - re[i].re_min + 1;
-		re[i].re_rune_types = calloc(l, sizeof(_RuneType));
-		if (!re[i].re_rune_types) {
-			error = ENOMEM;
-			goto fail;
-		}
-
-		if (fread(re[i].re_rune_types, sizeof(_RuneType), l, fp) != l)
-			goto fail2;
-
-		for (j = 0; j < l; j++)
-			re[i].re_rune_types[j] = ntohl(re[i].re_rune_types[j]);
-	}
-	return 0;
-
-fail:
-	for (j = 0; j < i; j++) {
-		free(re[j].re_rune_types);
-		re[j].re_rune_types = NULL;
-	}
-	return error;
-fail2:
-	for (j = 0; j <= i; j++) {
-		free(re[j].re_rune_types);
-		re[j].re_rune_types = NULL;
-	}
-	return errno;
-}
-
-/* XXX: temporary implementation */
-static void
-find_codeset(_RuneLocale *rl)
-{
-	char *top, *codeset, *tail, *ep;
-
-	/* end of rl_variable region */
-	ep = (char *)rl->rl_variable;
-	ep += rl->rl_variable_len;
-	rl->rl_codeset = NULL;
-	if (!(top = strstr(rl->rl_variable, _RUNE_CODESET)))
-		return;
-	tail = strpbrk(top, " \t");
-	codeset = top + sizeof(_RUNE_CODESET) - 1;
-	if (tail) {
-		*top = *tail;
-		*tail = '\0';
-		rl->rl_codeset = strdup(codeset);
-		strlcpy(top + 1, tail + 1, (unsigned)(ep - (top + 1)));
-	} else {
-		*top = '\0';
-		rl->rl_codeset = strdup(codeset);
-	}
-}
-
-void
-_freeentry(_RuneRange *rr)
-{
-	_RuneEntry *re;
-	uint32_t i;
-
-	re = rr->rr_rune_ranges;
-	for (i = 0; i < rr->rr_nranges; i++) {
-		if (re[i].re_rune_types)
-			free(re[i].re_rune_types);
-		re[i].re_rune_types = NULL;
-	}
-}
-
-void
-_wctype_init(_RuneLocale *rl)
-{
-	memcpy(&rl->rl_wctype, &_DefaultRuneLocale.rl_wctype,
-	       sizeof(rl->rl_wctype));
-}
-
+#ifdef ANDROID
+_RuneLocale *_Read_RuneMagi(void *, size_t);
+#else
+_RuneLocale *_Read_RuneMagi(FILE *);
+#endif
 
 _RuneLocale *
-_Read_RuneMagi(FILE *fp)
+_Read_RuneMagi(void *ld, size_t ldsize)
 {
-	/* file */
-	_FileRuneLocale frl;
-	/* host data */
-	char *hostdata;
-	size_t hostdatalen;
+	char *data;
 	void *lastp;
+	_FileRuneLocale *frl;
 	_RuneLocale *rl;
+	_FileRuneEntry *frr;
+	_RuneEntry *rr;
 	struct stat sb;
-	int x;
+	int x, saverr;
+	void *variable;
+	_FileRuneEntry *runetype_ext_ranges;
+	_FileRuneEntry *maplower_ext_ranges;
+	_FileRuneEntry *mapupper_ext_ranges;
+	int runetype_ext_len = 0;
 
-	if (fstat(fileno(fp), &sb) < 0)
-		return NULL;
+    if (ld == NULL)
+        return NULL;
 
-	if (sb.st_size < sizeof(_FileRuneLocale))
-		return NULL;
-	/* XXX more validation? */
+	frl = (_FileRuneLocale *)ld;
+	lastp = (char*)ld + ldsize;
 
-	/* Someone might have read the magic number once already */
-	rewind(fp);
+	variable = frl + 1;
 
-	if (fread(&frl, sizeof(frl), 1, fp) != 1)
-		return NULL;
-	if (memcmp(frl.frl_magic, _RUNE_MAGIC_1, sizeof(frl.frl_magic)))
-		return NULL;
+	if (memcmp(frl->magic, _FILE_RUNE_MAGIC_1, sizeof(frl->magic))) {
+		errno = EFTYPE;
+		return (NULL);
+	}
 
-	hostdatalen = sizeof(*rl) + ntohl((u_int32_t)frl.frl_variable_len) +
-	    ntohl(frl.frl_runetype_ext.frr_nranges) * sizeof(_RuneEntry) +
-	    ntohl(frl.frl_maplower_ext.frr_nranges) * sizeof(_RuneEntry) +
-	    ntohl(frl.frl_mapupper_ext.frr_nranges) * sizeof(_RuneEntry);
-
-	if ((hostdata = malloc(hostdatalen)) == NULL)
-		return NULL;
-	memset(hostdata, 0, hostdatalen);
-	lastp = hostdata + hostdatalen;
-
-	rl = (_RuneLocale *)hostdata;
-	rl->rl_variable = rl + 1;
-
-	memcpy(rl->rl_magic, frl.frl_magic, sizeof(rl->rl_magic));
-	memcpy(rl->rl_encoding, frl.frl_encoding, sizeof(rl->rl_encoding));
-
-	rl->rl_invalid_rune = ntohl((u_int32_t)frl.frl_invalid_rune);
-	rl->rl_variable_len = ntohl((u_int32_t)frl.frl_variable_len);
+	frl->variable_len = ntohl(frl->variable_len);
+	frl->runetype_ext_nranges = ntohl(frl->runetype_ext_nranges);
+	frl->maplower_ext_nranges = ntohl(frl->maplower_ext_nranges);
+	frl->mapupper_ext_nranges = ntohl(frl->mapupper_ext_nranges);
 
 	for (x = 0; x < _CACHED_RUNES; ++x) {
-		rl->rl_runetype[x] = ntohl(frl.frl_runetype[x]);
-
-		/* XXX assumes rune_t = u_int32_t */
-		rl->rl_maplower[x] = ntohl((u_int32_t)frl.frl_maplower[x]);
-		rl->rl_mapupper[x] = ntohl((u_int32_t)frl.frl_mapupper[x]);
+		frl->runetype[x] = ntohl(frl->runetype[x]);
+		frl->maplower[x] = ntohl(frl->maplower[x]);
+		frl->mapupper[x] = ntohl(frl->mapupper[x]);
 	}
 
-	if (readrange(rl, &rl->rl_runetype_ext, &frl.frl_runetype_ext, lastp, fp))
-	{
-		free(hostdata);
-		return NULL;
-	}
-	if (readrange(rl, &rl->rl_maplower_ext, &frl.frl_maplower_ext, lastp, fp))
-	{
-		free(hostdata);
-		return NULL;
-	}
-	if (readrange(rl, &rl->rl_mapupper_ext, &frl.frl_mapupper_ext, lastp, fp))
-	{
-		free(hostdata);
-		return NULL;
+	runetype_ext_ranges = (_FileRuneEntry *)variable;
+	variable = runetype_ext_ranges + frl->runetype_ext_nranges;
+	if (variable > lastp) {
+		errno = EFTYPE;
+		return (NULL);
 	}
 
-	if (readentry(&rl->rl_runetype_ext, fp) != 0) {
-		free(hostdata);
-		return NULL;
+	maplower_ext_ranges = (_FileRuneEntry *)variable;
+	variable = maplower_ext_ranges + frl->maplower_ext_nranges;
+	if (variable > lastp) {
+		errno = EFTYPE;
+		return (NULL);
 	}
 
-	if ((u_int8_t *)rl->rl_variable + rl->rl_variable_len >
-	    (u_int8_t *)lastp) {
-		_freeentry(&rl->rl_runetype_ext);
-		free(hostdata);
-		return NULL;
+	mapupper_ext_ranges = (_FileRuneEntry *)variable;
+	variable = mapupper_ext_ranges + frl->mapupper_ext_nranges;
+	if (variable > lastp) {
+		errno = EFTYPE;
+		return (NULL);
 	}
-	if (rl->rl_variable_len == 0)
-		rl->rl_variable = NULL;
-	else if (fread(rl->rl_variable, rl->rl_variable_len, 1, fp) != 1) {
-		_freeentry(&rl->rl_runetype_ext);
-		free(hostdata);
-		return NULL;
+
+	frr = runetype_ext_ranges;
+	for (x = 0; x < frl->runetype_ext_nranges; ++x) {
+		uint32_t *types;
+
+		frr[x].min = ntohl(frr[x].min);
+		frr[x].max = ntohl(frr[x].max);
+		frr[x].map = ntohl(frr[x].map);
+		if (frr[x].map == 0) {
+			int len = frr[x].max - frr[x].min + 1;
+			types = variable;
+			variable = types + len;
+			runetype_ext_len += len;
+			if (variable > lastp) {
+				errno = EFTYPE;
+				return (NULL);
+			}
+			while (len-- > 0)
+				types[len] = ntohl(types[len]);
+		}
 	}
-	find_codeset(rl);
-	_wctype_init(rl);
+
+	frr = maplower_ext_ranges;
+	for (x = 0; x < frl->maplower_ext_nranges; ++x) {
+		frr[x].min = ntohl(frr[x].min);
+		frr[x].max = ntohl(frr[x].max);
+		frr[x].map = ntohl(frr[x].map);
+	}
+
+	frr = mapupper_ext_ranges;
+	for (x = 0; x < frl->mapupper_ext_nranges; ++x) {
+		frr[x].min = ntohl(frr[x].min);
+		frr[x].max = ntohl(frr[x].max);
+		frr[x].map = ntohl(frr[x].map);
+	}
+	if ((char *)variable + frl->variable_len > (char *)lastp) {
+		errno = EFTYPE;
+		return (NULL);
+	}
 
 	/*
-	 * error if we have junk at the tail, 
-	 * or if we can't allocate memory.
+	 * Convert from disk format to host format.
 	 */
-	if (ftell(fp) != sb.st_size || __make_ctype_tabs(rl) == -1) {
-		_freeentry(&rl->rl_runetype_ext);
-		free(hostdata);
-		return NULL;
+	data = malloc(sizeof(_RuneLocale) +
+	    (frl->runetype_ext_nranges + frl->maplower_ext_nranges +
+	    frl->mapupper_ext_nranges) * sizeof(_RuneEntry) +
+	    runetype_ext_len * sizeof(*rr->__types) +
+	    frl->variable_len);
+	if (data == NULL) {
+		saverr = errno;
+		errno = saverr;
+		return (NULL);
 	}
 
-	return(rl);
-}
+	rl = (_RuneLocale *)data;
+	rl->__variable = rl + 1;
 
-void
-_NukeRune(_RuneLocale *rl)
-{
+	memcpy(rl->__magic, _RUNE_MAGIC_1, sizeof(rl->__magic));
+	memcpy(rl->__encoding, frl->encoding, sizeof(rl->__encoding));
+	rl->__invalid_rune = 0;
 
-	if (rl != &_DefaultRuneLocale) {
-		_freeentry(&rl->rl_runetype_ext);
-		free(rl->rl_tabs);
-		free(rl->rl_codeset);
-		free(rl);
+	rl->__variable_len = frl->variable_len;
+	rl->__runetype_ext.__nranges = frl->runetype_ext_nranges;
+	rl->__maplower_ext.__nranges = frl->maplower_ext_nranges;
+	rl->__mapupper_ext.__nranges = frl->mapupper_ext_nranges;
+
+	for (x = 0; x < _CACHED_RUNES; ++x) {
+		rl->__runetype[x] = frl->runetype[x];
+		rl->__maplower[x] = frl->maplower[x];
+		rl->__mapupper[x] = frl->mapupper[x];
 	}
-}
 
+	rl->__runetype_ext.__ranges = (_RuneEntry *)rl->__variable;
+	rl->__variable = rl->__runetype_ext.__ranges +
+	    rl->__runetype_ext.__nranges;
+
+	rl->__maplower_ext.__ranges = (_RuneEntry *)rl->__variable;
+	rl->__variable = rl->__maplower_ext.__ranges +
+	    rl->__maplower_ext.__nranges;
+
+	rl->__mapupper_ext.__ranges = (_RuneEntry *)rl->__variable;
+	rl->__variable = rl->__mapupper_ext.__ranges +
+	    rl->__mapupper_ext.__nranges;
+
+	variable = mapupper_ext_ranges + frl->mapupper_ext_nranges;
+	frr = runetype_ext_ranges;
+	rr = rl->__runetype_ext.__ranges;
+	for (x = 0; x < rl->__runetype_ext.__nranges; ++x) {
+		uint32_t *types;
+
+		rr[x].__min = frr[x].min;
+		rr[x].__max = frr[x].max;
+		rr[x].__map = frr[x].map;
+		if (rr[x].__map == 0) {
+			int len = rr[x].__max - rr[x].__min + 1;
+			types = variable;
+			variable = types + len;
+			rr[x].__types = rl->__variable;
+			rl->__variable = rr[x].__types + len;
+			while (len-- > 0)
+				rr[x].__types[len] = types[len];
+		} else
+			rr[x].__types = NULL;
+	}
+
+	frr = maplower_ext_ranges;
+	rr = rl->__maplower_ext.__ranges;
+	for (x = 0; x < rl->__maplower_ext.__nranges; ++x) {
+		rr[x].__min = frr[x].min;
+		rr[x].__max = frr[x].max;
+		rr[x].__map = frr[x].map;
+	}
+
+	frr = mapupper_ext_ranges;
+	rr = rl->__mapupper_ext.__ranges;
+	for (x = 0; x < rl->__mapupper_ext.__nranges; ++x) {
+		rr[x].__min = frr[x].min;
+		rr[x].__max = frr[x].max;
+		rr[x].__map = frr[x].map;
+	}
+
+	memcpy(rl->__variable, variable, rl->__variable_len);
+
+	/*
+	 * Go out and zero pointers that should be zero.
+	 */
+	if (!rl->__variable_len)
+		rl->__variable = NULL;
+
+	if (!rl->__runetype_ext.__nranges)
+		rl->__runetype_ext.__ranges = NULL;
+
+	if (!rl->__maplower_ext.__nranges)
+		rl->__maplower_ext.__ranges = NULL;
+
+	if (!rl->__mapupper_ext.__nranges)
+		rl->__mapupper_ext.__ranges = NULL;
+
+	return (rl);
+}

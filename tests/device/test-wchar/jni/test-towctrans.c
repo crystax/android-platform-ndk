@@ -31,17 +31,10 @@
  * The functions are tested in the "C" and "ja_JP.eucJP" locales.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-towctrans.c,v 1.3.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <locale.h>
-#include <stdio.h>
-#include <wchar.h>
-#include <wctype.h>
-
-int
-test_towctrans()
+GLOBAL
+int test_towctrans()
 {
 	wctype_t t;
 	int i, j;

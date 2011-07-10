@@ -32,18 +32,10 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mblen.c,v 1.3.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-int
-test_mblen()
+GLOBAL
+int test_mblen()
 {
 	size_t len;
 	char buf[MB_LEN_MAX + 1];
@@ -73,6 +65,7 @@ test_mblen()
 	assert(mblen(buf, 0) == -1);
 	assert(mblen(NULL, 0) == 0);
 
+#if CRYSTAX_LOCALE_ENABLED
 	/*
 	 * Japanese (EUC) locale.
 	 */
@@ -107,6 +100,7 @@ test_mblen()
 	/* Same as above, but complete. */
 	buf[1] = 0xc1;
 	assert(mblen(buf, 2) == 2);
+#endif /* CRYSTAX_LOCALE_ENABLED */
 
 	printf("ok 1 - mblen()\n");
 

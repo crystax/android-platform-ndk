@@ -24,16 +24,7 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/string/test-wcsnlen.c,v 1.1.2.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
-
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
+#include <common.h>
 
 #ifndef roundup2
 #define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
@@ -75,8 +66,8 @@ test_wcsnlen_internal(const wchar_t *s)
 	}
 }
 
-int
-test_wcsnlen()
+GLOBAL
+int test_wcsnlen()
 {
 
 	printf("1..3\n");

@@ -1,4 +1,3 @@
-/*	$OpenBSD: wctob.c,v 1.1 2010/07/27 16:59:04 stsp Exp $ */
 /*-
  * Copyright (c) 2002-2004 Tim J. Robbins.
  * All rights reserved.
@@ -26,20 +25,21 @@
  */
 
 #include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
 #include <limits.h>
 #include <stdio.h>
-#include <string.h>
 #include <wchar.h>
+#include "mblocal.h"
 
 int
 wctob(wint_t c)
 {
-	mbstate_t mbs;
+	static const mbstate_t initial;
+	mbstate_t mbs = initial;
 	char buf[MB_LEN_MAX];
 
-	memset(&mbs, 0, sizeof(mbs));
-	if (c == WEOF || wcrtomb(buf, c, &mbs) != 1)
+	if (c == WEOF || __wcrtomb(buf, c, &mbs) != 1)
 		return (EOF);
 	return ((unsigned char)*buf);
 }

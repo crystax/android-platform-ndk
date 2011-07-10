@@ -31,20 +31,13 @@
  * The function is tested in the "C" and "ja_JP.eucJP" locales.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-btowc.c,v 1.4.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <wchar.h>
-
-int
-test_btowc()
+GLOBAL
+int test_btowc()
 {
 	int i;
+    char *locale;
 
 	printf("1..2\n");
 
@@ -56,14 +49,18 @@ test_btowc()
 	for (i = 0; i < UCHAR_MAX; i++)
 		assert(btowc(i) == (wchar_t)i && i == (int)wctob(i));
 
+#if CRYSTAX_LOCALE_ENABLED
 	/*
-	 * Japanese (EUC) locale.
-	 */
+	* Japanese (EUC) locale.
+	*/
 
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+    locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 	assert(btowc('A') == L'A' && wctob(L'A') == 'A');
 	assert(btowc(0xa3) == WEOF && wctob(0xa3c1) == EOF);
+#endif /* CRYSTAX_LOCALE_ENABLED */
 
 	printf("ok 1 - btowc()\n");
 	printf("ok 2 - wctob()\n");

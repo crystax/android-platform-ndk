@@ -5,6 +5,9 @@
 
 int main()
 {
+    DO_WCHAR_TEST(wcslen_c);
+    DO_WCHAR_TEST(wcslen_cpp);
+
     DO_WCHAR_TEST(btowc);
     DO_WCHAR_TEST(iswctype);
     DO_WCHAR_TEST(mblen);
@@ -22,6 +25,7 @@ int main()
     DO_WCHAR_TEST(wcsrtombs);
     DO_WCHAR_TEST(wcstombs);
     DO_WCHAR_TEST(wctomb);
+    DO_WCHAR_TEST(wstring_construct);
     DO_WCHAR_TEST(wstring_erase);
     return 0;
 }

@@ -1,5 +1,3 @@
-/*	$OpenBSD: wctomb.c,v 1.1 2010/07/27 16:59:04 stsp Exp $ */
-
 /*-
  * Copyright (c) 2002-2004 Tim J. Robbins.
  * All rights reserved.
@@ -27,23 +25,25 @@
  */
 
 #include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
 #include <stdlib.h>
-#include <string.h>
 #include <wchar.h>
+#include "mblocal.h"
 
 int
 wctomb(char *s, wchar_t wchar)
 {
+	static const mbstate_t initial;
 	static mbstate_t mbs;
 	size_t rval;
 
 	if (s == NULL) {
 		/* No support for state dependent encodings. */
-		memset(&mbs, 0, sizeof(mbs));
+		mbs = initial;
 		return (0);
 	}
-	if ((rval = wcrtomb(s, wchar, &mbs)) == (size_t)-1)
+	if ((rval = __wcrtomb(s, wchar, &mbs)) == (size_t)-1)
 		return (-1);
 	return ((int)rval);
 }

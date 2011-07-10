@@ -31,17 +31,10 @@
  * The functions are tested in the "C" and "ja_JP.eucJP" locales.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-iswctype.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <locale.h>
-#include <stdio.h>
-#include <wchar.h>
-#include <wctype.h>
-
-int
-test_iswctype()
+GLOBAL
+int test_iswctype()
 {
 	wctype_t t;
 	int i, j;
@@ -79,9 +72,10 @@ test_iswctype()
 	for (i = 0; i < 256; i++)
 		assert(iswctype(i, t) == 0);
 
+#if CRYSTAX_LOCALE_ENABLED
 	/*
-	 * Japanese (EUC) locale.
-	 */
+	* Japanese (EUC) locale.
+	*/
 	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	for (i = 0; i < sizeof(cls) / sizeof(*cls); i++) {
 		t = wctype(cls[i].name);
@@ -93,6 +87,7 @@ test_iswctype()
 	assert(t == 0);
 	for (i = 0; i < 65536; i++)
 		assert(iswctype(i, t) == 0);
+#endif /* CRYSTAX_LOCALE_ENABLED */
 
 	printf("ok 1 - iswctype()\n");
 	printf("ok 2 - wctype()\n");

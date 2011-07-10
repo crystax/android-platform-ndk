@@ -32,18 +32,10 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbtowc.c,v 1.3.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-int
-test_mbtowc()
+GLOBAL
+int test_mbtowc()
 {
 	size_t len;
 	wchar_t wc;

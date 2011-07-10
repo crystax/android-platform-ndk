@@ -1,14 +1,14 @@
-/*	$OpenBSD: iswctype.c,v 1.1 2005/08/07 10:16:23 espie Exp $ */
-/*	$NetBSD: iswctype.c,v 1.15 2005/02/09 21:35:46 kleink Exp $	*/
-
 /*
- * Copyright (c) 1989 The Regents of the University of California.
- * All rights reserved.
+ * Copyright (c) 1989, 1993
+ *	The Regents of the University of California.  All rights reserved.
  * (c) UNIX System Laboratories, Inc.
  * All or some portions of this file are derived from material licensed
  * to the University of California by American Telephone and Telegraph
  * Co. or Unix System Laboratories, Inc. and are reproduced herein with
  * the permission of UNIX System Laboratories, Inc.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * Paul Borman at Krystal Technologies.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -18,7 +18,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the University nor the names of its contributors
+ * 4. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -36,191 +36,175 @@
  */
 
 #include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-#include <wchar.h>
 #include <wctype.h>
-#include <ctype.h>
-#include <errno.h>
-#include <string.h>
-#include "rune.h"
-#include "runetype.h"
-#include "rune_local.h"
-#include "_wctrans_local.h"
 
-#ifdef lint
-#define __inline
-#endif
-
-static __inline _RuneType __runetype_w(wint_t);
-static __inline int __isctype_w(wint_t, _RuneType);
-static __inline wint_t __toupper_w(wint_t);
-static __inline wint_t __tolower_w(wint_t);
-
-static __inline _RuneType
-__runetype_w(wint_t c)
-{
-	_RuneLocale *rl = _CurrentRuneLocale;
-
-	return (_RUNE_ISCACHED(c) ?
-		rl->rl_runetype[c] : ___runetype_mb(c));
-}
-
-static __inline int
-__isctype_w(wint_t c, _RuneType f)
-{
-	return (!!(__runetype_w(c) & f));
-}
-
-static __inline wint_t
-__toupper_w(wint_t c)
-{
-	return (_towctrans(c, _wctrans_upper(_CurrentRuneLocale)));
-}
-
-static __inline wint_t
-__tolower_w(wint_t c)
-{
-	return (_towctrans(c, _wctrans_lower(_CurrentRuneLocale)));
-}
-
+#undef iswalnum
 int
-iswalnum(wint_t c)
+iswalnum(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_A|_CTYPE_D));
+	return (__istype(wc, _CTYPE_A|_CTYPE_D));
 }
 
+#undef iswalpha
 int
-iswalpha(wint_t c)
+iswalpha(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_A));
+	return (__istype(wc, _CTYPE_A));
 }
 
+#undef iswascii
 int
-iswblank(wint_t c)
+iswascii(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_B));
+	return ((wc & ~0x7F) == 0);
 }
 
+#undef iswblank
 int
-iswcntrl(wint_t c)
+iswblank(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_C));
+	return (__istype(wc, _CTYPE_B));
 }
 
+#undef iswcntrl
 int
-iswdigit(wint_t c)
+iswcntrl(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_D));
+	return (__istype(wc, _CTYPE_C));
 }
 
+#undef iswdigit
 int
-iswgraph(wint_t c)
+iswdigit(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_G));
+	return (__isctype(wc, _CTYPE_D));
 }
 
+#undef iswgraph
 int
-iswlower(wint_t c)
+iswgraph(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_L));
+	return (__istype(wc, _CTYPE_G));
 }
 
+#undef iswhexnumber 
 int
-iswprint(wint_t c)
+iswhexnumber(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_R));
+	return (__istype(wc, _CTYPE_X));
 }
 
+#undef iswideogram
 int
-iswpunct(wint_t c)
+iswideogram(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_P));
+	return (__istype(wc, _CTYPE_I));
 }
 
+#undef iswlower
 int
-iswspace(wint_t c)
+iswlower(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_S));
+	return (__istype(wc, _CTYPE_L));
 }
 
+#undef iswnumber
 int
-iswupper(wint_t c)
+iswnumber(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_U));
+	return (__istype(wc, _CTYPE_D));
 }
 
+#undef iswphonogram	
 int
-iswxdigit(wint_t c)
+iswphonogram(wc)
+	wint_t wc;
 {
-	return (__isctype_w((c), _CTYPE_X));
+	return (__istype(wc, _CTYPE_Q));
 }
 
+#undef iswprint
+int
+iswprint(wc)
+	wint_t wc;
+{
+	return (__istype(wc, _CTYPE_R));
+}
+
+#undef iswpunct
+int
+iswpunct(wc)
+	wint_t wc;
+{
+	return (__istype(wc, _CTYPE_P));
+}
+
+#undef iswrune
+int
+iswrune(wc)
+	wint_t wc;
+{
+	return (__istype(wc, 0xFFFFFF00L));
+}
+
+#undef iswspace
+int
+iswspace(wc)
+	wint_t wc;
+{
+	return (__istype(wc, _CTYPE_S));
+}
+
+#undef iswspecial
+int
+iswspecial(wc)
+	wint_t wc;
+{
+	return (__istype(wc, _CTYPE_T));
+}
+
+#undef iswupper
+int
+iswupper(wc)
+	wint_t wc;
+{
+	return (__istype(wc, _CTYPE_U));
+}
+
+#undef iswxdigit
+int
+iswxdigit(wc)
+	wint_t wc;
+{
+	return (__isctype(wc, _CTYPE_X));
+}
+
+#undef towlower
 wint_t
-towupper(wint_t c)
+towlower(wc)
+	wint_t wc;
 {
-	return (__toupper_w(c));
+        return (__tolower(wc));
 }
 
+#undef towupper
 wint_t
-towlower(wint_t c)
+towupper(wc)
+	wint_t wc;
 {
-	return (__tolower_w(c));
+        return (__toupper(wc));
 }
 
-int
-wcwidth(wchar_t c)
-{
-        return (((unsigned)__runetype_w(c) & _CTYPE_SWM) >> _CTYPE_SWS);
-}
-
-wctrans_t
-wctrans(const char *charclass)
-{
-	int i;
-	_RuneLocale *rl = _CurrentRuneLocale;
-
-	if (rl->rl_wctrans[_WCTRANS_INDEX_LOWER].te_name==NULL)
-		_wctrans_init(rl);
-
-	for (i=0; i<_WCTRANS_NINDEXES; i++)
-		if (!strcmp(rl->rl_wctrans[i].te_name, charclass))
-			return ((wctrans_t)&rl->rl_wctrans[i]);
-
-	return ((wctrans_t)NULL);
-}
-
-wint_t
-towctrans(wint_t c, wctrans_t desc)
-{
-	if (desc==NULL) {
-		errno = EINVAL;
-		return (c);
-	}
-	return (_towctrans(c, (_WCTransEntry *)desc));
-}
-
-wctype_t
-wctype(const char *property)
-{
-	int i;
-	_RuneLocale *rl = _CurrentRuneLocale;
-
-	for (i=0; i<_WCTYPE_NINDEXES; i++)
-		if (!strcmp(rl->rl_wctype[i].te_name, property))
-			return ((wctype_t)&rl->rl_wctype[i]);
-	return ((wctype_t)NULL);
-}
-
-int
-iswctype(wint_t c, wctype_t charclass)
-{
-
-	/*
-	 * SUSv3: If charclass is 0, iswctype() shall return 0.
-	 */
-	if (charclass == (wctype_t)0) {
-		return 0;
-	}
-
-	return (__isctype_w(c, ((_WCTypeEntry *)charclass)->te_mask));
-}

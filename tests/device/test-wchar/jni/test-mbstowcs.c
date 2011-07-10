@@ -32,20 +32,10 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbstowcs.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-
-int
-test_mbstowcs()
+GLOBAL
+int test_mbstowcs()
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];

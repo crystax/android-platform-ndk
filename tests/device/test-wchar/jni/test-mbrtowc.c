@@ -32,20 +32,10 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbrtowc.c,v 1.5.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-
-int
-test_mbrtowc()
+GLOBAL
+int test_mbrtowc()
 {
 	mbstate_t s;
 	size_t len;
@@ -95,6 +85,7 @@ test_mbrtowc()
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
 	assert(wc == L'z');
 
+#if CRYSTAX_LOCALE_ENABLED
 	/*
 	 * Japanese (EUC) locale.
 	 */
@@ -156,6 +147,7 @@ test_mbrtowc()
 	buf[0] = 0xc1;
 	assert(mbrtowc(&wc, buf, 1, &s) == 1);
 	assert(wc == 0xa3c1);
+#endif /* CRYSTAX_LOCALE_ENABLED */
 
 	printf("ok 1 - mbrtowc()\n");
 

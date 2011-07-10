@@ -11,22 +11,51 @@ ifndef WCHAR_FORCE_REBUILD
 endif
 
 WCHAR_SRC_FILES := \
-	citrus/citrus_ctype.c \
-	citrus/citrus_none.c \
-	citrus/citrus_utf8.c \
-	locale/___runetype_mb.c \
-	locale/__mb_cur_max.c \
-	locale/_wctrans.c \
+	android/utils.c \
+	locale/ascii.c \
+	locale/big5.c \
+	locale/btowc.c \
+	locale/collate.c \
+	locale/euc.c \
+	locale/fix_grouping.c \
+	locale/gb18030.c \
+	locale/gb2312.c \
+	locale/gbk.c \
+	locale/isctype.c \
 	locale/iswctype.c \
+	locale/ldpart.c \
+	locale/lmessages.c \
+	locale/lmonetary.c \
+	locale/lnumeric.c \
+	locale/localeconv.c \
+	locale/mblen.c \
+	locale/mbrlen.c \
+	locale/mbrtowc.c \
+	locale/mbsinit.c \
+	locale/mbsnrtowcs.c \
+	locale/mbsrtowcs.c \
 	locale/mbstowcs.c \
-	locale/multibyte_citrus.c \
+	locale/mbtowc.c \
+	locale/mskanji.c \
+	locale/nextwctype.c \
+	locale/none.c \
 	locale/rune.c \
-	locale/runeglue.c \
-	locale/runetable.c \
+	locale/runetype.c \
+	locale/setlocale.c \
+	locale/setrunelocale.c \
+	locale/table.c \
+	locale/tolower.c \
+	locale/toupper.c \
+	locale/utf8.c \
+	locale/wcrtomb.c \
+	locale/wcsftime.c \
+	locale/wcsnrtombs.c \
+	locale/wcsrtombs.c \
 	locale/wcstod.c \
 	locale/wcstof.c \
 	locale/wcstoimax.c \
 	locale/wcstol.c \
+	locale/wcstold.c \
 	locale/wcstoll.c \
 	locale/wcstombs.c \
 	locale/wcstoul.c \
@@ -34,6 +63,40 @@ WCHAR_SRC_FILES := \
 	locale/wcstoumax.c \
 	locale/wctob.c \
 	locale/wctomb.c \
+	locale/wctrans.c \
+	locale/wctype.c \
+	locale/wcwidth.c \
+	stdtime/timelocal.c \
+	string/wcpcpy.c \
+	string/wcpncpy.c \
+	string/wcscasecmp.c \
+	string/wcscat.c \
+	string/wcschr.c \
+	string/wcscmp.c \
+	string/wcscoll.c \
+	string/wcscpy.c \
+	string/wcscspn.c \
+	string/wcsdup.c \
+	string/wcslcat.c \
+	string/wcslcpy.c \
+	string/wcslen.c \
+	string/wcsncasecmp.c \
+	string/wcsncat.c \
+	string/wcsncmp.c \
+	string/wcsncpy.c \
+	string/wcsnlen.c \
+	string/wcspbrk.c \
+	string/wcsrchr.c \
+	string/wcsspn.c \
+	string/wcsstr.c \
+	string/wcstok.c \
+	string/wcswidth.c \
+	string/wcsxfrm.c \
+	string/wmemchr.c \
+	string/wmemcmp.c \
+	string/wmemcpy.c \
+	string/wmemmove.c \
+	string/wmemset.c \
 
 ifneq ($(WCHAR_FORCE_REBUILD),true)
 
@@ -58,14 +121,14 @@ $(call ndk_log,Rebuilding wchar support libraries from sources)
 include $(CLEAR_VARS)
 LOCAL_MODULE            := wchar_static
 LOCAL_SRC_FILES         := $(addprefix src/,$(WCHAR_SRC_FILES))
-LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale
+LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale $(LOCAL_PATH)/src/android
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := wchar_shared
 LOCAL_SRC_FILES         := $(addprefix src/,$(WCHAR_SRC_FILES))
-LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale
+LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale $(LOCAL_PATH)/src/android
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(BUILD_SHARED_LIBRARY)
 

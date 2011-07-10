@@ -32,25 +32,16 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbsrtowcs.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-
-int
-test_mbsrtowcs()
+GLOBAL
+int test_mbsrtowcs()
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];
 	char *src;
 	mbstate_t s;
+    int rc;
 
 	/*
 	 * C/POSIX locale.
@@ -86,7 +77,10 @@ test_mbsrtowcs()
 	strcpy(srcbuf, "hello");
 	src = srcbuf;
 	memset(&s, 0, sizeof(s));
-	assert(mbsrtowcs(NULL, (const char **)&src, 0, &s) == 5);
+    rc = mbsrtowcs(NULL, (const char **)&src, 0, &s);
+    printf("rc = %d\n", rc);
+    assert(rc == 5);
+	/* assert(mbsrtowcs(NULL, (const char **)&src, 0, &s) == 5); */
 
 	/* Null terminated string, internal state. */
 	memset(srcbuf, 0xcc, sizeof(srcbuf));

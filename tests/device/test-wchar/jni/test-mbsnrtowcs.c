@@ -31,20 +31,10 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/locale/test-mbsnrtowcs.c,v 1.2.22.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
-
-int
-test_mbsnrtowcs()
+GLOBAL
+int test_mbsnrtowcs()
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];
@@ -66,6 +56,7 @@ test_mbsnrtowcs()
 	assert(mbsnrtowcs(dstbuf, (const char **)&src, 6, sizeof(dstbuf) /
 	    sizeof(*dstbuf), &s) == 5);
 	assert(wcscmp(dstbuf, L"hello") == 0);
+    printf("dstbuf[6]=%x\n", (unsigned int)dstbuf[6]);
 	assert(dstbuf[6] == 0xcccc);
 	assert(src == NULL);
 
@@ -153,6 +144,7 @@ test_mbsnrtowcs()
 	assert(dstbuf[0] == 0xcccc);
 	assert(src == srcbuf);
 
+#if CRYSTAX_LOCALE_ENABLED
 	/*
 	 * Japanese (EUC) locale.
 	 */
@@ -187,6 +179,7 @@ test_mbsnrtowcs()
 	assert(mbsnrtowcs(dstbuf, (const char **)&src, 1, sizeof(dstbuf) /
 	    sizeof(*dstbuf), &s) == 0);
 	assert(src == NULL);
+#endif /* CRYSTAX_LOCALE_ENABLED */
 
 	printf("ok 1 - mbsnrtowcs()\n");
 

@@ -24,18 +24,10 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-/* __FBSDID("$FreeBSD: src/tools/regression/lib/libc/string/test-wcscasecmp.c,v 1.1.2.1.4.1 2010/06/14 02:09:06 kensmith Exp $"); */
+#include <common.h>
 
-#include <assert.h>
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <wchar.h>
-#include <wctype.h>
-
-int
-test_wcscasecmp()
+GLOBAL
+int test_wcscasecmp()
 {
 
 	printf("1..6\n");
