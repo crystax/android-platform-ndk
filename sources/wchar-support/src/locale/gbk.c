@@ -42,6 +42,10 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
+#ifdef ANDROID
+#include "android.h"
+#endif
+
 extern int __mb_sb_limit;
 
 static size_t	_GBK_mbrtowc(wchar_t * __restrict, const char * __restrict,
@@ -57,7 +61,7 @@ typedef struct {
 int
 _GBK_init(_RuneLocale *rl)
 {
-
+    DBG("_GBK_init");
 	__mbrtowc = _GBK_mbrtowc;
 	__wcrtomb = _GBK_wcrtomb;
 	__mbsinit = _GBK_mbsinit;

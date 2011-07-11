@@ -11,6 +11,10 @@ ifndef WCHAR_FORCE_REBUILD
 endif
 
 WCHAR_SRC_FILES := \
+	android/locale/UTF-8/LC_CTYPE.c \
+	android/locale/el_GR.ISO8859-7/LC_CTYPE.c \
+	android/locale/la_LN.ISO8859-1/LC_CTYPE.c \
+	android/locale/la_LN.US-ASCII/LC_CTYPE.c \
 	android/utils.c \
 	locale/ascii.c \
 	locale/big5.c \
@@ -66,6 +70,7 @@ WCHAR_SRC_FILES := \
 	locale/wctype.c \
 	locale/wcwidth.c \
 	stdtime/timelocal.c \
+	string/memchr.c \
 	string/wcpcpy.c \
 	string/wcpncpy.c \
 	string/wcscasecmp.c \

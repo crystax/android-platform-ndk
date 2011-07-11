@@ -55,7 +55,7 @@ typedef struct {
 int
 _GB2312_init(_RuneLocale *rl)
 {
-
+    DBG("_GB2312_init");
 	_CurrentRuneLocale = rl;
 	__mbrtowc = _GB2312_mbrtowc;
 	__wcrtomb = _GB2312_wcrtomb;

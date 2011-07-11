@@ -40,12 +40,18 @@ int test_wcsnrtombs()
 	char dstbuf[128];
 	wchar_t *src;
 	mbstate_t s;
-
-	/*
-	 * C/POSIX locale.
-	 */
+    char *locale;
 
 	printf("1..1\n");
+
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    printf("locale: %s\n", locale);
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
 
 	/* Simple null terminated string. */
 	wmemset(srcbuf, 0xcc, sizeof(srcbuf) / sizeof(*srcbuf));
@@ -145,11 +151,14 @@ int test_wcsnrtombs()
 	assert((unsigned char)dstbuf[0] == 0xcc);
 	assert(src == srcbuf);
 
+#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
 	wmemset(srcbuf, 0xcc, sizeof(srcbuf) / sizeof(*srcbuf));
@@ -177,6 +186,7 @@ int test_wcsnrtombs()
 	assert(memcmp(dstbuf, "\xA3\xC1 B ", 5) == 0);
 	assert((unsigned char)dstbuf[5] == 0xcc);
 	assert(src == srcbuf + 4);
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - wcsnrtombs()\n");
 

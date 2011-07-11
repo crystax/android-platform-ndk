@@ -44,6 +44,10 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
+#ifdef ANDROID
+#include "android.h"
+#endif
+
 static size_t	_ascii_mbrtowc(wchar_t * __restrict, const char * __restrict,
 		    size_t, mbstate_t * __restrict);
 static int	_ascii_mbsinit(const mbstate_t *);
@@ -58,7 +62,7 @@ static size_t	_ascii_wcsnrtombs(char * __restrict, const wchar_t ** __restrict,
 int
 _ascii_init(_RuneLocale *rl)
 {
-
+    DBG("_ascii_init");
 	__mbrtowc = _ascii_mbrtowc;
 	__mbsinit = _ascii_mbsinit;
 	__mbsnrtowcs = _ascii_mbsnrtowcs;
@@ -123,6 +127,8 @@ _ascii_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 {
 	const char *s;
 	size_t nchr;
+    
+    DBG("_ascii_mbsnrtowcs");
 
 	if (dst == NULL) {
 		for (s = *src; nms > 0 && *s != '\0'; s++, nms--) {

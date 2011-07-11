@@ -41,12 +41,17 @@ int test_mbrtowc()
 	size_t len;
 	wchar_t wc;
 	char buf[MB_LEN_MAX + 1];
-
-	/*
-	 * C/POSIX locale.
-	 */
+    char *locale;
 
 	printf("1..1\n");
+
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
 
 	assert(MB_CUR_MAX == 1);
 
@@ -85,12 +90,14 @@ int test_mbrtowc()
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
 	assert(wc == L'z');
 
-#if CRYSTAX_LOCALE_ENABLED
+#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
 	/* Null wide character, internal state. */
@@ -147,7 +154,7 @@ int test_mbrtowc()
 	buf[0] = 0xc1;
 	assert(mbrtowc(&wc, buf, 1, &s) == 1);
 	assert(wc == 0xa3c1);
-#endif /* CRYSTAX_LOCALE_ENABLED */
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - mbrtowc()\n");
 

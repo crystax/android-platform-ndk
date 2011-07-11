@@ -55,7 +55,7 @@ __FBSDID("$FreeBSD$");
 #include "../stdtime/timelocal.h" /* for __time_load_locale() */
 
 #ifdef ANDROID
-#define _LC_LAST 7
+#include "android.h"
 #endif
 
 /*
@@ -103,6 +103,8 @@ setlocale(category, locale)
 {
 	int i, j, len, saverr;
         const char *env, *r;
+
+    DBG("setlocale: category=%d, locale=%s", category, locale);
 
 	if (category < LC_ALL || category >= _LC_LAST) {
 		errno = EINVAL;
@@ -234,6 +236,8 @@ loadlocale(category)
 	char *old = current_categories[category];
 	int (*func)(const char *);
 	int saved_errno;
+    
+    DBG("loadlocale: new=%s, old=%s", new, old);
 
 	if ((new[0] == '.' &&
 	     (new[1] == '\0' || (new[1] == '.' && new[2] == '\0'))) ||

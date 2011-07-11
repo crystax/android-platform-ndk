@@ -79,9 +79,14 @@ _EUC_init(_RuneLocale *rl)
 	_EucInfo *ei;
 	int x, new__mb_cur_max;
 	char *v, *e;
+    
+    DBG("_EUC_init");
 
 	if (rl->__variable == NULL)
+    {
+        DBG("_EUC_init: ret (1)");
 		return (EFTYPE);
+    }
 
 	v = (char *)rl->__variable;
 
@@ -95,6 +100,7 @@ _EUC_init(_RuneLocale *rl)
 	for (x = 0; x < 4; ++x) {
 		ei->count[x] = (int)strtol(v, &e, 0);
 		if (v == e || !(v = e)) {
+            DBG("_EUC_init: ret (2)");
 			free(ei);
 			return (EFTYPE);
 		}
@@ -104,6 +110,7 @@ _EUC_init(_RuneLocale *rl)
 			++v;
 		ei->bits[x] = (int)strtol(v, &e, 0);
 		if (v == e || !(v = e)) {
+            DBG("_EUC_init: ret (3)");
 			free(ei);
 			return (EFTYPE);
 		}
@@ -112,6 +119,7 @@ _EUC_init(_RuneLocale *rl)
 	}
 	ei->mask = (int)strtol(v, &e, 0);
 	if (v == e || !(v = e)) {
+        DBG("_EUC_init: ret (4)");
 		free(ei);
 		return (EFTYPE);
 	}

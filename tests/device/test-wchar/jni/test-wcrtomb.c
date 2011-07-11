@@ -40,12 +40,17 @@ int test_wcrtomb()
 	mbstate_t s;
 	size_t len;
 	char buf[MB_LEN_MAX + 1];
-
-	/*
-	 * C/POSIX locale.
-	 */
+    char *locale;
 
 	printf("1..1\n");
+
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
 
 	assert(MB_CUR_MAX == 1);
 
@@ -78,11 +83,14 @@ int test_wcrtomb()
 	assert(wcrtomb(buf, UCHAR_MAX + 1, NULL) == (size_t)-1);
 	assert(errno == EILSEQ);
 
+#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX == 3);
 
 	/*
@@ -117,6 +125,7 @@ int test_wcrtomb()
 	assert((unsigned char)buf[0] == 0xa3 &&
 		(unsigned char)buf[1] == 0xc1 &&
 		(unsigned char)buf[2] == 0xcc);
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - wcrtomb()\n");
 

@@ -52,15 +52,15 @@ __FBSDID("$FreeBSD$");
 #endif
 
 #ifdef ANDROID
-_RuneLocale *_Read_RuneMagi(void *, size_t);
+_RuneLocale *_Read_RuneMagi(char *, size_t );
 #else
 _RuneLocale *_Read_RuneMagi(FILE *);
 #endif
 
 _RuneLocale *
-_Read_RuneMagi(void *ld, size_t ldsize)
+_Read_RuneMagi(char *ld, size_t ldsize)
 {
-	char *data;
+	char *fdata, *data;
 	void *lastp;
 	_FileRuneLocale *frl;
 	_RuneLocale *rl;
@@ -73,16 +73,30 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	_FileRuneEntry *maplower_ext_ranges;
 	_FileRuneEntry *mapupper_ext_ranges;
 	int runetype_ext_len = 0;
+    
+    DBG("_Read_RuneMagi: ldsize=%d", ldsize);
 
-    if (ld == NULL)
-        return NULL;
+	if (ldsize < sizeof(_FileRuneLocale)) {
+        DBG("_Read_RuneMagi: ret (0)");
+		errno = EFTYPE;
+		return (NULL);
+	}
 
-	frl = (_FileRuneLocale *)ld;
-	lastp = (char*)ld + ldsize;
+	if ((fdata = malloc(ldsize)) == NULL)
+		return (NULL);
+
+	errno = 0;
+
+    memmove(fdata, ld, ldsize);
+
+	frl = (_FileRuneLocale *)fdata;
+	lastp = fdata + ldsize;
 
 	variable = frl + 1;
 
 	if (memcmp(frl->magic, _FILE_RUNE_MAGIC_1, sizeof(frl->magic))) {
+        DBG("_Read_RuneMagi: ret (1)");
+		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -101,6 +115,8 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	runetype_ext_ranges = (_FileRuneEntry *)variable;
 	variable = runetype_ext_ranges + frl->runetype_ext_nranges;
 	if (variable > lastp) {
+        DBG("_Read_RuneMagi: ret (2)");
+		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -108,6 +124,8 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	maplower_ext_ranges = (_FileRuneEntry *)variable;
 	variable = maplower_ext_ranges + frl->maplower_ext_nranges;
 	if (variable > lastp) {
+        DBG("_Read_RuneMagi: ret (3)");
+		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -115,6 +133,8 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	mapupper_ext_ranges = (_FileRuneEntry *)variable;
 	variable = mapupper_ext_ranges + frl->mapupper_ext_nranges;
 	if (variable > lastp) {
+        DBG("_Read_RuneMagi: ret (4)");
+		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -132,6 +152,8 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 			variable = types + len;
 			runetype_ext_len += len;
 			if (variable > lastp) {
+                DBG("_Read_RuneMagi: ret (5)");
+				free(fdata);
 				errno = EFTYPE;
 				return (NULL);
 			}
@@ -154,6 +176,8 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 		frr[x].map = ntohl(frr[x].map);
 	}
 	if ((char *)variable + frl->variable_len > (char *)lastp) {
+        DBG("_Read_RuneMagi: ret (6)");
+		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -168,6 +192,7 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	    frl->variable_len);
 	if (data == NULL) {
 		saverr = errno;
+		free(fdata);
 		errno = saverr;
 		return (NULL);
 	}
@@ -240,6 +265,7 @@ _Read_RuneMagi(void *ld, size_t ldsize)
 	}
 
 	memcpy(rl->__variable, variable, rl->__variable_len);
+	free(fdata);
 
 	/*
 	 * Go out and zero pointers that should be zero.

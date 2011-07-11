@@ -1,6 +1,9 @@
 /*-
- * Copyright (c) 2002-2004 Tim J. Robbins.
- * All rights reserved.
+ * Copyright (c) 1990, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * This code is derived from software contributed to Berkeley by
+ * Chris Torek.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -10,11 +13,14 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -24,26 +30,24 @@
  * SUCH DAMAGE.
  */
 
+#if defined(LIBC_SCCS) && !defined(lint)
+static char sccsid[] = "@(#)memchr.c	8.1 (Berkeley) 6/4/93";
+#endif /* LIBC_SCCS and not lint */
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include <errno.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <wchar.h>
-#include "mblocal.h"
+#include <string.h>
 
-#ifdef ANDROID
-#include "android.h"
-#endif
-
-size_t
-mbsrtowcs(wchar_t * __restrict dst, const char ** __restrict src, size_t len,
-    mbstate_t * __restrict ps)
+void *
+memchr(const void *s, int c, size_t n)
 {
-	static mbstate_t mbs;
+	if (n != 0) {
+		const unsigned char *p = s;
 
-	if (ps == NULL)
-		ps = &mbs;
-	return (__mbsnrtowcs(dst, src, SIZE_T_MAX, len, ps));
+		do {
+			if (*p++ == (unsigned char)c)
+				return ((void *)(p - 1));
+		} while (--n != 0);
+	}
+	return (NULL);
 }

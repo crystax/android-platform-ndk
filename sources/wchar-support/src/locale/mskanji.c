@@ -47,6 +47,10 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
+#ifdef ANDROID
+#include "android.h"
+#endif
+
 extern int __mb_sb_limit;
 
 static size_t	_MSKanji_mbrtowc(wchar_t * __restrict, const char * __restrict,
@@ -62,7 +66,7 @@ typedef struct {
 int
 _MSKanji_init(_RuneLocale *rl)
 {
-
+    DBG("_MSKanji_init");
 	__mbrtowc = _MSKanji_mbrtowc;
 	__wcrtomb = _MSKanji_wcrtomb;
 	__mbsinit = _MSKanji_mbsinit;

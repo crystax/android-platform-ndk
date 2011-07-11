@@ -33,6 +33,10 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
+#ifdef ANDROID
+#include "android.h"
+#endif
+
 size_t
 wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src, size_t nwc,
     size_t len, mbstate_t * __restrict ps)
@@ -54,6 +58,7 @@ __wcsnrtombs_std(char * __restrict dst, const wchar_t ** __restrict src,
 	size_t nbytes;
 	size_t nb;
 
+    DBG("__wcsnrtombs_std");
 	s = *src;
 	nbytes = 0;
 

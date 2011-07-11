@@ -47,6 +47,10 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
+#ifdef ANDROID
+#include "android.h"
+#endif
+
 static size_t	_none_mbrtowc(wchar_t * __restrict, const char * __restrict,
 		    size_t, mbstate_t * __restrict);
 static int	_none_mbsinit(const mbstate_t *);
@@ -66,7 +70,7 @@ int __mb_sb_limit = 256; /* Expected to be <= _CACHED_RUNES */
 int
 _none_init(_RuneLocale *rl)
 {
-
+    DBG("_none_init");
 	__mbrtowc = _none_mbrtowc;
 	__mbsinit = _none_mbsinit;
 	__mbsnrtowcs = _none_mbsnrtowcs;
@@ -127,9 +131,12 @@ _none_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 {
 	const char *s;
 	size_t nchr;
+    
+    DBG("_none_mbsnrtowcs: *src=%s, nms=%d", *src, (int)nms);
 
 	if (dst == NULL) {
 		s = memchr(*src, '\0', nms);
+        DBG("_none_mbsnrtowcs: s=%s, ret (1)", s);
 		return (s != NULL ? s - *src : nms);
 	}
 
@@ -138,11 +145,13 @@ _none_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	while (len-- > 0 && nms-- > 0) {
 		if ((*dst++ = (unsigned char)*s++) == L'\0') {
 			*src = NULL;
+            DBG("_none_mbsnrtowcs: ret (2)");
 			return (nchr);
 		}
 		nchr++;
 	}
 	*src = s;
+    DBG("_none_mbsnrtowcs: ret (3)");
 	return (nchr);
 }
 

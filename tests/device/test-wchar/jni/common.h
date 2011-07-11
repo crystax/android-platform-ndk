@@ -23,4 +23,6 @@
 #define GLOBAL
 #endif
 
+#define CRYSTAX_FULL_LOCALES 0
+
 #endif /* NDK_TEST_WCHAR_1813a21b152a422abd7bb907b2661916 */

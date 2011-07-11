@@ -29,10 +29,17 @@
 GLOBAL
 int test_wcscasecmp()
 {
+    char *locale;
 
 	printf("1..6\n");
 
-	setlocale(LC_CTYPE, "C");
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
 
 	assert(wcscasecmp(L"", L"") == 0);
 	assert(wcsncasecmp(L"", L"", 50) == 0);
@@ -70,7 +77,9 @@ int test_wcscasecmp()
 	printf("ok 5 - wcsncasecmp\n");
 
 	assert(wcscasecmp(L"λ", L"Λ") != 0);
-	setlocale(LC_CTYPE, "el_GR.UTF-8");
+    locale = setlocale(LC_CTYPE, "el_GR.UTF-8");
+    assert(locale != NULL);
+    assert(strcmp(locale, "el_GR.UTF-8") == 0);
 	assert(wcscasecmp(L"λ", L"Λ") == 0);
 	assert(wcscasecmp(L"λ", L"Ω") < 0);
 	assert(wcscasecmp(L"Ω", L"λ") > 0);

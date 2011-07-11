@@ -38,6 +38,7 @@ int test_towctrans()
 {
 	wctype_t t;
 	int i, j;
+    char *locale;
 	struct {
 		const char *name;
 		wint_t (*func)(wint_t);
@@ -48,9 +49,14 @@ int test_towctrans()
 
 	printf("1..2\n");
 
-	/*
-	 * C/POSIX locale.
-	 */
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
+
 	for (i = 0; i < sizeof(tran) / sizeof(*tran); i++) {
 		t = wctrans(tran[i].name);
 		assert(t != 0);
@@ -62,10 +68,13 @@ int test_towctrans()
 	for (i = 0; i < 256; i++)
 		assert(towctrans(i, t) == i);
 
+#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	for (i = 0; i < sizeof(tran) / sizeof(*tran); i++) {
 		t = wctrans(tran[i].name);
 		assert(t != 0);
@@ -76,6 +85,7 @@ int test_towctrans()
 	assert(t == 0);
 	for (i = 0; i < 65536; i++)
 		assert(towctrans(i, t) == i);
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - towctrans()\n");
 	printf("ok 2 - wctrans()\n");

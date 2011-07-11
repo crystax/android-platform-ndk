@@ -61,7 +61,7 @@ typedef struct {
 int
 _UTF8_init(_RuneLocale *rl)
 {
-
+    DBG("_UTF8_init");
 	__mbrtowc = _UTF8_mbrtowc;
 	__wcrtomb = _UTF8_wcrtomb;
 	__mbsinit = _UTF8_mbsinit;
@@ -217,6 +217,8 @@ _UTF8_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	size_t nchr;
 	wchar_t wc;
 	size_t nb;
+    
+    DBG("_UTF8_mbsnrtowcs");
 
 	us = (_UTF8State *)ps;
 

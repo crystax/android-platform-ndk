@@ -59,7 +59,7 @@ typedef struct {
 int
 _GB18030_init(_RuneLocale *rl)
 {
-
+    DBG("_GB18030_init");
 	__mbrtowc = _GB18030_mbrtowc;
 	__wcrtomb = _GB18030_wcrtomb;
 	__mbsinit = _GB18030_mbsinit;

@@ -53,7 +53,7 @@ __FBSDID("$FreeBSD$");
 extern int __mb_sb_limit;
 
 #ifdef ANDROID
-extern _RuneLocale *_Read_RuneMagi(void *, size_t);
+extern _RuneLocale *_Read_RuneMagi(char *, size_t);
 #else
 extern _RuneLocale	*_Read_RuneMagi(FILE *);
 #endif
@@ -92,6 +92,7 @@ __setrunelocale(const char *encoding)
 	    const wchar_t ** __restrict, size_t, size_t,
 	    mbstate_t * __restrict);
 
+    DBG("__setrunelocale: encoding=%s", encoding);
 	/*
 	 * The "C" and "POSIX" locale are always here.
 	 */
@@ -105,6 +106,7 @@ __setrunelocale(const char *encoding)
 	 */
 	if (CachedRuneLocale != NULL &&
 	    strcmp(encoding, ctype_encoding) == 0) {
+        DBG("__setrunelocale: use cached locale");
 		_CurrentRuneLocale = CachedRuneLocale;
 		__mb_cur_max = Cached__mb_cur_max;
 		__mb_sb_limit = Cached__mb_sb_limit;
@@ -133,6 +135,7 @@ __setrunelocale(const char *encoding)
 	old__wcrtomb = __wcrtomb;
 	old__wcsnrtombs = __wcsnrtombs;
 
+    DBG("__setrunelocale: set std functions");
 	__mbrtowc = NULL;
 	__mbsinit = NULL;
 	__mbsnrtowcs = __mbsnrtowcs_std;
@@ -179,6 +182,7 @@ __setrunelocale(const char *encoding)
 		Cached__wcsnrtombs = __wcsnrtombs;
 		(void)strcpy(ctype_encoding, encoding);
 	} else {
+        DBG("__setrunelocale: restore old functions");
 		__mbrtowc = old__mbrtowc;
 		__mbsinit = old__mbsinit;
 		__mbsnrtowcs = old__mbsnrtowcs;
@@ -193,7 +197,9 @@ __setrunelocale(const char *encoding)
 int
 __wrap_setrunelocale(const char *locale)
 {
+    DBG("__wrap_setrunelocale: locale=%s", locale);
 	int ret = __setrunelocale(locale);
+    DBG("__wrap_setrunelocale: ret=%d", ret);
 
 	if (ret != 0) {
 		errno = ret;

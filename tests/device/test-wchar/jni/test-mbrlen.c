@@ -40,12 +40,17 @@ int test_mbrlen()
 	mbstate_t s;
 	size_t len;
 	char buf[MB_LEN_MAX + 1];
+    char *locale;
 
-	/*
-	 * C/POSIX locale.
-	 */
-	
 	printf("1..1\n");
+
+    /*
+     * C/POSIX locale.
+     */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
 
 	assert(MB_CUR_MAX == 1);
 
@@ -71,12 +76,14 @@ int test_mbrlen()
 	memset(&s, 0, sizeof(s));
 	assert(mbrlen(buf, 0, &s) == (size_t)-2);
 
-#if CRYSTAX_LOCALE_ENABLED
+#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
 	/* Null wide character, internal state. */
@@ -113,7 +120,7 @@ int test_mbrlen()
 	buf[1] = 0xc1;
 	memset(&s, 0, sizeof(s));
 	assert(mbrlen(buf, 2, &s) == 2);
-#endif /* CRYSTAX_LOCALE_ENABLED */
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - mbrlen()\n");
 

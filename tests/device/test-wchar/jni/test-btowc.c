@@ -44,12 +44,17 @@ int test_btowc()
 	/*
 	 * C/POSIX locale.
 	 */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
+
 	assert(btowc(EOF) == WEOF);
 	assert(wctob(WEOF) == EOF);
 	for (i = 0; i < UCHAR_MAX; i++)
 		assert(btowc(i) == (wchar_t)i && i == (int)wctob(i));
 
-#if CRYSTAX_LOCALE_ENABLED
+#if CRYSTAX_FULL_LOCALES
 	/*
 	* Japanese (EUC) locale.
 	*/
@@ -60,7 +65,7 @@ int test_btowc()
 	assert(MB_CUR_MAX > 1);
 	assert(btowc('A') == L'A' && wctob(L'A') == 'A');
 	assert(btowc(0xa3) == WEOF && wctob(0xa3c1) == EOF);
-#endif /* CRYSTAX_LOCALE_ENABLED */
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - btowc()\n");
 	printf("ok 2 - wctob()\n");

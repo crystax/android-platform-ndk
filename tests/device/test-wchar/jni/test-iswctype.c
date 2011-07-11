@@ -38,6 +38,7 @@ int test_iswctype()
 {
 	wctype_t t;
 	int i, j;
+    char *locale;
 	struct {
 		const char *name;
 		int (*func)(wint_t);
@@ -61,6 +62,11 @@ int test_iswctype()
 	/*
 	 * C/POSIX locale.
 	 */
+
+    locale = setlocale(LC_CTYPE, "C");
+    assert(locale != NULL);
+    assert(strcmp(locale, "C") == 0);
+
 	for (i = 0; i < sizeof(cls) / sizeof(*cls); i++) {
 		t = wctype(cls[i].name);
 		assert(t != 0);
@@ -72,11 +78,13 @@ int test_iswctype()
 	for (i = 0; i < 256; i++)
 		assert(iswctype(i, t) == 0);
 
-#if CRYSTAX_LOCALE_ENABLED
+#if CRYSTAX_FULL_LOCALES
 	/*
 	* Japanese (EUC) locale.
 	*/
-	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
+	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
+    assert(locale != NULL);
+    assert(strcmp(locale, "ja_JP.eucJP") == 0);
 	for (i = 0; i < sizeof(cls) / sizeof(*cls); i++) {
 		t = wctype(cls[i].name);
 		assert(t != 0);
@@ -87,7 +95,7 @@ int test_iswctype()
 	assert(t == 0);
 	for (i = 0; i < 65536; i++)
 		assert(iswctype(i, t) == 0);
-#endif /* CRYSTAX_LOCALE_ENABLED */
+#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - iswctype()\n");
 	printf("ok 2 - wctype()\n");
