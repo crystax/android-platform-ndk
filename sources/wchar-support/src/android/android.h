@@ -3,7 +3,7 @@
 
 #include <locale.h>
 
-#define CRYSTAX_DEBUG 1
+#define CRYSTAX_DEBUG 0
 
 #if CRYSTAX_DEBUG
 #include <stdio.h>

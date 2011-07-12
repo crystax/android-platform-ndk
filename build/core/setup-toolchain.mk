@@ -148,6 +148,7 @@ $(call import-module,wchar-support)
 include $(NDK_APP_BUILD_SCRIPT)
 
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
+$(call modules-add-c++-dependencies,wchar_static,)
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)

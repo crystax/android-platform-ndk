@@ -54,12 +54,20 @@ int test_wstring_erase()
     assert(data == L"b");
     printf("ok 3 - wstring_erase\n");
 
-    data = L"ddee";
-    assert(data.size() == 4);
-    assert(data == L"ddee");
+    data = L"abcdefghijkl";
+    assert(data.size() == 12);
+    assert(data == L"abcdefghijkl");
+    printf("data.c_str(): %p\n", data.c_str());
+    for (wchar_t const *s = data.c_str(); *s != 0; ++s)
+        printf("0x%x ", (int)*s);
+    printf("\n");
     data.erase(0, 1);
-    assert(data.size() == 3);
-    assert(data == L"dee");
+    for (wchar_t const *s = data.c_str(); *s != 0; ++s)
+        printf("0x%x ", (int)*s);
+    printf("\n");
+    printf("data.c_str(): %p\n", data.c_str());
+    assert(data.size() == 11);
+    assert(data == L"bcdefghijkl");
     printf("ok 4 - wstring_erase\n");
 
     data = L"abcdefghijkl";
