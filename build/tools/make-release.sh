@@ -61,7 +61,7 @@ fi
 HOST_SYSTEMS="$HOST_TAG"
 
 MINGW_GCC=
-if [ "$HOST_TAG" == "linux-x86" ] ; then
+if [ "$HOST_TAG" = "linux-x86" ] ; then
     find_program MINGW_GCC i586-mingw32msvc-gcc
     if [ -n "$MINGW_GCC" ] ; then
         HOST_SYSTEMS="$HOST_SYSTEMS windows"
