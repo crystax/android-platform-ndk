@@ -953,7 +953,7 @@ STLPORT_ABIS="armeabi armeabi-v7a x86"
 GNUSTL_SUBDIR=sources/cxx-stl/gnu-libstdc++
 
 CRYSTAX_SUBDIR=sources/crystax
-CRYSTAX_ABIS="armeabi armeabi-v7a"
+CRYSTAX_ABIS="armeabi armeabi-v7a x86"
 
 # The date to use when downloading toolchain sources from android.git.kernel.org
 # Leave it empty for tip of tree.

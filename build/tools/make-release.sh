@@ -193,33 +193,35 @@ else
 fi
 
 # Step 2, build the host toolchain binaries and package them
-if timestamp_check build-prebuilts; then
+for ARCH in arm x86; do
+if timestamp_check build-prebuilts-$ARCH; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
-    if timestamp_check build-host-prebuilts; then
+    if timestamp_check build-host-prebuilts-$ARCH; then
         dump "Building host toolchain binaries..."
-        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build"
+        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --arch="$ARCH" --build-dir="$RELEASE_DIR/build"
         fail_panic "Can't build $HOST_SYSTEM binaries."
-        timestamp_set build-host-prebuilts
+        timestamp_set build-host-prebuilts-$ARCH
     fi
     if [ -n "$DARWIN_SSH" ] ; then
-        if timestamp_check build-darwin-prebuilts; then
+        if timestamp_check build-darwin-prebuilts-$ARCH; then
             dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH"
+            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --arch="$ARCH" --darwin-ssh="$DARWIN_SSH"
             fail_panic "Can't build Darwin binaries!"
-            timestamp_set build-darwin-prebuilts
+            timestamp_set build-darwin-prebuilts-$ARCH
         fi
     fi
     if [ -n "$MINGW_GCC" ] ; then
-        if timestamp_check build-mingw-prebuilts; then
+        if timestamp_check build-mingw-prebuilts-$ARCH; then
             dump "Building windows toolchain binaries..."
-            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build-mingw" --mingw
+            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --arch="$ARCH" --build-dir="$RELEASE_DIR/build-mingw" --mingw
             fail_panic "Can't build windows binaries."
-            timestamp_set build-mingw-prebuilt
+            timestamp_set build-mingw-prebuilt-$ARCH
         fi
     fi
-    timestamp_set build-prebuilts
+    timestamp_set build-prebuilts-$ARCH
     timestamp_clear make-packages
 fi
+done
 
 # Step 3, package a release with everything
 if timestamp_check make-packages; then

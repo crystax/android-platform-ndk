@@ -73,26 +73,21 @@
 #include <_ctype.h>
 #include <stdarg.h>
 
-#ifndef _MBSTATE_T_DECLARED
+#ifndef _MBSTATE_T_DEFINED
 typedef	__mbstate_t	mbstate_t;
-#define	_MBSTATE_T_DECLARED
-#endif
-
-#ifndef _SIZE_T_DECLARED
-typedef	__size_t	size_t;
-#define	_SIZE_T_DECLARED
+#define	_MBSTATE_T_DEFINED
 #endif
 
 #ifndef	__cplusplus
-#ifndef _WCHAR_T_DECLARED
+#ifndef _WCHAR_T_DEFINED
 typedef	__wchar_t	wchar_t;
-#define	_WCHAR_T_DECLARED
+#define	_WCHAR_T_DEFINED
 #endif
 #endif
 
-#ifndef _WINT_T_DECLARED
+#ifndef _WINT_T_DEFINED
 typedef	__wint_t	wint_t;
-#define	_WINT_T_DECLARED
+#define	_WINT_T_DEFINED
 #endif
 
 #ifndef	WCHAR_MIN 

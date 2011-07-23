@@ -11,10 +11,10 @@ ifndef CRYSTAX_FORCE_REBUILD
 endif
 
 CRYSTAX_SRC_FILES := \
-	android/locale/UTF-8/LC_CTYPE.c \
-	android/locale/el_GR.ISO8859-7/LC_CTYPE.c \
-	android/locale/la_LN.ISO8859-1/LC_CTYPE.c \
-	android/locale/la_LN.US-ASCII/LC_CTYPE.c \
+	android/locale/UTF-8.LC_CTYPE.c \
+	android/locale/el_GR.ISO8859-7.LC_CTYPE.c \
+	android/locale/la_LN.ISO8859-1.LC_CTYPE.c \
+	android/locale/la_LN.US-ASCII.LC_CTYPE.c \
 	android/utils.c \
 	locale/ascii.c \
 	locale/big5.c \

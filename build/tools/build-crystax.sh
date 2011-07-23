@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#  This shell script is used to rebuild the prebuilt crystax library from
-#  sources. It requires a working NDK installation.
+#  This shell script is used to rebuild the prebuilt crystax binaries from
+#  their sources. It requires a working NDK installation.
 #
 
 # include common function and variable definitions
@@ -28,11 +28,13 @@ PROJECT_SUBDIR=tests/build/prebuild-crystax
 PROGRAM_PARAMETERS=""
 
 PROGRAM_DESCRIPTION=\
-"Rebuild the prebuilt crystax library for the Android NDK.
+"Rebuild the prebuilt crystax binaries for the Android NDK.
 
 This script is called when packaging a new NDK release. It will simply
-rebuild the crystax static and shared libraries from sources by using
-the dummy project under $PROJECT_SUBDIR and a valid NDK installation.
+rebuild the crystax libraries from sources.
+
+This requires a temporary NDK installation containing platforms and
+toolchain binaries for all target architectures.
 
 By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
@@ -42,15 +44,11 @@ The output will be placed in appropriate sub-directories of
 option.
 "
 
-RELEASE=`date +%Y%m%d`
-PACKAGE_DIR=/tmp/ndk-prebuilt/prebuilt-$RELEASE
+PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
 
 NDK_DIR=
-register_var_option "--ndk-dir=<path>" NDK_DIR "Don't package, put the files in target NDK dir."
-
-TOOLCHAIN_PKG=
-register_var_option "--toolchain-pkg=<path>" TOOLCHAIN_PKG "Use specific toolchain prebuilt package."
+register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
 BUILD_DIR=
 OPTION_BUILD_DIR=
@@ -62,125 +60,214 @@ register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directl
 ABIS="$CRYSTAX_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
+JOBS="$BUILD_NUM_CPUS"
+register_var_option "-j<number>" JOBS "Use <number> build jobs in parallel"
+
+NO_MAKEFILE=
+register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
+
+NUM_JOBS=$BUILD_NUM_CPUS
+register_var_option "-j<number>" NUM_JOBS "Run <number> build jobs in parallel"
+
 extract_parameters "$@"
 
-if [ -n "$PACKAGE_DIR" -a -n "$NDK_DIR" ] ; then
-    echo "ERROR: You cannot use both --package-dir and --ndk-dir at the same time!"
-    exit 1
-fi
+ABIS=$(commas_to_spaces $ABIS)
 
-if [ -n "$TOOLCHAIN_PKG" ] ; then
-    if [ ! -f "$TOOLCHAIN_PKG" ] ; then
-        dump "ERROR: Your toolchain package does not exist: $TOOLCHAIN_PKG"
-        exit 1
-    fi
-    case "$TOOLCHAIN_PKG" in
-        *.tar.bz2)
-            ;;
-        *)
-            dump "ERROR: Toolchain package is not .tar.bz2 archive: $TOOLCHAIN_PKG"
-            exit 1
-    esac
-fi
-
+# Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
-    mkdir -p "$PACKAGE_DIR"
-    if [ $? != 0 ] ; then
-        echo "ERROR: Could not create directory: $PACKAGE_DIR"
-        exit 1
-    fi
-    NDK_DIR=/tmp/ndk-toolchain/ndk-prebuilt-$$
-    mkdir -p $NDK_DIR &&
-    dump "Copying NDK files to temporary dir: $NDK_DIR"
-    run cp -rf $ANDROID_NDK_ROOT/* $NDK_DIR/
-    if [ -n "$TOOLCHAIN_PKG" ] ; then
-        dump "Extracting prebuilt toolchain binaries."
-        unpack_archive "$TOOLCHAIN_PKG" "$NDK_DIR"
-    fi
+    NDK_DIR=$ANDROID_NDK_ROOT
+    log "Auto-config: --ndk-dir=$NDK_DIR"
 else
     if [ ! -d "$NDK_DIR" ] ; then
         echo "ERROR: NDK directory does not exists: $NDK_DIR"
         exit 1
     fi
-    PACKAGE_DIR=
 fi
 
-#
-# Setup our paths
-#
-log "Using NDK root: $NDK_DIR"
-
-BUILD_DIR="$OPTION_BUILD_DIR"
-if [ -n "$BUILD_DIR" ] ; then
-    log "Using temporary build dir: $BUILD_DIR"
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    BUILD_DIR=$NDK_TMPDIR/build-crystax
 else
-    BUILD_DIR=`random_temp_directory`
-    log "Using random build dir: $BUILD_DIR"
+    BUILD_DIR=$OPTION_BUILD_DIR
 fi
 mkdir -p "$BUILD_DIR"
+fail_panic "Could not create build directory: $BUILD_DIR"
 
-if [ -z "$OUT_DIR" ] ; then
-    OUT_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
-    log "Using default output dir: $OUT_DIR"
+# Location of the crystax source tree
+CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
+
+# Compiler flags we want to use
+CRYSTAX_CFLAGS="-DGNU_SOURCE -fPIC -O2 -DANDROID -D__ANDROID__"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/android"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/locale"
+CRYSTAX_CXXFLAGS=
+
+# List of sources to compile
+CRYSTAX_SOURCES=`cd $CRYSTAX_SRCDIR && find . -name '*.c' -print`
+
+# If the --no-makefile flag is not used, we're going to put all build
+# commands in a temporary Makefile that we will be able to invoke with
+# -j$NUM_JOBS to build stuff in parallel.
+#
+if [ -z "$NO_MAKEFILE" ]; then
+    TAB=$(echo " " | tr ' ' '\t')
+    MAKEFILE=$BUILD_DIR/Makefile
+    log "Creating temporary build Makefile: $MAKEFILE"
+    rm -f $MAKEFILE &&
+    echo "# Auto-generated by $0 - do not edit!" > $MAKEFILE
+    echo ".PHONY: all" >> $MAKEFILE
+    echo "all:" >> $MAKEFILE
 else
-    log "Using usr output dir: $OUT_DIR"
+    MAKEFILE=
 fi
 
-#
-# Now build the fake project
-#
-# NOTE: We take the build project from this NDK's tree, not from
-#        the alternative one specified with --ndk=<dir>
-#
-PROJECT_DIR="$ANDROID_NDK_ROOT/$PROJECT_SUBDIR"
-if [ ! -d $PROJECT_DIR ] ; then
-    dump "ERROR: Missing required project: $PROJECT_SUBDIR"
-    exit 1
+# Build libcrystax as a static library
+# $1: ABI name
+# $2: Build directory
+# $3: Output directory (optional)
+
+make_command ()
+{
+    if [ -z "$MAKEFILE" ]; then
+        if [ "$VERBOSE2" = "yes" ]; then
+            echo "$@"
+        fi
+        $@
+    else
+        echo "${TAB}${HIDE}$@" >> $MAKEFILE
+    fi
+}
+
+# HIDE is used to hide the Makefile output, unless --verbose --verbose
+# is used.
+if [ "$VERBOSE2" = "yes" ]; then
+    HIDE=""
+else
+    HIDE=@
 fi
 
-# cleanup required to avoid problems with stale dependency files
-rm -rf "$PROJECT_DIR/libs"
-rm -rf "$PROJECT_DIR/obj"
+make_log ()
+{
+    if [ "$VERBOSE" = "yes" ]; then
+        echo "${TAB}${HIDE}echo $@" >> $MAKEFILE
+    fi
+}
 
-LIBRARIES="libcrystax_static.a libcrystax_shared.so"
+build_crystax_libs_for_abi ()
+{
+    local ARCH BINPREFIX SYSROOT
+    local ABI=$1
+    local BUILDDIR="$2"
+    local DSTDIR="$3"
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+
+    log "crystax_static $ABI"
+    mkdir -p "$BUILDDIR"
+
+    ARCH=$(convert_abi_to_arch $ABI)
+    BINPREFIX=$NDK_DIR/$(get_default_toolchain_binprefix_for_arch $ARCH)
+    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+
+    CFLAGS=$CRYSTAX_CFLAGS
+    CXXFLAGS=$CRYSTAX_CXXFLAGS
+    case $ABI in
+        armeabi)
+            CFLAGS=$CFLAGS" -mthumb"
+            ;;
+        armeabi-v7a)
+            CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp"
+            ;;
+    esac
+    # If the output directory is not specified, use default location
+    if [ -z "$DSTDIR" ]; then
+        DSTDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI
+    fi
+    mkdir -p $DSTDIR
+    OBJECTS=
+    for SRC in $CRYSTAX_SOURCES; do
+        OBJ=$(basename "$SRC")
+        OBJ=${OBJ%%.cpp}
+        OBJ=${OBJ%%.c}
+        OBJ="$BUILDDIR/$OBJ.o"
+        if [ "$MAKEFILE" ]; then
+            echo "$OBJ: $CRYSTAX_SRCDIR/$SRC" >> $MAKEFILE
+            make_log "$ABI C: $SRC"
+        else
+            log "$ABI C: $SRC"
+        fi
+        make_command ${BINPREFIX}gcc -c -o "$OBJ" "$CRYSTAX_SRCDIR/$SRC" $CFLAGS --sysroot="$SYSROOT"
+        fail_panic "Could not compile $SRC"
+        OBJECTS=$OBJECTS" $OBJ"
+    done
+
+    if [ "$MAKEFILE" ]; then
+        echo "all: $DSTDIR/libcrystax_static.a" >> $MAKEFILE
+        echo "$DSTDIR/libcrystax_static.a: $OBJECTS" >> $MAKEFILE
+        make_log "$ABI Archive: crystax_static"
+    else
+        log "$ABI Archive: crystax_static"
+    fi
+    make_command ${BINPREFIX}ar crs "$DSTDIR/libcrystax_static.a" $OBJECTS
+    fail_panic "Could not archive $ABI crystax_static objects!"
+
+    if [ "$MAKEFILE" ]; then
+        echo "all: $DSTDIR/libcrystax_shared.so" >> $MAKEFILE
+        echo "$DSTDIR/libcrystax_shared.so: $OBJECTS" >> $MAKEFILE
+        make_log "$ABI SharedLibrary: libcrystax_shared"
+    else
+        log "$ABI SharedLibrary: crystax_shared"
+    fi
+    CRTBEGIN_SO_O=$SYSROOT/usr/lib/crtbegin_so.o
+    CRTEND_SO_O=$SYSROOT/usr/lib/crtend_so.o
+    if [ ! -f "$CRTBEGIN_SO_O" ]; then
+        CRTBEGIN_SO_O=$SYSROOT/usr/lib/crtbegin_dynamic.o
+    fi
+    if [ ! -f "$CRTEND_SO_O" ]; then
+        CRTEND_SO_O=$SYSROOT/usr/lib/crtend_android.o
+    fi
+    make_command ${BINPREFIX}g++ \
+        -nostdlib -Wl,-soname,libcrystax_shared.so \
+        -Wl,-shared,-Bsymbolic \
+        --sysroot="$SYSROOT" \
+        $CRTBEGIN_SO_O \
+        $OBJECTS \
+        -lgcc \
+        -lc -lm \
+        $CRTEND_SO_O \
+        -o $DSTDIR/libcrystax_shared.so
+    fail_panic "Could not create $ABI shared library libcrystax_shared!"
+}
+
 
 for ABI in $ABIS; do
-    dump "Building $ABI crystax library..."
-    (run cd "$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_ABI=$ABI -j$BUILD_JOBS CRYSTAX_FORCE_REBUILD=true)
-    if [ $? != 0 ] ; then
-        dump "ERROR: Could not build $ABI crystax library!!"
-        exit 1
-    fi
-
-    if [ -z "$PACKAGE_DIR" ] ; then
-       # Copy files to target NDK
-        SRCDIR="$PROJECT_SUBDIR/obj/local/$ABI"
-        DSTDIR="$OUT_DIR/libs/$ABI"
-        copy_file_list "$SRCDIR" "$DSTDIR" "$LIBRARIES"
-    fi
+    build_crystax_libs_for_abi $ABI "$BUILD_DIR/$ABI"
 done
+
+if [ "$MAKEFILE" ]; then
+    make -j$NUM_JOBS -f $MAKEFILE
+    fail_panic "Could not build crystax libraries!"
+fi
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
         FILES=""
-        for LIB in $LIBRARIES; do
-            SRCDIR="$PROJECT_SUBDIR/obj/local/$ABI"
-            DSTDIR="$CRYSTAX_SUBDIR/libs/$ABI"
-            copy_file_list "$SRCDIR" "$NDK_DIR/$DSTDIR" "$LIB"
-            log "Installing: $DSTDIR/$LIB"
-            FILES="$FILES $DSTDIR/$LIB"
+        for LIB in libcrystax_static.a libcrystax_shared.so; do
+            FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$LIB"
         done
         PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI.tar.bz2"
+        log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI crystax library!"
+        fail_panic "Could not package $ABI crystax binaries!"
         dump "Packaging: $PACKAGE"
     done
 fi
 
-if [ -n "$PACKAGE_DIR" ] ; then
-    dump "Cleaning up..."
-    rm -rf $NDK_DIR
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $BUILD_DIR
+else
+    log "Don't forget to cleanup: $BUILD_DIR"
 fi
 
-dump "Done!"
+log "Done!"

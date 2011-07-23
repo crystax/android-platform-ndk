@@ -94,10 +94,12 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 
 # Location of the STLPort source tree
 STLPORT_SRCDIR=$ANDROID_NDK_ROOT/$STLPORT_SUBDIR
+CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
 STLPORT_CFLAGS="-DGNU_SOURCE -fPIC -O2 -I$STLPORT_SRCDIR/stlport -DANDROID -D__ANDROID__"
 STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$ANDROID_NDK_ROOT/sources/cxx-stl/system/include"
+STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$CRYSTAX_SRCDIR/include"
 STLPORT_CXXFLAGS="-fuse-cxa-atexit -fno-exceptions -fno-rtti"
 
 # List of sources to compile
@@ -211,10 +213,6 @@ build_stlport_libs_for_abi ()
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
         DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI
-    #(run cd "$NDK_DIR/$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_PLATFORM=$PLATFORM APP_ABI=$ABI -j$JOBS STLPORT_FORCE_REBUILD=true)
-    #if [ $? != 0 ] ; then
-    #    dump "ERROR: Could not build $ABI STLport binaries!!"
-    #    exit 1
     fi
     mkdir -p $DSTDIR
     OBJECTS=
@@ -265,6 +263,7 @@ build_stlport_libs_for_abi ()
         --sysroot="$SYSROOT" \
         $CRTBEGIN_SO_O \
         $OBJECTS \
+        $NDK_DIR/sources/crystax/libs/$ABI/libcrystax_static.a \
         -lgcc \
         -lc -lm \
         $CRTEND_SO_O \

@@ -363,7 +363,6 @@ if [ -z "$HOST_ONLY" ]; then
         if [ $VERBOSE = yes ] ; then
             BUILD_STLPORT_FLAGS="$BUILD_STLPORT_FLAGS --verbose"
         fi
-        $ANDROID_NDK_ROOT/build/tools/build-platforms.sh --no-symlinks --no-samples --arch=$ARCH --dst-dir="$NDK_DIR"
         case "$ARCH" in
         arm )
             $ANDROID_NDK_ROOT/build/tools/build-stlport.sh $BUILD_STLPORT_FLAGS --abis=armeabi,armeabi-v7a
