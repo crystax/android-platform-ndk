@@ -211,6 +211,10 @@ build_stlport_libs_for_abi ()
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
         DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI
+    #(run cd "$NDK_DIR/$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_PLATFORM=$PLATFORM APP_ABI=$ABI -j$JOBS STLPORT_FORCE_REBUILD=true)
+    #if [ $? != 0 ] ; then
+    #    dump "ERROR: Could not build $ABI STLport binaries!!"
+    #    exit 1
     fi
     mkdir -p $DSTDIR
     OBJECTS=

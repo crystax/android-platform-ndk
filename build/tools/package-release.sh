@@ -369,6 +369,11 @@ for SYSTEM in $SYSTEMS; do
             unpack_prebuilt $TC-gdbserver.tar.bz2
         done
 
+        # Unpack prebuilt crystax libraries
+        for ABI in $ABIS; do
+            unpack_prebuilt crystax-libs-$ABI.tar.bz2
+        done
+
         # Unpack prebuilt STL headers and libraries
         unpack_prebuilt gnu-libstdc++-headers.tar.bz2
         for ABI in $ABIS; do

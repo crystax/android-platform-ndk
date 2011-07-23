@@ -669,6 +669,7 @@ parse_toolchain_name ()
         ABI_CFLAGS_FOR_TARGET="-fexceptions"
         ABI_CXXFLAGS_FOR_TARGET="-frtti"
         ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-libstdc__-v3"
+        ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-wchar_t"
         # Stick to 6.6 for now. 7.1.x doesn't seem to work right now.
         #GDB_VERSION=7.1.x
         ;;
@@ -681,6 +682,7 @@ parse_toolchain_name ()
         ABI_CFLAGS_FOR_TARGET="-fexceptions -fPIC"
         ABI_CXXFLAGS_FOR_TARGET="-frtti"
         ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-libstdc__-v3"
+        ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-wchar_t"
         ;;
     * )
         echo "Invalid toolchain specified. Expected (arm-linux-androideabi-*|x86-*)"
@@ -949,6 +951,9 @@ STLPORT_ABIS="armeabi armeabi-v7a x86"
 # Location of the GNU libstdc++ headers and libraries, relative to the NDK
 # root directory.
 GNUSTL_SUBDIR=sources/cxx-stl/gnu-libstdc++
+
+CRYSTAX_SUBDIR=sources/crystax
+CRYSTAX_ABIS="armeabi armeabi-v7a"
 
 # The date to use when downloading toolchain sources from android.git.kernel.org
 # Leave it empty for tip of tree.

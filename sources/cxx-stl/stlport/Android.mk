@@ -57,7 +57,7 @@ libstlport_c_includes := $(libstlport_path)/stlport
 # Note: For now, this implementation depends on the system libstdc++
 #       We may want to avoid that in the future, i.e. in order to
 #       properly support exceptions and RTTI.
-libstlport_static_libs := libstdc++
+libstlport_static_libs := crystax_static libstdc++
 
 ifneq ($(STLPORT_FORCE_REBUILD),true)
 

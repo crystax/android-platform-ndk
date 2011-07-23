@@ -193,6 +193,7 @@ if [ -n "$DARWIN_SSH" ] ; then
     dump "Prepare NDK build scripts"
     copy_directory "$ANDROID_NDK_ROOT/build" "$TMPDARWIN/ndk/build"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/android/libthread_db
+    copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$CRYSTAX_SUBDIR"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$STLPORT_SUBDIR"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/host-tools/ndk-stack
     dump "Prepare platforms files"
@@ -329,6 +330,30 @@ if [ -z "$HOST_ONLY" ]; then
             package_it "GNU libstdc++ x86 libs" "gnu-libstdc++-libs-x86" "sources/cxx-stl/gnu-libstdc++/libs/x86"
             ;;
         esac
+    fi
+
+    # Build platforms
+    if [ "$MINGW" != "yes" ] ; then
+        $ANDROID_NDK_ROOT/build/tools/build-platforms.sh --no-symlinks --no-samples --arch=$ARCH --dst-dir="$NDK_DIR"
+    fi
+
+    # Rebuild prebuilt crystax libraries
+    if [ "$MINGW" != "yes" ] ; then
+        dump "Building crystax binaries"
+        BUILD_CRYSTAX_FLAGS="--ndk-dir=\"$NDK_DIR\" --package-dir=\"$PACKAGE_DIR\""
+        if [ $VERBOSE = yes ] ; then
+            BUILD_CRYSTAX_FLAGS="$BUILD_CRYSTAX_FLAGS --verbose"
+        fi
+        case "$ARCH" in
+        arm )
+            $ANDROID_NDK_ROOT/build/tools/build-crystax.sh $BUILD_CRYSTAX_FLAGS --abis=armeabi,armeabi-v7a
+            ;;
+        x86 )
+            $ANDROID_NDK_ROOT/build/tools/build-crystax.sh $BUILD_CRYSTAX_FLAGS --abis=x86
+            ;;
+        esac
+    else
+        dump "Skipping libcrystax build (--mingw option beeing used)"
     fi
 
     # Rebuild STLport prebuilt libraries

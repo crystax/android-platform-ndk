@@ -61,7 +61,7 @@ fi
 HOST_SYSTEMS="$HOST_TAG"
 
 MINGW_GCC=
-if [ "$HOST_TAG" == "linux-x86" ] ; then
+if [ "$HOST_TAG" = "linux-x86" ] ; then
     find_program MINGW_GCC i586-mingw32msvc-gcc
     if [ -n "$MINGW_GCC" ] ; then
         HOST_SYSTEMS="$HOST_SYSTEMS windows"
@@ -77,6 +77,9 @@ TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
 
 extract_parameters "$@"
+
+# Force set MINGW_GCC to empty values if there is no windows specified in HOST_SYSTEMS
+echo $HOST_SYSTEMS | grep "windows" >/dev/null 2>&1 || MINGW_GCC=
 
 # Print a warning and ask the user if he really wants to do that !
 #

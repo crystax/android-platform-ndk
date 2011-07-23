@@ -171,6 +171,27 @@ if [ "$ARCH" = "x86" ]; then
     dump "Forcing -nostartfiles: $ABI_LDFLAGS_FOR_TARGET"
 fi
 
+SRC_CRYSTAX=$ANDROID_NDK_ROOT/sources/crystax
+SRC_CRYSTAX_INCLUDE=$SRC_CRYSTAX/include
+SRC_CRYSTAX_LIB=$SRC_CRYSTAX/libs/armeabi
+DST_CRYSTAX_INCLUDE=$TOOLCHAIN_SYSROOT/usr/include
+DST_CRYSTAX_LIB=$TOOLCHAIN_SYSROOT/usr/lib
+dump "Sysroot  : Copying $SRC_CRYSTAX_INCLUDE --> $DST_CRYSTAX_INCLUDE"
+mkdir -p $DST_CRYSTAX_INCLUDE && (cd $SRC_CRYSTAX_INCLUDE && tar ch *) | (cd $DST_CRYSTAX_INCLUDE && tar x)
+if [ $? != 0] ; then
+    echo "Error while copying crystax include files. See $TMPLOG"
+    exit 1
+fi
+
+if [ -d $SRC_CRYSTAX_LIB ] ; then
+    dump "Sysroot  : Copying $SRC_CRYSTAX_LIB --> $DST_CRYSTAX_LIB"
+    mkdir -p $DST_CRYSTAX_LIB && (cd $SRC_CRYSTAX_LIB && tar ch *) | (cd $DST_CRYSTAX_LIB && tar x)
+    if [ $? != 0 ] ; then
+        echo "Error while copying crystax lib files. See $TMPLOG"
+        exit 1
+    fi
+fi
+
 # configure the toolchain
 #
 dump "Configure: $TOOLCHAIN toolchain build"
