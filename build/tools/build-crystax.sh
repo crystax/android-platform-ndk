@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#  This shell script is used to rebuild the prebuilt wchar support binaries from
-#  their sources. It requires a working NDK installation.
+#  This shell script is used to rebuild the prebuilt crystax library from
+#  sources. It requires a working NDK installation.
 #
 
 # include common function and variable definitions
@@ -23,22 +23,22 @@
 
 # Location of the  test project we use to force the rebuild.
 # This is relative to the current NDK directory.
-PROJECT_SUBDIR=tests/build/prebuild-wchar-support
+PROJECT_SUBDIR=tests/build/prebuild-crystax
 
 PROGRAM_PARAMETERS=""
 
 PROGRAM_DESCRIPTION=\
-"Rebuild the prebuilt wchar-support binaries for the Android NDK.
+"Rebuild the prebuilt crystax library for the Android NDK.
 
 This script is called when packaging a new NDK release. It will simply
-rebuild the wchar-support static and shared libraries from sources by using
+rebuild the crystax static and shared libraries from sources by using
 the dummy project under $PROJECT_SUBDIR and a valid NDK installation.
 
 By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
 The output will be placed in appropriate sub-directories of
-<ndk>/$WCHAR_SUBDIR, but you can override this with the --out-dir=<path>
+<ndk>/$CRYSTAX_SUBDIR, but you can override this with the --out-dir=<path>
 option.
 "
 
@@ -59,7 +59,7 @@ register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary bui
 OUT_DIR=
 register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
 
-ABIS="$WCHAR_ABIS"
+ABIS="$CRYSTAX_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
 extract_parameters "$@"
@@ -120,7 +120,7 @@ fi
 mkdir -p "$BUILD_DIR"
 
 if [ -z "$OUT_DIR" ] ; then
-    OUT_DIR=$NDK_DIR/$WCHAR_SUBDIR
+    OUT_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
     log "Using default output dir: $OUT_DIR"
 else
     log "Using usr output dir: $OUT_DIR"
@@ -142,13 +142,13 @@ fi
 rm -rf "$PROJECT_DIR/libs"
 rm -rf "$PROJECT_DIR/obj"
 
-LIBRARIES="libwchar_static.a libwchar_shared.so"
+LIBRARIES="libcrystax_static.a libcrystax_shared.so"
 
 for ABI in $ABIS; do
-    dump "Building $ABI wchar support binaries..."
-    (run cd "$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_ABI=$ABI -j$BUILD_JOBS WCHAR_FORCE_REBUILD=true)
+    dump "Building $ABI crystax library..."
+    (run cd "$PROJECT_SUBDIR" && run "$NDK_DIR"/ndk-build -B APP_STL=system APP_ABI=$ABI -j$BUILD_JOBS CRYSTAX_FORCE_REBUILD=true)
     if [ $? != 0 ] ; then
-        dump "ERROR: Could not build $ABI wchar support binaries!!"
+        dump "ERROR: Could not build $ABI crystax library!!"
         exit 1
     fi
 
@@ -166,14 +166,14 @@ if [ -n "$PACKAGE_DIR" ] ; then
         FILES=""
         for LIB in $LIBRARIES; do
             SRCDIR="$PROJECT_SUBDIR/obj/local/$ABI"
-            DSTDIR="$WCHAR_SUBDIR/libs/$ABI"
+            DSTDIR="$CRYSTAX_SUBDIR/libs/$ABI"
             copy_file_list "$SRCDIR" "$NDK_DIR/$DSTDIR" "$LIB"
             log "Installing: $DSTDIR/$LIB"
             FILES="$FILES $DSTDIR/$LIB"
         done
-        PACKAGE="$PACKAGE_DIR/wchar-support-libs-$ABI.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI.tar.bz2"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI wchar support binaries!"
+        fail_panic "Could not package $ABI crystax library!"
         dump "Packaging: $PACKAGE"
     done
 fi

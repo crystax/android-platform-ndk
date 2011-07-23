@@ -168,23 +168,23 @@ if [ "$ARCH" = "x86" ]; then
     dump "Forcing -nostartfiles: $ABI_LDFLAGS_FOR_TARGET"
 fi
 
-SRC_WCHAR=$ANDROID_NDK_ROOT/sources/wchar-support
-SRC_WCHAR_INCLUDE=$SRC_WCHAR/include
-SRC_WCHAR_LIB=$SRC_WCHAR/libs/armeabi
-DST_WCHAR_INCLUDE=$TOOLCHAIN_SYSROOT/usr/include
-DST_WCHAR_LIB=$TOOLCHAIN_SYSROOT/usr/lib
-dump "Sysroot  : Copying $SRC_WCHAR_INCLUDE --> $DST_WCHAR_INCLUDE"
-mkdir -p $DST_WCHAR_INCLUDE && (cd $SRC_WCHAR_INCLUDE && tar ch *) | (cd $DST_WCHAR_INCLUDE && tar x)
+SRC_CRYSTAX=$ANDROID_NDK_ROOT/sources/crystax
+SRC_CRYSTAX_INCLUDE=$SRC_CRYSTAX/include
+SRC_CRYSTAX_LIB=$SRC_CRYSTAX/libs/armeabi
+DST_CRYSTAX_INCLUDE=$TOOLCHAIN_SYSROOT/usr/include
+DST_CRYSTAX_LIB=$TOOLCHAIN_SYSROOT/usr/lib
+dump "Sysroot  : Copying $SRC_CRYSTAX_INCLUDE --> $DST_CRYSTAX_INCLUDE"
+mkdir -p $DST_CRYSTAX_INCLUDE && (cd $SRC_CRYSTAX_INCLUDE && tar ch *) | (cd $DST_CRYSTAX_INCLUDE && tar x)
 if [ $? != 0] ; then
-    echo "Error while copying wchar include files. See $TMPLOG"
+    echo "Error while copying crystax include files. See $TMPLOG"
     exit 1
 fi
 
-if [ -d $SRC_WCHAR_LIB ] ; then
-    dump "Sysroot  : Copying $SRC_WCHAR_LIB --> $DST_WCHAR_LIB"
-    mkdir -p $DST_WCHAR_LIB && (cd $SRC_WCHAR_LIB && tar ch *) | (cd $DST_WCHAR_LIB && tar x)
+if [ -d $SRC_CRYSTAX_LIB ] ; then
+    dump "Sysroot  : Copying $SRC_CRYSTAX_LIB --> $DST_CRYSTAX_LIB"
+    mkdir -p $DST_CRYSTAX_LIB && (cd $SRC_CRYSTAX_LIB && tar ch *) | (cd $DST_CRYSTAX_LIB && tar x)
     if [ $? != 0 ] ; then
-        echo "Error while copying wchar lib files. See $TMPLOG"
+        echo "Error while copying crystax lib files. See $TMPLOG"
         exit 1
     fi
 fi

@@ -708,8 +708,8 @@ STLPORT_ABIS="armeabi armeabi-v7a"
 # root directory.
 GNUSTL_SUBDIR=sources/cxx-stl/gnu-libstdc++
 
-WCHAR_SUBDIR=sources/wchar-support
-WCHAR_ABIS="armeabi armeabi-v7a"
+CRYSTAX_SUBDIR=sources/crystax
+CRYSTAX_ABIS="armeabi armeabi-v7a"
 
 # The date to use when downloading toolchain sources from android.git.kernel.org
 # Leave it empty for tip of tree.

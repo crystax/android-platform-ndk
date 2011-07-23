@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    printf("Hello wchar!\n");
+    printf("Hello crystax!\n");
     return 0;
 }
 

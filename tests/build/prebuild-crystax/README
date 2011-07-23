@@ -1,0 +1,3 @@
+This project shall only be used by the build/tools/rebuild-crystax.sh script.
+Its purpose is to rebuild the crystax binaries with the NDK, so they can be
+copied to $CRYSTAX_PATH/<abi>/ directories.

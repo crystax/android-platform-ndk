@@ -179,8 +179,8 @@ if [ -n "$DARWIN_SSH" ] ; then
     dump "Prepare NDK build scripts"
     copy_directory "$ANDROID_NDK_ROOT/build" "$TMPDARWIN/ndk/build"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/android/libthread_db
+    copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$CRYSTAX_SUBDIR"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$STLPORT_SUBDIR"
-    copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$WCHAR_SUBDIR"
     dump "Prepare platforms files"
     `dirname $0`/build-platforms.sh --no-samples --dst-dir="$TMPDARWIN/ndk"
     dump "Copying NDK build scripts and platform files to remote..."
@@ -288,26 +288,26 @@ fi
 # Rebuild prebuilt libraries
 if [ "$MINGW" != "yes" ] ; then
     if [ -z "$PACKAGE_DIR" ] ; then
-        BUILD_WCHAR_FLAGS="--ndk-dir=\"$NDK_DIR\""
+        BUILD_CRYSTAX_FLAGS="--ndk-dir=\"$NDK_DIR\""
         TOOLCHAIN_FLAGS=
     else
-        BUILD_WCHAR_FLAGS="--package-dir=\"$PACKAGE_DIR\""
+        BUILD_CRYSTAX_FLAGS="--package-dir=\"$PACKAGE_DIR\""
         TOOLCHAIN_FLAGS_ARM="--toolchain-pkg=\"$PACKAGE_DIR/arm-linux-androideabi-4.4.3-$HOST_TAG.tar.bz2\""
         TOOLCHAIN_FLAGS_X86="--toolchain-pkg=\"$PACKAGE_DIR/x86-4.4.3-$HOST_TAG.tar.bz2\""
     fi
     if [ $VERBOSE = yes ] ; then
-        BUILD_WCHAR_FLAGS="$BUILD_WCHAR_FLAGS --verbose"
+        BUILD_CRYSTAX_FLAGS="$BUILD_CRYSTAX_FLAGS --verbose"
     fi
     case "$ARCH" in
     arm )
-        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS $TOOLCHAIN_FLAGS_ARM
+        $ANDROID_NDK_ROOT/build/tools/build-crystax.sh $BUILD_CRYSTAX_FLAGS $TOOLCHAIN_FLAGS_ARM
         ;;
     x86 )
-        $ANDROID_NDK_ROOT/build/tools/build-wchar-support.sh $BUILD_WCHAR_FLAGS --abis=x86 $TOOLCHAIN_FLAGS_X86
+        $ANDROID_NDK_ROOT/build/tools/build-crystax.sh $BUILD_CRYSTAX_FLAGS --abis=x86 $TOOLCHAIN_FLAGS_X86
         ;;
     esac
 else
-    dump "Skipping wchar support binaries build (--mingw option beeing used)"
+    dump "Skipping libcrystax build (--mingw option beeing used)"
 fi
 
 if [ "$MINGW" != "yes" ] ; then
