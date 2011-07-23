@@ -78,6 +78,9 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain
 
 extract_parameters "$@"
 
+# Force set MINGW_GCC to empty values if there is no windows specified in HOST_SYSTEMS
+echo $HOST_SYSTEMS | grep "windows" >/dev/null 2>&1 || MINGW_GCC=
+
 # Print a warning and ask the user if he really wants to do that !
 #
 if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
