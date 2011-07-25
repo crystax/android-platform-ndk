@@ -225,7 +225,7 @@ else
 fi
 
 # temporary directory used for packaging
-TMPDIR=$NDK_TMPDIR
+TMPDIR=$NDK_TMPDIR/tmp
 
 RELEASE_PREFIX=$PREFIX-$RELEASE
 
