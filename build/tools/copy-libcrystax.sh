@@ -101,20 +101,21 @@ if [ ! -d "$SRC_DIR" ] ; then
 fi
 
 ABI_STL="$TOOLCHAIN_DIR/$ABI_CONFIGURE_TARGET"
+SYSROOT="$TOOLCHAIN_DIR/sysroot"
 
 SRC_INCLUDE="$SRC_DIR/include"
-SRC_INCLUDE_ABI="$SRC_INCLUDE/$ABI_CONFIGURE_TARGET"
 SRC_LIBS="$SRC_DIR/libs"
-SRC_ABI="$SRC_DIR/$ABI_CONFIGURE_TARGET"
 
 case "$ARCH" in
     arm)
+        copy_file_list "$SRC_INCLUDE" "$SYSROOT/usr/include" "*.h"
         copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib" "libcrystax.*"
         copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib/thumb" "libcrystax.*"
         copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a" "libcrystax.*"
         copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a/thumb" "libcrystax.*"
         ;;
     x86)
+        copy_file_list "$SRC_INCLUDE" "$SYSROOT/usr/include" "*.h"
         copy_file_list "$SRC_LIBS/x86" "$ABI_STL/lib" "libcrystax.*"
         ;;
     *)
