@@ -167,7 +167,7 @@ dump "Copying sysroot headers and libraries..."
 run copy_directory_nolinks "$SRC_SYSROOT" "$TMPDIR/sysroot"
 
 dump "Copying crystax headers and libraries..."
-`dirname $0`/copy-libcrystax.sh "$NDK_DIR" "$TMPDIR"
+`dirname $0`/copy-libcrystax.sh "$NDK_DIR" "$TMPDIR" --toolchain=$TOOLCHAIN_NAME
 
 dump "Copying libstdc++ headers and libraries..."
 `dirname $0`/copy-libstdcxx.sh --reverse "$TMPDIR" "$NDK_DIR" --toolchain=$TOOLCHAIN_NAME
