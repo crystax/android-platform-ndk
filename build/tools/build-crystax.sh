@@ -161,7 +161,7 @@ build_crystax_libs_for_abi ()
     local DSTDIR="$3"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
-    log "crystax_static $ABI"
+    log "libcrystax $ABI"
     mkdir -p "$BUILDDIR"
 
     ARCH=$(convert_abi_to_arch $ABI)
@@ -201,41 +201,14 @@ build_crystax_libs_for_abi ()
     done
 
     if [ "$MAKEFILE" ]; then
-        echo "all: $DSTDIR/libcrystax_static.a" >> $MAKEFILE
-        echo "$DSTDIR/libcrystax_static.a: $OBJECTS" >> $MAKEFILE
-        make_log "$ABI Archive: crystax_static"
+        echo "all: $DSTDIR/libcrystax.a" >> $MAKEFILE
+        echo "$DSTDIR/libcrystax.a: $OBJECTS" >> $MAKEFILE
+        make_log "$ABI Archive: libcrystax"
     else
-        log "$ABI Archive: crystax_static"
+        log "$ABI Archive: libcrystax"
     fi
-    make_command ${BINPREFIX}ar crs "$DSTDIR/libcrystax_static.a" $OBJECTS
-    fail_panic "Could not archive $ABI crystax_static objects!"
-
-    if [ "$MAKEFILE" ]; then
-        echo "all: $DSTDIR/libcrystax_shared.so" >> $MAKEFILE
-        echo "$DSTDIR/libcrystax_shared.so: $OBJECTS" >> $MAKEFILE
-        make_log "$ABI SharedLibrary: libcrystax_shared"
-    else
-        log "$ABI SharedLibrary: crystax_shared"
-    fi
-    CRTBEGIN_SO_O=$SYSROOT/usr/lib/crtbegin_so.o
-    CRTEND_SO_O=$SYSROOT/usr/lib/crtend_so.o
-    if [ ! -f "$CRTBEGIN_SO_O" ]; then
-        CRTBEGIN_SO_O=$SYSROOT/usr/lib/crtbegin_dynamic.o
-    fi
-    if [ ! -f "$CRTEND_SO_O" ]; then
-        CRTEND_SO_O=$SYSROOT/usr/lib/crtend_android.o
-    fi
-    make_command ${BINPREFIX}g++ \
-        -nostdlib -Wl,-soname,libcrystax_shared.so \
-        -Wl,-shared,-Bsymbolic \
-        --sysroot="$SYSROOT" \
-        $CRTBEGIN_SO_O \
-        $OBJECTS \
-        -lgcc \
-        -lc -lm \
-        $CRTEND_SO_O \
-        -o $DSTDIR/libcrystax_shared.so
-    fail_panic "Could not create $ABI shared library libcrystax_shared!"
+    make_command ${BINPREFIX}ar crs "$DSTDIR/libcrystax.a" $OBJECTS
+    fail_panic "Could not archive $ABI libcrystax objects!"
 }
 
 
@@ -251,13 +224,9 @@ fi
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
-        FILES=""
-        for LIB in libcrystax_static.a libcrystax_shared.so; do
-            FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$LIB"
-        done
         PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI.tar.bz2"
         log "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$CRYSTAX_SUBDIR/libs/$ABI/libcrystax.a"
         fail_panic "Could not package $ABI crystax binaries!"
         dump "Packaging: $PACKAGE"
     done

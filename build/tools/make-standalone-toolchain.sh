@@ -101,9 +101,6 @@ if [ ! -d "$NDK_DIR/platforms/$PLATFORM" ] ; then
     exit 1
 fi
 
-SRC_CRYSTAX_INCLUDE=$NDK_DIR/sources/crystax/include
-SRC_CRYSTAX_LIBS=$NDK_DIR/sources/crystax/libs/armeabi
-
 # Check toolchain name
 TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME"
 if [ ! -d "$TOOLCHAIN_PATH" ] ; then
@@ -170,8 +167,7 @@ dump "Copying sysroot headers and libraries..."
 run copy_directory_nolinks "$SRC_SYSROOT" "$TMPDIR/sysroot"
 
 dump "Copying crystax headers and libraries..."
-run copy_directory_nolinks "$SRC_CRYSTAX_INCLUDE" "$TMPDIR/sysroot/usr/include"
-run copy_directory_nolinks "$SRC_CRYSTAX_LIBS" "$TMPDIR/sysroot/usr/lib"
+`dirname $0`/copy-libcrystax.sh "$NDK_DIR" "$TMPDIR"
 
 dump "Copying libstdc++ headers and libraries..."
 `dirname $0`/copy-libstdcxx.sh --reverse "$TMPDIR" "$NDK_DIR" --toolchain=$TOOLCHAIN_NAME

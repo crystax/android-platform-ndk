@@ -263,7 +263,7 @@ build_stlport_libs_for_abi ()
         --sysroot="$SYSROOT" \
         $CRTBEGIN_SO_O \
         $OBJECTS \
-        $NDK_DIR/sources/crystax/libs/$ABI/libcrystax_static.a \
+        $NDK_DIR/sources/crystax/libs/$ABI/libcrystax.a \
         -lgcc \
         -lc -lm \
         $CRTEND_SO_O \
