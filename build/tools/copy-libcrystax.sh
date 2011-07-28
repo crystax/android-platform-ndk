@@ -109,13 +109,13 @@ SRC_ABI="$SRC_DIR/$ABI_CONFIGURE_TARGET"
 
 case "$ARCH" in
     arm)
-        copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib" "libcrystax_*.*"
-        copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib/thumb" "libcrystax_*.*"
-        copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a" "libcrystax_*.*"
-        copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a/thumb" "libcrystax_*.*"
+        copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib" "libcrystax.*"
+        copy_file_list "$SRC_LIBS/armeabi" "$ABI_STL/lib/thumb" "libcrystax.*"
+        copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a" "libcrystax.*"
+        copy_file_list "$SRC_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a/thumb" "libcrystax.*"
         ;;
     x86)
-        copy_file_list "$SRC_LIBS/x86" "$ABI_STL/lib" "libcrystax_*.*"
+        copy_file_list "$SRC_LIBS/x86" "$ABI_STL/lib" "libcrystax.*"
         ;;
     *)
         dump "ERROR: Unsupported NDK architecture!"

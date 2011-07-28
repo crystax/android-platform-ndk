@@ -31,8 +31,8 @@ PROGRAM_DESCRIPTION=\
 "Rebuild the prebuilt crystax library for the Android NDK.
 
 This script is called when packaging a new NDK release. It will simply
-rebuild the crystax static and shared libraries from sources by using
-the dummy project under $PROJECT_SUBDIR and a valid NDK installation.
+rebuild the crystax binaries from sources by using the dummy project
+under $PROJECT_SUBDIR and a valid NDK installation.
 
 By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
@@ -142,7 +142,7 @@ fi
 rm -rf "$PROJECT_DIR/libs"
 rm -rf "$PROJECT_DIR/obj"
 
-LIBRARIES="libcrystax_static.a libcrystax_shared.so"
+LIBRARIES="libcrystax.a"
 
 for ABI in $ABIS; do
     dump "Building $ABI crystax library..."

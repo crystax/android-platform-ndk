@@ -147,9 +147,9 @@ $(call ndk-stl-select,$(NDK_APP_STL))
 # module declarations, but does not populate the dependency graph yet.
 include $(NDK_APP_BUILD_SCRIPT)
 
-$(call modules-add-c++-dependencies,crystax_static,)
+$(call modules-add-c++-dependencies,crystax,)
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
-$(call modules-add-c++-dependencies,crystax_static,)
+$(call modules-add-c++-dependencies,crystax,)
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)
