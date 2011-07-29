@@ -1052,7 +1052,7 @@ _OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
 
 _FLAGS := $$($$(my)CFLAGS) \
           $$(call get-src-file-target-cflags,$(1)) \
-          $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
+          $$(call host-c-includes,$$(CRYSTAX_INCLUDES) $$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_CFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(call host-c-includes,$$($(my)C_INCLUDES)) \
@@ -1097,7 +1097,7 @@ _SRC:=$$(LOCAL_PATH)/$(1)
 _OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
 _FLAGS := $$($$(my)CXXFLAGS) \
           $$(call get-src-file-target-cflags,$(1)) \
-          $$(call host-c-includes, $$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
+          $$(call host-c-includes, $$(CRYSTAX_INCLUDES) $$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_CFLAGS) \
           $$(LOCAL_CPPFLAGS) \
           $$(LOCAL_CXXFLAGS) \

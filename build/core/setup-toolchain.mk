@@ -139,16 +139,13 @@ endif
 # free the dictionary of LOCAL_MODULE definitions
 $(call modules-clear)
 
-$(call import-module,crystax)
 $(call ndk-stl-select,$(NDK_APP_STL))
 
 # now parse the Android.mk for the application, this records all
 # module declarations, but does not populate the dependency graph yet.
 include $(NDK_APP_BUILD_SCRIPT)
 
-$(call modules-add-c++-dependencies,crystax,)
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
-$(call modules-add-c++-dependencies,crystax,)
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)
