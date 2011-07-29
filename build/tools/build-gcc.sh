@@ -183,6 +183,9 @@ if [ $? != 0] ; then
     exit 1
 fi
 
+# Create fake libcrystax.a to make happy gcc while it builds
+ar rcs $TOOLCHAIN_SYSROOT/usr/lib/libcrystax.a
+
 if [ -d $SRC_CRYSTAX_LIB ] ; then
     dump "Sysroot  : Copying $SRC_CRYSTAX_LIB --> $DST_CRYSTAX_LIB"
     mkdir -p $DST_CRYSTAX_LIB && (cd $SRC_CRYSTAX_LIB && tar ch *) | (cd $DST_CRYSTAX_LIB && tar x)
