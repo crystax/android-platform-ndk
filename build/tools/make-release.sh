@@ -196,11 +196,14 @@ fi
 for ARCH in arm x86; do
 if timestamp_check build-prebuilts-$ARCH; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
-    if timestamp_check build-host-prebuilts-$ARCH; then
-        dump "Building host toolchain binaries..."
-        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --arch="$ARCH" --build-dir="$RELEASE_DIR/build"
-        fail_panic "Can't build $HOST_SYSTEM binaries."
-        timestamp_set build-host-prebuilts-$ARCH
+    # Build toolchain only if current system specified in HOST_SYSTEMS
+    if echo "$HOST_SYSTEMS" | grep "$HOST_TAG" >/dev/null 2>&1; then
+        if timestamp_check build-host-prebuilts-$ARCH; then
+            dump "Building host toolchain binaries..."
+            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --arch="$ARCH" --build-dir="$RELEASE_DIR/build"
+            fail_panic "Can't build $HOST_SYSTEM binaries."
+            timestamp_set build-host-prebuilts-$ARCH
+        fi
     fi
     if [ -n "$DARWIN_SSH" ] ; then
         if timestamp_check build-darwin-prebuilts-$ARCH; then
