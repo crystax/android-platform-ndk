@@ -213,7 +213,7 @@ LOCAL_OBJECTS := $(foreach _obj,$(LOCAL_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
 
 CRYSTAX_DIR := $(NDK_ROOT)/sources/crystax
 CRYSTAX_INCLUDES := $(CRYSTAX_DIR)/include
-CRYSTAX_LDFLAGS := -L$(CRYSTAX_DIR)/libs/$(TARGET_ARCH_ABI) -lcrystax
+CRYSTAX_LDFLAGS := -L$(call host-path,$(CRYSTAX_DIR)/libs/$(TARGET_ARCH_ABI)) -lcrystax
 
 # Build the sources to object files
 #
