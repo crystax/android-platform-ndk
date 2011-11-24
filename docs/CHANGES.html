@@ -5,6 +5,22 @@ android-ndk-r7
 
 IMPORTANT CHANGES:
 
+- New official NDK APIs for Android 4.0 (a.k.a. API level 14),
+  which adds the following native features to the platform:
+
+     - Native multimedia API based on the Khronos Group OpenMAX AL&#0153;
+       1.0.1 Standard.  New headers &lt;OMXAL/OpenMAXAL.h&gt; and
+       &lt;OMXAL/OpenMAXAL_Android.h&gt; are provided to allow
+       applications targeting this API level to perform multimedia output
+       directly from native code using a new Android-specific buffer
+       queue interface.  For more details, see docs/openmaxal/index.html
+       and http://www.khronos.org/openmax/.
+
+     - Updated the native audio API based on the Khronos Group OpenSL ES
+       1.0.1&#0153; Standard.  API Level 14 can now decode compressed
+       audio (e.g. MP3, AAC, Vorbis) to PCM.  For more details, see
+       docs/opensles/index.html and http://www.khronos.org/opensles/.
+
 - CCache support. To speed up large rebuilds, simply define the NDK_CCACHE
   environment variable to 'ccache' (or the path to your ccache binary), as in:
 
@@ -50,6 +66,29 @@ IMPORTANT CHANGES:
 
   See docs/ANDROID-MK.html and docs/CPLUSPLUS-SUPPORT.html for more details
 
+- WARNING: VERY EXPERIMENTAL!!
+
+     You can now build your NDK sources on Windows *without* Cygwin.
+     Simply call the script 'ndk-build.cmd' from the Windows cmd.exe
+     command-line, when in your project path.
+
+     The script takes exactly the same arguments than the original
+     ndk-build one.
+
+     Note that the Windows NDK package comes with its own prebuilt
+     binaries for GNU Make, Awk and other tools required by the build,
+     i.e. you shouldn't need to install anything else to get a working
+     build system.
+
+     IMPORTANT: ndk-gdb doesn't work. You still need Cygwin to debug
+                at the moment!
+
+     This feature is still very experimental, but feel free to try it
+     and report issues on the public forum (android-ndk@googlegroups.com)
+     or the public bug databse (http://b.android.com).
+
+     Note that all samples and unit tests succesfully compile with it.
+
 IMPORTANT BUG FIXES:
 
 - Imported shared libraries are now installed by default to the target
@@ -68,7 +107,13 @@ IMPORTANT BUG FIXES:
   'foo' imports static library 'bar' which imports static library 'zoo',
   the libfoo.so will now be linked against both libbar.a and libzoo.a.
 
+- ndk-gdb now works correctly for activities with multiple categories
+  in their MAIN intent filters.
+
 OTHER CHANGES:
+
+- docs/STABLE-APIS.html: Added missing documentation listing EGL
+  as a supported stable API, starting from API level 9.
 
 - Add a new C++ support runtime named "gabi++". More details about it
   are available in the updated docs/CPLUSPLUS-SUPPORT.html.
@@ -84,6 +129,92 @@ OTHER CHANGES:
         LOCAL_CPP_EXTENSION := .cpp .cxx
 
   To compile both foo.cpp and bar.cxx as C++ sources.
+
+- Refreshed the EGL and OpenGLES Khronos headers to support more extensions.
+  Note that this does *not* change the NDK ABIs for the corresponding
+  libraries, since each extension must be probed at runtime by the client
+  application.
+
+  Which extensions are available depends on your actual device (and GPU
+  drivers), not the version of the platform it provides.
+
+  The header changes simply add new constants and types to make it easier
+  to use the extensions why they have been probed with eglGetProcAddress() or
+  glGetProcAddress(). Here is the list of newly supported extensions:
+
+    GLES 1.x
+    --------
+    GL_OES_vertex_array_object
+    GL_OES_EGL_image_external
+    GL_APPLE_texture_2D_limited_npot
+    GL_EXT_blend_minmax
+    GL_EXT_discard_framebuffer
+    GL_EXT_multi_draw_arrays
+    GL_EXT_read_format_bgra
+    GL_EXT_texture_filter_anisotropic
+    GL_EXT_texture_format_BGRA8888
+    GL_EXT_texture_lod_bias
+    GL_IMG_read_format
+    GL_IMG_texture_compression_pvrtc
+    GL_IMG_texture_env_enhanced_fixed_function
+    GL_IMG_user_clip_plane
+    GL_IMG_multisampled_render_to_texture
+    GL_NV_fence
+    GL_QCOM_driver_control
+    GL_QCOM_extended_get
+    GL_QCOM_extended_get2
+    GL_QCOM_perfmon_global_mode
+    GL_QCOM_writeonly_rendering
+    GL_QCOM_tiled_rendering
+
+    GLES 2.0
+    --------
+    GL_OES_element_index_uint
+    GL_OES_get_program_binary
+    GL_OES_mapbuffer
+    GL_OES_packed_depth_stencil
+    GL_OES_texture_3D
+    GL_OES_texture_float
+    GL_OES_texture_float_linear
+    GL_OES_texture_half_float_linear
+    GL_OES_texture_npot
+    GL_OES_vertex_array_object
+    GL_OES_EGL_image_external
+    GL_AMD_program_binary_Z400
+    GL_EXT_blend_minmax
+    GL_EXT_discard_framebuffer
+    GL_EXT_multi_draw_arrays
+    GL_EXT_read_format_bgra
+    GL_EXT_texture_format_BGRA8888
+    GL_EXT_texture_compression_dxt1
+    GL_IMG_program_binary
+    GL_IMG_read_format
+    GL_IMG_shader_binary
+    GL_IMG_texture_compression_pvrtc
+    GL_IMG_multisampled_render_to_texture
+    GL_NV_coverage_sample
+    GL_NV_depth_nonlinear
+    GL_QCOM_extended_get
+    GL_QCOM_extended_get2
+    GL_QCOM_writeonly_rendering
+    GL_QCOM_tiled_rendering
+
+    EGL:
+    ----
+    EGL_ANDROID_recordable
+    EGL_NV_system_time
+
+- docs/NATIVE-ACTIVITY.HTML: Fixed typo, the minimum API level
+  should be 9, not 8 for native activities.
+
+- removed many unwanted exported symbols from the link-time shared
+  system libraries provided by the NDK. This ensures that code generated
+  with the standalone toolchain doesn't risk to accidentally depend
+  on a non-stable ABI symbol (e.g. any libgcc.a symbol that changes
+  each time the toolchain used to build the platform is changed).
+
+- download-toolchain-sources.sh: Script was updated to download the toolchain
+  sources from android.googlesource.com, the new location for AOSP servers.
 
 -------------------------------------------------------------------------------
 android-ndk-r6b

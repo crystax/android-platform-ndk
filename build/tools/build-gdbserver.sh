@@ -58,6 +58,9 @@ register_var_option "--disable-threads" NOTHREADS "Disable threads support"
 GDB_VERSION=$DEFAULT_GDB_VERSION
 register_var_option "--gdb-version=<name>" GDB_VERSION "Use specific gdb version."
 
+PACKAGE_DIR=
+register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
+
 register_jobs_option
 
 extract_parameters "$@"
@@ -114,6 +117,11 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+if [ "$PACKAGE_DIR" ]; then
+    mkdir -p "$PACKAGE_DIR"
+    fail_panic "Could not create package directory: $PACKAGE_DIR"
+fi
+
 prepare_target_build
 
 parse_toolchain_name
@@ -133,7 +141,7 @@ run mkdir -p "$BUILD_OUT"
 # Copy the sysroot to a temporary build directory
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
-run cp -rp "$SYSROOT/*" "$BUILD_SYSROOT"
+run cp -rH "$SYSROOT/*" "$BUILD_SYSROOT"
 
 # Remove libthread_db to ensure we use exactly the one we want.
 rm -f $BUILD_SYSROOT/usr/lib/libthread_db*
@@ -236,6 +244,13 @@ run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $BUILD_OUT/gdbserver $DEST/$DSTFI
 if [ $? != 0 ] ; then
     dump "Could not install $DSTFILE. See $TMPLOG"
     exit 1
+fi
+
+if [ "$PACKAGE_DIR" ]; then
+    ARCHIVE=$TOOLCHAIN-gdbserver.tar.bz2
+    SUBDIR=$(dirname $(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG))
+    dump "Packaging: $ARCHIVE"
+    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR/$DSTFILE"
 fi
 
 log "Cleaning up."

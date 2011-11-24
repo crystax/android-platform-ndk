@@ -47,6 +47,7 @@ TESTABLES="samples build device awk"
 FULL_TESTS=no
 RUN_TESTS=
 NDK_PACKAGE=
+WINE=
 
 while [ -n "$1" ]; do
     opt="$1"
@@ -102,6 +103,9 @@ while [ -n "$1" ]; do
         --only-awk)
             TESTABLES=awk
             ;;
+        --wine)
+            WINE=yes
+            ;;
         -*) # unknown options
             echo "ERROR: Unknown option '$opt', use --help for list of valid ones."
             exit 1
@@ -138,6 +142,7 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    --only-device     Only rebuild & run device tests"
     echo "    --only-awk        Only run awk tests."
     echo "    --full            Run all device tests, even very long ones."
+    echo "    --wine            Build all tests with wine on Linux"
     echo ""
     echo "NOTE: You cannot use --ndk and --package at the same time."
     echo ""
@@ -386,19 +391,23 @@ fi
 
 run_ndk_build ()
 {
-    run $NDK/ndk-build -j$JOBS "$@"
+    if [ "$WINE" ]; then
+        run wine cmd /c Z:$NDK/ndk-build.cmd -j$JOBS "$@"
+    else
+        run $NDK/ndk-build -j$JOBS "$@"
+    fi
 }
 
 build_project ()
 {
     local NAME=`basename $1`
     local DIR="$BUILD_DIR/$NAME"
-    if [ -f "$DIR/BROKEN_BUILD" ] ; then
+    if [ -f "$1/BROKEN_BUILD" ] ; then
         echo "Skipping $1: (build)"
         return 0
     fi
-    cp -r "$1" "$DIR"
-    cd "$DIR" && run_ndk_build $NDK_BUILD_FLAGS
+    rm -rf "$DIR" && cp -r "$1" "$DIR"
+    (cd "$DIR" && run_ndk_build $NDK_BUILD_FLAGS)
     if [ $? != 0 ] ; then
         echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
         exit 1
@@ -424,7 +433,7 @@ if is_testable samples; then
         DEVNDK_DIR=`dirname $NDK`/development/ndk
         if [ ! -d "$DEVNDK_DIR" ] ; then
             dump "ERROR: Could not find development NDK directory: $DEVNDK_DIR"
-            dump "Please clone platform/development.git from android.git.kernel.org"
+            dump "Please clone platform/development.git from android.googlesource.com"
             exit 1
         fi
         SAMPLES_DIRS="$DEVNDK_DIR/samples"
@@ -495,7 +504,7 @@ if is_testable device; then
             echo "Skipping broken device test build: `basename $1`"
             return 0
         fi
-        echo "Building NDK device test: `basename $1`"
+        echo "Building NDK device test: `basename $1` in $1"
         build_project $1
     }
 

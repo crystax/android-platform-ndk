@@ -36,7 +36,8 @@
 # Repeat after that for N+1, N+2, etc..
 #
 
-. `dirname $0`/prebuilt-common.sh
+PROGDIR=$(dirname "$0")
+. "$PROGDIR/prebuilt-common.sh"
 
 # Return the list of platform supported from $1/platforms
 # as a single space-separated list of levels. (e.g. "3 4 5 8 9")
@@ -55,6 +56,7 @@ DSTDIR="$ANDROID_NDK_ROOT"
 
 ARCHS="$DEFAULT_ARCHS"
 PLATFORMS=`extract_platforms_from "$SRCDIR"`
+NDK_DIR=$ANDROID_NDK_ROOT
 
 OPTION_HELP=no
 OPTION_PLATFORMS=
@@ -87,6 +89,9 @@ for opt do
     ;;
   --dst-dir=*)
     OPTION_DSTDIR="$optarg"
+    ;;
+  --ndk-dir=*)
+    NDK_DIR=$optarg
     ;;
   --platform=*)
     OPTION_PLATFORM=$optarg
@@ -125,6 +130,7 @@ if [ $OPTION_HELP = "yes" ] ; then
     echo "  --verbose             Enable verbose messages"
     echo "  --src-dir=<path>      Source directory for development platform files [$SRCDIR]"
     echo "  --dst-dir=<path>      Destination directory [$DSTDIR]"
+    echo "  --ndk-dir=<path>      Use toolchains from this NDK directory [$NDK_DIR]"
     echo "  --platform=<list>     List of API levels [$PLATFORMS]"
     echo "  --arch=<list>         List of CPU architectures [$ARCHS]"
     echo "  --minimal             Ignore samples, symlinks and generated shared libs."
@@ -293,6 +299,16 @@ symlink_src_directory ()
     symlink_src_directory_inner "$1" "$2" "$(reverse_path $1)"
 }
 
+# $1: Architecture name
+# $2+: List of symbols
+# out: Input list, without any libgcc symbol
+remove_libgcc_symbols ()
+{
+    local ARCH=$1
+    shift
+    echo "$@" | tr ' ' '\n' | grep -v -F -f $PROGDIR/toolchain-symbols/$ARCH/libgcc.a.functions.txt
+}
+
 # $1: library name
 # $2: functions list
 # $3: variables list
@@ -340,7 +356,7 @@ gen_shell_libraries ()
     local TOOLCHAIN_PREFIX funcs vars numfuncs numvars
 
     # Let's locate the toolchain we're going to use
-    local TOOLCHAIN_PREFIX="$ANDROID_NDK_ROOT/$(get_default_toolchain_binprefix_for_arch $1)"
+    local TOOLCHAIN_PREFIX="$NDK_DIR/$(get_default_toolchain_binprefix_for_arch $1)"
     TOOLCHAIN_PREFIX=${TOOLCHAIN_PREFIX%-}
     if [ ! -f "$TOOLCHAIN_PREFIX-readelf" ]; then
         dump "ERROR: $ARCH toolchain not installed: $TOOLCHAIN_PREFIX-gcc"
@@ -364,6 +380,7 @@ gen_shell_libraries ()
         if [ -f "$SYMDIR/$LIB.variables.txt" ]; then
             vars=$(cat "$SYMDIR/$LIB.variables.txt")
         fi
+        funcs=$(remove_libgcc_symbols $ARCH $funcs)
         numfuncs=$(echo $funcs | wc -w)
         numvars=$(echo $vars | wc -w)
         log "Generating shell library for $LIB ($numfuncs functions + $numvars variables)"
@@ -502,7 +519,7 @@ if [ "$PACKAGE_DIR" ]; then
         ARCHIVE=samples.tar.bz2
         dump "Packaging $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "samples"
-        fail_panoc "Could not package samples"
+        fail_panic "Could not package samples"
     fi
 fi
 

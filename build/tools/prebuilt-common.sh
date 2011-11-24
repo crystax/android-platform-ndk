@@ -543,6 +543,7 @@ check_darwin_sdk ()
 handle_mingw ()
 {
     # Now handle the --mingw flag
+    HOST_EXE=
     if [ "$MINGW" = "yes" ] ; then
         case $HOST_TAG in
             linux-*)
@@ -613,6 +614,7 @@ prepare_common_build ()
     # Force generation of 32-bit binaries on 64-bit systems
     CC=${CC:-gcc}
     CXX=${CXX:-g++}
+    STRIP=${STRIP:-strip}
     case $HOST_TAG in
         darwin-*)
             # Try to build with Tiger SDK if available
@@ -648,7 +650,7 @@ EOF
     log2 $CC $HOST_CFLAGS -c -o $TMPO $TMPC
     $NDK_CCACHE $CC $HOST_CFLAGS -c -o $TMPO $TMPC >$TMPL 2>&1
     if [ $? != 0 ] ; then
-        echo "no"
+        log "no"
         if [ "$TRY64" != "yes" ]; then
             # NOTE: We need to modify the definitions of CC and CXX directly
             #        here. Just changing the value of CFLAGS / HOST_CFLAGS
@@ -682,7 +684,8 @@ prepare_host_build ()
         AR=$ABI_CONFIGURE_HOST-ar
         AS=$ABI_CONFIGURE_HOST-as
         RANLIB=$ABI_CONFIGURE_HOST-ranlib
-        export CC CXX LD AR AS RANLIB
+        STRIP=$ABI_CONFIGURE_HOST-strip
+        export CC CXX LD AR AS RANLIB STRIP
     fi
 
     setup_ccache
@@ -755,11 +758,6 @@ parse_toolchain_name ()
         # linux that strip complains about... Sigh.
         #ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-gold=both/gold"
 
-        # Enable C++ exceptions, RTTI and GNU libstdc++ at the same time
-        # You can't really build these separately at the moment.
-        ABI_CFLAGS_FOR_TARGET="-fexceptions"
-        ABI_CXXFLAGS_FOR_TARGET="-frtti"
-        ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-libstdc__-v3"
         ;;
     x86-*)
         ARCH="x86"
@@ -768,9 +766,7 @@ parse_toolchain_name ()
         ABI_CONFIGURE_TARGET="i686-android-linux"
         # Enable C++ exceptions, RTTI and GNU libstdc++ at the same time
         # You can't really build these separately at the moment.
-        ABI_CFLAGS_FOR_TARGET="-fexceptions -fPIC"
-        ABI_CXXFLAGS_FOR_TARGET="-frtti"
-        ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-libstdc__-v3"
+        ABI_CFLAGS_FOR_TARGET="-fPIC"
         ;;
     * )
         echo "Invalid toolchain specified. Expected (arm-linux-androideabi-*|x86-*)"
@@ -996,6 +992,27 @@ check_toolchain_install ()
     set_toolchain_ndk $1 $2
 }
 
+# $1: toolchain source directory
+check_toolchain_src_dir ()
+{
+    local SRC_DIR="$1"
+    if [ -z "$SRC_DIR" ]; then
+        echo "ERROR: Please provide the path to the toolchain source tree. See --help"
+        exit 1
+    fi
+
+    if [ ! -d "$SRC_DIR" ]; then
+        echo "ERROR: Not a directory: '$SRC_DIR'"
+        exit 1
+    fi
+
+    if [ ! -f "$SRC_DIR/build/configure" -o ! -d "$SRC_DIR/gcc" ]; then
+        echo "ERROR: This is not the top of a toolchain tree: $SRC_DIR"
+        echo "You must give the path to a copy of the toolchain source directories"
+        echo "created by 'download-toolchain-sources.sh."
+        exit 1
+    fi
+}
 
 #
 # The NDK_TMPDIR variable is used to specify a root temporary directory

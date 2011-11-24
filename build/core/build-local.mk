@@ -22,6 +22,7 @@
 #
 NDK_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))
 NDK_ROOT := $(strip $(NDK_ROOT:%build/core/=%))
+NDK_ROOT := $(subst \,/,$(NDK_ROOT))
 NDK_ROOT := $(NDK_ROOT:%/=%)
 ifeq ($(NDK_ROOT),)
     # for the case when we're invoked from the NDK install path
@@ -53,7 +54,7 @@ include $(NDK_ROOT)/build/core/init.mk
 #
 # ====================================================================
 
-find-project-dir = $(strip $(call find-project-dir-inner,$1,$2))
+find-project-dir = $(strip $(call find-project-dir-inner,$(abspath $1),$2))
 
 find-project-dir-inner = \
     $(eval __found_project_path := )\
