@@ -11,6 +11,9 @@ API_LEVELS="3 4 5 8 9 14"
 # Default ABIs for the target prebuilt binaries.
 PREBUILT_ABIS="armeabi armeabi-v7a x86"
 
+# Location of the crystax sources, relative to the NDK root directory
+CRYSTAX_SUBDIR=sources/crystax
+
 # Location of the STLport sources, relative to the NDK root directory
 STLPORT_SUBDIR=sources/cxx-stl/stlport
 

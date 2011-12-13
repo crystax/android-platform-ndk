@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -95,6 +95,7 @@ GABIXX_LDFLAGS=
 STLPORT_SRCDIR=$ANDROID_NDK_ROOT/$STLPORT_SUBDIR
 STLPORT_CFLAGS="-DGNU_SOURCE -fPIC -O2 -I$STLPORT_SRCDIR/stlport -DANDROID -D__ANDROID__"
 STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$ANDROID_NDK_ROOT/$GABIXX_SUBDIR/include"
+STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/include"
 STLPORT_CXXFLAGS="-fuse-cxa-atexit -fno-exceptions -frtti"
 STLPORT_SOURCES=\
 "src/dll_main.cpp \
@@ -178,6 +179,7 @@ build_stlport_libs_for_abi ()
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
+    builder_ldflags "-L$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/libs/$ABI -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }

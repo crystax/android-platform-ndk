@@ -134,6 +134,8 @@ build_gnustl_for_abi ()
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_default_toolchain_binprefix_for_arch $ARCH)
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+    CRYSTAX_INCDIR=$NDK_DIR/$CRYSTAX_SUBDIR/include
+    CRYSTAX_LIBDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI
 
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then
@@ -155,7 +157,8 @@ build_gnustl_for_abi ()
             ;;
     esac
 
-    export CXXFLAGS="$CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -D__BIONIC__ -O2"
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR"
+    export CXXFLAGS="$CXXFLAGS --sysroot=$SYSROOT -I$CRYSTAX_INCDIR -fexceptions -frtti -D__BIONIC__ -O2"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
@@ -167,7 +170,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -lc"
+    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lc"
 
     LIBTYPE_FLAGS=
     if [ $LIBTYPE = "static" ]; then
@@ -191,6 +194,7 @@ build_gnustl_for_abi ()
         --disable-symvers \
         --disable-multilib \
         --enable-threads \
+        --enable-wchar_t \
         --disable-nls \
         --disable-sjlj-exceptions \
         --disable-tls \

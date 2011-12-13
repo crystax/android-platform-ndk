@@ -191,6 +191,33 @@ case "$ARCH" in
         dump "ERROR: Unsupported NDK architecture!"
 esac
 
+dump "Copying crystax headers and libraries..."
+
+CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
+CRYSTAX_LIBS=$CRYSTAX_DIR/libs
+
+copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
+case "$ARCH" in
+    arm)
+        for ext in a so; do
+            cp "$CRYSTAX_LIBS/armeabi/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/armeabi/libcrystax.$ext" "$ABI_STL/lib/thumb/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/armeabi-v7a/libcrystax.$ext" "$ABI_STL/lib/armv7-a/libcrystax.$ext"
+        done
+        mv "$ABI_STL/lib/libcrystax.so" "$ABI_STL/lib/libcrystax_shared.so"
+        mv "$ABI_STL/lib/thumb/libcrystax.so" "$ABI_STL/lib/thumb/libcrystax_shared.so"
+        mv "$ABI_STL/lib/armv7-a/libcrystax.so" "$ABI_STL/lib/armv7-a/libcrystax_shared.so"
+        ;;
+    x86)
+        for ext in a so; do
+            cp "$CRYSTAX_LIBS/x86/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
+        done
+        mv "$ABI_STL/lib/libcrystax.so" "$ABI_STL/lib/libcrystax_shared.so"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+
 # Install or Package
 if [ -n "$INSTALL_DIR" ] ; then
     dump "Copying files to: $INSTALL_DIR"

@@ -39,7 +39,9 @@ rm -rf $DIR/samples
 rm -rf $DIR/prebuilt
 
 # Remove prebuilt binaries
+rm -rf $DIR/$CRYSTAX_SUBDIR/libs
 rm -rf $DIR/$STLPORT_SUBDIR/libs
+rm -rf $DIR/$GABIXX_SUBDIR/libs
 rm -rf $DIR/$GNUSTL_SUBDIR/include
 rm -rf $DIR/$GNUSTL_SUBDIR/libs/*
 

@@ -1053,7 +1053,7 @@ NDK_APP_VARS_REQUIRED :=
 # the list of variables that *may* be defined in Application.mk files
 NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CXXFLAGS \
                          APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
-                         APP_PROJECT_PATH APP_STL
+                         APP_PROJECT_PATH APP_STL APP_CRYSTAX
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
@@ -1543,6 +1543,7 @@ ndk-stl-select = \
 # $1: STL name as it appears in APP_STL (e.g. system)
 #
 ndk-stl-add-dependencies = \
+    $(call ndk_log,Add STL dependencies: '$1')\
     $(call modules-add-c++-dependencies,\
         $(NDK_STL.$1.STATIC_LIBS),\
         $(NDK_STL.$1.SHARED_LIBS))
@@ -1613,4 +1614,43 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     none,\
     cxx-stl/system,\
+    )
+
+NDK_CRYSTAX_LIST :=
+
+ndk-crystax-check = \
+    $(if $(call set_is_member,$(NDK_CRYSTAX_LIST),$1),,\
+        $(call __ndk_info,Invalid APP_CRYSTAX value: $1)\
+        $(call __ndk_info,Please use one of the following instead: $(NDK_CRYSTAX_LIST))\
+        $(call __ndk_error,Aborting))
+
+ndk-crystax-register = \
+    $(eval __ndk_crystax := $(strip $1)) \
+    $(eval NDK_CRYSTAX_LIST += $(__ndk_crystax)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).IMPORT_MODULE := $(strip $2)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).STATIC_LIBS := $(strip $3)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).SHARED_LIBS := $(strip $4))
+
+ndk-crystax-select = \
+    $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
+
+ndk-crystax-add-dependencies = \
+    $(call ndk_log,Add crystax dependencies: '$1')\
+    $(foreach __module,$(__ndk_modules),\
+        $(if $(or $(findstring crystax_static,$(__module)),$(findstring crystax_shared,$(__module))),,\
+            $(call ndk_log,Add dependency '$1' to module '$(__module)')\
+            $(call module-add-c++-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))))
+
+$(call ndk-crystax-register,\
+    static,\
+    crystax,\
+    crystax_static,\
+    \
+    )
+
+$(call ndk-crystax-register,\
+    shared,\
+    crystax,\
+    ,\
+    crystax_shared\
     )

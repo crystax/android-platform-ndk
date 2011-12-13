@@ -85,6 +85,10 @@ dump "Building gabi++ binaries..."
 run $BUILDTOOLS/build-gabi++.sh $FLAGS
 fail_panic "Could not build gabi++!"
 
+dump "Building crystax binaries..."
+run $BUILDTOOLS/build-crystax.sh $FLAGS
+fail_panic "Could not build crystax!"
+
 dump "Building stlport binaries..."
 run $BUILDTOOLS/build-stlport.sh $FLAGS
 fail_panic "Could not build stlport!"

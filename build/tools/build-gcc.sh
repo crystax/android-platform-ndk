@@ -196,6 +196,9 @@ export ABI=$HOST_GMP_ABI
 # and fail to build with recent GCC versions.
 export CFLAGS="-Wno-error"
 #export LDFLAGS="$HOST_LDFLAGS"
+if [ "$MINGW" = "yes" ] ; then
+  ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-plugin"
+fi
 mkdir -p $BUILD_OUT && cd $BUILD_OUT && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \

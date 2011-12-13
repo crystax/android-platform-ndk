@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -129,7 +129,7 @@ IMPORTANT:
 "
 
 # Create directory where everything will be performed.
-RELEASE_DIR=$NDK_TMPDIR/release-$RELEASE
+RELEASE_DIR=/tmp/ndk-$USER/release-$RELEASE
 if [ "$INCREMENTAL" = "no" ] ; then
     rm -rf $RELEASE_DIR && mkdir -p $RELEASE_DIR
 else
@@ -150,6 +150,7 @@ fi
 
 timestamp_set ()
 {
+    mkdir -p $TIMESTAMP_DIR
     touch "$TIMESTAMP_DIR/$1"
 }
 
@@ -192,28 +193,34 @@ fi
 # Step 2, build the host toolchain binaries and package them
 if timestamp_check build-prebuilts; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
-    if timestamp_check build-host-prebuilts; then
+    #if timestamp_check build-all-prebuilts; then
+        if [ "$VERBOSE" = "yes" ] ; then
+            FLAGS=$FLAGS" --verbose"
+        fi
+        if [ -n "$DARWIN_SSH" ] ; then
+            FLAGS=$FLAGS" --darwin-ssh=$DARWIN_SSH"
+        fi
         dump "Building host toolchain binaries..."
-        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build"
-        fail_panic "Can't build $HOST_SYSTEM binaries."
-        timestamp_set build-host-prebuilts
-    fi
-    if [ -n "$DARWIN_SSH" ] ; then
-        if timestamp_check build-darwin-prebuilts; then
-            dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH"
-            fail_panic "Can't build Darwin binaries!"
-            timestamp_set build-darwin-prebuilts
-        fi
-    fi
-    if [ -n "$MINGW_GCC" ] ; then
-        if timestamp_check build-mingw-prebuilts; then
-            dump "Building windows toolchain binaries..."
-            $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --toolchain-src-dir="$TOOLCHAIN_SRCDIR" --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build-mingw" --mingw
-            fail_panic "Can't build windows binaries."
-            timestamp_set build-mingw-prebuilt
-        fi
-    fi
+        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR"
+        fail_panic "Can't build all binaries."
+    #    timestamp_set build-all-prebuilts
+    #fi
+    #if [ -n "$DARWIN_SSH" ] ; then
+    #    if timestamp_check build-darwin-prebuilts; then
+    #        dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
+    #        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
+    #        fail_panic "Can't build Darwin binaries!"
+    #        timestamp_set build-darwin-prebuilts
+    #    fi
+    #fi
+    #if [ -n "$MINGW_GCC" ] ; then
+    #    if timestamp_check build-mingw-prebuilts; then
+    #        dump "Building windows toolchain binaries..."
+    #        $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build-mingw" --mingw "$TOOLCHAIN_SRCDIR"
+    #        fail_panic "Can't build windows binaries."
+    #        timestamp_set build-mingw-prebuilt
+    #    fi
+    #fi
     timestamp_set build-prebuilts
     timestamp_clear make-packages
 fi
