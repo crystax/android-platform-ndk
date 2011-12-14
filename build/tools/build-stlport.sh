@@ -57,6 +57,9 @@ register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directl
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions to build by"
+
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
 
@@ -65,6 +68,7 @@ register_jobs_option
 extract_parameters "$@"
 
 ABIS=$(commas_to_spaces $ABIS)
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
@@ -145,20 +149,21 @@ build_stlport_libs_for_abi ()
 {
     local ARCH BINPREFIX SYSROOT
     local ABI=$1
-    local BUILDDIR="$2"
-    local DSTDIR="$3"
+    local GCC_VERSION=$2
+    local BUILDDIR="$3"
+    local DSTDIR="$4"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
     mkdir -p "$BUILDDIR"
 
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
-        DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI
+        DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI/$GCC_VERSION
     fi
 
     mkdir -p "$DSTDIR"
 
-    builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
+    builder_begin_android $ABI $GCC_VERSION "$BUILDDIR" "$MAKEFILE"
 
     builder_set_dstdir "$DSTDIR"
 
@@ -179,27 +184,31 @@ build_stlport_libs_for_abi ()
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
-    builder_ldflags "-L$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/libs/$ABI -lcrystax"
+    builder_ldflags "-L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }
 
 for ABI in $ABIS; do
-    build_stlport_libs_for_abi $ABI "$BUILD_DIR/$ABI"
+    for GCC_VERSION in $GCC_VERSIONS; do
+        build_stlport_libs_for_abi $ABI $GCC_VERSION "$BUILD_DIR/$ABI/$GCC_VERSION"
+    done
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
-        FILES=""
-        for LIB in libstlport_static.a libstlport_shared.so; do
-            FILES="$FILES $STLPORT_SUBDIR/libs/$ABI/$LIB"
+        for GCC_VERSION in $GCC_VERSIONS; do
+            FILES=""
+            for LIB in libstlport_static.a libstlport_shared.so; do
+                FILES="$FILES $STLPORT_SUBDIR/libs/$ABI/$GCC_VERSION/$LIB"
+            done
+            PACKAGE="$PACKAGE_DIR/stlport-libs-$ABI-$GCC_VERSION.tar.bz2"
+            log "Packaging: $PACKAGE"
+            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+            fail_panic "Could not package $ABI STLport binaries!"
+            dump "Packaging: $PACKAGE"
         done
-        PACKAGE="$PACKAGE_DIR/stlport-libs-$ABI.tar.bz2"
-        log "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI STLport binaries!"
-        dump "Packaging: $PACKAGE"
     done
 fi
 

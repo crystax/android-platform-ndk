@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the arm-eabi-4.4.0
+# this file is used to prepare the NDK to build with the arm-linux-androideabi-4.4.3
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,6 +23,8 @@
 # revisions of the NDK.
 #
 
+TOOLCHAIN_NAME   := arm-linux-androideabi-4.4.3
+
 TARGET_CFLAGS := \
     -fpic \
     -ffunction-sections \
@@ -30,6 +32,14 @@ TARGET_CFLAGS := \
     -fstack-protector \
     -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
     -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
+
+ifeq ($(TARGET_USE_CPP0X),true)
+    TARGET_CFLAGS += --std=gnu++0x
+else
+ifeq ($(TARGET_USE_CPP0X),strict)
+    TARGET_CFLAGS += --std=c++0x
+endif
+endif
 
 TARGET_LDFLAGS :=
 

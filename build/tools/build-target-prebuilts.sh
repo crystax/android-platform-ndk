@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -25,6 +25,9 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
+
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "List of GCC versions to use for build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -56,6 +59,7 @@ run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-
 fail_panic "Could not generate platforms and samples directores!"
 
 ARCHS=$(commas_to_spaces $ARCHS)
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 FLAGS=
 if [ "$VERBOSE" = "yes" ]; then
@@ -73,13 +77,16 @@ FLAGS=$FLAGS" -j$NUM_JOBS"
 
 # First, gdbserver
 for ARCH in $ARCHS; do
-    dump "Building $ARCH gdbserver binaries..."
-    GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
-    run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
-    fail_panic "Could not build $ARCH gdb-server!"
+    for GCC_VERSION in $GCC_VERSIONS; do
+        dump "Building $ARCH-$GCC_VERSION gdbserver binaries..."
+        GDB_TOOLCHAIN=$(get_toolchain_name_for_gcc_and_arch $GCC_VERSION $ARCH)
+        run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
+        fail_panic "Could not build $ARCH gdb-server!"
+    done
 done
 
 FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
+FLAGS=$FLAGS" --gcc-versions=$(spaces_to_commas $GCC_VERSIONS)"
 
 dump "Building gabi++ binaries..."
 run $BUILDTOOLS/build-gabi++.sh $FLAGS

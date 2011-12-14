@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2009-2010 The Android Open Source Project
 #
@@ -53,13 +53,15 @@ register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architecture(s)"
 
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions"
+
 # set to 'yes' if we should use 'git ls-files' to list the files to
 # be copied into the archive.
 NO_GIT=no
 register_var_option "--no-git" NO_GIT "Don't use git to list input files, take all of them."
 
 # set of toolchain prebuilts we need to package
-TOOLCHAINS="$DEFAULT_ARCH_TOOLCHAIN_arm"
 OPTION_TOOLCHAINS=$TOOLCHAINS
 register_var_option "--toolchains=<list>" OPTION_TOOLCHAINS "Specify list of toolchains."
 
@@ -105,6 +107,8 @@ extract_parameters "$@"
 # Ensure that SYSTEMS is space-separated
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
 
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
+
 # Do we need to support x86?
 ARCHS=$(commas_to_spaces $ARCHS)
 echo "$ARCHS" | tr ' ' '\n' | grep -q x86
@@ -131,11 +135,17 @@ done
 #
 # Ensure that TOOLCHAINS is space-separated after this.
 #
-if [ "$OPTION_TOOLCHAINS" != "$TOOLCHAINS" ]; then
+TOOLCHAINS=
+for GCC_VERSION in $GCC_VERSIONS; do
+    TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_gcc_and_arch $GCC_VERSION arm)"
+done
+if [ -n "$OPTION_TOOLCHAINS" ]; then
     TOOLCHAINS=$(commas_to_spaces $OPTION_TOOLCHAINS)
 else
     if [ "$TRY_X86" = "yes" ]; then
-        TOOLCHAINS="$TOOLCHAINS $DEFAULT_ARCH_TOOLCHAIN_x86"
+        for GCC_VERSION in $GCC_VERSIONS; do
+            TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_gcc_and_arch $GCC_VERSION x86)"
+        done
     fi
     TOOLCHAINS=$(commas_to_spaces $TOOLCHAINS)
 fi
@@ -325,12 +335,16 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt $TC-gdbserver.tar.bz2 "$REFERENCE"
     done
     # Unpack C++ runtimes
-    unpack_prebuilt gnu-libstdc++-headers.tar.bz2 "$REFERENCE"
+    for GCC_VERSION in $GCC_VERSIONS; do
+        unpack_prebuilt gnu-libstdc++-headers-$GCC_VERSION.tar.bz2 "$REFERENCE"
+    done
     for ABI in $ABIS; do
-        unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt gabixx-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt stlport-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt gnu-libstdc++-libs-$ABI.tar.bz2 "$REFERENCE"
+        for GCC_VERSION in $GCC_VERSIONS; do
+            unpack_prebuilt crystax-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+            unpack_prebuilt gabixx-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+            unpack_prebuilt stlport-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+            unpack_prebuilt gnu-libstdc++-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+        done
     done
 fi
 

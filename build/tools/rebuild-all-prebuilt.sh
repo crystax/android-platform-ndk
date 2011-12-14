@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -29,6 +29,9 @@ register_var_option "--build-dir=<path>" BUILD_DIR "Specify temporary build dire
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
+
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify GCC versions to build"
 
 SYSTEMS=$HOST_TAG32
 if [ "$HOST_TAG32" = "linux-x86" ]; then
@@ -85,6 +88,7 @@ fi
 FLAGS=$FLAGS" --ndk-dir=$NDK_DIR"
 FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"
+FLAGS=$FLAGS" --gcc-versions=$(spaces_to_commas $GCC_VERSIONS)"
 
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
 if [ "$TRY64" = "yes" ]; then

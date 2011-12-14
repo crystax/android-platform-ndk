@@ -164,28 +164,28 @@ GNUSTL_LIBS=$GNUSTL_DIR/libs
 ABI_STL="$TMPDIR/$ABI_CONFIGURE_TARGET"
 ABI_STL_INCLUDE="$ABI_STL/include/c++/$GCC_VERSION"
 
-copy_directory "$GNUSTL_DIR/include" "$ABI_STL_INCLUDE"
+copy_directory "$GNUSTL_DIR/include/$GCC_VERSION" "$ABI_STL_INCLUDE"
 ABI_STL_INCLUDE_TARGET="$ABI_STL_INCLUDE/$ABI_CONFIGURE_TARGET"
 mkdir -p "$ABI_STL_INCLUDE_TARGET"
 fail_panic "Can't create directory: $ABI_STL_INCLUDE_TARGET"
 case "$ARCH" in
     arm)
-        copy_directory "$GNUSTL_LIBS/armeabi/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"
-        copy_file_list "$GNUSTL_LIBS/armeabi" "$ABI_STL/lib" "libgnustl_shared.so"
-        cp "$GNUSTL_LIBS/armeabi/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
+        copy_directory "$GNUSTL_LIBS/armeabi/$GCC_VERSION/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"
+        copy_file_list "$GNUSTL_LIBS/armeabi/$GCC_VERSION" "$ABI_STL/lib" "libgnustl_shared.so"
+        cp "$GNUSTL_LIBS/armeabi/$GCC_VERSION/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
 
-        copy_directory "$GNUSTL_LIBS/armeabi/include/bits" "$ABI_STL_INCLUDE_TARGET/thumb/bits"
-        copy_file_list "$GNUSTL_LIBS/armeabi" "$ABI_STL/lib/thumb" "libgnustl_shared.so"
-        cp "$GNUSTL_LIBS/armeabi/libgnustl_static.a" "$ABI_STL/lib/thumb/libstdc++.a"
+        copy_directory "$GNUSTL_LIBS/armeabi/$GCC_VERSION/include/bits" "$ABI_STL_INCLUDE_TARGET/thumb/bits"
+        copy_file_list "$GNUSTL_LIBS/armeabi/$GCC_VERSION" "$ABI_STL/lib/thumb" "libgnustl_shared.so"
+        cp "$GNUSTL_LIBS/armeabi/$GCC_VERSION/libgnustl_static.a" "$ABI_STL/lib/thumb/libstdc++.a"
 
-        copy_directory "$GNUSTL_LIBS/armeabi-v7a/include/bits" "$ABI_STL_INCLUDE_TARGET/armv7-a/bits"
-        copy_file_list "$GNUSTL_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a" "libgnustl_shared.so"
-        cp "$GNUSTL_LIBS/armeabi-v7a/libgnustl_static.a" "$ABI_STL/lib/armv7-a/libstdc++.a"
+        copy_directory "$GNUSTL_LIBS/armeabi-v7a/$GCC_VERSION/include/bits" "$ABI_STL_INCLUDE_TARGET/armv7-a/bits"
+        copy_file_list "$GNUSTL_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_STL/lib/armv7-a" "libgnustl_shared.so"
+        cp "$GNUSTL_LIBS/armeabi-v7a/$GCC_VERSION/libgnustl_static.a" "$ABI_STL/lib/armv7-a/libstdc++.a"
         ;;
     x86)
-        copy_directory "$GNUSTL_LIBS/x86/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"
-        copy_file_list "$GNUSTL_LIBS/x86" "$ABI_STL/lib" "libgnustl_shared.so"
-        cp "$GNUSTL_LIBS/x86/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
+        copy_directory "$GNUSTL_LIBS/x86/$GCC_VERSION/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"
+        copy_file_list "$GNUSTL_LIBS/x86/$GCC_VERSION" "$ABI_STL/lib" "libgnustl_shared.so"
+        cp "$GNUSTL_LIBS/x86/$GCC_VERSION/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
         ;;
     *)
         dump "ERROR: Unsupported NDK architecture!"
@@ -200,9 +200,9 @@ copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
 case "$ARCH" in
     arm)
         for ext in a so; do
-            cp "$CRYSTAX_LIBS/armeabi/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
-            cp "$CRYSTAX_LIBS/armeabi/libcrystax.$ext" "$ABI_STL/lib/thumb/libcrystax.$ext"
-            cp "$CRYSTAX_LIBS/armeabi-v7a/libcrystax.$ext" "$ABI_STL/lib/armv7-a/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax.$ext" "$ABI_STL/lib/thumb/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION/libcrystax.$ext" "$ABI_STL/lib/armv7-a/libcrystax.$ext"
         done
         mv "$ABI_STL/lib/libcrystax.so" "$ABI_STL/lib/libcrystax_shared.so"
         mv "$ABI_STL/lib/thumb/libcrystax.so" "$ABI_STL/lib/thumb/libcrystax_shared.so"
@@ -210,7 +210,7 @@ case "$ARCH" in
         ;;
     x86)
         for ext in a so; do
-            cp "$CRYSTAX_LIBS/x86/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
+            cp "$CRYSTAX_LIBS/x86/$GCC_VERSION/libcrystax.$ext" "$ABI_STL/lib/libcrystax.$ext"
         done
         mv "$ABI_STL/lib/libcrystax.so" "$ABI_STL/lib/libcrystax_shared.so"
         ;;

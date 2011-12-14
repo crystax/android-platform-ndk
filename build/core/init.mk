@@ -59,6 +59,9 @@ ifneq ($(words $(NDK_ROOT)),1)
     $(error,Please fix the problem by reinstalling to a different location.)
 endif
 
+DEFAULT_TOOLCHAIN_VERSION := 4.4.3
+DEFAULT_TOOLCHAIN_VERSION_CPP0X := 4.6.3
+
 # ====================================================================
 #
 # Define a few useful variables and functions.

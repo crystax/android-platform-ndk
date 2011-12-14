@@ -24,7 +24,8 @@ $(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_CRYSTAX)
 # NOTE: If NDK_TOOLCHAIN is defined, we're going to use it.
 #
 ifndef NDK_TOOLCHAIN
-    TARGET_TOOLCHAIN_LIST := $(strip $(sort $(NDK_ABI.$(TARGET_ARCH_ABI).toolchains)))
+    #TARGET_TOOLCHAIN_LIST := $(strip $(sort $(NDK_ABI.$(TARGET_ARCH_ABI).toolchains)))
+    TARGET_TOOLCHAIN_LIST := $(strip $(filter %-$(NDK_TOOLCHAIN_VERSION),$(NDK_ABI.$(TARGET_ARCH_ABI).toolchains)))
     ifndef TARGET_TOOLCHAIN_LIST
         $(call __ndk_info,There is no toolchain that supports the $(TARGET_ARCH_ABI) ABI.)
         $(call __ndk_info,Please modify the APP_ABI definition in $(NDK_APP_APPLICATION_MK) to use)
@@ -46,6 +47,8 @@ else # NDK_TOOLCHAIN is not empty
     endif
     TARGET_TOOLCHAIN := $(NDK_TOOLCHAIN)
 endif # NDK_TOOLCHAIN is not empty
+
+TARGET_TOOLCHAIN_VERSION := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-toolchain-version.awk $(NDK_TOOLCHAIN.$(TARGET_TOOLCHAIN).setup))
 
 TARGET_ABI := $(TARGET_PLATFORM)-$(TARGET_ARCH_ABI)
 

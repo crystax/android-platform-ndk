@@ -1,3 +1,4 @@
+#!/bin/bash
 # Common functions for all prebuilt-related scripts
 # This is included/sourced by other scripts
 #
@@ -503,7 +504,7 @@ fix_sysroot ()
         eval SYSROOT="$1"
         log "Using specified sysroot: $1"
     else
-        SYSROOT_SUFFIX=$PLATFORM/arch-$ARCH
+        SYSROOT_SUFFIX=$(get_default_platform_for_arch $ARCH)/arch-$ARCH
         SYSROOT=
         check_sysroot $NDK_DIR/platforms $SYSROOT_SUFFIX
         check_sysroot $ANDROID_NDK_ROOT/platforms $SYSROOT_SUFFIX
@@ -532,7 +533,7 @@ fix_sysroot ()
 check_darwin_sdk ()
 {
     if [ -d "$1" ] ; then
-        HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMAXOSX_DEPLOYEMENT_TARGET=$2"
+        HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMACOSX_DEPLOYMENT_TARGET=$2"
         HOST_LDFLAGS="-Wl,-syslibroot,$sdk -mmacosx-version-min=$2"
         return 0  # success
     fi
@@ -815,7 +816,7 @@ get_prebuilt_host_tag ()
                 RET=linux-x86
             fi
             ;;
-        darwin_x86_64)
+        darwin-x86_64)
             if [ "$TRY64" = "no" ]; then
                 RET=darwin-x86
             fi
@@ -855,19 +856,30 @@ convert_abi_to_arch ()
     echo "$RET"
 }
 
+# Return the binary path prefix for a given gcc version and architecture
+# For example: 4.4.3 arm -> toolchains/arm-linux-androideabi-4.4.3/prebuilt/<system>/bin/arm-linux-androideabi-
+# $1: GCC version
+# $2: Architecture name
+# $3: optional, system name, defaults to $HOST_TAG
+get_toolchain_binprefix_for_gcc_and_arch()
+{
+    local NAME PREFIX DIR BINPREFIX
+    local V=$(get_plain_gcc_version $1)
+    local SYSTEM=${3:-$(get_prebuilt_host_tag)}
+    NAME=$(get_toolchain_name_for_gcc_and_arch $1 $2)
+    PREFIX=$(get_default_toolchain_prefix_for_arch $2)
+    DIR=$(get_toolchain_install . $NAME $SYSTEM)
+    BINPREFIX=${DIR#./}/bin/$PREFIX-
+    echo "$BINPREFIX"
+}
+
 # Return the default binary path prefix for a given architecture
 # For example: arm -> toolchains/arm-linux-androideabi-4.4.3/prebuilt/<system>/bin/arm-linux-androideabi-
 # $1: Architecture name
 # $2: optional, system name, defaults to $HOST_TAG
 get_default_toolchain_binprefix_for_arch ()
 {
-    local NAME PREFIX DIR BINPREFIX
-    local SYSTEM=${2:-$(get_prebuilt_host_tag)}
-    NAME=$(get_default_toolchain_name_for_arch $1)
-    PREFIX=$(get_default_toolchain_prefix_for_arch $1)
-    DIR=$(get_toolchain_install . $NAME $SYSTEM)
-    BINPREFIX=${DIR#./}/bin/$PREFIX-
-    echo "$BINPREFIX"
+    get_toolchain_binprefix_for_gcc_and_arch $DEFAULT_GCC_VERSION $1 $2
 }
 
 # Return default API level for a given arch
@@ -881,6 +893,15 @@ get_default_api_level_for_arch ()
     # to ensure that the result works on previous platforms properly).
     local LEVEL=9
     echo $LEVEL
+}
+
+# Return default platform for a given architecture name
+# $1: Architecture name
+# Out: platform name (android-N)
+get_default_platform_for_arch()
+{
+    local LEVEL=$(get_default_api_level_for_arch $1)
+    echo "android-$LEVEL"
 }
 
 # Return the default platform sysroot corresponding to a given architecture

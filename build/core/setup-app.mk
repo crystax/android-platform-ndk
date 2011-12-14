@@ -64,6 +64,35 @@ else
     endif
 endif
 
+ifndef APP_USE_CPP0X
+    NDK_USE_CPP0X := false
+else
+    NDK_USE_CPP0X := $(strip $(APP_USE_CPP0X))
+    ifneq ($(NDK_USE_CPP0X),true)
+        ifneq ($(NDK_USE_CPP0X),false)
+            ifneq ($(NDK_USE_CPP0X),strict)
+                $(call __ndk_info,Wrong value of APP_USE_CPP0X: $(APP_USE_CPP0X))
+                $(call __ndk_info,The only allowed values are 'true' 'strict' or 'false')
+                $(call __ndk_info,  'true'   - use C++ 0x with GNU extensions)
+                $(call __ndk_info,  'strict' - use C++ 0x without GNU extensions)
+                $(call __ndk_info,  'false'  - don\'t use C++ 0x)
+                $(call __ndk_error,Aborting)
+            endif
+        endif
+    endif
+endif
+TARGET_USE_CPP0X := $(NDK_USE_CPP0X)
+
+ifndef APP_TOOLCHAIN_VERSION
+    ifeq ($(TARGET_USE_CPP0X),false)
+        NDK_TOOLCHAIN_VERSION := $(DEFAULT_TOOLCHAIN_VERSION)
+    else
+        NDK_TOOLCHAIN_VERSION := $(DEFAULT_TOOLCHAIN_VERSION_CPP0X)
+    endif
+else
+    NDK_TOOLCHAIN_VERSION = $(strip $(APP_TOOLCHAIN_VERSION))
+endif
+
 # Clear all installed binaries for this application
 # This ensures that if the build fails, you're not going to mistakenly
 # package an obsolete version of it. Or if you change the ABIs you're targetting,

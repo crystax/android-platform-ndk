@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -43,8 +43,8 @@ BUILD_OUT=/tmp/ndk-$USER/build/gdbserver
 register_option "--build-out=<path>" do_build_out "Set temporary build directory"
 do_build_out () { OPTION_BUILD_OUT="$1"; }
 
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Target specific platform"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
 
 SYSROOT=
 if [ -d $TOOLCHAIN_PATH/sysroot ] ; then
@@ -55,7 +55,7 @@ register_var_option "--sysroot=<path>" SYSROOT "Specify sysroot directory direct
 NOTHREADS=no
 register_var_option "--disable-threads" NOTHREADS "Disable threads support"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
+GDB_VERSION=$(get_default_gdb_version_for_gcc $DEFAULT_GCC_VERSION)
 register_var_option "--gdb-version=<name>" GDB_VERSION "Use specific gdb version."
 
 PACKAGE_DIR=
@@ -117,6 +117,8 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+fix_option PLATFORM "$OPTION_PLATFORM" "platform"
+
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
@@ -141,7 +143,7 @@ run mkdir -p "$BUILD_OUT"
 # Copy the sysroot to a temporary build directory
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
-run cp -rH "$SYSROOT"/* "$BUILD_SYSROOT"
+run cp -RH "$SYSROOT"/* "$BUILD_SYSROOT"
 
 # Remove libthread_db to ensure we use exactly the one we want.
 rm -f $BUILD_SYSROOT/usr/lib/libthread_db*

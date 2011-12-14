@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the x86-4.4.3
+# this file is used to prepare the NDK to build with the arm-linux-androideabi-4.6.3
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,12 +23,15 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := x86-4.4.3
-TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/i686-android-linux-
+TOOLCHAIN_NAME := arm-linux-androideabi-4.6.3
 
 TARGET_CFLAGS := \
+    -fpic \
     -ffunction-sections \
-    -funwind-tables
+    -funwind-tables \
+    -fstack-protector \
+    -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
+    -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
 
 ifeq ($(TARGET_USE_CPP0X),true)
     TARGET_CFLAGS += --std=gnu++0x
@@ -38,40 +41,84 @@ ifeq ($(TARGET_USE_CPP0X),strict)
 endif
 endif
 
+TARGET_LDFLAGS :=
+
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
 
-# Add and LDFLAGS for the target here
-# TARGET_LDFLAGS :=
+# This is to avoid the dreaded warning compiler message:
+#   note: the mangling of 'va_list' has changed in GCC 4.4
+#
+# The fact that the mangling changed does not affect the NDK ABI
+# very fortunately (since none of the exposed APIs used va_list
+# in their exported C++ functions). Also, GCC 4.5 has already
+# removed the warning from the compiler.
+#
+TARGET_CFLAGS += -Wno-psabi
 
-# Fix this after ssp.c is fixed for x86
-# TARGET_CFLAGS += -fstack-protector
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+    TARGET_CFLAGS += -march=armv7-a \
+                     -mfloat-abi=softfp \
+                     -mfpu=vfp
 
-TARGET_x86_release_CFLAGS :=  -O2 \
+    TARGET_LDFLAGS += -Wl,--fix-cortex-a8
+else
+    TARGET_CFLAGS += -march=armv5te \
+                            -mtune=xscale \
+                            -msoft-float
+endif
+
+TARGET_CFLAGS.neon := -mfpu=neon
+
+TARGET_arm_release_CFLAGS :=  -O2 \
                               -fomit-frame-pointer \
                               -fstrict-aliasing    \
                               -funswitch-loops     \
                               -finline-limit=300
 
-# When building for debug, compile everything as x86.
-TARGET_x86_debug_CFLAGS := $(TARGET_x86_release_CFLAGS) \
+TARGET_thumb_release_CFLAGS := -mthumb \
+                               -Os \
+                               -fomit-frame-pointer \
+                               -fno-strict-aliasing \
+                               -finline-limit=64
+
+# When building for debug, compile everything as arm.
+TARGET_arm_debug_CFLAGS := $(TARGET_arm_release_CFLAGS) \
                            -fno-omit-frame-pointer \
                            -fno-strict-aliasing
+
+TARGET_thumb_debug_CFLAGS := $(TARGET_thumb_release_CFLAGS) \
+                             -marm \
+                             -fno-omit-frame-pointer
 
 # This function will be called to determine the target CFLAGS used to build
 # a C or Assembler source file, based on its tags.
 #
 TARGET-process-src-files-tags = \
+$(eval __arm_sources := $(call get-src-files-with-tag,arm)) \
+$(eval __thumb_sources := $(call get-src-files-without-tag,arm)) \
 $(eval __debug_sources := $(call get-src-files-with-tag,debug)) \
 $(eval __release_sources := $(call get-src-files-without-tag,debug)) \
-$(call set-src-files-target-cflags, $(__debug_sources), $(TARGET_x86_debug_CFLAGS)) \
-$(call set-src-files-target-cflags, $(__release_sources),$(TARGET_x86_release_CFLAGS)) \
-$(call set-src-files-text,$(LOCAL_SRC_FILES),x86$(space)$(space)) \
-
-# The ABI-specific sub-directory that the SDK tools recognize for
-# this toolchain's generated binaries
-TARGET_ABI_SUBDIR := x86
-
+$(call set-src-files-target-cflags, \
+    $(call set_intersection,$(__arm_sources),$(__debug_sources)), \
+    $(TARGET_arm_debug_CFLAGS)) \
+$(call set-src-files-target-cflags,\
+    $(call set_intersection,$(__arm_sources),$(__release_sources)),\
+    $(TARGET_arm_release_CFLAGS)) \
+$(call set-src-files-target-cflags,\
+    $(call set_intersection,$(__arm_sources),$(__debug_sources)),\
+    $(TARGET_arm_debug_CFLAGS)) \
+$(call set-src-files-target-cflags,\
+    $(call set_intersection,$(__thumb_sources),$(__release_sources)),\
+    $(TARGET_thumb_release_CFLAGS)) \
+$(call set-src-files-target-cflags,\
+    $(call set_intersection,$(__thumb_sources),$(__debug_sources)),\
+    $(TARGET_thumb_debug_CFLAGS)) \
+$(call add-src-files-target-cflags,\
+    $(call get-src-files-with-tag,neon),\
+    $(TARGET_CFLAGS.neon)) \
+$(call set-src-files-text,$(__arm_sources),arm$(space)$(space)) \
+$(call set-src-files-text,$(__thumb_sources),thumb)
 
 #
 # We need to add -lsupc++ to the final link command to make exceptions
@@ -80,7 +127,6 @@ TARGET_ABI_SUBDIR := x86
 # Normally, the toolchain should be configured to do that automatically,
 # this will be debugged later.
 #
-
 define cmd-build-shared-library
 $(PRIVATE_CXX) \
     -Wl,-soname,$(notdir $@) \

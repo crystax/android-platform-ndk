@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -534,7 +534,11 @@ if is_testable device; then
                 continue
             fi
             DSTFILE="$DSTDIR/$DSTFILE"
-            run $ADB_CMD push "$SRCDIR/$SRCFILE" "$DSTFILE" &&
+            SRCFILE="$SRCDIR/$SRCFILE"
+            if uname -s | grep -qi cygwin; then
+                SRCFILE=$(cygpath -w $SRCFILE)
+            fi
+            run $ADB_CMD push "$SRCFILE" "$DSTFILE" &&
             run $ADB_CMD shell chmod 0755 $DSTFILE
             if [ $? != 0 ] ; then
                 dump "ERROR: Could not install $SRCFILE to device!"
@@ -571,7 +575,7 @@ if is_testable device; then
         dump "WARNING: No 'adb' in your path!"
         SKIP_TESTS=yes
     else
-        ADB_DEVICES=`$ADB_CMD devices`
+        ADB_DEVICES=`$ADB_CMD devices | grep -v "^\s*$"`
         log2 "ADB devices: $ADB_DEVICES"
         ADB_DEVCOUNT=`echo "$ADB_DEVICES" | wc -l`
         ADB_DEVCOUNT=`expr $ADB_DEVCOUNT - 1`

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -36,23 +36,31 @@ OPTION_BUILD_OUT=
 register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
 # Note: platform API level 9 or higher is needed for proper C++ support
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Specify platform name"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>"  OPTION_PLATFORM "Specify platform name"
 
 OPTION_SYSROOT=
 register_var_option "--sysroot=<path>"   OPTION_SYSROOT   "Specify sysroot directory directly"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
-register_var_option "--gdb-version=<version>"  GDB_VERSION "Specify gdb version"
+GDB_VERSION=$(get_default_gdb_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_GDB_VERSION=
+register_var_option "--gdb-version=<version>" OPTION_GDB_VERSION "Specify gdb version [$GDB_VERSION]"
 
-BINUTILS_VERSION=$DEFAULT_BINUTILS_VERSION
-register_var_option "--binutils-version=<version>" BINUTILS_VERSION "Specify binutils version"
+BINUTILS_VERSION=$(get_default_binutils_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_BINUTILS_VERSION=
+register_var_option "--binutils-version=<version>" OPTION_BINUTILS_VERSION "Specify binutils version [$BINUTILS_VERSION]"
 
-GMP_VERSION=$DEFAULT_GMP_VERSION
-register_var_option "--gmp-version=<version>" GMP_VERSION "Specify gmp version"
+GMP_VERSION=$(get_default_gmp_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_GMP_VERSION=
+register_var_option "--gmp-version=<version>" OPTION_GMP_VERSION "Specify gmp version [$GMP_VERSION]"
 
-MPFR_VERSION=$DEFAULT_MPFR_VERSION
-register_var_option "--mpfr-version=<version>" MPFR_VERSION "Specify mpfr version"
+MPFR_VERSION=$(get_default_mpfr_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_MPFR_VERSION=
+register_var_option "--mpfr-version=<version>" OPTION_MPFR_VERSION "Specify mpfr version [$MPFR_VERSION]"
+
+MPC_VERSION=$(get_default_mpc_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_MPC_VERSION=
+register_var_option "--mpc-version=<version>" OPTION_MPC_VERSION "Specify mpc version [$MPC_VERSION]"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
@@ -120,6 +128,36 @@ parse_toolchain_name
 fix_sysroot "$OPTION_SYSROOT"
 
 check_toolchain_src_dir "$SRC_DIR"
+
+if [ -z "$OPTION_GDB_VERSION" ]; then
+    GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)
+else
+    GDB_VERSION=$OPTION_GDB_VERSION
+fi
+
+if [ -z "$OPTION_BINUTILS_VERSION" ]; then
+    BINUTILS_VERSION=$(get_default_binutils_version_for_gcc $GCC_VERSION)
+else
+    BINUTILS_VERSION=$OPTION_BINUTILS_VERSION
+fi
+
+if [ -z "$OPTION_GMP_VERSION" ]; then
+    GMP_VERSION=$(get_default_gmp_version_for_gcc $GCC_VERSION)
+else
+    GMP_VERSION=$OPTION_GMP_VERSION
+fi
+
+if [ -z "$OPTION_MPFR_VERSION" ]; then
+    MPFR_VERSION=$(get_default_mpfr_version_for_gcc $GCC_VERSION)
+else
+    MPFR_VERSION=$OPTION_MPFR_VERSION
+fi
+
+if [ -z "$OPTION_MPC_VERSION" ]; then
+    MPC_VERSION=$(get_default_mpc_version_for_gcc $GCC_VERSION)
+else
+    MPC_VERSION=$OPTION_MPC_VERSION
+fi
 
 if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
@@ -196,6 +234,7 @@ export ABI=$HOST_GMP_ABI
 # and fail to build with recent GCC versions.
 export CFLAGS="-Wno-error"
 #export LDFLAGS="$HOST_LDFLAGS"
+ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-libquadmath"
 if [ "$MINGW" = "yes" ] ; then
   ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-plugin"
 fi
@@ -212,6 +251,7 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-gmp-version=$GMP_VERSION \
                         --with-gcc-version=$GCC_VERSION \
                         --with-gdb-version=$GDB_VERSION \
+                        --with-mpc-version=$MPC_VERSION \
                         $ABI_CONFIGURE_EXTRA_FLAGS
 if [ $? != 0 ] ; then
     dump "Error while trying to configure toolchain build. See $TMPLOG"

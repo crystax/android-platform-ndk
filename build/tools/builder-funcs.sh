@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -406,11 +407,12 @@ builder_end ()
 
 # Same as builder_begin, but to target Android with a specific ABI
 # $1: ABI name (e.g. armeabi)
-# $2: Build directory
-# $3: Optional Makefile name
+# $2: GCC version
+# $3: Build directory
+# $4: Optional Makefile name
 builder_begin_android ()
 {
-    local ARCH ABI PLATFORM BUILDDIR DSTDIR SYSROOT CFLAGS
+    local ARCH ABI BUILDDIR DSTDIR SYSROOT CFLAGS
     local CRTBEGIN_SO_O CRTEND_SO_O CRTBEGIN_EXE_SO CRTEND_SO_O
     if [ -z "$NDK_DIR" ]; then
         panic "NDK_DIR is not defined!"
@@ -419,10 +421,10 @@ builder_begin_android ()
     fi
     ABI=$1
     ARCH=$(convert_abi_to_arch $ABI)
-    PLATFORM=${2##android-}
-    SYSROOT=$NDK_DIR/platforms/android-$PLATFORM/arch-$ARCH
+    GCC_VERSION=$2
+    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
 
-    BINPREFIX=$NDK_DIR/$(get_default_toolchain_binprefix_for_arch $ARCH)
+    BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_gcc_and_arch $GCC_VERSION $ARCH)
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
 
     CRTBEGIN_EXE_O=$SYSROOT/usr/lib/crtbegin_dynamic.o
@@ -437,7 +439,7 @@ builder_begin_android ()
         CRTEND_SO_O=$CRTEND_EXE_O
     fi
 
-    builder_begin "$2" "$3"
+    builder_begin "$3" "$4"
     builder_set_prefix "$ABI "
     builder_set_binprefix "$BINPREFIX"
 

@@ -12,8 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-# config file for the arm-linux-androideabi-4.4.3 toolchain for the Android NDK
-# the real meat is in the setup.mk file adjacent to this one
+# A nawk/gawk script used to extract the application's platform name from
+# its project.properties file. It is called from build/core/add-application.mk
 #
-TOOLCHAIN_ABIS := armeabi armeabi-v7a
+
+# we look for a line that looks like one of:
+#    arm-linux-androideabi-<version>
+#    x86-<version>
+#
+# <version> is a sequence of digits separated by dot (e.g. 4.4.3 or 4.6.3)
+#
+BEGIN {
+    version_regex="[0-9]+\\.[0-9]+\\.[0-9]+$"
+    VERSION=unknown
+}
+
+/^[ \t]*TOOLCHAIN_NAME[ \t]*:=.*$/ {
+    if (match($0,version_regex)) {
+        VERSION=substr($0,RSTART,RLENGTH)
+    }
+}
+
+END {
+    printf("%s", VERSION)
+}
