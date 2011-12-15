@@ -35,13 +35,15 @@ DEFAULT_GCC_VERSION=4.4.3
 DEFAULT_BINUTILS_VERSION_FOR_GCC_4_4_3=2.19
 DEFAULT_BINUTILS_VERSION_FOR_GCC_4_6_3=2.20.1
 DEFAULT_GDB_VERSION_FOR_GCC_4_4_3=6.6
-DEFAULT_GDB_VERSION_FOR_GCC_4_6_3=6.6
+DEFAULT_GDB_VERSION_FOR_GCC_4_6_3=7.3
 DEFAULT_MPFR_VERSION_FOR_GCC_4_4_3=2.4.1
 DEFAULT_MPFR_VERSION_FOR_GCC_4_6_3=3.0.1
 DEFAULT_GMP_VERSION_FOR_GCC_4_4_3=4.2.4
 DEFAULT_GMP_VERSION_FOR_GCC_4_6_3=5.0.2
 DEFAULT_MPC_VERSION_FOR_GCC_4_4_3=0.8.1
 DEFAULT_MPC_VERSION_FOR_GCC_4_6_3=0.9
+DEFAULT_EXPAT_VERSION_FOR_GCC_4_4_3=2.0.1
+DEFAULT_EXPAT_VERSION_FOR_GCC_4_6_3=2.0.1
 
 # The list of default CPU architectures we support
 DEFAULT_ARCHS="arm x86"
@@ -130,6 +132,16 @@ get_default_mpc_version_for_gcc()
     local V
     V=$(get_plain_gcc_version $1)
     eval echo "\$DEFAULT_MPC_VERSION_FOR_GCC_$V"
+}
+
+# Return default EXPAT version for a given GCC version
+# $1: GCC version
+# Out: EXPAT version
+get_default_expat_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_EXPAT_VERSION_FOR_GCC_$V"
 }
 
 # Return default NDK ABI for a given architecture name

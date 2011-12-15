@@ -62,6 +62,10 @@ MPC_VERSION=$(get_default_mpc_version_for_gcc $DEFAULT_GCC_VERSION)
 OPTION_MPC_VERSION=
 register_var_option "--mpc-version=<version>" OPTION_MPC_VERSION "Specify mpc version [$MPC_VERSION]"
 
+EXPAT_VERSION=$(get_default_expat_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_EXPAT_VERSION=
+register_var_option "--expat-version=<version>" OPTION_EXPAT_VERSION "Specify expat version [$EXPAT_VERSION]"
+
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
@@ -159,6 +163,12 @@ else
     MPC_VERSION=$OPTION_MPC_VERSION
 fi
 
+if [ -z "$OPTION_EXPAT_VERSION" ]; then
+    EXPAT_VERSION=$(get_default_expat_version_for_gcc $GCC_VERSION)
+else
+    EXPAT_VERSION=$OPTION_EXPAT_VERSION
+fi
+
 if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
     echo "       Use --gdb-version=<version> to specify alternative."
@@ -178,6 +188,19 @@ if [ ! -f $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2 ] ; then
     echo "       Use --mpfr-version=<version> to specify alternative."
     exit 1
 fi
+
+if [ ! -f $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing mpc sources: $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz"
+    echo "       Use --mpc-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing expat sources: $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz"
+    echo "       Use --expat-version=<version> to specify alternative."
+    exit 1
+fi
+
 
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
@@ -252,6 +275,7 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-gcc-version=$GCC_VERSION \
                         --with-gdb-version=$GDB_VERSION \
                         --with-mpc-version=$MPC_VERSION \
+                        --with-expat-version=$EXPAT_VERSION \
                         $ABI_CONFIGURE_EXTRA_FLAGS
 if [ $? != 0 ] ; then
     dump "Error while trying to configure toolchain build. See $TMPLOG"

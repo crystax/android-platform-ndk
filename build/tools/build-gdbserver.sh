@@ -55,8 +55,8 @@ register_var_option "--sysroot=<path>" SYSROOT "Specify sysroot directory direct
 NOTHREADS=no
 register_var_option "--disable-threads" NOTHREADS "Disable threads support"
 
-GDB_VERSION=$(get_default_gdb_version_for_gcc $DEFAULT_GCC_VERSION)
-register_var_option "--gdb-version=<name>" GDB_VERSION "Use specific gdb version."
+OPTION_GDB_VERSION=
+register_var_option "--gdb-version=<name>" OPTION_GDB_VERSION "Use specific gdb version."
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
@@ -77,17 +77,6 @@ set_parameters ()
     #
     if [ -z "$SRC_DIR" ] ; then
         echo "ERROR: Missing source directory parameter. See --help for details."
-        exit 1
-    fi
-
-    SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
-    if [ -d "$SRC_DIR2" ] ; then
-        SRC_DIR="$SRC_DIR2"
-        log "Found gdbserver source directory: $SRC_DIR"
-    fi
-
-    if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
-        echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
         exit 1
     fi
 
@@ -129,6 +118,22 @@ prepare_target_build
 parse_toolchain_name
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
+GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)
+fix_option GDB_VERSION "$OPTION_GDB_VERSION" "gdb version"
+
+SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
+if [ -d "$SRC_DIR2" ] ; then
+    SRC_DIR="$SRC_DIR2"
+    log "Found gdbserver source directory: $SRC_DIR"
+fi
+
+if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
+    echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
+    exit 1
+fi
+
+log "Using GDB source directory: $SRC_DIR"
+
 # Check build directory
 #
 fix_sysroot "$SYSROOT"
@@ -144,6 +149,8 @@ run mkdir -p "$BUILD_OUT"
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RH "$SYSROOT"/* "$BUILD_SYSROOT"
+
+run cp -f "$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/ctype_orig.h" "$BUILD_SYSROOT/usr/include/ctype.h"
 
 # Remove libthread_db to ensure we use exactly the one we want.
 rm -f $BUILD_SYSROOT/usr/lib/libthread_db*
@@ -200,6 +207,10 @@ case "$GDB_VERSION" in
         # the threads binary, which is not possible since we build a
         # static executable.
         CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
+        ;;
+    7.3)
+        CONFIGURE_FLAGS="--with-libthread_db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
+        CONFIGURE_FLAGS="$CONFIGURE_FLAGS --disable-inprocess-agent"
         ;;
     *)
         CONFIGURE_FLAGS=""
