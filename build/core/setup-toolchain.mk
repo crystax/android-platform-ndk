@@ -150,8 +150,13 @@ $(call ndk-stl-select,$(NDK_APP_STL))
 # module declarations, but does not populate the dependency graph yet.
 include $(NDK_APP_BUILD_SCRIPT)
 
+# WARNING!! Adding NDK_APP_CRYSTAX twice is intentionally.
+# This way we get include libcrystax before and after libstdc++
+# in linker parameters. This is needed to override some functions
+# from libstdc++.
 $(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
+$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)
