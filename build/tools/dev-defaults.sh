@@ -44,6 +44,10 @@ DEFAULT_MPC_VERSION_FOR_GCC_4_4_3=0.8.1
 DEFAULT_MPC_VERSION_FOR_GCC_4_6_3=0.9
 DEFAULT_EXPAT_VERSION_FOR_GCC_4_4_3=2.0.1
 DEFAULT_EXPAT_VERSION_FOR_GCC_4_6_3=2.0.1
+DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_4_3=0.15.9
+DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_6_3=0.15.9
+DEFAULT_PPL_VERSION_FOR_GCC_4_4_3=0.11.2
+DEFAULT_PPL_VERSION_FOR_GCC_4_6_3=0.11.2
 
 # The list of default CPU architectures we support
 DEFAULT_ARCHS="arm x86"
@@ -142,6 +146,26 @@ get_default_expat_version_for_gcc()
     local V
     V=$(get_plain_gcc_version $1)
     eval echo "\$DEFAULT_EXPAT_VERSION_FOR_GCC_$V"
+}
+
+# Return default CLOOG-PPL version for a given GCC version
+# $1: GCC version
+# Out: CLOOG-PPL version
+get_default_cloog_ppl_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_$V"
+}
+
+# Return default PPL version for a given GCC version
+# $1: GCC version
+# Out: PPL version
+get_default_ppl_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_PPL_VERSION_FOR_GCC_$V"
 }
 
 # Return default NDK ABI for a given architecture name

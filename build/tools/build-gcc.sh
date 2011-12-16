@@ -66,6 +66,14 @@ EXPAT_VERSION=$(get_default_expat_version_for_gcc $DEFAULT_GCC_VERSION)
 OPTION_EXPAT_VERSION=
 register_var_option "--expat-version=<version>" OPTION_EXPAT_VERSION "Specify expat version [$EXPAT_VERSION]"
 
+CLOOG_PPL_VERSION=$(get_default_cloog_ppl_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_CLOOG_PPL_VERSION=
+register_var_option "--cloog-ppl-version=<version>" OPTION_CLOOG_PPL_VERSION "Specify cloog-ppl version [$CLOOG_PPL_VERSION]"
+
+PPL_VERSION=$(get_default_ppl_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_PPL_VERSION=
+register_var_option "--ppl-version=<version>" OPTION_PPL_VERSION "Specify ppl version [$PPL_VERSION]"
+
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
@@ -169,20 +177,36 @@ else
     EXPAT_VERSION=$OPTION_EXPAT_VERSION
 fi
 
+if [ -z "$OPTION_CLOOG_PPL_VERSION" ]; then
+    CLOOG_PPL_VERSION=$(get_default_cloog_ppl_version_for_gcc $GCC_VERSION)
+else
+    CLOOG_PPL_VERSION=$OPTION_CLOOG_PPL_VERSION
+fi
+
+if [ -z "$OPTION_PPL_VERSION" ]; then
+    PPL_VERSION=$(get_default_ppl_version_for_gcc $GCC_VERSION)
+else
+    PPL_VERSION=$OPTION_PPL_VERSION
+fi
+
 if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
     echo "       Use --gdb-version=<version> to specify alternative."
     exit 1
 fi
 
-fix_option BINUTILS_VERSION "$OPTION_BINUTILS_VERSION" "binutils version"
 if [ ! -d $SRC_DIR/binutils/binutils-$BINUTILS_VERSION ] ; then
     echo "ERROR: Missing binutils sources: $SRC_DIR/binutils/binutils-$BINUTILS_VERSION"
     echo "       Use --binutils-version=<version> to specify alternative."
     exit 1
 fi
 
-fix_option MPFR_VERSION "$OPTION_MPFR_VERSION" "mpfr version"
+if [ ! -f $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing gmp sources: $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2"
+    echo "       Use --gmp-version=<version> to specify alternative."
+    exit 1
+fi
+
 if [ ! -f $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2 ] ; then
     echo "ERROR: Missing mpfr sources: $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2"
     echo "       Use --mpfr-version=<version> to specify alternative."
@@ -201,6 +225,17 @@ if [ ! -f $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz ] ; then
     exit 1
 fi
 
+if [ ! -f $SRC_DIR/cloog/cloog-ppl-$CLOOG_PPL_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing cloog-ppl sources: $SRC_DIR/cloog/cloog-ppl-$CLOOG_PPL_VERSION.tar.gz"
+    echo "       Use --cloog-ppl-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing ppl sources: $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2"
+    echo "       Use --ppl-version=<version> to specify alternative."
+    exit 1
+fi
 
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
@@ -276,6 +311,8 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-gdb-version=$GDB_VERSION \
                         --with-mpc-version=$MPC_VERSION \
                         --with-expat-version=$EXPAT_VERSION \
+                        --with-cloog-ppl-version=$CLOOG_PPL_VERSION \
+                        --with-ppl-version=$PPL_VERSION \
                         $ABI_CONFIGURE_EXTRA_FLAGS
 if [ $? != 0 ] ; then
     dump "Error while trying to configure toolchain build. See $TMPLOG"
