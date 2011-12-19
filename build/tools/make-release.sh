@@ -78,6 +78,8 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain
 
 extract_parameters "$@"
 
+setup_default_log_file $OUT_DIR/build.log
+
 # Print a warning and ask the user if he really wants to do that !
 #
 if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
