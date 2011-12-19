@@ -115,7 +115,7 @@ fi
 
 prepare_target_build
 
-parse_toolchain_name
+parse_toolchain_name $TOOLCHAIN
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
 GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)

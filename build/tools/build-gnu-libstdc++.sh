@@ -182,6 +182,11 @@ build_gnustl_for_abi ()
 
     export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lc"
 
+    if [ "$ABI" = "armeabi-v7a" ]; then
+        CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"
+        LDFLAGS=$LDFLAGS" -Wl,--fix-cortex-a8"
+    fi
+
     LIBTYPE_FLAGS=
     if [ $LIBTYPE = "static" ]; then
         # Ensure we disable visibility for the static library to reduce the
