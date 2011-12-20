@@ -40,6 +40,7 @@ LONG_TESTS="prebuild-stlport test-stlport test-gnustl"
 VERBOSE=no
 ABI=armeabi
 PLATFORM=""
+TOOLCHAIN_VERSION=
 NDK_ROOT=
 JOBS=$BUILD_NUM_CPUS
 find_program ADB_CMD adb
@@ -68,6 +69,9 @@ while [ -n "$1" ]; do
             ;;
         --platform=*)
             PLATFORM="$optarg"
+            ;;
+        --toolchain-version=*)
+            TOOLCHAIN_VERSION="$optarg"
             ;;
         --ndk=*)
             NDK_ROOT="$optarg"
@@ -134,6 +138,8 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    -j<N> --jobs=<N>  Launch parallel builds [$JOBS]"
     echo "    --abi=<name>      Only run tests for the specific ABI [$ABI]"
     echo "    --platform=<name> Force API level for testing; platform=<android-x>"
+    echo "    --toolchain-version=<version>"
+    echo "                      Force toolchain version for testing"
     echo "    --adb=<file>      Specify adb executable for device tests"
     echo "    --only-samples    Only rebuild samples"
     echo "    --only-build      Only rebuild build tests"
@@ -379,6 +385,10 @@ esac
 # Force all tests to run at one API level
 if [ "$PLATFORM" != "" ]; then
     NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_PLATFORM=$PLATFORM"
+fi
+
+if [ "$TOOLCHAIN_VERSION" != "" ]; then
+    NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION"
 fi
 
 # Use --verbose twice to see build commands for the tests
