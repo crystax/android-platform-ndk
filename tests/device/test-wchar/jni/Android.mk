@@ -27,8 +27,8 @@ LOCAL_SRC_FILES := main.c \
 	test-wcstombs.c \
 	test-wctomb.c \
 	test-wstring.cpp \
-
-LOCAL_STATIC_LIBRARIES := wchar_static
+	test-wprintf.c \
+	test-wscanf.c \
 
 LOCAL_LDLIBS := -llog
 

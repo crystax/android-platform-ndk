@@ -126,3 +126,20 @@ android_get_part_locale_data(const char *encoding, const char *data)
     if (!__init_locale_data()) return NULL;
     return NULL;
 }
+
+mbstate_t *mbstate_for(FILE *fp)
+{
+    /* TODO: implement */
+    static mbstate_t mbs;
+
+    DBG("mbstate_for: fp=%x\n", fp);
+    return &mbs;
+}
+
+#ifdef __i386__
+fp_prec_t fpsetprec(fp_prec_t p)
+{
+    /* TODO: implement */
+    return p;
+}
+#endif

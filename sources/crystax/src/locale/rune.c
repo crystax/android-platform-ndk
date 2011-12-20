@@ -47,11 +47,11 @@ __FBSDID("$FreeBSD$");
 
 #include "runefile.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "android.h"
 #endif
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 _RuneLocale *_Read_RuneMagi(char *, size_t );
 #else
 _RuneLocale *_Read_RuneMagi(FILE *);

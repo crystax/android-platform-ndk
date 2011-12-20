@@ -15,7 +15,16 @@ CRYSTAX_SRC_FILES := \
 	android/locale/el_GR.ISO8859-7.LC_CTYPE.c \
 	android/locale/la_LN.ISO8859-1.LC_CTYPE.c \
 	android/locale/la_LN.US-ASCII.LC_CTYPE.c \
+	android/stdio.c \
 	android/utils.c \
+	gdtoa/_hdtoa.c \
+	gdtoa/_hldtoa.c \
+	gdtoa/_ldtoa.c \
+	gdtoa/dmisc.c \
+	gdtoa/dtoa.c \
+	gdtoa/gdtoa.c \
+	gdtoa/gmisc.c \
+	gdtoa/misc.c \
 	locale/ascii.c \
 	locale/big5.c \
 	locale/btowc.c \
@@ -69,6 +78,24 @@ CRYSTAX_SRC_FILES := \
 	locale/wctrans.c \
 	locale/wctype.c \
 	locale/wcwidth.c \
+	stdio/fgetwc.c \
+	stdio/fputwc.c \
+	stdio/fputws.c \
+	stdio/fvwrite.c \
+	stdio/fwprintf.c \
+	stdio/fwscanf.c \
+	stdio/printf-pos.c \
+	stdio/swprintf.c \
+	stdio/swscanf.c \
+	stdio/ungetwc.c \
+	stdio/vfwprintf.c \
+	stdio/vfwscanf.c \
+	stdio/vswprintf.c \
+	stdio/vswscanf.c \
+	stdio/vwprintf.c \
+	stdio/vwscanf.c \
+	stdio/wprintf.c \
+	stdio/wscanf.c \
 	stdtime/timelocal.c \
 	string/memchr.c \
 	string/wcpcpy.c \
@@ -122,11 +149,22 @@ else # CRYSTAX_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax libraries from sources)
 
+CRYSTAX_INTERNAL_INCLUDES := \
+	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/src/include \
+	$(LOCAL_PATH)/src/gdtoa \
+	$(LOCAL_PATH)/src/locale \
+	$(LOCAL_PATH)/src/stdio \
+	$(LOCAL_PATH)/src/android
+
+
+CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
+
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
 LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
-LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale $(LOCAL_PATH)/src/android
+LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(BUILD_STATIC_LIBRARY)
 
@@ -134,7 +172,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
 LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
-LOCAL_C_INCLUDES        := $(LOCAL_PATH)/include $(LOCAL_PATH)/src/locale $(LOCAL_PATH)/src/android
+LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(BUILD_SHARED_LIBRARY)
 

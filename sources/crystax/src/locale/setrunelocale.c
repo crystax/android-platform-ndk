@@ -46,13 +46,13 @@ __FBSDID("$FreeBSD$");
 #include "mblocal.h"
 #include "setlocale.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "android.h"
 #endif
 
 extern int __mb_sb_limit;
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 extern _RuneLocale *_Read_RuneMagi(char *, size_t);
 #else
 extern _RuneLocale	*_Read_RuneMagi(FILE *);

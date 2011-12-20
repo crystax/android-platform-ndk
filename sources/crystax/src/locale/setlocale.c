@@ -54,7 +54,7 @@ __FBSDID("$FreeBSD$");
 #include "ldpart.h"
 #include "../stdtime/timelocal.h" /* for __time_load_locale() */
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "android.h"
 #endif
 

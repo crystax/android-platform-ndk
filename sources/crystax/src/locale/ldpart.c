@@ -40,7 +40,7 @@ __FBSDID("$FreeBSD$");
 #include "ldpart.h"
 #include "setlocale.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "android.h"
 #endif
 

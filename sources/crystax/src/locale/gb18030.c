@@ -39,7 +39,7 @@ __FBSDID("$FreeBSD$");
 #include <wchar.h>
 #include "mblocal.h"
 
-#ifdef ANDROID
+#ifdef __ANDROID__
 #include "android.h"
 #endif
 

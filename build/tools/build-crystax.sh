@@ -93,13 +93,21 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
-CRYSTAX_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include -I$CRYSTAX_SRCDIR/src/locale -I$CRYSTAX_SRCDIR/src/android"
+CRYSTAX_CFLAGS="-fpic -ffunction-sections -funwind-tables -fstack-protector"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS"  -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -g -O2 -DANDROID -DNDEBUG -Wno-psabi"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
+for p in include gdtoa locale stdio android ; do
+    CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/$p"
+done
 CRYSTAX_CXXFLAGS="-fuse-cxa-atexit -fexceptions -frtti"
-CRYSTAX_LDFLAGS=
+CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
 
 # List of sources to compile
-CRYSTAX_SOURCES=$(cd $CRYSTAX_SUBDIR && find src -name '*.c' -print)
+CRYSTAX_C_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.c' -print)
+CRYSTAX_CPP_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.cpp' -print)
+CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 
 # If the --no-makefile flag is not used, we're going to put all build
 # commands in a temporary Makefile that we will be able to invoke with
@@ -120,6 +128,21 @@ build_crystax_libs_for_abi ()
     local DSTDIR="$4"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
+    local CFLAGS CXXFLAGS LDFLAGS
+
+    ARCH=$(convert_abi_to_arch $ABI)
+    CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/include/$ARCH"
+
+    CXXFLAGS=$CRYSTAX_CXXFLAGS
+    LDFLAGS=$CRYSTAX_LDFLAGS
+
+    if [ "$ABI" = "armeabi" ]; then
+        CFLAGS=$CFLAGS" -march=armv5te -msoft-float"
+    elif [ "$ABI" = "armeabi-v7a" ]; then
+        CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"
+        LDFLAGS=$LDFLAGS" -Wl,--fix-cortex-a8"
+    fi
+
     mkdir -p "$BUILDDIR"
 
     # If the output directory is not specified, use default location
@@ -133,9 +156,9 @@ build_crystax_libs_for_abi ()
     builder_set_srcdir "$CRYSTAX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
-    builder_cflags "$CRYSTAX_CFLAGS"
-    builder_cxxflags "$CRYSTAX_CXXFLAGS"
-    builder_ldflags "$CRYSTAX_LDFLAGS"
+    builder_cflags "$CFLAGS"
+    builder_cxxflags "$CXXFLAGS"
+    builder_ldflags "$LDFLAGS"
     builder_sources $CRYSTAX_SOURCES
 
     log "Building $DSTDIR/libcrystax.a"
@@ -151,6 +174,8 @@ for ABI in $ABIS; do
         build_crystax_libs_for_abi $ABI $GCC_VERSION "$BUILD_DIR/$ABI/$GCC_VERSION"
     done
 done
+
+exit 0
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
