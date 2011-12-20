@@ -6,14 +6,15 @@ int test_swprintf()
     wchar_t wbuf[1024];
 
 #define DO_WPRINTF_TEST(n, check, fmt, ...) \
+    memset(wbuf, 0, sizeof wbuf); \
     if (swprintf(wbuf, sizeof wbuf, L##fmt, ##__VA_ARGS__) != wcslen(L##check)) \
     { \
-        printf("FAIL! wbuf=\"%ls\", check=\"%ls\"\n", wbuf, L##check); \
+        printf("FAIL! wbuf is \"%ls\", but expected \"%ls\"\n", wbuf, L##check); \
         return 1; \
     } \
     if (wcscmp(wbuf, L##check) != 0) \
     { \
-        printf("FAIL! wbuf=\"%ls\", check=\"%ls\"\n", wbuf, L##check); \
+        printf("FAIL! wbuf is \"%ls\", but expected \"%ls\"\n", wbuf, L##check); \
         return 1; \
     } \
     printf("ok " #n " - swprintf\n")
