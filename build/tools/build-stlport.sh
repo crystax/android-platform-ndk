@@ -194,7 +194,7 @@ build_stlport_libs_for_abi ()
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
-    builder_ldflags "-L$CRYSTAX_LIBDIR"
+    builder_ldflags "-L$CRYSTAX_LIBDIR -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }
