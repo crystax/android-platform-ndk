@@ -288,10 +288,11 @@ export CXXFLAGS_FOR_TARGET="$ABI_CXXFLAGS_FOR_TARGET"
 export LDFLAGS_FOR_TARGET="$ABI_LDFLAGS_FOR_TARGET"
 # Needed to build a 32-bit gmp on 64-bit systems
 export ABI=$HOST_GMP_ABI
+export CFLAGS="$HOST_CFLAGS"
 # -Wno-error is needed because our gdb-6.6 sources use -Werror by default
 # and fail to build with recent GCC versions.
-export CFLAGS="-Wno-error"
-#export LDFLAGS="$HOST_LDFLAGS"
+export CFLAGS=$CFLAGS" -Wno-error"
+export LDFLAGS="$HOST_LDFLAGS"
 ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-libquadmath"
 if [ "$MINGW" = "yes" ] ; then
   ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-plugin"

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -82,7 +82,8 @@ log "Configuring the build"
 mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
 cd $BUILD_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
-export CC CFLAGS &&
+LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
+export CC CFLAGS LDFLAGS &&
 run $TMP_SRCDIR/configure $CONFIGURE_FLAGS
 fail_panic "Failed to configure the sed-$GNUMAKE_VERSION build!"
 

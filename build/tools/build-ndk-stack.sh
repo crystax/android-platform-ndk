@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -84,12 +84,22 @@ fi
 
 SRCDIR=$ANDROID_NDK_ROOT/sources/host-tools/ndk-stack
 
+CFLAGS="$HOST_CFLAGS"
+if [ -n "$DEBUG" ]; then
+    CFLAGS=$CFLAGS" -O0 -g"
+else
+    CFLAGS=$CFLAGS" -O2 -s"
+fi
+LDFLAGS="$HOST_LDFLAGS"
+
 # Let's roll
 run $GNUMAKE -C $SRCDIR -f $SRCDIR/GNUMakefile \
     -B -j$NUM_JOBS \
     PROGNAME="$OUT" \
     BUILD_DIR="$BUILD_DIR" \
     CC="$CXX" CXX="$CXX" \
+    CFLAGS="$CFLAGS" \
+    LDFLAGS="$LDFLAGS" \
     STRIP="$STRIP" \
     DEBUG=$DEBUG
 

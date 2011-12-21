@@ -544,6 +544,8 @@ fix_sysroot ()
     fi
 }
 
+HOST_CFLAGS=
+HOST_LDFLAGS=
 # Use the check for the availability of a compatibility SDK in Darwin
 # this can be used to generate binaries compatible with either Tiger or
 # Leopard.
