@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 CRYSTAX_FORCE_REBUILD := $(strip $(CRYSTAX_FORCE_REBUILD))
 ifndef CRYSTAX_FORCE_REBUILD
-  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/$(TARGET_TOOLCHAIN_VERSION)/libcrystax.a)))
+  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_static.a)))
     $(call __ndk_info,WARNING: Rebuilding crystax libraries from sources!)
     $(call __ndk_info,You might want to use $$NDK/build/tools/build-crystax.sh)
     $(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
@@ -129,20 +129,28 @@ CRYSTAX_SRC_FILES := \
 	string/wmemmove.c \
 	string/wmemset.c \
 
+include $(CLEAR_VARS)
+LOCAL_MODULE            := crystax_empty
+LOCAL_MODULE_FILENAME   := libcrystax
+LOCAL_SRC_FILES         :=
+include $(BUILD_STATIC_LIBRARY)
+
 ifneq ($(CRYSTAX_FORCE_REBUILD),true)
 
 $(call ndk_log,Using prebuilt crystax libraries)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax.a
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_static.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_STATIC_LIBRARIES  := crystax_empty
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax.so
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_shared.so
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_STATIC_LIBRARIES  := crystax_empty
 include $(PREBUILT_SHARED_LIBRARY)
 
 else # CRYSTAX_FORCE_REBUILD == true
@@ -162,18 +170,18 @@ CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
-LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_STATIC_LIBRARIES  := crystax_empty
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
-LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_STATIC_LIBRARIES  := crystax_empty
 include $(BUILD_SHARED_LIBRARY)
 
 endif # CRYSTAX_FORCE_REBUILD == true

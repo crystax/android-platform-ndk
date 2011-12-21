@@ -99,7 +99,6 @@ GABIXX_LDFLAGS=
 STLPORT_SRCDIR=$ANDROID_NDK_ROOT/$STLPORT_SUBDIR
 STLPORT_CFLAGS="-DGNU_SOURCE -fPIC -O2 -I$STLPORT_SRCDIR/stlport -DANDROID -D__ANDROID__"
 STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$ANDROID_NDK_ROOT/$GABIXX_SUBDIR/include"
-STLPORT_CFLAGS=$STLPORT_CFLAGS" -I$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/include"
 STLPORT_CXXFLAGS="-fuse-cxa-atexit -fno-exceptions -frtti"
 STLPORT_SOURCES=\
 "src/dll_main.cpp \
@@ -161,6 +160,16 @@ build_stlport_libs_for_abi ()
         DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI/$GCC_VERSION
     fi
 
+    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
+    mkdir -p $CRYSTAX_TMPDIR
+    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
+    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI/$GCC_VERSION" "$CRYSTAX_TMPDIR/lib"
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_static.a $CRYSTAX_TMPDIR/lib/libcrystax.a
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_shared.so $CRYSTAX_TMPDIR/lib/libcrystax.so
+    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
+
     mkdir -p "$DSTDIR"
 
     builder_begin_android $ABI $GCC_VERSION "$BUILDDIR" "$MAKEFILE"
@@ -176,6 +185,7 @@ build_stlport_libs_for_abi ()
     builder_set_srcdir "$STLPORT_SRCDIR"
     builder_reset_cflags
     builder_cflags "$STLPORT_CFLAGS"
+    builder_cflags "-I$CRYSTAX_INCDIR"
     builder_reset_cxxflags
     builder_cxxflags "$STLPORT_CXXFLAGS"
     builder_sources $STLPORT_SOURCES
@@ -184,7 +194,7 @@ build_stlport_libs_for_abi ()
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
-    builder_ldflags "-L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION -lcrystax"
+    builder_ldflags "-L$CRYSTAX_LIBDIR"
     builder_shared_library libstlport_shared
     builder_end
 }

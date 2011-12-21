@@ -161,11 +161,11 @@ build_crystax_libs_for_abi ()
     builder_ldflags "$LDFLAGS"
     builder_sources $CRYSTAX_SOURCES
 
-    log "Building $DSTDIR/libcrystax.a"
-    builder_static_library libcrystax
+    log "Building $DSTDIR/libcrystax_static.a"
+    builder_static_library libcrystax_static
 
-    log "Building $DSTDIR/libcrystax.so"
-    builder_shared_library libcrystax
+    log "Building $DSTDIR/libcrystax_shared.so"
+    builder_shared_library libcrystax_shared
     builder_end
 }
 

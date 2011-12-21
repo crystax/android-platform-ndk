@@ -134,6 +134,7 @@ build_gnustl_for_abi ()
 
     INSTALLDIR=$BUILDDIR/install
     BUILDDIR=$BUILDDIR/$LIBTYPE-$ABI-$GCC_VERSION
+    mkdir -p $BUILDDIR && rm -rf $BUILDDIR/*
 
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
@@ -144,8 +145,16 @@ build_gnustl_for_abi ()
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_gcc_and_arch $GCC_VERSION $ARCH)
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
-    CRYSTAX_INCDIR=$NDK_DIR/$CRYSTAX_SUBDIR/include
-    CRYSTAX_LIBDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION
+
+    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
+    mkdir -p $CRYSTAX_TMPDIR
+    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
+    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI/$GCC_VERSION" "$CRYSTAX_TMPDIR/lib"
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_static.a $CRYSTAX_TMPDIR/lib/libcrystax.a
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_shared.so $CRYSTAX_TMPDIR/lib/libcrystax.so
+    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
 
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then
@@ -180,7 +189,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lc"
+    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lm -lc"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"
@@ -200,7 +209,6 @@ build_gnustl_for_abi ()
 
     PROJECT="gnustl_$LIBTYPE $ABI $GCC_VERSION"
     echo "$PROJECT: configuring"
-    mkdir -p $BUILDDIR && rm -rf $BUILDDIR/* &&
     cd $BUILDDIR &&
     run $GNUSTL_SRCDIR/configure \
         --prefix=$INSTALLDIR \
@@ -253,7 +261,7 @@ copy_gnustl_libs ()
         eval HAS_COMMON_HEADERS_$PLAINVERSION=true
     fi
 
-    rm -rf "$DIR/libs/$ABI/$VERSION" && 
+    rm -rf "$DDIR/libs/$ABI/$VERSION" &&
     mkdir -p "$DDIR/libs/$ABI/$VERSION/include"
 
     # Copy the ABI-specific headers
