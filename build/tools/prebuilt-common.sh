@@ -437,6 +437,19 @@ extract_parameters ()
         fi
         shift
     done
+
+    case $HOST_TAG in
+        darwin-*)
+            if [ -z "$XCODE_PATH" ]; then
+                echo "ERROR: Empty XCode path specified (--xcode option)"
+                exit 1
+            fi
+            if [ ! -d $XCODE_PATH ]; then
+                echo "ERROR: Wrong XCode path (--xcode option): $XCODE_PATH"
+                exit 1
+            fi
+            ;;
+    esac
 }
 
 do_option_help ()
@@ -458,6 +471,13 @@ do_option_verbose ()
 
 register_option "--help"          do_option_help     "Print this help."
 register_option "--verbose"       do_option_verbose  "Enable verbose mode."
+
+case $HOST_TAG in
+    darwin-*)
+        XCODE_PATH=/Developer
+        register_var_option "--xcode=<path>"  XCODE_PATH "Specify path to XCode installation"
+        ;;
+esac
 
 #====================================================
 #
@@ -618,11 +638,13 @@ prepare_common_build ()
     STRIP=${STRIP:-strip}
     case $HOST_TAG in
         darwin-*)
+            PATH=$XCODE_PATH/usr/bin:$PATH
+            export PATH
             # Try to build with Tiger SDK if available
-            if check_darwin_sdk /Developer/SDKs/MacOSX10.4.sdku 10.4; then
+            if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
                 log "Generating Tiger-compatible binaries!"
             # Otherwise with Leopard SDK
-            elif check_darwin_sdk /Developer/SDKs/MacOSX10.5.sdk 10.5; then
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
                 log "Generating Leopard-compatible binaries!"
             else
                 local version=`sw_vers -productVersion`
