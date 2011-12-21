@@ -556,7 +556,7 @@ check_darwin_sdk ()
 {
     if [ -d "$1" ] ; then
         HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMACOSX_DEPLOYMENT_TARGET=$2"
-        HOST_LDFLAGS="-Wl,-syslibroot,$sdk -mmacosx-version-min=$2"
+        HOST_LDFLAGS="-Wl,-syslibroot,$1/usr/lib -mmacosx-version-min=$2"
         return 0  # success
     fi
     return 1
