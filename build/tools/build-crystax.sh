@@ -175,8 +175,6 @@ for ABI in $ABIS; do
     done
 done
 
-exit 0
-
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
