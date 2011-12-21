@@ -71,6 +71,8 @@ script.
 
 extract_parameters "$@"
 
+setup_default_log_file $BUILD_DIR/build.log
+
 SRC_DIR="$PARAMETERS"
 check_toolchain_src_dir "$SRC_DIR"
 
