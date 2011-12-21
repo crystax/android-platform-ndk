@@ -642,16 +642,24 @@ prepare_common_build ()
         darwin-*)
             PATH=$XCODE_PATH/usr/bin:$PATH
             export PATH
-            # Try to build with Tiger SDK if available
-            if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
-                log "Generating Tiger-compatible binaries!"
-            # Otherwise with Leopard SDK
-            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
-                log "Generating Leopard-compatible binaries!"
-            else
-                local version=`sw_vers -productVersion`
-                log "Generating $version-compatible binaries!"
-            fi
+
+            local version=`sw_vers -productVersion`
+            case $version in
+            10.5.*)
+                # Don't do anything specific here, we're already on Leopard
+                ;;
+            *)
+                # Try to build with Tiger SDK if available
+                if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
+                    log "Generating Tiger-compatible binaries!"
+                # Otherwise with Leopard SDK
+                elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
+                    log "Generating Leopard-compatible binaries!"
+                else
+                    log "Generating $version-compatible binaries!"
+                fi
+                ;;
+            esac
             ;;
     esac
 
