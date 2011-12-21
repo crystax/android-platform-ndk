@@ -180,7 +180,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
         for GCC_VERSION in $GCC_VERSIONS; do
             FILES=""
-            for LIB in libcrystax.a libcrystax.so; do
+            for LIB in libcrystax_static.a libcrystax_shared.so; do
                 FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION/$LIB"
             done
             PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI-$GCC_VERSION.tar.bz2"
