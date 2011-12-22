@@ -586,6 +586,11 @@ modules-get-all-installable = $(strip \
         $(if $(call module-is-installable,$(__alldep)),$(__alldep))\
     ))
 
+# Return true if a module is libcrystax
+#
+module-is-libcrystax = \
+    $(strip $(filter crystax_empty crystax_static crystax_shared,$1))
+
 # Return the C++ extension of a given module
 # $1: module name
 module-get-cpp-extension = $(strip \
@@ -611,8 +616,10 @@ module-has-c++-sources = $(strip $(call module-get-c++-sources,$1))
 modules-add-c++-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(if $(call module-has-c++-sources,$(__module)),\
-            $(call ndk_log,Module '$(__module)' has C++ sources)\
-            $(call module-add-c++-deps,$(__module),$1,$2),\
+            $(if $(call module-is-libcrystax,$(__module)),,\
+                $(call ndk_log,Module '$(__module)' has C++ sources)\
+                $(call module-add-c++-deps,$(__module),$1,$2)\
+            )\
         )\
     )
 
@@ -1636,12 +1643,13 @@ ndk-crystax-register = \
 ndk-crystax-select = \
     $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
 
-CRYSTAX_MODULES := crystax_empty crystax_static crystax_shared
 ndk-crystax-add-dependencies = \
     $(call ndk_log,Add libcrystax dependencies: '$1')\
     $(foreach __module,$(__ndk_modules),\
-        $(if $(filter-out $(CRYSTAX_MODULES),$(__module)),\
-            $(call module-add-c++-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))))
+        $(if $(call module-is-libcrystax,$(__module)),,\
+            $(call module-add-c++-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
+        )\
+    )
 
 $(call ndk-crystax-register,\
     static,\
