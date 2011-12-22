@@ -279,7 +279,7 @@ endif
 
 # Add TARGET_OUT to library search path to ensure it'll find correct libcrystax (.a or .so)
 # which is already copied to TARGET_OUT
-LOCAL_LDLIBS += -L$(TARGET_OUT)
+LOCAL_LDLIBS += -L$(call host-path,$(TARGET_OUT))
 
 $(LOCAL_BUILT_MODULE): PRIVATE_STATIC_LIBRARIES := $(static_libraries)
 $(LOCAL_BUILT_MODULE): PRIVATE_WHOLE_STATIC_LIBRARIES := $(whole_static_libraries)
