@@ -586,10 +586,22 @@ modules-get-all-installable = $(strip \
         $(if $(call module-is-installable,$(__alldep)),$(__alldep))\
     ))
 
-# Return true if a module is libcrystax
+module-is-system-prebuilt = \
+    $(strip $(filter crystax_empty crystax_static crystax_shared $(NDK_OBJC_LIST) $(NDK_STL_LIST),$1))
+
+# Return the list of Obj-C sources of a given module
 #
-module-is-libcrystax = \
-    $(strip $(filter crystax_empty crystax_static crystax_shared,$1))
+module-get-objc-sources = \
+    $(or $(filter %.m,$(__ndk_modules.$1.SRC_FILES)),$(filter %.mm,$(__ndk_modules.$1.SRC_FILES)))
+
+module-get-objc++-sources = \
+    $(filter %.mm,$(__ndk_modules.$1.SRC_FILES))
+
+# Returns true if a module has Obj-C sources
+#
+module-has-objc-sources = $(strip $(call module-get-objc-sources,$1))
+
+module-has-objc++-sources = $(strip $(call module-get-objc++-sources,$1))
 
 # Return the C++ extension of a given module
 # $1: module name
@@ -615,10 +627,10 @@ module-has-c++-sources = $(strip $(call module-get-c++-sources,$1))
 #
 modules-add-c++-dependencies = \
     $(foreach __module,$(__ndk_modules),\
-        $(if $(call module-has-c++-sources,$(__module)),\
-            $(if $(call module-is-libcrystax,$(__module)),,\
+        $(if $(or $(call module-has-c++-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
+            $(if $(call module-is-system-prebuilt,$(__module)),,\
                 $(call ndk_log,Module '$(__module)' has C++ sources)\
-                $(call module-add-c++-deps,$(__module),$1,$2)\
+                $(call module-add-deps,$(__module),$1,$2)\
             )\
         )\
     )
@@ -693,13 +705,13 @@ module-has-c++-features = $(strip \
     $(if $(filter $2,$(__cxxflags)),true,)\
     )
 
-# Add standard C++ dependencies to a given module
+# Add standard dependencies to a given module
 #
 # $1: module name
-# $2: list of C++ runtime static libraries (if any)
-# $3: list of C++ runtime shared libraries (if any)
+# $2: list of runtime static libraries (if any)
+# $3: list of runtime shared libraries (if any)
 #
-module-add-c++-deps = \
+module-add-deps = \
     $(if $(call strip,$2),$(call ndk_log,Add dependency '$(call strip,$2)' to module '$1'))\
     $(eval __ndk_modules.$1.STATIC_LIBRARIES += $(2))\
     $(if $(call strip,$3),$(call ndk_log,Add dependency '$(call strip,$3)' to module '$1'))\
@@ -1062,7 +1074,7 @@ NDK_APP_VARS_REQUIRED :=
 # the list of variables that *may* be defined in Application.mk files
 NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CXXFLAGS \
                          APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
-                         APP_PROJECT_PATH APP_STL APP_CRYSTAX
+                         APP_PROJECT_PATH APP_STL APP_CRYSTAX APP_OBJC
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
@@ -1087,7 +1099,7 @@ NDK_APP_VARS := $(NDK_APP_VARS_REQUIRED) \
 get-object-name = $(strip \
     $(subst ../,__/,\
         $(eval __obj := $1)\
-        $(foreach __ext,.c .s .S $(LOCAL_CPP_EXTENSION),\
+        $(foreach __ext,.c .s .S $(LOCAL_CPP_EXTENSION) .m .mm,\
             $(eval __obj := $(__obj:%$(__ext)=%.o))\
         )\
         $(__obj)\
@@ -1249,8 +1261,8 @@ endef
 #             2: target object file (without path)
 # Returns   : None
 # Usage     : $(eval $(call ev-compile-c-source,<srcfile>,<objfile>)
-# Rationale : Internal template evaluated by compile-c-source and
-#             compile-s-source
+# Rationale : Internal template evaluated by compile-c-source
+#             and compile-s-source
 # -----------------------------------------------------------------------------
 define  ev-compile-c-source
 _SRC:=$$(LOCAL_PATH)/$(1)
@@ -1290,6 +1302,42 @@ compile-c-source = $(eval $(call ev-compile-c-source,$1,$2))
 # -----------------------------------------------------------------------------
 compile-s-source = $(eval $(call ev-compile-c-source,$1,$2))
 
+# -----------------------------------------------------------------------------
+# Template  : ev-compile-objc-source
+# Arguments : 1: single Obj-C source file name (relative to LOCAL_PATH)
+#             2: target object file (without path)
+# Returns   : None
+# Usage     : $(eval $(call ev-compile-objc-source,<srcfile>,<objfile>)
+# Rationale : Internal template evaluated by compile-objc-source
+# -----------------------------------------------------------------------------
+define  ev-compile-objc-source
+_SRC:=$$(LOCAL_PATH)/$(1)
+_OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
+
+_FLAGS := $$($$(my)CFLAGS) \
+          $$(call get-src-file-target-cflags,$(1)) \
+          $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
+          $$(LOCAL_CFLAGS) \
+          $$(LOCAL_OBJCFLAGS) \
+          $$(NDK_APP_CFLAGS) \
+          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -c \
+
+_TEXT := "Compile $$(call get-src-file-text,$1)"
+_CC   := $$(NDK_CCACHE) $$(TARGET_CC)
+
+$$(eval $$(call ev-build-source-file))
+endef
+
+# -----------------------------------------------------------------------------
+# Function  : compile-objc-source
+# Arguments : 1: single Obj-C source file name (relative to LOCAL_PATH)
+#             2: object file
+# Returns   : None
+# Usage     : $(call compile-objc-source,<srcfile>,<objfile>)
+# Rationale : Setup everything required to build a single Obj-C source file
+# -----------------------------------------------------------------------------
+compile-objc-source = $(eval $(call ev-compile-objc-source,$1,$2))
 
 # -----------------------------------------------------------------------------
 # Template  : ev-compile-cpp-source
@@ -1326,10 +1374,51 @@ endef
 # Arguments : 1: single C++ source file name (relative to LOCAL_PATH)
 #           : 2: object file name
 # Returns   : None
-# Usage     : $(call compile-c-source,<srcfile>)
+# Usage     : $(call compile-cpp-source,<srcfile>)
 # Rationale : Setup everything required to build a single C++ source file
 # -----------------------------------------------------------------------------
 compile-cpp-source = $(eval $(call ev-compile-cpp-source,$1,$2))
+
+# -----------------------------------------------------------------------------
+# Template  : ev-compile-objc++-source
+# Arguments : 1: single Obj-C++ source file name (relative to LOCAL_PATH)
+#             2: target object file (without path)
+# Returns   : None
+# Usage     : $(eval $(call ev-compile-objc++-source,<srcfile>,<objfile>)
+# Rationale : Internal template evaluated by compile-objcpp-source
+# -----------------------------------------------------------------------------
+
+define  ev-compile-objc++-source
+_SRC:=$$(LOCAL_PATH)/$(1)
+_OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
+_FLAGS := $$($$(my)CXXFLAGS) \
+          $$(call get-src-file-target-cflags,$(1)) \
+          $$(call host-c-includes, $$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
+          $$(LOCAL_CFLAGS) \
+          $$(LOCAL_OBJCFLAGS) \
+          $$(LOCAL_CPPFLAGS) \
+          $$(LOCAL_CXXFLAGS) \
+          $$(NDK_APP_CFLAGS) \
+          $$(NDK_APP_CPPFLAGS) \
+          $$(NDK_APP_CXXFLAGS) \
+          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -c \
+
+_CC   := $$(NDK_CCACHE) $$($$(my)CXX)
+_TEXT := "Compile++ $$(call get-src-file-text,$1)"
+
+$$(eval $$(call ev-build-source-file))
+endef
+
+# -----------------------------------------------------------------------------
+# Function  : compile-objcpp-source
+# Arguments : 1: single Obj-C++ source file name (relative to LOCAL_PATH)
+#           : 2: object file name
+# Returns   : None
+# Usage     : $(call compile-objcpp-source,<srcfile>)
+# Rationale : Setup everything required to build a single Obj-C++ source file
+# -----------------------------------------------------------------------------
+compile-objcpp-source = $(eval $(call ev-compile-objc++-source,$1,$2))
 
 # -----------------------------------------------------------------------------
 # Command   : cmd-install-file
@@ -1511,6 +1600,73 @@ $(call module-class-register,PREBUILT_STATIC_LIBRARY,,)
 $(call module-class-set-prebuilt,PREBUILT_STATIC_LIBRARY)
 
 #
+# Objective-C support
+#
+
+# The list of registered Objective-C runtimes we support
+NDK_OBJC_LIST :=
+
+# Used internally to register a given Objective-C runtime, see below.
+#
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
+# $2: Objective-C runtime module name (e.g. objc/gnu-libobjc)
+# $3: list of static libraries all modules will depend on
+# $4: list of shared libraries all modules will depend on
+#
+ndk-objc-register = \
+    $(eval __ndk_objc := $(strip $1)) \
+    $(eval NDK_OBJC_LIST += $(__ndk_objc)) \
+    $(eval NDK_OBJC.$(__ndk_objc).IMPORT_MODULE := $(strip $2)) \
+    $(eval NDK_OBJC.$(__ndk_objc).STATIC_LIBS := $(strip $3)) \
+    $(eval NDK_OBJC.$(__ndk_objc).SHARED_LIBS := $(strip $4))
+
+# Called to check that the value of APP_OBJC is a valid one.
+# $1: Objective-C runtime name as it apperas in APP_OBJC (e.g. 'gnuobjc')
+#
+ndk-objc-check = \
+    $(if $(call set_is_member,$(NDK_OBJC_LIST),$1),,\
+        $(call __ndk_info,Invalid APP_OBJC value: $1)\
+        $(call __ndk_info,Please use one of the following instead: $(NDK_OBJC_LIST))\
+        $(call __ndk_error,Aborting))
+
+# Called before the top-level Android.mk is parsed to
+# select the Objective-C runtime.
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
+#
+ndk-objc-select = \
+    $(call import-module,$(NDK_OBJC.$1.IMPORT_MODULE))
+
+# Called after all Android.mk files are parsed to add
+# proper Objective-C dependencies to every Objective-C module.
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
+#
+ndk-objc-add-dependencies = \
+    $(foreach __module,$(__ndk_modules),\
+        $(if $(or $(call module-has-objc-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
+            $(if $(call module-is-system-prebuilt,$(__module)),,\
+                $(call ndk_log,Module '$(__module)' has Objective-C sources)\
+                $(call module-add-deps,$(__module),$(NDK_OBJC.$1.STATIC_LIBS),$(NDK_OBJC.$1.SHARED_LIBS))\
+            )\
+        )\
+    )
+
+# Register the 'gnuobjc_static' Objective-C runtime
+#
+$(call ndk-objc-register,\
+    gnuobjc_static,\
+    objc/gnu-libobjc,\
+    gnuobjc_static,\
+    \
+    )
+
+$(call ndk-objc-register,\
+    gnuobjc_shared,\
+    objc/gnu-libobjc,\
+    ,\
+    gnuobjc_shared\
+    )
+
+#
 # C++ STL support
 #
 
@@ -1552,10 +1708,14 @@ ndk-stl-select = \
 # $1: STL name as it appears in APP_STL (e.g. system)
 #
 ndk-stl-add-dependencies = \
-    $(call ndk_log,Add STL dependencies: '$1')\
-    $(call modules-add-c++-dependencies,\
-        $(NDK_STL.$1.STATIC_LIBS),\
-        $(NDK_STL.$1.SHARED_LIBS))
+    $(foreach __module,$(__ndk_modules),\
+        $(if $(or $(call module-has-c++-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
+            $(if $(call module-is-system-prebuilt,$(__module)),,\
+                $(call ndk_log,Module '$(__module)' has C++ sources)\
+                $(call module-add-deps,$(__module),$(NDK_STL.$1.STATIC_LIBS),$(NDK_STL.$1.SHARED_LIBS))\
+            )\
+        )\
+    )
 
 #
 #
@@ -1644,10 +1804,9 @@ ndk-crystax-select = \
     $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
 
 ndk-crystax-add-dependencies = \
-    $(call ndk_log,Add libcrystax dependencies: '$1')\
     $(foreach __module,$(__ndk_modules),\
-        $(if $(call module-is-libcrystax,$(__module)),,\
-            $(call module-add-c++-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
+        $(if $(call module-is-system-prebuilt,$(__module)),,\
+            $(call module-add-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
         )\
     )
 

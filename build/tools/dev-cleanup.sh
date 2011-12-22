@@ -43,7 +43,9 @@ rm -rf $DIR/$CRYSTAX_SUBDIR/libs
 rm -rf $DIR/$STLPORT_SUBDIR/libs
 rm -rf $DIR/$GABIXX_SUBDIR/libs
 rm -rf $DIR/$GNUSTL_SUBDIR/include
-rm -rf $DIR/$GNUSTL_SUBDIR/libs/*
+rm -rf $DIR/$GNUSTL_SUBDIR/libs
+rm -rf $DIR/$GNUOBJC_SUBDIR/include
+rm -rf $DIR/$GNUOBJC_SUBDIR/libs
 
 rm -f $DIR/ndk-stack*
 

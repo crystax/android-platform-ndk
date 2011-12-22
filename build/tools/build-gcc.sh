@@ -261,14 +261,6 @@ if [ $? != 0 ] ; then
 fi
 
 ABI_LDFLAGS_FOR_TARGET=""
-# For x86, we currently need to force the usage of Android-specific C runtime
-# object files to generate a few target binaries. Ideally, this should be directly
-# handled by the GCC configuration scripts, just like with ARM.
-#
-if [ "$ARCH" = "x86" ]; then
-    ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -nostartfiles $TOOLCHAIN_SYSROOT/usr/lib/crtbegin_dynamic.o $TOOLCHAIN_SYSROOT/usr/lib/crtend_android.o"
-    dump "Forcing -nostartfiles: $ABI_LDFLAGS_FOR_TARGET"
-fi
 
 # configure the toolchain
 #
@@ -283,10 +275,8 @@ if [ ! -d $BUILD_SRCDIR ] ; then
 fi
 rm -rf $BUILD_OUT
 
-mkdir -p $BUILD_OUT/crystax && cp -f $ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/libempty.a $BUILD_OUT/crystax/libcrystax.a
-[ $? -ne 0 ] && exit 1
-
-ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -L$BUILD_OUT/crystax"
+CRYSTAX_EMPTY_DIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/empty
+ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -L$CRYSTAX_EMPTY_DIR/$ARCH"
 
 OLD_ABI="${ABI}"
 export CC CXX
@@ -367,14 +357,46 @@ run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/*/install-tools
 run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/*/plugin
 run rm -rf $TOOLCHAIN_PATH/libexec/gcc/$ABI_CONFIGURE_TARGET/*/install-tools
 run rm -rf $TOOLCHAIN_PATH/lib32/libiberty.a
-run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libiberty.a
-run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libiberty.a
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name libiberty.a -print)
 
 # Remove libstdc++ for now (will add it differently later)
 # We had to build it to get libsupc++ which we keep.
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/include/c++
+
+# Remove shared libgcc
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libgcc_s.*' -print)
+
+# Move libobjc files to the $GNUOBJC_SRCDIR
+GNUOBJC_SRCDIR=$NDK_DIR/$GNUOBJC_SUBDIR
+rm -rf $GNUOBJC_SRCDIR/include/$GCC_VERSION $GNUOBJC_SRCDIR/libs/$GCC_VERSION
+
+# Move includes
+copy_directory "$TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/objc" "$GNUOBJC_SRCDIR/include/$GCC_VERSION/objc"
+run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/objc
+
+# Move libs
+for f in $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name libgnuobjc_shared.a -print); do
+    run mv -f $f $(dirname $f)/libgnuobjc_static.a
+done
+case "$ARCH" in
+    arm)
+        for lib in libgnuobjc_shared.so libgnuobjc_static.a; do
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/thumb" "$GNUOBJC_SRCDIR/libs/armeabi/$GCC_VERSION" "$lib"
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/armv7-a" "$GNUOBJC_SRCDIR/libs/armeabi-v7a/$GCC_VERSION" "$lib"
+        done
+        ;;
+    x86)
+        for lib in libgnuobjc_shared.so libgnuobjc_static.a; do
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib" "$GNUOBJC_SRCDIR/libs/x86/$GCC_VERSION" "$lib"
+        done
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libgnuobjc*' -print)
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libobjc*' -print)
 
 # strip binaries to reduce final package size
 run strip $TOOLCHAIN_PATH/bin/*
@@ -393,6 +415,35 @@ if [ "$PACKAGE_DIR" ]; then
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+    fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
+
+    # Now, package objc files
+    PACKAGE="$PACKAGE_DIR/gnu-libobjc-headers-$GCC_VERSION.tar.bz2"
+    dump "Packaging: $PACKAGE"
+    pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SUBDIR/include/$GCC_VERSION"
+    fail_panic "Could not package $GCC_VERSION gnuobjc headers"
+
+    case $ARCH in
+        arm)
+            ABIS="armeabi armeabi-v7a"
+            ;;
+        x86)
+            ABIS="x86"
+            ;;
+        *)
+            dump "ERROR: Unknown ABI: $ABI"
+            exit 1
+    esac
+    for ABI in $ABIS; do
+        FILES=""
+        for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
+            FILES="$FILES $GNUOBJC_SUBDIR/libs/$ABI/$GCC_VERSION/$LIB"
+        done
+        PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$ABI-$GCC_VERSION.tar.bz2"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Could not package $ABI-$GCC_VERSION gnuobjc binaries"
+    done
 fi
 
 dump "Done."

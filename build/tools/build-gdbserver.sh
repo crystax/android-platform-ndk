@@ -65,7 +65,12 @@ register_jobs_option
 
 extract_parameters "$@"
 
-setup_default_log_file
+if [ -n "$OPTION_BUILD_OUT" ] ; then
+    BUILD_OUT="$OPTION_BUILD_OUT"
+fi
+setup_default_log_file $BUILD_OUT/build.log
+log "Using build directory: $BUILD_OUT"
+run mkdir -p "$BUILD_OUT"
 
 set_parameters ()
 {
@@ -139,12 +144,6 @@ log "Using GDB source directory: $SRC_DIR"
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
 
-if [ -n "$OPTION_BUILD_OUT" ] ; then
-    BUILD_OUT="$OPTION_BUILD_OUT"
-fi
-log "Using build directory: $BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
-
 # Copy the sysroot to a temporary build directory
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
@@ -195,7 +194,7 @@ CRTEND="$BUILD_SYSROOT/usr/lib/crtend_android.o"
 #       a function (__div0) which depends on raise(), implemented
 #       in the C library.
 #
-LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lc $CRTEND "
+LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lgcc_eh -lc $CRTEND "
 
 case "$GDB_VERSION" in
     6.6)
@@ -266,9 +265,7 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR/$DSTFILE"
 fi
 
-log "Cleaning up."
+dump "Done."
 if [ -z "$OPTION_BUILD_OUT" ] ; then
     run rm -rf $BUILD_OUT
 fi
-
-dump "Done."

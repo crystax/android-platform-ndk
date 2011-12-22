@@ -74,6 +74,7 @@ endef
 cmd-strip = $(PRIVATE_STRIP) --strip-unneeded $(call host-path,$1)
 
 TARGET_LIBGCC = $(shell $(TARGET_CC) -print-libgcc-file-name)
+TARGET_LIBGCC_EH = $(shell $(TARGET_CC) -print-file-name=libgcc_eh.a)
 TARGET_LDLIBS := -lc -lm
 
 #

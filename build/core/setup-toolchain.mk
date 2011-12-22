@@ -18,7 +18,7 @@
 #
 
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
-$(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_CRYSTAX)
+$(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_CRYSTAX NDK_APP_OBJC)
 
 # Check that we have a toolchain that supports the current ABI.
 # NOTE: If NDK_TOOLCHAIN is defined, we're going to use it.
@@ -149,6 +149,7 @@ endif
 $(call modules-clear)
 
 $(call ndk-crystax-select,$(NDK_APP_CRYSTAX))
+$(call ndk-objc-select,$(NDK_APP_OBJC))
 $(call ndk-stl-select,$(NDK_APP_STL))
 
 # now parse the Android.mk for the application, this records all
@@ -158,9 +159,10 @@ include $(NDK_APP_BUILD_SCRIPT)
 # WARNING!! Adding NDK_APP_CRYSTAX twice is intentionally.
 # This way we get include libcrystax before and after libstdc++
 # in linker parameters. This is needed to override some functions
-# from libstdc++.
+# from libstdc++ and libobjc
 $(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
+$(call ndk-objc-add-dependencies,$(NDK_APP_OBJC))
 $(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 
 # recompute all dependencies between modules

@@ -323,7 +323,7 @@ builder_shared_library ()
         $_BUILD_LDFLAGS_BEGIN_SO \
         $_BUILD_OBJECTS \
         $_BUILD_STATIC_LIBRARIES \
-        -lgcc \
+        -lgcc -lgcc_eh \
         $_BUILD_SHARED_LIBRARIES \
         -lc -lm \
         $_BUILD_LDFLAGS \

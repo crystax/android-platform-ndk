@@ -160,12 +160,72 @@ dump "Copying sysroot headers and libraries..."
 # expect the sysroot files to be placed there!
 run copy_directory_nolinks "$SRC_SYSROOT" "$TMPDIR/sysroot"
 
+ABI_TARGET="$TMPDIR/$ABI_CONFIGURE_TARGET"
+
+dump "Copying crystax headers and libraries..."
+
+CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
+CRYSTAX_LIBS=$CRYSTAX_DIR/libs
+
+copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
+case "$ARCH" in
+    arm)
+        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_static.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_shared.so"
+        mv -f "$ABI_TARGET/lib/libcrystax_static.a" "$ABI_TARGET/lib/libcrystax.a"
+
+        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libcrystax_static.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libcrystax_shared.so"
+        mv -f "$ABI_TARGET/lib/thumb/libcrystax_static.a" "$ABI_TARGET/lib/thumb/libcrystax.a"
+
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libcrystax_static.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libcrystax_shared.so"
+        mv -f "$ABI_TARGET/lib/armv7-a/libcrystax_static.a" "$ABI_TARGET/lib/armv7-a/libcrystax.a"
+        ;;
+    x86)
+        copy_file_list "$CRYSTAX_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_static.a"
+        copy_file_list "$CRYSTAX_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_shared.so"
+        mv -f "$ABI_TARGET/lib/libcrystax_static.a" "$ABI_TARGET/lib/libcrystax.a"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+
+dump "Copying libobjc headers and libraries..."
+
+GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
+GNUOBJC_LIBS=$GNUOBJC_DIR/libs
+
+copy_directory "$GNUOBJC_DIR/include/$GCC_VERSION" "$ABI_TARGET/include"
+case "$ARCH" in
+    arm)
+        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+
+        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/thumb/libobjc.a"
+
+        copy_file_list "$GNUOBJC_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/armv7-a/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/libobjc.a"
+        ;;
+    x86)
+        copy_file_list "$GNUOBJC_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+
 dump "Copying libstdc++ headers and libraries..."
 
 GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR
 GNUSTL_LIBS=$GNUSTL_DIR/libs
 
-ABI_STL="$TMPDIR/$ABI_CONFIGURE_TARGET"
+ABI_STL="$ABI_TARGET"
 ABI_STL_INCLUDE="$ABI_STL/include/c++/$GCC_VERSION"
 
 copy_directory "$GNUSTL_DIR/include/$GCC_VERSION" "$ABI_STL_INCLUDE"
@@ -190,29 +250,6 @@ case "$ARCH" in
         copy_directory "$GNUSTL_LIBS/x86/$GCC_VERSION/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"
         copy_file_list "$GNUSTL_LIBS/x86/$GCC_VERSION" "$ABI_STL/lib" "libgnustl_shared.so"
         cp "$GNUSTL_LIBS/x86/$GCC_VERSION/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
-        ;;
-    *)
-        dump "ERROR: Unsupported NDK architecture!"
-esac
-
-dump "Copying crystax headers and libraries..."
-
-CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
-CRYSTAX_LIBS=$CRYSTAX_DIR/libs
-
-copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
-case "$ARCH" in
-    arm)
-        cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax_static.a" "$ABI_STL/lib/libcrystax.a"
-        cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax_shared.so" "$ABI_STL/lib/libcrystax.so"
-        cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax_static.a" "$ABI_STL/lib/thumb/libcrystax.a"
-        cp "$CRYSTAX_LIBS/armeabi/$GCC_VERSION/libcrystax_shared.so" "$ABI_STL/lib/thumb/libcrystax.so"
-        cp "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION/libcrystax_static.a" "$ABI_STL/lib/armv7-a/libcrystax.a"
-        cp "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION/libcrystax_shared.so" "$ABI_STL/lib/armv7-a/libcrystax.so"
-        ;;
-    x86)
-        cp "$CRYSTAX_LIBS/x86/$GCC_VERSION/libcrystax_static.a" "$ABI_STL/lib/libcrystax.a"
-        cp "$CRYSTAX_LIBS/x86/$GCC_VERSION/libcrystax_shared.so" "$ABI_STL/lib/libcrystax.so"
         ;;
     *)
         dump "ERROR: Unsupported NDK architecture!"
