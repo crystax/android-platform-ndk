@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (C) 2010 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,6 +147,9 @@ TOOLCHAIN_PATH="$TOOLCHAIN_PATH/prebuilt/$SYSTEM"
 
 # Create temporary directory
 TMPDIR=$NDK_TMPDIR/standalone/$TOOLCHAIN_NAME
+if [ "$HOST_OS" = "windows" ]; then
+    TMPDIR=$(cygpath -u $TMPDIR)
+fi
 
 dump "Copying prebuilt binaries..."
 # Now copy the toolchain prebuilt binaries
