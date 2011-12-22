@@ -693,7 +693,9 @@ module-has-c++-features = $(strip \
 # $3: list of C++ runtime shared libraries (if any)
 #
 module-add-c++-deps = \
+    $(if $(call strip,$2),$(call ndk_log,Add dependency '$(call strip,$2)' to module '$1'))\
     $(eval __ndk_modules.$1.STATIC_LIBRARIES += $(2))\
+    $(if $(call strip,$3),$(call ndk_log,Add dependency '$(call strip,$3)' to module '$1'))\
     $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))
 
 
@@ -1634,11 +1636,11 @@ ndk-crystax-register = \
 ndk-crystax-select = \
     $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
 
+CRYSTAX_MODULES := crystax_empty crystax_static crystax_shared
 ndk-crystax-add-dependencies = \
-    $(call ndk_log,Add crystax dependencies: '$1')\
+    $(call ndk_log,Add libcrystax dependencies: '$1')\
     $(foreach __module,$(__ndk_modules),\
-        $(if $(or $(findstring crystax_static,$(__module)),$(findstring crystax_shared,$(__module))),,\
-            $(call ndk_log,Add dependency '$1' to module '$(__module)')\
+        $(if $(filter-out $(CRYSTAX_MODULES),$(__module)),\
             $(call module-add-c++-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))))
 
 $(call ndk-crystax-register,\
