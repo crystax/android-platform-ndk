@@ -166,6 +166,12 @@ ifeq ($(HOST_OS),windows)
             HOST_OS := cygwin
         else
             $(call ndk_log,Cygwin *not* detected!)
+            ifneq (,$(filter MINGW%,$(UNAME)))
+                $(call ndk_log,MinGW detected!)
+                HOST_OS := mingw
+            else
+                $(call ndk_log,MinGW *not* detected!)
+            endif
         endif
     endif
 endif
@@ -268,7 +274,11 @@ endif
 $(call ndk_log,Host 'awk' tool: $(HOST_AWK))
 
 # Location of all awk scripts we use
+ifeq ($(HOST_OS),cygwin)
+BUILD_AWK := $(shell cygpath -m $(NDK_ROOT)/build/awk)
+else
 BUILD_AWK := $(NDK_ROOT)/build/awk
+endif
 
 AWK_TEST := $(shell $(HOST_AWK) -f $(BUILD_AWK)/check-awk.awk)
 $(call ndk_log,Host 'awk' test returned: $(AWK_TEST))

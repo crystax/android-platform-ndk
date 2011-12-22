@@ -246,6 +246,12 @@ else # !FULL_TESTS
 fi # !FULL_TESTS
 
 
+if [ -z "$USER" ]; then
+    USER=$USERNAME
+fi
+if [ -z "$USER" ]; then
+    USER=$$
+fi
 TEST_DIR="/tmp/ndk-$USER/tests"
 mkdir -p $TEST_DIR
 setup_default_log_file "$TEST_DIR/build-tests.log"
@@ -537,6 +543,10 @@ if is_testable device; then
         fi
         # First, copy all files to /data/local, except for gdbserver
         # or gdb.setup.
+        if uname -s | grep -qi mingw; then
+            # Prevent MinGW path conversion. See http://www.mingw.org/wiki/Posix_path_conversion for details.
+            DSTDIR=/$DSTDIR
+        fi
         adb_cmd_mkdir $DSTDIR
         for SRCFILE in `ls $SRCDIR`; do
             DSTFILE=`basename $SRCFILE`

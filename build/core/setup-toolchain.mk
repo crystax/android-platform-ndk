@@ -48,7 +48,12 @@ else # NDK_TOOLCHAIN is not empty
     TARGET_TOOLCHAIN := $(NDK_TOOLCHAIN)
 endif # NDK_TOOLCHAIN is not empty
 
-TARGET_TOOLCHAIN_VERSION := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-toolchain-version.awk $(NDK_TOOLCHAIN.$(TARGET_TOOLCHAIN).setup))
+ifeq ($(HOST_OS),cygwin)
+TOOLCHAIN_SETUP := $(shell cygpath -m $(NDK_TOOLCHAIN.$(TARGET_TOOLCHAIN).setup))
+else
+TOOLCHAIN_SETUP := $(NDK_TOOLCHAIN.$(TARGET_TOOLCHAIN).setup)
+endif
+TARGET_TOOLCHAIN_VERSION := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-toolchain-version.awk $(TOOLCHAIN_SETUP))
 
 TARGET_ABI := $(TARGET_PLATFORM)-$(TARGET_ARCH_ABI)
 
