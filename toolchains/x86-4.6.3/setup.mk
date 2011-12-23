@@ -31,10 +31,10 @@ TARGET_CFLAGS := \
     -funwind-tables
 
 ifeq ($(TARGET_USE_CPP0X),true)
-    TARGET_CFLAGS += --std=gnu++0x
+    TARGET_CXXFLAGS += --std=gnu++0x
 else
 ifeq ($(TARGET_USE_CPP0X),strict)
-    TARGET_CFLAGS += --std=c++0x
+    TARGET_CXXFLAGS += --std=c++0x
 endif
 endif
 

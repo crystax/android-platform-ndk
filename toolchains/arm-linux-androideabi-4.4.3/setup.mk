@@ -34,10 +34,10 @@ TARGET_CFLAGS := \
     -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
 
 ifeq ($(TARGET_USE_CPP0X),true)
-    TARGET_CFLAGS += --std=gnu++0x
+    TARGET_CXXFLAGS += --std=gnu++0x
 else
 ifeq ($(TARGET_USE_CPP0X),strict)
-    TARGET_CFLAGS += --std=c++0x
+    TARGET_CXXFLAGS += --std=c++0x
 endif
 endif
 
