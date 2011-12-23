@@ -25,6 +25,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
@@ -41,7 +70,7 @@ __FBSDID("$FreeBSD$");
 #include "ldpart.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 int __collate_load_error = 1;
@@ -56,7 +85,7 @@ void __collate_err(int ex, const char *f) __dead2;
 int
 __collate_load_tables(const char *encoding)
 {
-	__locale_data_t *ld;
+	__crystax_locale_data_t *ld;
     int fpos;
 	int i, saverr, chains;
 	uint32_t u32;
@@ -82,7 +111,7 @@ __collate_load_tables(const char *encoding)
 	 * Slurp the locale file into the cache.
 	 */
 
-    ld = android_get_locale_data(LC_COLLATE, encoding);
+    ld = __crystax_locale_get_data(LC_COLLATE, encoding);
     if (ld == NULL)
         return (_LDP_ERROR);
 
@@ -146,7 +175,7 @@ __collate_load_tables(const char *encoding)
 	if (__collate_char_pri_table_ptr != NULL)
 		free(__collate_char_pri_table_ptr);
 	__collate_char_pri_table_ptr = TMP_char_pri_table;
-	for (i = 0; i < UCHAR_MAX + 1; i++) {
+	for (i = 0; (unsigned)i < UCHAR_MAX + 1; i++) {
 		__collate_char_pri_table[i].prim =
 		    ntohl(__collate_char_pri_table[i].prim);
 		__collate_char_pri_table[i].sec =
@@ -162,7 +191,7 @@ __collate_load_tables(const char *encoding)
 		    ntohl(__collate_chain_pri_table[i].sec);
 	}
 	__collate_substitute_nontrivial = 0;
-	for (i = 0; i < UCHAR_MAX + 1; i++) {
+	for (i = 0; (unsigned)i < UCHAR_MAX + 1; i++) {
 		if (__collate_substitute_table[i][0] != i ||
 		    __collate_substitute_table[i][1] != 0) {
 			__collate_substitute_nontrivial = 1;
@@ -178,24 +207,24 @@ u_char *
 __collate_substitute(const u_char *s)
 {
 	int dest_len, len, nlen;
-	int delta = strlen(s);
+	int delta = strlen((const char *)s);
 	u_char *dest_str = NULL;
 
 	if (s == NULL || *s == '\0')
-		return (__collate_strdup(""));
+		return (__collate_strdup((u_char*)""));
 	delta += delta / 8;
 	dest_str = malloc(dest_len = delta);
 	if (dest_str == NULL)
 		__collate_err(EX_OSERR, __func__);
 	len = 0;
 	while (*s) {
-		nlen = len + strlen(__collate_substitute_table[*s]);
+		nlen = len + strlen((const char *)__collate_substitute_table[*s]);
 		if (dest_len <= nlen) {
 			dest_str = reallocf(dest_str, dest_len = nlen + delta);
 			if (dest_str == NULL)
 				__collate_err(EX_OSERR, __func__);
 		}
-		(void)strcpy(dest_str + len, __collate_substitute_table[*s++]);
+		(void)strcpy((char*)dest_str + len, (const char *)__collate_substitute_table[*s++]);
 		len = nlen;
 	}
 	return (dest_str);
@@ -210,8 +239,8 @@ __collate_lookup(const u_char *t, int *len, int *prim, int *sec)
 	*prim = *sec = 0;
 	for (p2 = __collate_chain_pri_table; p2->str[0] != '\0'; p2++) {
 		if (*t == p2->str[0] &&
-		    strncmp(t, p2->str, strlen(p2->str)) == 0) {
-			*len = strlen(p2->str);
+		    strncmp((const char *)t, (const char *)p2->str, strlen((const char *)p2->str)) == 0) {
+			*len = strlen((const char *)p2->str);
 			*prim = p2->prim;
 			*sec = p2->sec;
 			return;
@@ -224,7 +253,7 @@ __collate_lookup(const u_char *t, int *len, int *prim, int *sec)
 u_char *
 __collate_strdup(u_char *s)
 {
-	u_char *t = strdup(s);
+	u_char *t = (u_char *)strdup((const char *)s);
 
 	if (t == NULL)
 		__collate_err(EX_OSERR, __func__);
@@ -237,7 +266,7 @@ __collate_err(int ex, const char *f)
 	const char *s;
 	int serrno = errno;
 
-	s = _getprogname();
+	s = __crystax_getprogname();
 	write(STDERR_FILENO, s, strlen(s));
 	write(STDERR_FILENO, ": ", 2);
 	s = f;

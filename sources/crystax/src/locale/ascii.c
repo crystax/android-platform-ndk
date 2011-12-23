@@ -31,6 +31,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
@@ -45,7 +74,7 @@ __FBSDID("$FreeBSD$");
 #include "mblocal.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 static size_t	_ascii_mbrtowc(wchar_t * __restrict, const char * __restrict,
@@ -62,7 +91,7 @@ static size_t	_ascii_wcsnrtombs(char * __restrict, const wchar_t ** __restrict,
 int
 _ascii_init(_RuneLocale *rl)
 {
-    DBG("_ascii_init");
+    TRACE;
 	__mbrtowc = _ascii_mbrtowc;
 	__mbsinit = _ascii_mbsinit;
 	__mbsnrtowcs = _ascii_mbsnrtowcs;
@@ -113,7 +142,7 @@ _ascii_wcrtomb(char * __restrict s, wchar_t wc,
 	if (s == NULL)
 		/* Reset to initial shift state (no-op) */
 		return (1);
-	if (wc < 0 || wc > 127) {
+	if (wc > 127) {
 		errno = EILSEQ;
 		return ((size_t)-1);
 	}
@@ -128,7 +157,7 @@ _ascii_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	const char *s;
 	size_t nchr;
     
-    DBG("_ascii_mbsnrtowcs");
+    TRACE;
 
 	if (dst == NULL) {
 		for (s = *src; nms > 0 && *s != '\0'; s++, nms--) {
@@ -166,7 +195,7 @@ _ascii_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 
 	if (dst == NULL) {
 		for (s = *src; nwc > 0 && *s != L'\0'; s++, nwc--) {
-			if (*s < 0 || *s > 127) {
+			if (*s > 127) {
 				errno = EILSEQ;
 				return ((size_t)-1);
 			}
@@ -177,7 +206,7 @@ _ascii_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 	s = *src;
 	nchr = 0;
 	while (len-- > 0 && nwc-- > 0) {
-		if (*s < 0 || *s > 127) {
+		if (*s > 127) {
 			errno = EILSEQ;
 			return ((size_t)-1);
 		}

@@ -24,6 +24,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #include <sys/param.h>
 __FBSDID("$FreeBSD$");
 
@@ -36,7 +65,7 @@ __FBSDID("$FreeBSD$");
 #include "mblocal.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 extern int __mb_sb_limit;
@@ -61,7 +90,7 @@ typedef struct {
 int
 _UTF8_init(_RuneLocale *rl)
 {
-    DBG("_UTF8_init");
+    TRACE;
 	__mbrtowc = _UTF8_mbrtowc;
 	__wcrtomb = _UTF8_wcrtomb;
 	__mbsinit = _UTF8_mbsinit;
@@ -176,7 +205,7 @@ _UTF8_mbrtowc(wchar_t * __restrict pwc, const char * __restrict s, size_t n,
 		wch = (unsigned char)*s++ & mask;
 	else
 		wch = us->ch;
-	for (i = (us->want == 0) ? 1 : 0; i < MIN(want, n); i++) {
+	for (i = (us->want == 0) ? 1 : 0; (size_t)i < MIN((size_t)want, n); i++) {
 		if ((*s & 0xc0) != 0x80) {
 			/*
 			 * Malformed input; bad characters in the middle
@@ -218,7 +247,7 @@ _UTF8_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	wchar_t wc;
 	size_t nb;
     
-    DBG("_UTF8_mbsnrtowcs");
+    TRACE;
 
 	us = (_UTF8State *)ps;
 
@@ -382,7 +411,7 @@ _UTF8_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 
 	if (dst == NULL) {
 		while (nwc-- > 0) {
-			if (0 <= *s && *s < 0x80)
+			if (*s < 0x80)
 				/* Fast path for plain ASCII characters. */
 				nb = 1;
 			else if ((nb = _UTF8_wcrtomb(buf, *s, ps)) ==
@@ -398,7 +427,7 @@ _UTF8_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 	}
 
 	while (len > 0 && nwc-- > 0) {
-		if (0 <= *s && *s < 0x80) {
+		if (*s < 0x80) {
 			/* Fast path for plain ASCII characters. */
 			nb = 1;
 			*dst = *s;
@@ -416,7 +445,7 @@ _UTF8_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 				*src = s;
 				return ((size_t)-1);
 			}
-			if (nb > (int)len)
+			if (nb > len)
 				/* MB sequence for character won't fit. */
 				break;
 			memcpy(dst, buf, nb);

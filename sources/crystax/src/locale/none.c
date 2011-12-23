@@ -31,6 +31,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)none.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
@@ -48,7 +77,7 @@ __FBSDID("$FreeBSD$");
 #include "mblocal.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 static size_t	_none_mbrtowc(wchar_t * __restrict, const char * __restrict,
@@ -70,7 +99,7 @@ int __mb_sb_limit = 256; /* Expected to be <= _CACHED_RUNES */
 int
 _none_init(_RuneLocale *rl)
 {
-    DBG("_none_init");
+    TRACE;
 	__mbrtowc = _none_mbrtowc;
 	__mbsinit = _none_mbsinit;
 	__mbsnrtowcs = _none_mbsnrtowcs;
@@ -117,7 +146,7 @@ _none_wcrtomb(char * __restrict s, wchar_t wc,
 	if (s == NULL)
 		/* Reset to initial shift state (no-op) */
 		return (1);
-	if (wc < 0 || wc > UCHAR_MAX) {
+	if (wc > UCHAR_MAX) {
 		errno = EILSEQ;
 		return ((size_t)-1);
 	}
@@ -132,12 +161,12 @@ _none_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	const char *s;
 	size_t nchr;
     
-    DBG("_none_mbsnrtowcs: *src=%s, nms=%d", *src, (int)nms);
+    DBG("*src=%s, nms=%d", *src, (int)nms);
 
 	if (dst == NULL) {
 		s = memchr(*src, '\0', nms);
-        DBG("_none_mbsnrtowcs: s=%s, ret (1)", s);
-		return (s != NULL ? s - *src : nms);
+        DBG("s=%s, ret (1)", s);
+		return (s != NULL ? (size_t)(s - *src) : nms);
 	}
 
 	s = *src;
@@ -145,13 +174,13 @@ _none_mbsnrtowcs(wchar_t * __restrict dst, const char ** __restrict src,
 	while (len-- > 0 && nms-- > 0) {
 		if ((*dst++ = (unsigned char)*s++) == L'\0') {
 			*src = NULL;
-            DBG("_none_mbsnrtowcs: ret (2)");
+            DBG("ret (2)");
 			return (nchr);
 		}
 		nchr++;
 	}
 	*src = s;
-    DBG("_none_mbsnrtowcs: ret (3)");
+    DBG("ret (3)");
 	return (nchr);
 }
 
@@ -164,7 +193,7 @@ _none_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 
 	if (dst == NULL) {
 		for (s = *src; nwc > 0 && *s != L'\0'; s++, nwc--) {
-			if (*s < 0 || *s > UCHAR_MAX) {
+			if (*s > UCHAR_MAX) {
 				errno = EILSEQ;
 				return ((size_t)-1);
 			}
@@ -175,7 +204,7 @@ _none_wcsnrtombs(char * __restrict dst, const wchar_t ** __restrict src,
 	s = *src;
 	nchr = 0;
 	while (len-- > 0 && nwc-- > 0) {
-		if (*s < 0 || *s > UCHAR_MAX) {
+		if (*s > UCHAR_MAX) {
 			errno = EILSEQ;
 			return ((size_t)-1);
 		}

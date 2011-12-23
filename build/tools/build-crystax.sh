@@ -90,6 +90,7 @@ mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
 # Location of the crystax source tree
+STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl
 CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
@@ -97,16 +98,18 @@ CRYSTAX_CFLAGS="-fpic -ffunction-sections -funwind-tables -fstack-protector"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS"  -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -g -O2 -DANDROID -DNDEBUG -Wno-psabi"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
-for p in include gdtoa locale stdio android ; do
-    CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/$p"
+for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
+    CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$p"
 done
-CRYSTAX_CXXFLAGS="-fuse-cxa-atexit -fexceptions -frtti"
+CRYSTAX_CXXFLAGS="-std=gnu++0x -fuse-cxa-atexit -fno-exceptions -fno-rtti"
 CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
+CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -llog -ldl"
 
 # List of sources to compile
 CRYSTAX_C_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.c' -print)
-CRYSTAX_CPP_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.cpp' -print)
+CRYSTAX_CPP_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
 CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 
 # If the --no-makefile flag is not used, we're going to put all build
@@ -165,7 +168,9 @@ build_crystax_libs_for_abi ()
     builder_static_library libcrystax_static
 
     log "Building $DSTDIR/libcrystax_shared.so"
+    builder_sources src/crystax/android_jni.cpp
     builder_shared_library libcrystax_shared
+
     builder_end
 }
 

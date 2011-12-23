@@ -29,6 +29,35 @@ THIS SOFTWARE.
 /* Please send bug reports to David M. Gay (dmg at acm dot org,
  * with " at " changed at "@" and " dot " changed to ".").	*/
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #include "gdtoaimp.h"
 
  static Bigint *freelist[Kmax+1];
@@ -636,16 +665,16 @@ b2d
 	*e = 32 - k;
 #ifdef Pack_32
 	if (k < Ebits) {
-		d0 = Exp_1 | y >> Ebits - k;
+		d0 = Exp_1 | y >> (Ebits - k);
 		w = xa > xa0 ? *--xa : 0;
-		d1 = y << (32-Ebits) + k | w >> Ebits - k;
+		d1 = y << ((32-Ebits) + k) | w >> (Ebits - k);
 		goto ret_d;
 		}
 	z = xa > xa0 ? *--xa : 0;
 	if (k -= Ebits) {
-		d0 = Exp_1 | y << k | z >> 32 - k;
+		d0 = Exp_1 | y << k | z >> (32 - k);
 		y = xa > xa0 ? *--xa : 0;
-		d1 = z << k | y >> 32 - k;
+		d1 = z << k | y >> (32 - k);
 		}
 	else {
 		d0 = Exp_1 | y;
@@ -721,7 +750,7 @@ d2b
 #ifdef Pack_32
 	if ( (y = d1) !=0) {
 		if ( (k = lo0bits(&y)) !=0) {
-			x[0] = y | z << 32 - k;
+			x[0] = y | z << (32 - k);
 			z >>= k;
 			}
 		else
@@ -847,7 +876,7 @@ strcp_D2A(a, b) char *a; char *b;
 strcp_D2A(char *a, CONST char *b)
 #endif
 {
-	while(*a = *b++)
+	while((*a = *b++))
 		a++;
 	return a;
 	}

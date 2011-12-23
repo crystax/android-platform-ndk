@@ -30,6 +30,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
@@ -47,7 +76,7 @@ __FBSDID("$FreeBSD$");
 #include "setlocale.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 extern int __mb_sb_limit;
@@ -66,7 +95,7 @@ __setrunelocale(const char *encoding)
 	FILE *fp;
 	_RuneLocale *rl;
 	int saverr, ret;
-    __locale_data_t *ld;
+    __crystax_locale_data_t *ld;
 	size_t (*old__mbrtowc)(wchar_t * __restrict,
 	    const char * __restrict, size_t, mbstate_t * __restrict);
 	size_t (*old__wcrtomb)(char * __restrict, wchar_t,
@@ -92,7 +121,7 @@ __setrunelocale(const char *encoding)
 	    const wchar_t ** __restrict, size_t, size_t,
 	    mbstate_t * __restrict);
 
-    DBG("__setrunelocale: encoding=%s", encoding);
+    DBG("encoding=%s", encoding);
 	/*
 	 * The "C" and "POSIX" locale are always here.
 	 */
@@ -106,7 +135,7 @@ __setrunelocale(const char *encoding)
 	 */
 	if (CachedRuneLocale != NULL &&
 	    strcmp(encoding, ctype_encoding) == 0) {
-        DBG("__setrunelocale: use cached locale");
+        DBG("use cached locale");
 		_CurrentRuneLocale = CachedRuneLocale;
 		__mb_cur_max = Cached__mb_cur_max;
 		__mb_sb_limit = Cached__mb_sb_limit;
@@ -122,7 +151,7 @@ __setrunelocale(const char *encoding)
 	 * Slurp the locale file into the cache.
 	 */
 
-    ld = android_get_locale_data(LC_CTYPE, encoding);
+    ld = __crystax_locale_get_data(LC_CTYPE, encoding);
     if (ld == NULL)
         return (errno == 0 ? ENOENT : errno);
 
@@ -135,7 +164,7 @@ __setrunelocale(const char *encoding)
 	old__wcrtomb = __wcrtomb;
 	old__wcsnrtombs = __wcsnrtombs;
 
-    DBG("__setrunelocale: set std functions");
+    DBG("set std functions");
 	__mbrtowc = NULL;
 	__mbsinit = NULL;
 	__mbsnrtowcs = __mbsnrtowcs_std;
@@ -182,7 +211,7 @@ __setrunelocale(const char *encoding)
 		Cached__wcsnrtombs = __wcsnrtombs;
 		(void)strcpy(ctype_encoding, encoding);
 	} else {
-        DBG("__setrunelocale: restore old functions");
+        DBG("restore old functions");
 		__mbrtowc = old__mbrtowc;
 		__mbsinit = old__mbsinit;
 		__mbsnrtowcs = old__mbsnrtowcs;
@@ -197,9 +226,9 @@ __setrunelocale(const char *encoding)
 int
 __wrap_setrunelocale(const char *locale)
 {
-    DBG("__wrap_setrunelocale: locale=%s", locale);
+    DBG("locale=%s", locale);
 	int ret = __setrunelocale(locale);
-    DBG("__wrap_setrunelocale: ret=%d", ret);
+    DBG("ret=%d", ret);
 
 	if (ret != 0) {
 		errno = ret;

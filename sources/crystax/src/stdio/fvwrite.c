@@ -30,6 +30,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)fvwrite.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
@@ -43,7 +72,7 @@ __FBSDID("$FreeBSD$");
 #include "fvwrite.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 /*
@@ -111,7 +140,7 @@ __sfvwrite(fp, uio)
 		do {
 			GETIOV(;);
 			if ((fp->_flags & (__SALC | __SSTR)) ==
-			    (__SALC | __SSTR) && fp->_w < len) {
+			    (__SALC | __SSTR) && (size_t)fp->_w < len) {
 				size_t blen = fp->_p - fp->_bf._base;
 
 				/*
@@ -128,7 +157,7 @@ __sfvwrite(fp, uio)
 			}
 			w = fp->_w;
 			if (fp->_flags & __SSTR) {
-				if (len < w)
+				if (len < (size_t)w)
 					w = len;
 				if (w > 0) {
 					COPY(w);        /* copy MIN(fp->_w,len), */
@@ -136,14 +165,14 @@ __sfvwrite(fp, uio)
 					fp->_p += w;
 				}
 				w = len;	/* but pretend copied all */
-			} else if (fp->_p > fp->_bf._base && len > w) {
+			} else if (fp->_p > fp->_bf._base && len > (size_t)w) {
 				/* fill and flush */
 				COPY(w);
 				/* fp->_w -= w; */ /* unneeded */
 				fp->_p += w;
 				if (__fflush(fp))
 					goto err;
-			} else if (len >= (w = fp->_bf._size)) {
+			} else if (len >= (size_t)(w = fp->_bf._size)) {
 				/* write directly */
 				w = _swrite(fp, p, w);
 				if (w <= 0)
@@ -172,10 +201,10 @@ __sfvwrite(fp, uio)
 			GETIOV(nlknown = 0);
 			if (!nlknown) {
 				nl = memchr((void *)p, '\n', len);
-				nldist = nl ? nl + 1 - p : len + 1;
+				nldist = nl ? nl + 1 - p : (int)len + 1;
 				nlknown = 1;
 			}
-			s = MIN(len, nldist);
+			s = MIN((int)len, nldist);
 			w = fp->_w + fp->_bf._size;
 			if (fp->_p > fp->_bf._base && s > w) {
 				COPY(w);

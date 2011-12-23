@@ -189,7 +189,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lm -lc"
+    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -llog -lm -lc"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"

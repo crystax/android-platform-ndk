@@ -30,6 +30,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)rune.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
@@ -48,7 +77,7 @@ __FBSDID("$FreeBSD$");
 #include "runefile.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 #ifdef __ANDROID__
@@ -74,10 +103,10 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 	_FileRuneEntry *mapupper_ext_ranges;
 	int runetype_ext_len = 0;
     
-    DBG("_Read_RuneMagi: ldsize=%d", ldsize);
+    DBG("ldsize=%d", ldsize);
 
 	if (ldsize < sizeof(_FileRuneLocale)) {
-        DBG("_Read_RuneMagi: ret (0)");
+        DBG("ret (0)");
 		errno = EFTYPE;
 		return (NULL);
 	}
@@ -95,7 +124,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 	variable = frl + 1;
 
 	if (memcmp(frl->magic, _FILE_RUNE_MAGIC_1, sizeof(frl->magic))) {
-        DBG("_Read_RuneMagi: ret (1)");
+        DBG("ret (1)");
 		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
@@ -115,7 +144,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 	runetype_ext_ranges = (_FileRuneEntry *)variable;
 	variable = runetype_ext_ranges + frl->runetype_ext_nranges;
 	if (variable > lastp) {
-        DBG("_Read_RuneMagi: ret (2)");
+        DBG("ret (2)");
 		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
@@ -124,7 +153,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 	maplower_ext_ranges = (_FileRuneEntry *)variable;
 	variable = maplower_ext_ranges + frl->maplower_ext_nranges;
 	if (variable > lastp) {
-        DBG("_Read_RuneMagi: ret (3)");
+        DBG("ret (3)");
 		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
@@ -133,7 +162,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 	mapupper_ext_ranges = (_FileRuneEntry *)variable;
 	variable = mapupper_ext_ranges + frl->mapupper_ext_nranges;
 	if (variable > lastp) {
-        DBG("_Read_RuneMagi: ret (4)");
+        DBG("ret (4)");
 		free(fdata);
 		errno = EFTYPE;
 		return (NULL);
@@ -152,7 +181,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 			variable = types + len;
 			runetype_ext_len += len;
 			if (variable > lastp) {
-                DBG("_Read_RuneMagi: ret (5)");
+                DBG("ret (5)");
 				free(fdata);
 				errno = EFTYPE;
 				return (NULL);
@@ -176,7 +205,7 @@ _Read_RuneMagi(char *ld, size_t ldsize)
 		frr[x].map = ntohl(frr[x].map);
 	}
 	if ((char *)variable + frl->variable_len > (char *)lastp) {
-        DBG("_Read_RuneMagi: ret (6)");
+        DBG("ret (6)");
 		free(fdata);
 		errno = EFTYPE;
 		return (NULL);

@@ -1,3 +1,32 @@
+#
+# Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+# 
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+# 
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# 
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of Dmitry Moskalchuk.
+#
+
 LOCAL_PATH := $(call my-dir)
 
 CRYSTAX_FORCE_REBUILD := $(strip $(CRYSTAX_FORCE_REBUILD))
@@ -10,130 +39,13 @@ ifndef CRYSTAX_FORCE_REBUILD
   endif
 endif
 
-CRYSTAX_SRC_FILES := \
-	android/locale/UTF-8.LC_CTYPE.c \
-	android/locale/el_GR.ISO8859-7.LC_CTYPE.c \
-	android/locale/la_LN.ISO8859-1.LC_CTYPE.c \
-	android/locale/la_LN.US-ASCII.LC_CTYPE.c \
-	android/stdio.c \
-	android/utils.c \
-	gdtoa/_hdtoa.c \
-	gdtoa/_hldtoa.c \
-	gdtoa/_ldtoa.c \
-	gdtoa/dmisc.c \
-	gdtoa/dtoa.c \
-	gdtoa/gdtoa.c \
-	gdtoa/gmisc.c \
-	gdtoa/misc.c \
-	locale/ascii.c \
-	locale/big5.c \
-	locale/btowc.c \
-	locale/collate.c \
-	locale/euc.c \
-	locale/fix_grouping.c \
-	locale/gb18030.c \
-	locale/gb2312.c \
-	locale/gbk.c \
-	locale/isctype.c \
-	locale/iswctype.c \
-	locale/ldpart.c \
-	locale/lmessages.c \
-	locale/lmonetary.c \
-	locale/lnumeric.c \
-	locale/localeconv.c \
-	locale/mblen.c \
-	locale/mbrlen.c \
-	locale/mbrtowc.c \
-	locale/mbsinit.c \
-	locale/mbsnrtowcs.c \
-	locale/mbsrtowcs.c \
-	locale/mbstowcs.c \
-	locale/mbtowc.c \
-	locale/mskanji.c \
-	locale/nextwctype.c \
-	locale/none.c \
-	locale/rune.c \
-	locale/runetype.c \
-	locale/setlocale.c \
-	locale/setrunelocale.c \
-	locale/table.c \
-	locale/tolower.c \
-	locale/toupper.c \
-	locale/utf8.c \
-	locale/wcrtomb.c \
-	locale/wcsftime.c \
-	locale/wcsnrtombs.c \
-	locale/wcsrtombs.c \
-	locale/wcstod.c \
-	locale/wcstof.c \
-	locale/wcstoimax.c \
-	locale/wcstol.c \
-	locale/wcstoll.c \
-	locale/wcstombs.c \
-	locale/wcstoul.c \
-	locale/wcstoull.c \
-	locale/wcstoumax.c \
-	locale/wctob.c \
-	locale/wctomb.c \
-	locale/wctrans.c \
-	locale/wctype.c \
-	locale/wcwidth.c \
-	stdio/fgetwc.c \
-	stdio/fputwc.c \
-	stdio/fputws.c \
-	stdio/fvwrite.c \
-	stdio/fwprintf.c \
-	stdio/fwscanf.c \
-	stdio/printf-pos.c \
-	stdio/swprintf.c \
-	stdio/swscanf.c \
-	stdio/ungetwc.c \
-	stdio/vfwprintf.c \
-	stdio/vfwscanf.c \
-	stdio/vswprintf.c \
-	stdio/vswscanf.c \
-	stdio/vwprintf.c \
-	stdio/vwscanf.c \
-	stdio/wprintf.c \
-	stdio/wscanf.c \
-	stdtime/timelocal.c \
-	string/memchr.c \
-	string/wcpcpy.c \
-	string/wcpncpy.c \
-	string/wcscasecmp.c \
-	string/wcscat.c \
-	string/wcschr.c \
-	string/wcscmp.c \
-	string/wcscoll.c \
-	string/wcscpy.c \
-	string/wcscspn.c \
-	string/wcsdup.c \
-	string/wcslcat.c \
-	string/wcslcpy.c \
-	string/wcslen.c \
-	string/wcsncasecmp.c \
-	string/wcsncat.c \
-	string/wcsncmp.c \
-	string/wcsncpy.c \
-	string/wcsnlen.c \
-	string/wcspbrk.c \
-	string/wcsrchr.c \
-	string/wcsspn.c \
-	string/wcsstr.c \
-	string/wcstok.c \
-	string/wcswidth.c \
-	string/wcsxfrm.c \
-	string/wmemchr.c \
-	string/wmemcmp.c \
-	string/wmemcpy.c \
-	string/wmemmove.c \
-	string/wmemset.c \
-
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_empty
 LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         :=
 include $(BUILD_STATIC_LIBRARY)
+
+CRYSTAX_LDLIBS := -llog
 
 ifneq ($(CRYSTAX_FORCE_REBUILD),true)
 
@@ -142,15 +54,19 @@ $(call ndk_log,Using prebuilt crystax libraries)
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
 LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_static.a
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
 LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_shared.so
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
 include $(PREBUILT_SHARED_LIBRARY)
 
 else # CRYSTAX_FORCE_REBUILD == true
@@ -159,29 +75,54 @@ $(call ndk_log,Rebuilding crystax libraries from sources)
 
 CRYSTAX_INTERNAL_INCLUDES := \
 	$(LOCAL_PATH)/include \
-	$(LOCAL_PATH)/src/include \
-	$(LOCAL_PATH)/src/gdtoa \
-	$(LOCAL_PATH)/src/locale \
-	$(LOCAL_PATH)/src/stdio \
-	$(LOCAL_PATH)/src/android
-
+	$(shell ls -1d $(LOCAL_PATH)/src/*)
 
 CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
 
+CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
+CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_SRC_FILES := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
+
+CRYSTAX_C_WARNINGS   := -Wall -Wextra -Wno-unused
+CRYSTAX_CPP_WARNINGS := -Wnon-template-friend -Woverloaded-virtual -Wsign-promo
+
+CRYSTAX_CFLAGS       := -DCRYSTAX=1
+#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG=1
+CRYSTAX_CFLAGS       += -DCRYSTAX_INIT_DEBUG=1
+CRYSTAX_CFLAGS       += -DCRYSTAX_FILEIO_DEBUG=1
+#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG_PATH_FUNCTIONS=1
+CRYSTAX_CFLAGS       += $(CRYSTAX_C_WARNINGS)
+
+CRYSTAX_CPPFLAGS     := -std=gnu++0x
+CRYSTAX_CPPFLAGS     += -fno-exceptions -fno-rtti
+CRYSTAX_CPPFLAGS     += $(CRYSTAX_CPP_WARNINGS)
+
+#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG=1
+
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
-LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
+LOCAL_SRC_FILES         := $(CRYSTAX_SRC_FILES)
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
+LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
 LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
-LOCAL_SRC_FILES         := $(addprefix src/,$(CRYSTAX_SRC_FILES))
+LOCAL_SRC_FILES         := $(CRYSTAX_SRC_FILES) src/crystax/android_jni.cpp
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
+LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
 LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
 include $(BUILD_SHARED_LIBRARY)
 
 endif # CRYSTAX_FORCE_REBUILD == true

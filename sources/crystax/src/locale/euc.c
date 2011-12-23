@@ -35,6 +35,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)euc.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
@@ -50,7 +79,7 @@ __FBSDID("$FreeBSD$");
 #include "mblocal.h"
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 extern int __mb_sb_limit;
@@ -80,11 +109,11 @@ _EUC_init(_RuneLocale *rl)
 	int x, new__mb_cur_max;
 	char *v, *e;
     
-    DBG("_EUC_init");
+    TRACE;
 
 	if (rl->__variable == NULL)
     {
-        DBG("_EUC_init: ret (1)");
+        DBG("ret (1)");
 		return (EFTYPE);
     }
 
@@ -100,7 +129,7 @@ _EUC_init(_RuneLocale *rl)
 	for (x = 0; x < 4; ++x) {
 		ei->count[x] = (int)strtol(v, &e, 0);
 		if (v == e || !(v = e)) {
-            DBG("_EUC_init: ret (2)");
+            DBG("ret (2)");
 			free(ei);
 			return (EFTYPE);
 		}
@@ -110,7 +139,7 @@ _EUC_init(_RuneLocale *rl)
 			++v;
 		ei->bits[x] = (int)strtol(v, &e, 0);
 		if (v == e || !(v = e)) {
-            DBG("_EUC_init: ret (3)");
+            DBG("ret (3)");
 			free(ei);
 			return (EFTYPE);
 		}
@@ -119,7 +148,7 @@ _EUC_init(_RuneLocale *rl)
 	}
 	ei->mask = (int)strtol(v, &e, 0);
 	if (v == e || !(v = e)) {
-        DBG("_EUC_init: ret (4)");
+        DBG("ret (4)");
 		free(ei);
 		return (EFTYPE);
 	}
@@ -208,7 +237,7 @@ _EUC_mbrtowc(wchar_t * __restrict pwc, const char * __restrict s, size_t n,
 		want = es->want;
 		wc = es->ch;
 	}
-	for (i = (es->want == 0) ? 1 : 0; i < MIN(want, n); i++) {
+	for (i = (es->want == 0) ? 1 : 0; (size_t)i < MIN((size_t)want, n); i++) {
 		if (*s == '\0') {
 			errno = EILSEQ;
 			return ((size_t)-1);

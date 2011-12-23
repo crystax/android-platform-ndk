@@ -30,6 +30,35 @@
  * SUCH DAMAGE.
  */
 
+/*
+ * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of Dmitry Moskalchuk.
+ */
+
 #if 0
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)vfscanf.c	8.1 (Berkeley) 6/4/93";
@@ -56,7 +85,7 @@ __FBSDID("$FreeBSD$");
 #endif
 
 #ifdef __ANDROID__
-#include "android.h"
+#include "crystax/private.h"
 #endif
 
 #define	BUF		513	/* Maximum length of numeric string. */
@@ -95,6 +124,14 @@ __FBSDID("$FreeBSD$");
 #define	CT_STRING	2	/* %s conversion */
 #define	CT_INT		3	/* %[dioupxX] conversion */
 #define	CT_FLOAT	4	/* %[efgEFG] conversion */
+
+extern intmax_t
+wcstoimax(const wchar_t * __restrict nptr, wchar_t ** __restrict endptr,
+    int base);
+
+extern uintmax_t
+wcstoumax(const wchar_t * __restrict nptr, wchar_t ** __restrict endptr,
+    int base);
 
 #ifndef NO_FLOATING_POINT
 static int parsefloat(FILE *, wchar_t *, wchar_t *);
@@ -151,6 +188,9 @@ __vfwscanf(FILE * __restrict fp, const wchar_t * __restrict fmt, va_list ap)
 	static short basefix[17] =
 		{ 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
+    mbp = NULL;
+    cclcompl = 0;
+    base = 10;
 	nassigned = 0;
 	nconversions = 0;
 	nread = 0;
@@ -756,7 +796,7 @@ parsefloat(FILE *fp, wchar_t *buf, wchar_t *end)
 	commit = buf - 1;
 	c = WEOF;
 	for (p = buf; p < end; ) {
-		if ((c = __fgetwc(fp)) == WEOF)
+		if ((wint_t)(c = __fgetwc(fp)) == WEOF)
 			break;
 reswitch:
 		switch (state) {
@@ -875,7 +915,7 @@ reswitch:
 	}
 
 parsedone:
-	if (c != WEOF)
+	if ((wint_t)c != WEOF)
 		__ungetwc(c, fp);
 	while (commit < --p)
 		__ungetwc(*p, fp);
