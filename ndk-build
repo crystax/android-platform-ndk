@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -86,4 +86,126 @@ if [ "$OSTYPE" = "cygwin" ] ; then
     fi
 fi
 
-$GNUMAKE -f $PROGDIR/build/core/build-local.mk "$@"
+# Detect if ANALYZE option specified in command line
+# It can be specified more than once; in this case last
+# occurence overrides all previous.
+ANALYZE=
+for param in "$@"; do
+    case $param in
+        ANALYZE=1|ANALYZE=yes|ANALYZE=true )
+            ANALYZE=1
+            ;;
+        ANALYZE=0|ANALYZE=no|ANALYZE=false )
+            ANALYZE=
+            ;;
+        * )
+            ;;
+    esac
+done
+
+# Hook point for user; if someone has custom scan-build it
+# might be specified in SCAN_BUILD environment variable or
+# in command line
+for param in "$@"; do
+    case $param in
+        SCAN_BUILD=* )
+            eval $param
+            ;;
+        * )
+            ;;
+    esac
+done
+[ -z "$SCAN_BUILD" ] && SCAN_BUILD=scan-build
+
+if [ -n "$ANALYZE" ]; then
+    # Use clang static analyzer
+
+    . $PROGDIR/build/core/ndk-common.sh
+
+    force_32bit_binaries
+    compute_host_tag
+
+    # Detect working directory
+    WRKDIR=
+    for param in "$@"; do
+        if [ -n "$WRKDIR" ]; then
+            WRKDIR=$param
+            break
+        fi
+        if [ "$param" = "-C" ]; then
+            WRKDIR=1
+        fi
+    done
+
+    case "$WRKDIR" in
+        ""|1 )
+            WRKDIR=$(pwd)
+            ;;
+        /* ) ;;
+        * )
+            WRKDIR=$(pwd)/$WRKDIR
+            ;;
+    esac
+
+    HOST_SED=$PROGDIR/prebuilt/$HOST_TAG/bin/sed$HOST_EXE
+    [ -f $HOST_SED ] && HOST_SED=sed
+
+    TOOLCHAIN_ABI=
+    TOOLCHAIN_VERSION=
+    if [ -f $WRKDIR/jni/Application.mk ]; then
+        TOOLCHAIN_ABI=$(grep '^\s*APP_ABI\s*:=\s*' $WRKDIR/jni/Application.mk | $HOST_SED 's/^\s*APP_ABI\s*:=\s*\(.*\)$/\1/')
+        TOOLCHAIN_VERSION=$(grep '^\s*APP_TOOLCHAIN_VERSION\s*:=\s*' $WRKDIR/jni/Application.mk | $HOST_SED 's/^\s*APP_TOOLCHAIN_VERSION\s*:=\s*\(\S*\).*$/\1/')
+    fi
+    [ -z "$TOOLCHAIN_ABI" ] && TOOLCHAIN_ABI="armeabi"
+    [ "$TOOLCHAIN_ABI" = "all" ] && TOOLCHAIN_ABI="armeabi armeabi-v7a x86"
+    [ -z "$TOOLCHAIN_VERSION" ] && TOOLCHAIN_VERSION="4.4.3"
+
+    get_toolchain_name_for_abi()
+    {
+        case $1 in
+            armeabi* )
+                echo "arm-linux-androideabi"
+                ;;
+            x86 )
+                echo "x86"
+                ;;
+        esac
+    }
+
+    get_toolchain_prefix_for_abi()
+    {
+        case $1 in
+            armeabi* )
+                echo "arm-linux-androideabi"
+                ;;
+            x86 )
+                echo "i686-android-linux"
+                ;;
+        esac
+    }
+
+    VERBOSE=
+    for p in "$@"; do
+        case $p in
+            V=1 )
+                VERBOSE=-v
+                ;;
+            V=0 )
+                VERBOSE=
+                ;;
+            * )
+                ;;
+        esac
+    done
+
+    for ABI in $TOOLCHAIN_ABI; do
+        TOOLCHAIN_NAME=$(get_toolchain_name_for_abi $ABI)
+        TOOLCHAIN_PREFIX=$(get_toolchain_prefix_for_abi $ABI)
+        TOOLCHAIN_PATH=$PROGDIR/toolchains/$TOOLCHAIN_NAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG/bin
+        SCAN_BUILD_PARAMS="--use-cc $TOOLCHAIN_PREFIX-gcc --use-c++ $TOOLCHAIN_PREFIX-g++ --status-bugs $VERBOSE"
+        PATH=$TOOLCHAIN_PATH:$PATH $SCAN_BUILD $SCAN_BUILD_PARAMS $GNUMAKE -f $PROGDIR/build/core/build-local.mk NDK_APP_ABI=$ABI "$@"
+        [ $? -ne 0 ] && exit $?
+    done
+else
+    $GNUMAKE -f $PROGDIR/build/core/build-local.mk "$@"
+fi
