@@ -260,12 +260,13 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
+ABI_LDFLAGS_FOR_TARGET=""
 # For x86, we currently need to force the usage of Android-specific C runtime
 # object files to generate a few target binaries. Ideally, this should be directly
 # handled by the GCC configuration scripts, just like with ARM.
 #
 if [ "$ARCH" = "x86" ]; then
-    ABI_LDFLAGS_FOR_TARGET=" -nostartfiles $TOOLCHAIN_SYSROOT/usr/lib/crtbegin_dynamic.o $TOOLCHAIN_SYSROOT/usr/lib/crtend_android.o"
+    ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -nostartfiles $TOOLCHAIN_SYSROOT/usr/lib/crtbegin_dynamic.o $TOOLCHAIN_SYSROOT/usr/lib/crtend_android.o"
     dump "Forcing -nostartfiles: $ABI_LDFLAGS_FOR_TARGET"
 fi
 
@@ -294,9 +295,6 @@ export CFLAGS="$HOST_CFLAGS"
 export CFLAGS=$CFLAGS" -Wno-error"
 export LDFLAGS="$HOST_LDFLAGS"
 ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-libquadmath"
-if [ "$MINGW" = "yes" ] ; then
-  ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-plugin"
-fi
 mkdir -p $BUILD_OUT && cd $BUILD_OUT && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \
