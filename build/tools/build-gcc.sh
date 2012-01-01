@@ -282,6 +282,12 @@ if [ ! -d $BUILD_SRCDIR ] ; then
     BUILD_SRCDIR=$SRC_DIR
 fi
 rm -rf $BUILD_OUT
+
+mkdir -p $BUILD_OUT/crystax && cp -f $ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/libempty.a $BUILD_OUT/crystax/libcrystax.a
+[ $? -ne 0 ] && exit 1
+
+ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -L$BUILD_OUT/crystax"
+
 OLD_ABI="${ABI}"
 export CC CXX
 export CFLAGS_FOR_TARGET="$ABI_CFLAGS_FOR_TARGET"
@@ -294,7 +300,6 @@ export CFLAGS="$HOST_CFLAGS"
 # and fail to build with recent GCC versions.
 export CFLAGS=$CFLAGS" -Wno-error"
 export LDFLAGS="$HOST_LDFLAGS"
-ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --disable-libquadmath"
 mkdir -p $BUILD_OUT && cd $BUILD_OUT && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \
