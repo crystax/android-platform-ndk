@@ -337,6 +337,7 @@ if [ -z "$PREBUILT_NDK" ]; then
     # Unpack C++ runtimes
     for GCC_VERSION in $GCC_VERSIONS; do
         unpack_prebuilt gnu-libstdc++-headers-$GCC_VERSION.tar.bz2 "$REFERENCE"
+        unpack_prebuilt gnu-libobjc-headers-$GCC_VERSION.tar.bz2 "$REFERENCE"
     done
     for ABI in $ABIS; do
         for GCC_VERSION in $GCC_VERSIONS; do
@@ -344,6 +345,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gabixx-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
             unpack_prebuilt stlport-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
             unpack_prebuilt gnu-libstdc++-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+            unpack_prebuilt gnu-libobjc-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
         done
     done
 fi
