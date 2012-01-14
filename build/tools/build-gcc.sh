@@ -289,6 +289,7 @@ export CFLAGS="$HOST_CFLAGS"
 # -Wno-error is needed because our gdb-6.6 sources use -Werror by default
 # and fail to build with recent GCC versions.
 export CFLAGS=$CFLAGS" -Wno-error"
+export CXXFLAGS="$HOST_CFLAGS"
 export LDFLAGS="$HOST_LDFLAGS"
 mkdir -p $BUILD_OUT && cd $BUILD_OUT && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \

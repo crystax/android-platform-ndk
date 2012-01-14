@@ -556,7 +556,7 @@ check_darwin_sdk ()
 {
     if [ -d "$1" ] ; then
         HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMACOSX_DEPLOYMENT_TARGET=$2"
-        HOST_LDFLAGS="-Wl,-syslibroot,$1/usr/lib -mmacosx-version-min=$2"
+        HOST_LDFLAGS="-Wl,-syslibroot,$1 -mmacosx-version-min=$2"
         return 0  # success
     fi
     return 1
@@ -643,23 +643,19 @@ prepare_common_build ()
             PATH=$XCODE_PATH/usr/bin:$PATH
             export PATH
 
-            local version=`sw_vers -productVersion`
-            case $version in
-            10.5.*)
-                # Don't do anything specific here, we're already on Leopard
-                ;;
-            *)
-                # Try to build with Tiger SDK if available
-                if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
-                    log "Generating Tiger-compatible binaries!"
-                # Otherwise with Leopard SDK
-                elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
-                    log "Generating Leopard-compatible binaries!"
-                else
-                    log "Generating $version-compatible binaries!"
-                fi
-                ;;
-            esac
+            # Try to build with Tiger SDK if available
+            if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
+                log "Generating Tiger-compatible binaries!"
+            # Otherwise with Leopard SDK
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
+                log "Generating Leopard-compatible binaries!"
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.6.sdk 10.6; then
+                log "Generating Snow Leopard-compatible binaries!"
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.7.sdk 10.7; then
+                log "Generating Lion-compatible binaries!"
+            else
+                log "Generating $version-compatible binaries!"
+            fi
             ;;
     esac
 
