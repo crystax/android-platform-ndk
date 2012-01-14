@@ -92,6 +92,10 @@ FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"
 FLAGS=$FLAGS" --gcc-versions=$(spaces_to_commas $GCC_VERSIONS)"
 
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+fi
+
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
 if [ "$TRY64" = "yes" ]; then
     HOST_FLAG=$HOST_FLAGS" --try-64"

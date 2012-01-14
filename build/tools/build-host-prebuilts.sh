@@ -123,6 +123,9 @@ if [ "$PACKAGE_DIR" ]; then
     fail_panic "Could not create package directory: $PACKAGE_DIR"
     FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 fi
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+fi
 
 do_remote_host_build ()
 {
