@@ -238,18 +238,18 @@ $(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
 
 ifndef APP_OBJC
     ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_STL))),)
-        APP_OBJC := gnuobjc_shared
+        APP_OBJC := $(DEFAULT_LIBOBJC)_shared
     else
-        APP_OBJC := gnuobjc_static
+        APP_OBJC := $(DEFAULT_LIBOBJC)_static
     endif
 endif
 $(call ndk_log,Using APP_OBJC: $(APP_OBJC))
 
 ifndef APP_STL
     ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_OBJC))),)
-        APP_STL := gnustl_shared
+        APP_STL := $(DEFAULT_LIBSTDCXX)_shared
     else
-        APP_STL := gnustl_static
+        APP_STL := $(DEFAULT_LIBSTDCXX)_static
     endif
 endif
 $(call ndk_log,Using APP_STL: $(APP_STL))

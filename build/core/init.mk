@@ -59,9 +59,6 @@ ifneq ($(words $(NDK_ROOT)),1)
     $(error,Please fix the problem by reinstalling to a different location.)
 endif
 
-DEFAULT_TOOLCHAIN_VERSION := 4.4.3
-DEFAULT_TOOLCHAIN_VERSION_CPP0X := 4.6.3
-
 # ====================================================================
 #
 # Define a few useful variables and functions.
@@ -353,6 +350,9 @@ endif # HOST_OS == cygwin
 
 # The location of the build system files
 BUILD_SYSTEM := $(NDK_ROOT)/build/core
+
+# Include default values
+include $(BUILD_SYSTEM)/defaults.mk
 
 # Include common definitions
 include $(BUILD_SYSTEM)/definitions.mk
