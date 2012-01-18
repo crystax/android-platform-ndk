@@ -29,6 +29,8 @@
 
 #include "fileio/system/driver.hpp"
 
+#include <new>
+
 #ifdef MODULE_INIT
 #undef MODULE_INIT
 #endif
@@ -332,16 +334,25 @@ bool init()
 CRYSTAX_LOCAL
 driver_t *driver_t::instance()
 {
-    static driver_t *obj = NULL;
+    static driver_t volatile *obj = NULL;
     static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
     if (!obj)
     {
         scope_lock_t guard(lock);
         if (!obj)
-            obj = new driver_t();
+        {
+            // Allocate memory and ensure it's aligned to int bounds
+            const size_t align = sizeof(int);
+            uint8_t *buf = static_cast<uint8_t *>(::malloc(sizeof(driver_t) + align));
+            unsigned v = reinterpret_cast<uint64_t>(buf) % align;
+            if (v != 0)
+                buf += align - v;
+            // Then, create object in-place on top of allocated memory
+            obj = new (buf) driver_t();
+        }
     }
-    return obj;
+    return const_cast<driver_t *>(obj);
 }
 
 CRYSTAX_LOCAL

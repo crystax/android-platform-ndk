@@ -90,7 +90,7 @@ mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
 # Location of the crystax source tree
-STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl
+STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl/system
 CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
