@@ -72,7 +72,7 @@ ifndef APP_PLATFORM
         _local_props := $(strip $(wildcard $(APP_PROJECT_PATH)/default.properties))
     endif
     ifdef _local_props
-        APP_PLATFORM := $(strip $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-platform.awk $(_local_props)))
+        APP_PLATFORM := $(strip $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-platform.awk $(call host-path,$(_local_props))))
         $(call ndk_log,  Found APP_PLATFORM=$(APP_PLATFORM) in $(_local_props))
     else
         APP_PLATFORM := android-3
@@ -165,7 +165,7 @@ else
   APP_DEBUGGABLE := false
   APP_MANIFEST := $(strip $(wildcard $(APP_PROJECT_PATH)/AndroidManifest.xml))
   ifdef APP_MANIFEST
-    APP_DEBUGGABLE := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-debuggable.awk $(APP_MANIFEST))
+    APP_DEBUGGABLE := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-debuggable.awk $(call host-path,$(APP_MANIFEST)))
   endif
   ifdef NDK_LOG
     ifeq ($(APP_DEBUGGABLE),true)

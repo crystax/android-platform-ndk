@@ -248,49 +248,14 @@ $(call ndk_log,HOST_TAG set to $(HOST_TAG))
 HOST_PREBUILT := $(strip $(wildcard $(NDK_ROOT)/prebuilt/$(HOST_TAG)/bin))
 ifdef HOST_PREBUILT
     $(call ndk_log,Host tools prebuilt directory: $(HOST_PREBUILT))
-    # The windows prebuilt binaries are for ndk-build.cmd
-    # On cygwin, we must use the Cygwin version of these tools instead.
-    ifneq ($(HOST_OS),cygwin)
-        HOST_AWK := $(wildcard $(HOST_PREBUILT)/awk$(HOST_EXEEXT))
-        HOST_SED  := $(wildcard $(HOST_PREBUILT)/sed$(HOST_EXEEXT))
-        HOST_MAKE := $(wildcard $(HOST_PREBUILT)/make$(HOST_EXEEXT))
-    endif
+    HOST_AWK := $(wildcard $(HOST_PREBUILT)/awk$(HOST_EXEEXT))
+    HOST_SED  := $(wildcard $(HOST_PREBUILT)/sed$(HOST_EXEEXT))
+    HOST_MAKE := $(wildcard $(HOST_PREBUILT)/make$(HOST_EXEEXT))
 else
     $(call ndk_log,Host tols prebuilt directory not found, using system tools)
 endif
 
-HOST_ECHO := $(strip $(HOST_ECHO))
-ifndef HOST_ECHO
-    HOST_ECHO := $(strip $(wildcard $(NDK_ROOT)/prebuilt/$(HOST_TAG)/bin/echo$(HOST_EXEEXT)))
-endif
-ifndef HOST_ECHO
-    HOST_ECHO := echo
-endif
-$(call ndk_log,Host 'echo' tool: $(HOST_ECHO))
-
-#
-# Verify that the 'awk' tool has the features we need.
-# Both Nawk and Gawk do.
-#
-HOST_AWK := $(strip $(HOST_AWK))
-ifndef HOST_AWK
-    HOST_AWK := awk
-endif
-$(call ndk_log,Host 'awk' tool: $(HOST_AWK))
-
-# Location of all awk scripts we use
-ifeq ($(HOST_OS),cygwin)
-BUILD_AWK := $(shell cygpath -m $(NDK_ROOT)/build/awk)
-else
-BUILD_AWK := $(NDK_ROOT)/build/awk
-endif
-
-AWK_TEST := $(shell $(HOST_AWK) -f $(BUILD_AWK)/check-awk.awk)
-$(call ndk_log,Host 'awk' test returned: $(AWK_TEST))
-ifneq ($(AWK_TEST),Pass)
-    $(call __ndk_info,Host 'awk' tool is outdated. Please define HOST_AWK to point to Gawk or Nawk !)
-    $(call __ndk_error,Aborting.)
-endif
+NATIVE_BUILD_AWK := $(NDK_ROOT)/build/awk
 
 #
 # On Cygwin, define the 'cygwin-to-host-path' function here depending on the
@@ -338,15 +303,44 @@ ifeq ($(HOST_OS),cygwin)
             cygwin-to-host-path = $(strip $(shell $(CYGPATH) -m $1))
         else
             # Call an awk script to generate a Makefile fragment used to define a function
-            WINDOWS_HOST_PATH_FRAGMENT := $(shell mount | $(HOST_AWK) -f $(BUILD_AWK)/gen-windows-host-path.awk)
+            WINDOWS_HOST_PATH_FRAGMENT := $(shell mount | awk -f $(NATIVE_BUILD_AWK)/gen-windows-host-path.awk)
             ifeq ($(NDK_LOG),1)
                 $(info Using cygwin substitution rules:)
-                $(eval $(shell mount | $(HOST_AWK) -f $(BUILD_AWK)/gen-windows-host-path.awk -vVERBOSE=1))
+                $(eval $(shell mount | awk -f $(NATIVE_BUILD_AWK)/gen-windows-host-path.awk -vVERBOSE=1))
             endif
             $(eval cygwin-to-host-path = $(WINDOWS_HOST_PATH_FRAGMENT))
         endif
     endif
+    BUILD_AWK := $(call cygwin-to-host-path,$(NATIVE_BUILD_AWK))
+else
+    BUILD_AWK := $(NATIVE_BUILD_AWK)
 endif # HOST_OS == cygwin
+
+HOST_ECHO := $(strip $(HOST_ECHO))
+ifndef HOST_ECHO
+    HOST_ECHO := $(strip $(wildcard $(NDK_ROOT)/prebuilt/$(HOST_TAG)/bin/echo$(HOST_EXEEXT)))
+endif
+ifndef HOST_ECHO
+    HOST_ECHO := echo
+endif
+$(call ndk_log,Host 'echo' tool: $(HOST_ECHO))
+
+#
+# Verify that the 'awk' tool has the features we need.
+# Both Nawk and Gawk do.
+#
+HOST_AWK := $(strip $(HOST_AWK))
+ifndef HOST_AWK
+    HOST_AWK := awk
+endif
+$(call ndk_log,Host 'awk' tool: $(HOST_AWK))
+
+AWK_TEST := $(shell $(HOST_AWK) -f $(BUILD_AWK)/check-awk.awk)
+$(call ndk_log,Host 'awk' test returned: $(AWK_TEST))
+ifneq ($(AWK_TEST),Pass)
+    $(call __ndk_info,Host 'awk' tool is outdated. Please define HOST_AWK to point to Gawk or Nawk !)
+    $(call __ndk_error,Aborting.)
+endif
 
 # The location of the build system files
 BUILD_SYSTEM := $(NDK_ROOT)/build/core
