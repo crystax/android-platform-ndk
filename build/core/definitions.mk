@@ -174,7 +174,7 @@ endif
 #            to remove some files _and_ directories.
 # -----------------------------------------------------------------------------
 ifeq ($(HOST_OS),windows)
-host-rm = \
+host-rmdir = \
     $(eval __host_rmdir_files := $(foreach __host_rmdir_file,$(subst /,\,$1),$(wildcard $(__host_rmdir_file))))\
     $(if $(__host_rmdir_files),del /f/s/q $(__host_rmdir_files) >NUL 2>NUL)
 else
