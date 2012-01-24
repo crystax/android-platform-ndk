@@ -59,63 +59,50 @@ JavaVM *jvm()
     return s_jvm;
 }
 
-JNIEnv *jnienv()
+static void jnienv_detach_thread(void *arg)
 {
-    return reinterpret_cast<JNIEnv *>(::pthread_getspecific(s_jnienv_key));
+    JNIEnv *env = reinterpret_cast<JNIEnv *>(arg);
+    DBG("env=%p, jvm=%p", env, jvm());
+    if (jvm())
+        jvm()->DetachCurrentThread();
 }
 
-} // namespace jni
+static void jnienv_key_create()
+{
+    TRACE;
+    if (::pthread_key_create(&s_jnienv_key, &jnienv_detach_thread) != 0)
+        ::abort();
+}
 
 static bool save_jnienv(JNIEnv *env)
 {
+    TRACE;
+
+    ::pthread_once(&s_jnienv_key_once, &jnienv_key_create);
+
     if (::pthread_setspecific(s_jnienv_key, env) != 0)
         return false;
     return true;
 }
 
-struct pthread_func_arg_t
+JNIEnv *jnienv()
 {
-    void *(*func)(void *);
-    void *arg;
-};
+    ::pthread_once(&s_jnienv_key_once, &jnienv_key_create);
 
-CRYSTAX_LOCAL
-void *thread_func(void *a)
-{
-    TRACE;
-    pthread_func_arg_t *parg = (pthread_func_arg_t*)a;
-    void *(*func)(void *) = parg->func;
-    void *arg = parg->arg;
-    free(parg);
-
-    JavaVM *vm = jni::jvm();
-    if (vm)
+    JNIEnv *env = reinterpret_cast<JNIEnv *>(::pthread_getspecific(s_jnienv_key));
+    if (!env && jni::jvm())
     {
-        JNIEnv *env;
-        vm->AttachCurrentThread(&env, NULL);
+        DBG("JNIEnv was not yet set for this thread, do it now");
+        jni::jvm()->AttachCurrentThread(&env, NULL);
         if (!save_jnienv(env))
             ::abort();
     }
-
-    void *result = func(arg);
-
-    if (vm)
-        vm->DetachCurrentThread();
-
-    return result;
+    return env;
 }
+
+} // namespace jni
 
 } // namespace crystax
-
-CRYSTAX_GLOBAL
-int pthread_create(pthread_t *pth, pthread_attr_t const *pattr, void * (*func)(void *), void *arg)
-{
-    TRACE;
-    crystax::pthread_func_arg_t *parg = (crystax::pthread_func_arg_t*)malloc(sizeof(crystax::pthread_func_arg_t));
-    parg->func = func;
-    parg->arg = arg;
-    return system_pthread_create(pth, pattr, &crystax::thread_func, parg);
-}
 
 static bool __crystax_init()
 {
@@ -140,8 +127,7 @@ void __crystax_on_load()
 {
     TRACE;
 
-    if (::pthread_key_create(&::crystax::s_jnienv_key, NULL) != 0)
-        ::abort();
+    ::pthread_once(&::crystax::s_jnienv_key_once, &::crystax::jni::jnienv_key_create);
 
     if (!__crystax_init())
     {
@@ -156,7 +142,7 @@ CRYSTAX_GLOBAL __attribute__((destructor))
 void __crystax_on_unload()
 {
     TRACE;
-    ::pthread_key_delete(crystax::s_jnienv_key);
+    ::pthread_key_delete(::crystax::s_jnienv_key);
     TRACE;
 }
 
@@ -175,7 +161,7 @@ JNIEnv *crystax_jnienv()
 CRYSTAX_GLOBAL
 void crystax_save_jnienv(JNIEnv *env)
 {
-    ::crystax::save_jnienv(env);
+    ::crystax::jni::save_jnienv(env);
 }
 
 CRYSTAX_GLOBAL
@@ -193,7 +179,7 @@ jint crystax_jni_on_load(JavaVM *vm)
 
     TRACE;
     ::crystax::s_jvm = vm;
-    if (!::crystax::save_jnienv(env))
+    if (!::crystax::jni::save_jnienv(env))
     {
         ERR("can't save jnienv");
         return -1;

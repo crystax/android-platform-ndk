@@ -17,6 +17,7 @@ int main()
     DO_TEST(dirname);
     DO_TEST(path);
     DO_TEST(list);
+    DO_TEST(open_self);
 
 #undef DO_TEST
     return 0;

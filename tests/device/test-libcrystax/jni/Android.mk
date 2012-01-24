@@ -19,5 +19,6 @@ LOCAL_SRC_FILES  := main.cpp \
 	dirname.cpp \
 	path.cpp \
 	list.cpp \
+	open-self.cpp \
 
 include $(BUILD_EXECUTABLE)

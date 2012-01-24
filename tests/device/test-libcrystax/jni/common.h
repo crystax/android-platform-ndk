@@ -22,5 +22,6 @@ int test_basename();
 int test_dirname();
 int test_path();
 int test_list();
+int test_open_self();
 
 #endif /* TEST_LIBCRYSTAX_48f8fbd909ef410d9d798cfacbd1e580 */

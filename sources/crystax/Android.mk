@@ -78,6 +78,7 @@ CRYSTAX_INTERNAL_INCLUDES := \
 	$(shell ls -1d $(LOCAL_PATH)/src/*)
 
 CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
+CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/../cxx-stl/system/include
 
 CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
 CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
@@ -96,8 +97,6 @@ CRYSTAX_CFLAGS       += $(CRYSTAX_C_WARNINGS)
 CRYSTAX_CPPFLAGS     := -std=gnu++0x
 CRYSTAX_CPPFLAGS     += -fno-exceptions -fno-rtti
 CRYSTAX_CPPFLAGS     += $(CRYSTAX_CPP_WARNINGS)
-
-#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG=1
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
