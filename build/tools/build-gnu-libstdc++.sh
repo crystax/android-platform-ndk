@@ -177,7 +177,7 @@ build_gnustl_for_abi ()
     esac
 
     export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR"
-    export CXXFLAGS="$CXXFLAGS --sysroot=$SYSROOT -I$CRYSTAX_INCDIR -fexceptions -frtti -D__BIONIC__ -D__STDC_INT64__ -O2"
+    export CXXFLAGS="$CXXFLAGS --sysroot=$SYSROOT -I$CRYSTAX_INCDIR -fexceptions -frtti -D__BIONIC__ -O2"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
@@ -189,7 +189,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -llog -lm -lc"
+    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -llog -lm -lc"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"
@@ -218,7 +218,6 @@ build_gnustl_for_abi ()
         --disable-multilib \
         --enable-threads \
         --enable-wchar_t \
-        --enable-c99 \
         --disable-nls \
         --disable-sjlj-exceptions \
         --disable-tls \
