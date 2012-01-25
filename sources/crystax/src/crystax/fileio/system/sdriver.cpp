@@ -969,7 +969,7 @@ CRYSTAX_LOCAL
 int system_open_v(const char *path, int oflag, va_list &vl)
 {
     MODULE_INIT;
-    if (oflag & (O_CREAT|O_EXCL|O_NOCTTY|O_TRUNC))
+    if (oflag & O_CREAT)
     {
         int mode = va_arg(vl, int);
         return fileio::system::func_open(path, oflag, mode);

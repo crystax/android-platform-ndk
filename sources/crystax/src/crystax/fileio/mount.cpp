@@ -67,7 +67,7 @@ driver_t *find_driver(const char *path)
 
     if (mount_table_pos == 0)
     {
-        DBG("path=%s: no mount records registered", path);
+        DBG("path=%s: no mount records registered, use SYSTEM driver", path);
         return system::driver_t::instance();
     }
 

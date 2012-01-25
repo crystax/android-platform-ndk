@@ -34,16 +34,31 @@ namespace crystax
 namespace fileio
 {
 
+#if defined(CRYSTAX_DEBUG) && CRYSTAX_DEBUG == 1
+static const char *mode_s(int oflag)
+{
+    switch (oflag)
+    {
+    case O_RDONLY: return "O_RDONLY";
+    case O_WRONLY: return "O_WRONLY";
+    case O_RDWR:   return "O_RDWR";
+    default:       return "UNKNOWN";
+    }
+}
+#endif
+
 CRYSTAX_LOCAL
 int open(const char *path, int oflag, va_list &vl)
 {
-    DBG("path=%s, oflag=%d", path, oflag);
+    DBG("path=%s, oflag=%d (%s)", path, oflag, mode_s(oflag));
 
     driver_t *driver = find_driver(path);
     if (!driver)
         return -1;
 
+    DBG("open with driver %s", driver->name());
     int extfd = driver->open(path, oflag, vl);
+    DBG("extfd=%d", extfd);
 
     if (extfd == -1)
         return -1;
@@ -51,6 +66,7 @@ int open(const char *path, int oflag, va_list &vl)
     int fd = alloc_fd(path, extfd, driver);
     if (fd < 0)
     {
+        ERR("can't alloc fd, return -1");
         driver->close(extfd);
         errno = EMFILE;
         return -1;
@@ -76,5 +92,5 @@ int open(const char *path, int oflag, ...)
 CRYSTAX_GLOBAL
 int creat(const char* path, mode_t mode)
 {
-    return ::open(path, O_CREAT|O_WRONLY|O_TRUNC, mode);
+    return ::open(path, O_WRONLY|O_CREAT|O_TRUNC, mode);
 }
