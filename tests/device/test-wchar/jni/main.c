@@ -25,8 +25,7 @@ int main()
     DO_WCHAR_TEST(wcsrtombs);
     DO_WCHAR_TEST(wcstombs);
     DO_WCHAR_TEST(wctomb);
-    DO_WCHAR_TEST(wstring_construct);
-    DO_WCHAR_TEST(wstring_erase);
+    DO_WCHAR_TEST(wstring_all);
     DO_WCHAR_TEST(wprintf_all);
 #if 0
     /* Temporarily disabled */

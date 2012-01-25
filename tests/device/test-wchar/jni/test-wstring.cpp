@@ -3,8 +3,25 @@
 #include <iostream>
 #include <iomanip>
 
-GLOBAL
-int test_wstring_construct()
+static int test_wstring_base()
+{
+    printf("1..1\n");
+
+    assert(sizeof(std::wstring::value_type) == 4);
+    std::wstring wstr(L"sdcard");
+    assert(wstr.size() == 6);
+    assert(wstr[0] == L's');
+    assert(wstr[1] == L'd');
+    assert(wstr[2] == L'c');
+    assert(wstr[3] == L'a');
+    assert(wstr[4] == L'r');
+    assert(wstr[5] == L'd');
+
+    printf("ok 1 - wstring_size\n");
+    return 0;
+}
+
+static int test_wstring_construct()
 {
     printf("1..1\n");
 
@@ -28,8 +45,7 @@ int test_wstring_construct()
     return 0;
 }
 
-GLOBAL
-int test_wstring_erase()
+static int test_wstring_erase()
 {
     printf("1..5\n");
 
@@ -91,5 +107,16 @@ int test_wstring_erase()
     assert(data == L"bcdefghijkl");
     printf("ok 5 - wstring_erase\n");
 
+    return 0;
+}
+
+GLOBAL
+int test_wstring_all()
+{
+#define DO_WSTRING_TEST(x) if (test_wstring_ ## x ()) return 1
+    DO_WSTRING_TEST(base);
+    DO_WSTRING_TEST(construct);
+    DO_WSTRING_TEST(erase);
+#undef DO_WSTRING_TEST
     return 0;
 }
