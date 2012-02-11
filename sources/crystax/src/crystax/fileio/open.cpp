@@ -56,7 +56,7 @@ int open(const char *path, int oflag, va_list &vl)
     if (!driver)
         return -1;
 
-    DBG("open with driver %s", driver->name());
+    DBG("use driver %s (%s)", driver->name(), driver->info());
     int extfd = driver->open(path, oflag, vl);
     DBG("extfd=%d", extfd);
 
