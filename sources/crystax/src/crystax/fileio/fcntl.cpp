@@ -44,7 +44,7 @@ int fcntl(int fd, int command, va_list &vl)
     if (!resolve(fd, NULL, &extfd, NULL, &driver))
         return -1;
 
-    return driver->fcntl(fd, command, vl);
+    return driver->fcntl(extfd, command, vl);
 }
 
 } // namespace fileio
