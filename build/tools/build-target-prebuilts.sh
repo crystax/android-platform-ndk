@@ -99,6 +99,10 @@ dump "Building crystax binaries..."
 run $BUILDTOOLS/build-crystax.sh $FLAGS
 fail_panic "Could not build crystax!"
 
+dump "Building crystax vfs binaries..."
+run $BUILDTOOLS/build-crystax-vfs.sh $FLAGS
+fail_panic "Could not build crystax vfs!"
+
 dump "Building stlport binaries..."
 run $BUILDTOOLS/build-stlport.sh $FLAGS
 fail_panic "Could not build stlport!"

@@ -59,18 +59,10 @@ CRYSTAX_LDLIBS := -llog
 
 CRYSTAX_INTERNAL_INCLUDES := \
 	$(LOCAL_PATH)/include \
-	$(shell ls -1d $(LOCAL_PATH)/src/*)
+	$(wildcard $(LOCAL_PATH)/src/*)
 
 CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
 CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/../cxx-stl/system/include
-
-CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
-CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
-CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
-
-CRYSTAX_VFS_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find vfs -name '*.c' -print)
-CRYSTAX_VFS_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find vfs -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
-CRYSTAX_VFS_SRC_FILES     := $(CRYSTAX_VFS_C_SRC_FILES) $(CRYSTAX_VFS_CPP_SRC_FILES)
 
 CRYSTAX_C_WARNINGS   := -Wall -Wextra -Wno-unused
 CRYSTAX_CPP_WARNINGS := -Wnon-template-friend -Woverloaded-virtual -Wsign-promo
@@ -114,6 +106,10 @@ include $(PREBUILT_SHARED_LIBRARY)
 else # CRYSTAX_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax libraries from sources)
+
+CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
+CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
@@ -171,6 +167,10 @@ include $(PREBUILT_SHARED_LIBRARY)
 else # CRYSTAX_VFS_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax vfs libraries from sources)
+
+CRYSTAX_VFS_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find vfs -name '*.c' -print)
+CRYSTAX_VFS_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find vfs -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_VFS_SRC_FILES     := $(CRYSTAX_VFS_C_SRC_FILES) $(CRYSTAX_VFS_CPP_SRC_FILES)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystaxvfs_static
