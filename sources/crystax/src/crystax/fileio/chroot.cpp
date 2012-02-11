@@ -39,7 +39,7 @@ int chroot(const char *path)
 {
     DBG("path=%s", path);
 
-    NOT_IMPLEMENTED;
+    return system_chroot(path);
 }
 
 } // namespace fileio
