@@ -50,6 +50,8 @@
 #include <assert.h>
 #include <android/log.h>
 
+#include <crystax.h>
+
 #ifdef __cplusplus
 #include <crystax/common.hpp>
 #include <crystax/memory.hpp>

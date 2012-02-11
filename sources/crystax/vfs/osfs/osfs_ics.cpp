@@ -43,8 +43,8 @@
  * or implied, of Dmitry Moskalchuk.
  */
 
-#include "fileio/osfs/osfs.hpp"
-#include "fileio/osfs/asyncsocketclosemonitor.h"
+#include "osfs/osfs.hpp"
+#include "osfs/asyncsocketclosemonitor.h"
 
 #include <arpa/inet.h>
 #include <errno.h>

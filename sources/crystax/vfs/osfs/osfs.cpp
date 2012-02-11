@@ -27,7 +27,7 @@
  * or implied, of Dmitry Moskalchuk.
  */
 
-#include "fileio/osfs/osfs.hpp"
+#include "osfs/osfs.hpp"
 
 namespace crystax
 {

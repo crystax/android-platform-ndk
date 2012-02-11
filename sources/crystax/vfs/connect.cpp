@@ -28,7 +28,7 @@
  */
 
 #include "fileio/api.hpp"
-#include "fileio/system/driver.hpp"
+#include "system/driver.hpp"
 
 namespace crystax
 {
@@ -36,41 +36,41 @@ namespace fileio
 {
 
 CRYSTAX_LOCAL
-int pipe(int pipefd[2])
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    TRACE;
+    DBG("sockfd=%d, addrlen=%lu", sockfd, (unsigned long)addrlen);
 
-    int fds[2];
-    int ret = system_pipe(fds);
-    if (ret < 0)
+    int extfd;
+    if (!resolve(sockfd, NULL, &extfd, NULL, NULL))
         return -1;
 
-    pipefd[0] = alloc_fd(NULL, fds[0], system::driver_t::instance());
-    if (pipefd[0] == -1)
+    if (extfd == -1)
     {
-        system_close(fds[0]);
-        system_close(fds[1]);
-        errno = EMFILE;
-        return -1;
-    }
-    pipefd[1] = alloc_fd(NULL, fds[1], system::driver_t::instance());
-    if (pipefd[1] == -1)
-    {
-        free_fd(pipefd[0]);
-        system_close(fds[0]);
-        system_close(fds[1]);
-        errno = EMFILE;
+        errno = EBADF;
         return -1;
     }
 
-    return 0;
+    int extconnfd = system_connect(extfd, addr, addrlen);
+    if (extconnfd == -1)
+        return -1;
+
+    int connfd = alloc_fd(NULL, extconnfd, system::driver_t::instance());
+    if (connfd < 0)
+    {
+        system_close(extconnfd);
+        errno = EMFILE;
+        return -1;
+    }
+
+    DBG("return fd=%d", connfd);
+    return connfd;
 }
 
 } // namespace fileio
 } // namespace crystax
 
 CRYSTAX_GLOBAL
-int pipe(int pipefd[2])
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    return ::crystax::fileio::pipe(pipefd);
+    return ::crystax::fileio::connect(sockfd, addr, addrlen);
 }

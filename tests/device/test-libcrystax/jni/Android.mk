@@ -7,6 +7,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE     := test-libcrystax
 LOCAL_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_CPPFLAGS   := -std=gnu++0x
+LOCAL_STATIC_LIBRARIES := crystaxvfs_static
 
 LOCAL_SRC_FILES  := main.cpp \
 	is_normalized.cpp \

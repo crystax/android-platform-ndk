@@ -15,7 +15,7 @@
  */
 
 #include "crystax/lock.hpp"
-#include "fileio/osfs/asyncsocketclosemonitor.h"
+#include "osfs/asyncsocketclosemonitor.h"
 
 #include <errno.h>
 #include <signal.h>

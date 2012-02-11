@@ -27,7 +27,7 @@
  * or implied, of Dmitry Moskalchuk.
  */
 
-#include "fileio/assets/driver.hpp"
+#include "assets/driver.hpp"
 
 #define METADATA_V1 1
 

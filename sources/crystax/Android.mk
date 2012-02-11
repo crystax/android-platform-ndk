@@ -39,6 +39,16 @@ ifndef CRYSTAX_FORCE_REBUILD
   endif
 endif
 
+CRYSTAX_VFS_FORCE_REBUILD := $(strip $(CRYSTAX_VFS_FORCE_REBUILD))
+ifndef CRYSTAX_VFS_FORCE_REBUILD
+  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_static.a)))
+    #$(call __ndk_info,WARNING: Rebuilding crystax vfs libraries from sources!)
+    #$(call __ndk_info,You might want to use $$NDK/build/tools/build-crystax-vfs.sh)
+    #$(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
+    CRYSTAX_VFS_FORCE_REBUILD := true
+  endif
+endif
+
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_empty
 LOCAL_MODULE_FILENAME   := libcrystax
@@ -46,6 +56,38 @@ LOCAL_SRC_FILES         :=
 include $(BUILD_STATIC_LIBRARY)
 
 CRYSTAX_LDLIBS := -llog
+
+CRYSTAX_INTERNAL_INCLUDES := \
+	$(LOCAL_PATH)/include \
+	$(shell ls -1d $(LOCAL_PATH)/src/*)
+
+CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
+CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/../cxx-stl/system/include
+
+CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
+CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
+
+CRYSTAX_VFS_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find vfs -name '*.c' -print)
+CRYSTAX_VFS_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find vfs -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_VFS_SRC_FILES     := $(CRYSTAX_VFS_C_SRC_FILES) $(CRYSTAX_VFS_CPP_SRC_FILES)
+
+CRYSTAX_C_WARNINGS   := -Wall -Wextra -Wno-unused
+CRYSTAX_CPP_WARNINGS := -Wnon-template-friend -Woverloaded-virtual -Wsign-promo
+
+CRYSTAX_CFLAGS       := -DCRYSTAX=1
+#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG=1
+CRYSTAX_CFLAGS       += -DCRYSTAX_INIT_DEBUG=1
+CRYSTAX_CFLAGS       += -DCRYSTAX_FILEIO_DEBUG=1
+#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG_PATH_FUNCTIONS=1
+CRYSTAX_CFLAGS       += $(CRYSTAX_C_WARNINGS)
+
+CRYSTAX_CPPFLAGS     := -std=gnu++0x
+CRYSTAX_CPPFLAGS     += -fno-exceptions -fno-rtti
+CRYSTAX_CPPFLAGS     += $(CRYSTAX_CPP_WARNINGS)
+
+#======================================================================================================
+# CrystaX libraries
 
 ifneq ($(CRYSTAX_FORCE_REBUILD),true)
 
@@ -72,31 +114,6 @@ include $(PREBUILT_SHARED_LIBRARY)
 else # CRYSTAX_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax libraries from sources)
-
-CRYSTAX_INTERNAL_INCLUDES := \
-	$(LOCAL_PATH)/include \
-	$(shell ls -1d $(LOCAL_PATH)/src/*)
-
-CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/src/include/$(TARGET_ARCH)
-CRYSTAX_INTERNAL_INCLUDES += $(LOCAL_PATH)/../cxx-stl/system/include
-
-CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
-CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
-CRYSTAX_SRC_FILES := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
-
-CRYSTAX_C_WARNINGS   := -Wall -Wextra -Wno-unused
-CRYSTAX_CPP_WARNINGS := -Wnon-template-friend -Woverloaded-virtual -Wsign-promo
-
-CRYSTAX_CFLAGS       := -DCRYSTAX=1
-#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG=1
-CRYSTAX_CFLAGS       += -DCRYSTAX_INIT_DEBUG=1
-CRYSTAX_CFLAGS       += -DCRYSTAX_FILEIO_DEBUG=1
-#CRYSTAX_CFLAGS       += -DCRYSTAX_DEBUG_PATH_FUNCTIONS=1
-CRYSTAX_CFLAGS       += $(CRYSTAX_C_WARNINGS)
-
-CRYSTAX_CPPFLAGS     := -std=gnu++0x
-CRYSTAX_CPPFLAGS     += -fno-exceptions -fno-rtti
-CRYSTAX_CPPFLAGS     += $(CRYSTAX_CPP_WARNINGS)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
@@ -125,3 +142,60 @@ LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
 include $(BUILD_SHARED_LIBRARY)
 
 endif # CRYSTAX_FORCE_REBUILD == true
+
+#======================================================================================================
+# CrystaX VFS libraries
+
+ifneq ($(CRYSTAX_VFS_FORCE_REBUILD),true)
+
+$(call ndk_log,Using prebuilt crystax vfs libraries)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := crystaxvfs_static
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_static.a
+LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := crystaxvfs_shared
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_shared.so
+LOCAL_SHARED_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+include $(PREBUILT_SHARED_LIBRARY)
+
+else # CRYSTAX_VFS_FORCE_REBUILD == true
+
+$(call ndk_log,Rebuilding crystax vfs libraries from sources)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := crystaxvfs_static
+LOCAL_SRC_FILES         := $(CRYSTAX_VFS_SRC_FILES)
+LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES) $(LOCAL_PATH)/vfs $(LOCAL_PATH)/vfs/include
+LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
+LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
+LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE            := crystaxvfs_shared
+LOCAL_SRC_FILES         := $(CRYSTAX_VFS_SRC_FILES) vfs/android_jni.cpp
+LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES) $(LOCAL_PATH)/vfs $(LOCAL_PATH)/vfs/include
+LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
+LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
+LOCAL_SHARED_LIBRARIES  := crystax_empty
+LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
+LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+include $(BUILD_SHARED_LIBRARY)
+
+endif # CRYSTAX_VFS_FORCE_REBUILD == true

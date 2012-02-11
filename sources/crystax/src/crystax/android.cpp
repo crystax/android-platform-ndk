@@ -39,14 +39,6 @@
 namespace crystax
 {
 
-namespace fileio
-{
-namespace osfs
-{
-bool init(JNIEnv *env);
-} // namespace osfs
-} // namespace fileio
-
 static JavaVM *s_jvm = NULL;
 static pthread_key_t s_jnienv_key;
 static pthread_once_t s_jnienv_key_once = PTHREAD_ONCE_INIT;
@@ -110,11 +102,10 @@ static bool __crystax_init()
     DBG("initialize " #x); \
     if (__crystax_ ## x ## _init() < 0) \
     { \
-        DBG(#x " initialization failed"); \
+        ERR(#x " initialization failed"); \
         return false; \
     }
 
-    NEXT_MODULE_INIT(fileio);
     NEXT_MODULE_INIT(locale);
 
 #undef NEXT_MODULE_INIT
@@ -182,13 +173,6 @@ jint crystax_jni_on_load(JavaVM *vm)
     if (!::crystax::jni::save_jnienv(env))
     {
         ERR("can't save jnienv");
-        return -1;
-    }
-
-    TRACE;
-    if (!::crystax::fileio::osfs::init(env))
-    {
-        ERR("can't init osfs");
         return -1;
     }
 

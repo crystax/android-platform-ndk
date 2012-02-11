@@ -29,8 +29,8 @@
 
 #include "fileio/common.hpp"
 #include "fileio/driver.hpp"
-#include "fileio/system/driver.hpp"
-#include "fileio/assets/driver.hpp"
+#include "system/driver.hpp"
+#include "assets/driver.hpp"
 
 namespace crystax
 {

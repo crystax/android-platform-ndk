@@ -28,7 +28,7 @@
  */
 
 #include "fileio/api.hpp"
-#include "fileio/system/driver.hpp"
+#include "system/driver.hpp"
 
 namespace crystax
 {
@@ -36,9 +36,9 @@ namespace fileio
 {
 
 CRYSTAX_LOCAL
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-    DBG("sockfd=%d, addrlen=%lu", sockfd, (unsigned long)addrlen);
+    DBG("sockfd=%d", sockfd);
 
     int extfd;
     if (!resolve(sockfd, NULL, &extfd, NULL, NULL))
@@ -50,7 +50,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
         return -1;
     }
 
-    int extconnfd = system_connect(extfd, addr, addrlen);
+    int extconnfd = system_accept(extfd, addr, addrlen);
     if (extconnfd == -1)
         return -1;
 
@@ -70,7 +70,7 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
 } // namespace crystax
 
 CRYSTAX_GLOBAL
-int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
 {
-    return ::crystax::fileio::connect(sockfd, addr, addrlen);
+    return ::crystax::fileio::accept(sockfd, addr, addrlen);
 }
