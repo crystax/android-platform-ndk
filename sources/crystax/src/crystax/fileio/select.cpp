@@ -39,7 +39,50 @@ int select(int maxfd, fd_set *rfd, fd_set *wfd, fd_set *efd, struct timeval *tv)
 {
     DBG("maxfd=%d, rfd=%p, wfd=%p, efd=%p, tv=%p", maxfd, rfd, wfd, efd, tv);
 
-    NOT_IMPLEMENTED;
+    driver_t *driver = NULL;
+    int extmaxfd = 0;
+    fd_set extrfd;
+    fd_set extwfd;
+    fd_set extefd;
+
+    if (rfd) FD_ZERO(&extrfd);
+    if (wfd) FD_ZERO(&extwfd);
+    if (efd) FD_ZERO(&extefd);
+
+    for (int fd = 0; fd < maxfd; ++fd)
+    {
+#define CRYSTAX_SELECT_SET(fd, fds, extfds)                        \
+        if (fds && FD_ISSET(fd, fds))                              \
+        {                                                          \
+            int extfd;                                             \
+            driver_t *d;                                           \
+            if (!resolve(fd, NULL, &extfd, NULL, &d))              \
+                return -1;                                         \
+            if (!driver)                                           \
+                driver = d;                                        \
+            else if (driver != d)                                  \
+            {                                                      \
+                ERR("select across sources not supported yet");    \
+                errno = EXDEV;                                     \
+                return -1;                                         \
+            }                                                      \
+            if (extmaxfd <= extfd)                                 \
+                extmaxfd = extfd + 1;                              \
+            FD_SET(extfd, &extfds);                                \
+        }
+        CRYSTAX_SELECT_SET(fd, rfd, extrfd);
+        CRYSTAX_SELECT_SET(fd, wfd, extwfd);
+        CRYSTAX_SELECT_SET(fd, efd, extefd);
+#undef CRYSTAX_SELECT_SET
+    }
+    if (!driver)
+    {
+        DBG("empty sets");
+        return 0;
+    }
+
+    return driver->select(extmaxfd, rfd ? &extrfd : NULL, wfd ? &extwfd : NULL,
+        efd ? &extefd : NULL, tv);
 }
 
 } // namespace fileio
