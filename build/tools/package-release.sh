@@ -342,6 +342,7 @@ if [ -z "$PREBUILT_NDK" ]; then
     for ABI in $ABIS; do
         for GCC_VERSION in $GCC_VERSIONS; do
             unpack_prebuilt crystax-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
+            unpack_prebuilt crystax-vfs-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
             unpack_prebuilt gabixx-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
             unpack_prebuilt stlport-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
             unpack_prebuilt gnu-libstdc++-libs-$ABI-$GCC_VERSION.tar.bz2 "$REFERENCE"
