@@ -144,7 +144,7 @@ build_crystax_libs_for_abi ()
     if [ "$ABI" = "armeabi" ]; then
         CFLAGS=$CFLAGS" -march=armv5te -msoft-float"
     elif [ "$ABI" = "armeabi-v7a" ]; then
-        CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3"
+        CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
         LDFLAGS=$LDFLAGS" -Wl,--fix-cortex-a8"
     fi
 
