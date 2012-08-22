@@ -215,6 +215,7 @@ case "$GDB_VERSION" in
         CONFIGURE_FLAGS=""
 esac
 
+GDBSERVER_CFLAGS="$GDBSERVER_CFLAGS -Wno-strict-aliasing"
 cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export CFLAGS="-O2 -nostdinc -nostdlib -D__ANDROID__ -DANDROID -DSTDC_HEADERS $INCLUDE_DIRS $GDBSERVER_CFLAGS"  &&
