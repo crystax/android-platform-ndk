@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the arm-linux-androideabi-4.7.0
+# this file is used to prepare the NDK to build with the arm-linux-androideabi-4.6.4
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,7 +23,7 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME := arm-linux-androideabi-4.7.0
+TOOLCHAIN_NAME := arm-linux-androideabi-4.6.4
 
 TARGET_CFLAGS := \
     -fpic \
