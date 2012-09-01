@@ -105,6 +105,18 @@ get_plain_gcc_version()
     echo "$V"
 }
 
+# Return gcc source directory for given version
+# $1: GCC version
+# Out: gcc source directory name (example: gcc-4.4.3, gcc-4.6.x)
+get_gcc_source_directory()
+{
+    if [ "x$1" = "x4.4.3" ]; then
+        echo gcc-$1
+    else
+        echo gcc-$(echo $1 | sed -e 's/\.[0-9]\+$/.x/')
+    fi
+}
+
 # Return default binutils version for a given GCC version
 # $1: GCC version
 # Out: binutils version

@@ -78,7 +78,7 @@ check_toolchain_src_dir "$SRCDIR"
 
 GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 for GCC_VERSION in $GCC_VERSIONS; do
-    GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
+    GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
     if [ ! -d "$GNUSTL_SRCDIR" ]; then
         echo "ERROR: Not a valid toolchain source tree."
         echo "Can't find: $GNUSTL_SRCDIR"
@@ -127,7 +127,7 @@ build_gnustl_for_abi ()
     local DSTDIR="$5"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
-    local GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
+    local GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
 
     prepare_target_build $ABI $PLATFORM $NDK_DIR
     fail_panic "Could not setup target build."
