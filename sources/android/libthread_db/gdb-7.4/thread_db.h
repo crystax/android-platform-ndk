@@ -64,7 +64,7 @@ enum {
 };
 
 typedef int32_t td_err_e;
-typedef uint32_t td_event_e;
+typedef int td_event_e;
 typedef uint32_t td_notify_e;
 typedef uint32_t td_thr_state_e;
 typedef pthread_t thread_t;

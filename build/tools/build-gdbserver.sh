@@ -207,7 +207,7 @@ case "$GDB_VERSION" in
         # static executable.
         CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
         ;;
-    7.3)
+    7.4)
         CONFIGURE_FLAGS="--with-libthread_db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
         CONFIGURE_FLAGS="$CONFIGURE_FLAGS --disable-inprocess-agent"
         ;;
