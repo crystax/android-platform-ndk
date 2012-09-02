@@ -215,14 +215,12 @@ int	vwscanf(const wchar_t * __restrict, __va_list);
 float	wcstof(const wchar_t * __restrict, wchar_t ** __restrict);
 long double
 	wcstold(const wchar_t * __restrict, wchar_t ** __restrict);
-#ifdef __LONG_LONG_SUPPORTED
 /* LONGLONG */
 long long
 	wcstoll(const wchar_t * __restrict, wchar_t ** __restrict, int);
 /* LONGLONG */
 unsigned long long
 	 wcstoull(const wchar_t * __restrict, wchar_t ** __restrict, int);
-#endif
 #endif	/* __ISO_C_VISIBLE >= 1999 */
 
 #if __XSI_VISIBLE
