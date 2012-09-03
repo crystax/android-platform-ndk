@@ -1,3 +1,4 @@
+#!/bin/bash
 # Common functions for all prebuilt-related scripts
 # This is included/sourced by other scripts
 #
@@ -444,6 +445,19 @@ extract_parameters ()
         fi
         shift
     done
+
+    case $HOST_TAG in
+        darwin-*)
+            if [ -z "$XCODE_PATH" ]; then
+                echo "ERROR: Empty XCode path specified (--xcode option)"
+                exit 1
+            fi
+            if [ ! -d $XCODE_PATH ]; then
+                echo "ERROR: Wrong XCode path (--xcode option): $XCODE_PATH"
+                exit 1
+            fi
+            ;;
+    esac
 }
 
 do_option_help ()
@@ -465,6 +479,13 @@ do_option_verbose ()
 
 register_option "--help"          do_option_help     "Print this help."
 register_option "--verbose"       do_option_verbose  "Enable verbose mode."
+
+case $HOST_TAG in
+    darwin-*)
+        XCODE_PATH=/Developer
+        register_var_option "--xcode=<path>"  XCODE_PATH "Specify path to XCode installation"
+        ;;
+esac
 
 #====================================================
 #
@@ -511,7 +532,7 @@ fix_sysroot ()
         eval SYSROOT="$1"
         log "Using specified sysroot: $1"
     else
-        SYSROOT_SUFFIX=$PLATFORM/arch-$ARCH
+        SYSROOT_SUFFIX=$(get_default_platform_for_arch $ARCH)/arch-$ARCH
         SYSROOT=
         check_sysroot $NDK_DIR/platforms $SYSROOT_SUFFIX
         check_sysroot $ANDROID_NDK_ROOT/platforms $SYSROOT_SUFFIX
@@ -531,6 +552,8 @@ fix_sysroot ()
     fi
 }
 
+HOST_CFLAGS=
+HOST_LDFLAGS=
 # Use the check for the availability of a compatibility SDK in Darwin
 # this can be used to generate binaries compatible with either Tiger or
 # Leopard.
@@ -540,8 +563,8 @@ fix_sysroot ()
 check_darwin_sdk ()
 {
     if [ -d "$1" ] ; then
-        HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMAXOSX_DEPLOYEMENT_TARGET=$2"
-        HOST_LDFLAGS="-Wl,-syslibroot,$sdk -mmacosx-version-min=$2"
+        HOST_CFLAGS="-isysroot $1 -mmacosx-version-min=$2 -DMACOSX_DEPLOYMENT_TARGET=$2"
+        HOST_LDFLAGS="-Wl,-syslibroot,$1 -mmacosx-version-min=$2"
         return 0  # success
     fi
     return 1
@@ -739,14 +762,20 @@ prepare_common_build ()
     STRIP=${STRIP:-strip}
     case $HOST_TAG in
         darwin-*)
+            PATH=$XCODE_PATH/usr/bin:$PATH
+            export PATH
+
             # Try to build with Tiger SDK if available
-            if check_darwin_sdk /Developer/SDKs/MacOSX10.4.sdku 10.4; then
+            if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
                 log "Generating Tiger-compatible binaries!"
             # Otherwise with Leopard SDK
-            elif check_darwin_sdk /Developer/SDKs/MacOSX10.5.sdk 10.5; then
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
                 log "Generating Leopard-compatible binaries!"
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.6.sdk 10.6; then
+                log "Generating Snow Leopard-compatible binaries!"
+            elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.7.sdk 10.7; then
+                log "Generating Lion-compatible binaries!"
             else
-                local version=`sw_vers -productVersion`
                 log "Generating $version-compatible binaries!"
             fi
             ;;
@@ -1083,6 +1112,15 @@ get_default_api_level_for_arch ()
     # to ensure that the result works on previous platforms properly).
     local LEVEL=9
     echo $LEVEL
+}
+
+# Return default platform for a given architecture name
+# $1: Architecture name
+# Out: platform name (android-N)
+get_default_platform_for_arch()
+{
+    local LEVEL=$(get_default_api_level_for_arch $1)
+    echo "android-$LEVEL"
 }
 
 # Return the default platform sysroot corresponding to a given architecture

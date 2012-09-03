@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -43,8 +43,8 @@ BUILD_OUT=/tmp/ndk-$USER/build/gdbserver
 register_option "--build-out=<path>" do_build_out "Set temporary build directory"
 do_build_out () { OPTION_BUILD_OUT="$1"; }
 
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Target specific platform"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
 
 SYSROOT=
 if [ -d $TOOLCHAIN_PATH/sysroot ] ; then
@@ -55,8 +55,8 @@ register_var_option "--sysroot=<path>" SYSROOT "Specify sysroot directory direct
 NOTHREADS=no
 register_var_option "--disable-threads" NOTHREADS "Disable threads support"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
-register_var_option "--gdb-version=<name>" GDB_VERSION "Use specific gdb version."
+OPTION_GDB_VERSION=
+register_var_option "--gdb-version=<name>" OPTION_GDB_VERSION "Use specific gdb version."
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
@@ -65,7 +65,12 @@ register_jobs_option
 
 extract_parameters "$@"
 
-setup_default_log_file
+if [ -n "$OPTION_BUILD_OUT" ] ; then
+    BUILD_OUT="$OPTION_BUILD_OUT"
+fi
+setup_default_log_file $BUILD_OUT/build.log
+log "Using build directory: $BUILD_OUT"
+run mkdir -p "$BUILD_OUT"
 
 set_parameters ()
 {
@@ -77,17 +82,6 @@ set_parameters ()
     #
     if [ -z "$SRC_DIR" ] ; then
         echo "ERROR: Missing source directory parameter. See --help for details."
-        exit 1
-    fi
-
-    SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
-    if [ -d "$SRC_DIR2" ] ; then
-        SRC_DIR="$SRC_DIR2"
-        log "Found gdbserver source directory: $SRC_DIR"
-    fi
-
-    if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
-        echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
         exit 1
     fi
 
@@ -117,6 +111,8 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+fix_option PLATFORM "$OPTION_PLATFORM" "platform"
+
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
@@ -127,21 +123,33 @@ prepare_target_build
 parse_toolchain_name $TOOLCHAIN
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
+GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)
+fix_option GDB_VERSION "$OPTION_GDB_VERSION" "gdb version"
+
+SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
+if [ -d "$SRC_DIR2" ] ; then
+    SRC_DIR="$SRC_DIR2"
+    log "Found gdbserver source directory: $SRC_DIR"
+fi
+
+if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
+    echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
+    exit 1
+fi
+
+log "Using GDB source directory: $SRC_DIR"
+
 # Check build directory
 #
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
 
-if [ -n "$OPTION_BUILD_OUT" ] ; then
-    BUILD_OUT="$OPTION_BUILD_OUT"
-fi
-log "Using build directory: $BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
-
 # Copy the sysroot to a temporary build directory
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
+
+run cp -f "$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/ctype_orig.h" "$BUILD_SYSROOT/usr/include/ctype.h"
 
 # Remove libthread_db to ensure we use exactly the one we want.
 rm -f $BUILD_SYSROOT/usr/lib/libthread_db*
@@ -186,7 +194,7 @@ CRTEND="$BUILD_SYSROOT/usr/lib/crtend_android.o"
 #       a function (__div0) which depends on raise(), implemented
 #       in the C library.
 #
-LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lc $CRTEND "
+LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lgcc_eh -lc $CRTEND "
 
 case "$GDB_VERSION" in
     6.6)
@@ -199,8 +207,8 @@ case "$GDB_VERSION" in
         # static executable.
         CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
         ;;
-    7.3.x)
-        CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
+    7.3.x|7.4)
+        CONFIGURE_FLAGS="--with-libthread_db=$BUILD_SYSROOT/usr/lib/libthread_db.a"
         # Disable libinproctrace.so which needs crtbegin_so.o and crtbend_so.o instead of
         # CRTBEGIN/END above.  Clean it up and re-enable it in the future.
         CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --disable-inprocess-agent"
@@ -209,6 +217,7 @@ case "$GDB_VERSION" in
         CONFIGURE_FLAGS=""
 esac
 
+GDBSERVER_CFLAGS="$GDBSERVER_CFLAGS -Wno-strict-aliasing"
 cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export CFLAGS="-O2 -nostdlib -D__ANDROID__ -DANDROID -DSTDC_HEADERS $INCLUDE_DIRS $GDBSERVER_CFLAGS"  &&
@@ -258,9 +267,7 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$ANDROID_NDK_ROOT" "prebuilt/android-$ARCH/gdbserver/$DSTFILE"
 fi
 
-log "Cleaning up."
+dump "Done."
 if [ -z "$OPTION_BUILD_OUT" ] ; then
     run rm -rf $BUILD_OUT
 fi
-
-dump "Done."

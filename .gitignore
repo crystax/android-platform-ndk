@@ -1,6 +1,7 @@
 *~
 *.bak
 *.pyc
+.gvide
 Thumbs.db
 local.properties
 build.xml

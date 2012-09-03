@@ -30,6 +30,14 @@ TARGET_CFLAGS := \
     -ffunction-sections \
     -funwind-tables
 
+ifeq ($(TARGET_USE_CPP0X),true)
+    TARGET_CXXFLAGS += --std=gnu++0x
+else
+ifeq ($(TARGET_USE_CPP0X),strict)
+    TARGET_CXXFLAGS += --std=c++0x
+endif
+endif
+
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
 

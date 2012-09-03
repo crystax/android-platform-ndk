@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2009-2010 The Android Open Source Project
 #
@@ -52,6 +52,9 @@ register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
 # ARCH to build for
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architecture(s)"
+
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions"
 
 # set to 'yes' if we should use 'git ls-files' to list the files to
 # be copied into the archive.
@@ -108,6 +111,8 @@ extract_parameters "$@"
 # Ensure that SYSTEMS is space-separated
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
 
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
+
 # Do we need to support x86?
 ARCHS=$(commas_to_spaces $ARCHS)
 echo "$ARCHS" | tr ' ' '\n' | grep -q x86
@@ -144,7 +149,11 @@ LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 #
 # Ensure that TOOLCHAINS is space-separated after this.
 #
-if [ "$OPTION_TOOLCHAINS" != "$TOOLCHAINS" ]; then
+TOOLCHAINS=
+for GCC_VERSION in $GCC_VERSIONS; do
+    TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_gcc_and_arch $GCC_VERSION arm)"
+done
+if [ -n "$OPTION_TOOLCHAINS" ]; then
     TOOLCHAINS=$(commas_to_spaces $OPTION_TOOLCHAINS)
 else
     if [ "$TRY_X86" = "yes" ]; then
@@ -345,12 +354,16 @@ if [ -z "$PREBUILT_NDK" ]; then
     # Unpack C++ runtimes
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
         unpack_prebuilt gnu-libstdc++-headers-$VERSION.tar.bz2 "$REFERENCE"
+        unpack_prebuilt gnu-libobjc-headers-$VERSION.tar.bz2 "$REFERENCE"
     done
     for ABI in $ABIS; do
         unpack_prebuilt gabixx-libs-$ABI.tar.bz2 "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI.tar.bz2 "$REFERENCE"
+        unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
+        unpack_prebuilt crystax-vfs-libs-$ABI.tar.bz2 "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
+            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
         done
     done
 fi
@@ -378,6 +391,15 @@ for SYSTEM in $SYSTEMS; do
     if [ "$PREBUILT_NDK" ]; then
         cd $UNZIP_DIR/android-ndk-* && cp -rP toolchains/* $DSTDIR/toolchains/
         fail_panic "Could not copy toolchain files from $PREBUILT_NDK"
+
+        if [ -d "$DSTDIR/$CRYSTAX_SUBDIR" ]; then
+            CRYSTAX_ABIS=$PREBUILT_ABIS
+            for CRYSTAX_ABI in $CRYSTAX_ABIS; do
+                copy_prebuilt "$CRYSTAX_SUBDIR/libs/$CRYSTAX_ABI" "$CRYSTAX_SUBDIR/libs"
+            done
+        else
+            echo "WARNING: Could not find crystax source tree!"
+        fi
 
         if [ -d "$DSTDIR/$GABIXX_SUBDIR" ]; then
             GABIXX_ABIS=$PREBUILT_ABIS

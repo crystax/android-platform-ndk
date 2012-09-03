@@ -72,7 +72,7 @@ ifndef APP_PLATFORM
         _local_props := $(strip $(wildcard $(APP_PROJECT_PATH)/default.properties))
     endif
     ifdef _local_props
-        APP_PLATFORM := $(strip $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-platform.awk $(_local_props)))
+        APP_PLATFORM := $(strip $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-platform.awk $(call host-path,$(_local_props))))
         $(call ndk_log,  Found APP_PLATFORM=$(APP_PLATFORM) in $(_local_props))
     else
         APP_PLATFORM := android-3
@@ -170,7 +170,7 @@ else
   APP_DEBUGGABLE := false
   APP_MANIFEST := $(strip $(wildcard $(APP_PROJECT_PATH)/AndroidManifest.xml))
   ifdef APP_MANIFEST
-    APP_DEBUGGABLE := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-debuggable.awk $(APP_MANIFEST))
+    APP_DEBUGGABLE := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-debuggable.awk $(call host-path,$(APP_MANIFEST)))
   endif
   ifdef NDK_LOG
     ifeq ($(APP_DEBUGGABLE),true)
@@ -215,16 +215,49 @@ else
   APP_CFLAGS := -O2 -DNDEBUG -g $(APP_CFLAGS)
 endif
 
-# Check that APP_STL is defined. If not, use the default value (system)
+APP_CRYSTAX := $(strip $(APP_CRYSTAX))
+ifdef APP_CRYSTAX
+    $(call ndk-crystax-check,$(APP_CRYSTAX))
+endif
+
+APP_OBJC := $(strip $(APP_OBJC))
+ifdef APP_OBJC
+    $(call ndk-objc-check,$(APP_OBJC))
+endif
+
+# Check that APP_STL is defined. If not, use the default value (gnustl_static)
 # otherwise, check that the name is correct.
 APP_STL := $(strip $(APP_STL))
-ifndef APP_STL
-    APP_STL := system
-else
+ifdef APP_STL
     $(call ndk-stl-check,$(APP_STL))
 endif
 
+ifndef APP_CRYSTAX
+    ifneq ($(or $(findstring shared,$(APP_OBJC)),$(findstring shared,$(APP_STL))),)
+        APP_CRYSTAX := shared
+    else
+        APP_CRYSTAX := static
+    endif
+endif
+$(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
 
+ifndef APP_OBJC
+    ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_STL))),)
+        APP_OBJC := $(DEFAULT_LIBOBJC)_shared
+    else
+        APP_OBJC := $(DEFAULT_LIBOBJC)_static
+    endif
+endif
+$(call ndk_log,Using APP_OBJC: $(APP_OBJC))
+
+ifndef APP_STL
+    ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_OBJC))),)
+        APP_STL := $(DEFAULT_LIBSTDCXX)_shared
+    else
+        APP_STL := $(DEFAULT_LIBSTDCXX)_static
+    endif
+endif
+$(call ndk_log,Using APP_STL: $(APP_STL))
 
 $(if $(call get,$(_map),defined),\
   $(call __ndk_info,Weird, the application $(_app) is already defined by $(call get,$(_map),defined))\

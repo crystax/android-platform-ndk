@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -36,14 +36,15 @@ OPTION_BUILD_OUT=
 register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
 # Note: platform API level 9 or higher is needed for proper C++ support
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Specify platform name"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>"  OPTION_PLATFORM "Specify platform name"
 
 OPTION_SYSROOT=
 register_var_option "--sysroot=<path>"   OPTION_SYSROOT   "Specify sysroot directory directly"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
-register_var_option "--gdb-version=<version>"  GDB_VERSION "Specify gdb version"
+GDB_VERSION=$(get_default_gdb_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_GDB_VERSION=
+register_var_option "--gdb-version=<version>" OPTION_GDB_VERSION "Specify gdb version [$GDB_VERSION]"
 
 BINUTILS_VERSION=$DEFAULT_BINUTILS_VERSION
 EXPLICIT_BINUTILS_VERSION=
@@ -53,11 +54,29 @@ do_binutils_version () {
     EXPLICIT_BINUTILS_VERSION=true
 }
 
-GMP_VERSION=$DEFAULT_GMP_VERSION
-register_var_option "--gmp-version=<version>" GMP_VERSION "Specify gmp version"
+GMP_VERSION=$(get_default_gmp_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_GMP_VERSION=
+register_var_option "--gmp-version=<version>" OPTION_GMP_VERSION "Specify gmp version [$GMP_VERSION]"
 
-MPFR_VERSION=$DEFAULT_MPFR_VERSION
-register_var_option "--mpfr-version=<version>" MPFR_VERSION "Specify mpfr version"
+MPFR_VERSION=$(get_default_mpfr_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_MPFR_VERSION=
+register_var_option "--mpfr-version=<version>" OPTION_MPFR_VERSION "Specify mpfr version [$MPFR_VERSION]"
+
+MPC_VERSION=$(get_default_mpc_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_MPC_VERSION=
+register_var_option "--mpc-version=<version>" OPTION_MPC_VERSION "Specify mpc version [$MPC_VERSION]"
+
+EXPAT_VERSION=$(get_default_expat_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_EXPAT_VERSION=
+register_var_option "--expat-version=<version>" OPTION_EXPAT_VERSION "Specify expat version [$EXPAT_VERSION]"
+
+CLOOG_PPL_VERSION=$(get_default_cloog_ppl_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_CLOOG_PPL_VERSION=
+register_var_option "--cloog-ppl-version=<version>" OPTION_CLOOG_PPL_VERSION "Specify cloog-ppl version [$CLOOG_PPL_VERSION]"
+
+PPL_VERSION=$(get_default_ppl_version_for_gcc $DEFAULT_GCC_VERSION)
+OPTION_PPL_VERSION=
+register_var_option "--ppl-version=<version>" OPTION_PPL_VERSION "Specify ppl version [$PPL_VERSION]"
 
 MPC_VERSION=$DEFAULT_MPC_VERSION
 register_var_option "--mpc-version=<version>" MPC_VERSION "Specify mpc version"
@@ -131,6 +150,54 @@ fix_sysroot "$OPTION_SYSROOT"
 
 check_toolchain_src_dir "$SRC_DIR"
 
+if [ -z "$OPTION_GDB_VERSION" ]; then
+    GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)
+else
+    GDB_VERSION=$OPTION_GDB_VERSION
+fi
+
+if [ -z "$OPTION_BINUTILS_VERSION" ]; then
+    BINUTILS_VERSION=$(get_default_binutils_version_for_gcc $GCC_VERSION)
+else
+    BINUTILS_VERSION=$OPTION_BINUTILS_VERSION
+fi
+
+if [ -z "$OPTION_GMP_VERSION" ]; then
+    GMP_VERSION=$(get_default_gmp_version_for_gcc $GCC_VERSION)
+else
+    GMP_VERSION=$OPTION_GMP_VERSION
+fi
+
+if [ -z "$OPTION_MPFR_VERSION" ]; then
+    MPFR_VERSION=$(get_default_mpfr_version_for_gcc $GCC_VERSION)
+else
+    MPFR_VERSION=$OPTION_MPFR_VERSION
+fi
+
+if [ -z "$OPTION_MPC_VERSION" ]; then
+    MPC_VERSION=$(get_default_mpc_version_for_gcc $GCC_VERSION)
+else
+    MPC_VERSION=$OPTION_MPC_VERSION
+fi
+
+if [ -z "$OPTION_EXPAT_VERSION" ]; then
+    EXPAT_VERSION=$(get_default_expat_version_for_gcc $GCC_VERSION)
+else
+    EXPAT_VERSION=$OPTION_EXPAT_VERSION
+fi
+
+if [ -z "$OPTION_CLOOG_PPL_VERSION" ]; then
+    CLOOG_PPL_VERSION=$(get_default_cloog_ppl_version_for_gcc $GCC_VERSION)
+else
+    CLOOG_PPL_VERSION=$OPTION_CLOOG_PPL_VERSION
+fi
+
+if [ -z "$OPTION_PPL_VERSION" ]; then
+    PPL_VERSION=$(get_default_ppl_version_for_gcc $GCC_VERSION)
+else
+    PPL_VERSION=$OPTION_PPL_VERSION
+fi
+
 if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
     echo "       Use --gdb-version=<version> to specify alternative."
@@ -148,10 +215,39 @@ if [ ! -d $SRC_DIR/binutils/binutils-$BINUTILS_VERSION ] ; then
     exit 1
 fi
 
-fix_option MPFR_VERSION "$OPTION_MPFR_VERSION" "mpfr version"
+if [ ! -f $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing gmp sources: $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2"
+    echo "       Use --gmp-version=<version> to specify alternative."
+    exit 1
+fi
+
 if [ ! -f $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2 ] ; then
     echo "ERROR: Missing mpfr sources: $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2"
     echo "       Use --mpfr-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing mpc sources: $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz"
+    echo "       Use --mpc-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing expat sources: $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz"
+    echo "       Use --expat-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/cloog/cloog-ppl-$CLOOG_PPL_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing cloog-ppl sources: $SRC_DIR/cloog/cloog-ppl-$CLOOG_PPL_VERSION.tar.gz"
+    echo "       Use --cloog-ppl-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ ! -f $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing ppl sources: $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2"
+    echo "       Use --ppl-version=<version> to specify alternative."
     exit 1
 fi
 
@@ -197,6 +293,8 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
+ABI_LDFLAGS_FOR_TARGET=""
+
 # configure the toolchain
 #
 dump "Configure: $TOOLCHAIN toolchain build"
@@ -208,12 +306,22 @@ BUILD_SRCDIR=$SRC_DIR/build
 if [ ! -d $BUILD_SRCDIR ] ; then
     BUILD_SRCDIR=$SRC_DIR
 fi
+rm -rf $BUILD_OUT
+
+CRYSTAX_EMPTY_DIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/empty
+ABI_LDFLAGS_FOR_TARGET=$ABI_LDFLAGS_FOR_TARGET" -L$CRYSTAX_EMPTY_DIR/$ARCH"
+
 OLD_ABI="${ABI}"
 export CC CXX
 export CFLAGS_FOR_TARGET="$ABI_CFLAGS_FOR_TARGET"
 export CXXFLAGS_FOR_TARGET="$ABI_CXXFLAGS_FOR_TARGET"
 # Needed to build a 32-bit gmp on 64-bit systems
 export ABI=$HOST_GMP_ABI
+export CFLAGS="$HOST_CFLAGS"
+# CrystaX: is this needed?
+#export CXXFLAGS="$HOST_CFLAGS"
+#export LDFLAGS="$HOST_LDFLAGS"
+
 # -Wno-error is needed because our gdb-6.6 sources use -Werror by default
 # and fail to build with recent GCC versions.
 export CFLAGS="-Wno-error"
@@ -248,6 +356,10 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-gmp-version=$GMP_VERSION \
                         --with-gcc-version=$GCC_VERSION \
                         --with-gdb-version=$GDB_VERSION \
+                        --with-mpc-version=$MPC_VERSION \
+                        --with-expat-version=$EXPAT_VERSION \
+                        --with-cloog-ppl-version=$CLOOG_PPL_VERSION \
+                        --with-ppl-version=$PPL_VERSION \
                         --with-gxx-include-dir=$TOOLCHAIN_BUILD_PREFIX/include/c++/$GCC_VERSION \
                         $EXTRA_CONFIG_FLAGS \
                         $ABI_CONFIGURE_EXTRA_FLAGS
@@ -321,6 +433,39 @@ run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/include/c++
 
+# Remove shared libgcc
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libgcc_s.*' -print)
+
+# Move libobjc files to the $GNUOBJC_SRCDIR
+GNUOBJC_SRCDIR=$NDK_DIR/$GNUOBJC_SUBDIR
+rm -rf $GNUOBJC_SRCDIR/include/$GCC_VERSION $GNUOBJC_SRCDIR/libs/$GCC_VERSION
+
+# Move includes
+copy_directory "$TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/objc" "$GNUOBJC_SRCDIR/include/$GCC_VERSION/objc"
+run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/objc
+
+# Move libs
+for f in $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name libgnuobjc_shared.a -print); do
+    run mv -f $f $(dirname $f)/libgnuobjc_static.a
+done
+case "$ARCH" in
+    arm)
+        for lib in libgnuobjc_shared.so libgnuobjc_static.a; do
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/thumb" "$GNUOBJC_SRCDIR/libs/armeabi/$GCC_VERSION" "$lib"
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/armv7-a" "$GNUOBJC_SRCDIR/libs/armeabi-v7a/$GCC_VERSION" "$lib"
+        done
+        ;;
+    x86)
+        for lib in libgnuobjc_shared.so libgnuobjc_static.a; do
+            copy_file_list "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib" "$GNUOBJC_SRCDIR/libs/x86/$GCC_VERSION" "$lib"
+        done
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libgnuobjc*' -print)
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libobjc*' -print)
+
 # strip binaries to reduce final package size
 run strip $TOOLCHAIN_PATH/bin/*
 run strip $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/bin/*
@@ -338,6 +483,35 @@ if [ "$PACKAGE_DIR" ]; then
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+    fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
+
+    # Now, package objc files
+    PACKAGE="$PACKAGE_DIR/gnu-libobjc-headers-$GCC_VERSION.tar.bz2"
+    dump "Packaging: $PACKAGE"
+    pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SUBDIR/include/$GCC_VERSION"
+    fail_panic "Could not package $GCC_VERSION gnuobjc headers"
+
+    case $ARCH in
+        arm)
+            ABIS="armeabi armeabi-v7a"
+            ;;
+        x86)
+            ABIS="x86"
+            ;;
+        *)
+            dump "ERROR: Unknown ABI: $ABI"
+            exit 1
+    esac
+    for ABI in $ABIS; do
+        FILES=""
+        for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
+            FILES="$FILES $GNUOBJC_SUBDIR/libs/$ABI/$GCC_VERSION/$LIB"
+        done
+        PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$ABI-$GCC_VERSION.tar.bz2"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Could not package $ABI-$GCC_VERSION gnuobjc binaries"
+    done
 fi
 
 dump "Done."

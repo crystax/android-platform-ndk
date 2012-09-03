@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -25,6 +25,9 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
+
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "List of GCC versions to use for build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -56,6 +59,7 @@ run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-
 fail_panic "Could not generate platforms and samples directores!"
 
 ARCHS=$(commas_to_spaces $ARCHS)
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 FLAGS=
 if [ "$VERBOSE" = "yes" ]; then
@@ -68,6 +72,9 @@ if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
     FLAGS=$FLAGS" --package-dir=\"$PACKAGE_DIR\""
+fi
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 
@@ -88,6 +95,14 @@ FLAGS=$FLAGS" --abis=$ABIS"
 dump "Building $ABIS gabi++ binaries..."
 run $BUILDTOOLS/build-gabi++.sh $FLAGS
 fail_panic "Could not build gabi++!"
+
+dump "Building crystax binaries..."
+run $BUILDTOOLS/build-crystax.sh $FLAGS
+fail_panic "Could not build crystax!"
+
+dump "Building crystax vfs binaries..."
+run $BUILDTOOLS/build-crystax-vfs.sh $FLAGS
+fail_panic "Could not build crystax vfs!"
 
 dump "Building $ABIS stlport binaries..."
 run $BUILDTOOLS/build-stlport.sh $FLAGS

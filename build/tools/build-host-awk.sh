@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -45,7 +45,7 @@ OUT=$NDK_DIR/$SUBDIR
 AWK_VERSION=20071023
 AWK_SRCDIR=$ANDROID_NDK_ROOT/sources/host-tools/nawk-$AWK_VERSION
 if [ ! -d "$AWK_SRCDIR" ]; then
-    echo "ERROR: Can't find sed-$AWK_VERSION source tree: $AWK_SRCDIR"
+    echo "ERROR: Can't find nawk-$AWK_VERSION source tree: $AWK_SRCDIR"
     exit 1
 fi
 
@@ -59,6 +59,11 @@ if [ "$MINGW" = "yes" ]; then
   BUILD_MINGW=yes
 fi
 
+CFLAGS="$HOST_CFLAGS"
+CFLAGS=$CFLAGS" -O2 -I$BUILD_DIR -I$AWK_SRCDIR"
+LDFLAGS="$HOST_LDFLAGS"
+LDFLAGS=$LDFLAGS" -Wl,-s"
+
 log "Configuring the build"
 mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
 prepare_mingw_toolchain $BUILD_DIR
@@ -67,6 +72,8 @@ export HOST_CC="$CC" &&
 run $GNUMAKE \
     -C "$AWK_SRCDIR" \
     -j $NUM_JOBS \
+    CFLAGS="$CFLAGS" \
+    LDFLAGS="$LDFLAGS" \
     BUILD_DIR="$BUILD_DIR" \
     MINGW="$BUILD_MINGW"
 fail_panic "Failed to build the sed-$AWK_VERSION executable!"

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -40,6 +40,7 @@ LONG_TESTS="prebuild-stlport test-stlport test-gnustl"
 VERBOSE=no
 ABI=default
 PLATFORM=""
+TOOLCHAIN_VERSION=
 NDK_ROOT=
 JOBS=$BUILD_NUM_CPUS
 find_program ADB_CMD adb
@@ -68,6 +69,9 @@ while [ -n "$1" ]; do
             ;;
         --platform=*)
             PLATFORM="$optarg"
+            ;;
+        --toolchain-version=*)
+            TOOLCHAIN_VERSION="$optarg"
             ;;
         --ndk=*)
             NDK_ROOT="$optarg"
@@ -134,6 +138,8 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    -j<N> --jobs=<N>  Launch parallel builds [$JOBS]"
     echo "    --abi=<name>      Only run tests for the specific ABI [$ABI]"
     echo "    --platform=<name> Force API level for testing; platform=<android-x>"
+    echo "    --toolchain-version=<version>"
+    echo "                      Force toolchain version for testing"
     echo "    --adb=<file>      Specify adb executable for device tests"
     echo "    --only-samples    Only rebuild samples"
     echo "    --only-build      Only rebuild build tests"
@@ -240,6 +246,12 @@ else # !FULL_TESTS
 fi # !FULL_TESTS
 
 
+if [ -z "$USER" ]; then
+    USER=$USERNAME
+fi
+if [ -z "$USER" ]; then
+    USER=$$
+fi
 TEST_DIR="/tmp/ndk-$USER/tests"
 mkdir -p $TEST_DIR
 setup_default_log_file "$TEST_DIR/build-tests.log"
@@ -375,6 +387,10 @@ esac
 # Force all tests to run at one API level
 if [ "$PLATFORM" != "" ]; then
     NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_PLATFORM=$PLATFORM"
+fi
+
+if [ "$TOOLCHAIN_VERSION" != "" ]; then
+    NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION"
 fi
 
 # Use --verbose twice to see build commands for the tests
@@ -565,6 +581,10 @@ if is_testable device; then
         fi
         # First, copy all files to the device, except for gdbserver
         # or gdb.setup.
+        if uname -s | grep -qi mingw; then
+            # Prevent MinGW path conversion. See http://www.mingw.org/wiki/Posix_path_conversion for details.
+            DSTDIR=/$DSTDIR
+        fi
         adb_cmd_mkdir $DSTDIR
         for SRCFILE in `ls $SRCDIR`; do
             DSTFILE=`basename $SRCFILE`
@@ -576,6 +596,10 @@ if is_testable device; then
                 SRCFILE=`cygpath -m $SRCFILE`
             fi
             DSTFILE="$DSTDIR/$DSTFILE"
+            SRCFILE="$SRCDIR/$SRCFILE"
+            if uname -s | grep -qi cygwin; then
+                SRCFILE=$(cygpath -w $SRCFILE)
+            fi
             run $ADB_CMD push "$SRCFILE" "$DSTFILE" &&
             run $ADB_CMD shell chmod 0755 $DSTFILE
             if [ $? != 0 ] ; then

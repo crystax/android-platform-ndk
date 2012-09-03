@@ -1,3 +1,4 @@
+#!/bin/bash
 # Default values used by several dev-scripts.
 #
 
@@ -11,6 +12,9 @@ API_LEVELS="3 4 5 8 9 14"
 # Default ABIs for the target prebuilt binaries.
 PREBUILT_ABIS="armeabi armeabi-v7a x86 mips"
 
+# Location of the crystax sources, relative to the NDK root directory
+CRYSTAX_SUBDIR=sources/crystax
+
 # Location of the STLport sources, relative to the NDK root directory
 STLPORT_SUBDIR=sources/cxx-stl/stlport
 
@@ -21,12 +25,16 @@ GABIXX_SUBDIR=sources/cxx-stl/gabi++
 # root directory.
 GNUSTL_SUBDIR=sources/cxx-stl/gnu-libstdc++
 
+# Location of the GNU libobjc headers and libraries, relative to the NDK
+# root directory.
+GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=2012-08-31
 
 # The space-separated list of all GCC versions we support in this NDK
-DEFAULT_GCC_VERSION_LIST="4.6 4.4.3"
+DEFAULT_GCC_VERSION_LIST="4.6 4.7 4.4.3"
 
 # The default GCC version for this NDK, i.e. the first item in
 # $DEFAULT_GCC_VERSION_LIST
@@ -39,8 +47,30 @@ DEFAULT_MPFR_VERSION=2.4.1
 DEFAULT_GMP_VERSION=5.0.5
 DEFAULT_MPC_VERSION=0.8.1
 
-# Default platform to build target binaries against.
-DEFAULT_PLATFORM=android-9
+#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_4_3=2.19
+#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_6_4=2.22
+#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_7_2=2.22
+#DEFAULT_GDB_VERSION_FOR_GCC_4_4_3=6.6
+#DEFAULT_GDB_VERSION_FOR_GCC_4_6_4=7.4
+#DEFAULT_GDB_VERSION_FOR_GCC_4_7_2=7.4
+#DEFAULT_MPFR_VERSION_FOR_GCC_4_4_3=2.4.1
+#DEFAULT_MPFR_VERSION_FOR_GCC_4_6_4=3.0.1
+#DEFAULT_MPFR_VERSION_FOR_GCC_4_7_2=3.0.1
+#DEFAULT_GMP_VERSION_FOR_GCC_4_4_3=4.2.4
+#DEFAULT_GMP_VERSION_FOR_GCC_4_6_4=5.0.2
+#DEFAULT_GMP_VERSION_FOR_GCC_4_7_2=5.0.2
+#DEFAULT_MPC_VERSION_FOR_GCC_4_4_3=0.8.1
+#DEFAULT_MPC_VERSION_FOR_GCC_4_6_4=0.9
+#DEFAULT_MPC_VERSION_FOR_GCC_4_7_2=0.9
+#DEFAULT_EXPAT_VERSION_FOR_GCC_4_4_3=2.0.1
+#DEFAULT_EXPAT_VERSION_FOR_GCC_4_6_4=2.0.1
+#DEFAULT_EXPAT_VERSION_FOR_GCC_4_7_2=2.0.1
+#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_4_3=0.15.9
+#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_6_4=0.15.9
+#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_7_2=0.15.9
+#DEFAULT_PPL_VERSION_FOR_GCC_4_4_3=0.11.2
+#DEFAULT_PPL_VERSION_FOR_GCC_4_6_4=0.11.2
+#DEFAULT_PPL_VERSION_FOR_GCC_4_7_2=0.11.2
 
 # The list of default CPU architectures we support
 DEFAULT_ARCHS="arm x86 mips"
@@ -66,6 +96,122 @@ DEFAULT_LLVM_URL="http://llvm.org/releases"
 
 # The list of default host NDK systems we support
 DEFAULT_SYSTEMS="linux-x86 windows darwin-x86"
+
+# Return modified "plain" variant for a given GCC version
+# $1: GCC version
+# Out: plain version (e.g. 4_4_3)
+get_plain_gcc_version()
+{
+    local V
+    case $1 in
+        4.4.3)
+            V=4_4_3
+            ;;
+        4.6.4)
+            V=4_6_4
+            ;;
+        4.7.2)
+            V=4_7_2
+            ;;
+        *)
+            echo "ERROR: Unsupported GCC version: $1, use one of: $SUPPORTED_GCC_VERSIONS" 1>&2
+            exit 1
+            ;;
+    esac
+    echo "$V"
+}
+
+# Return gcc source directory for given version
+# $1: GCC version
+# Out: gcc source directory name (example: gcc-4.4.3, gcc-4.6.x)
+get_gcc_source_directory()
+{
+    if [ "x$1" = "x4.4.3" ]; then
+        echo gcc-$1
+    else
+        echo gcc-$(echo $1 | sed -e 's/\.[0-9]\+$/.x/')
+    fi
+}
+
+# Return default binutils version for a given GCC version
+# $1: GCC version
+# Out: binutils version
+get_default_binutils_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_BINUTILS_VERSION_FOR_GCC_$V"
+}
+
+# Return default GDB version for a given GCC version
+# $1: GCC version
+# Out: GDB version
+get_default_gdb_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_GDB_VERSION_FOR_GCC_$V"
+}
+
+# Return default GMP version for a given GCC version
+# $1: GCC version
+# Out: GMP version
+get_default_gmp_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_GMP_VERSION_FOR_GCC_$V"
+}
+
+# Return default MPFR version for a given GCC version
+# $1: GCC version
+# Out: MPFR version
+get_default_mpfr_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_MPFR_VERSION_FOR_GCC_$V"
+}
+
+# Return default MPC version for a given GCC version
+# $1: GCC version
+# Out: MPC version
+get_default_mpc_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_MPC_VERSION_FOR_GCC_$V"
+}
+
+# Return default EXPAT version for a given GCC version
+# $1: GCC version
+# Out: EXPAT version
+get_default_expat_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_EXPAT_VERSION_FOR_GCC_$V"
+}
+
+# Return default CLOOG-PPL version for a given GCC version
+# $1: GCC version
+# Out: CLOOG-PPL version
+get_default_cloog_ppl_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_$V"
+}
+
+# Return default PPL version for a given GCC version
+# $1: GCC version
+# Out: PPL version
+get_default_ppl_version_for_gcc()
+{
+    local V
+    V=$(get_plain_gcc_version $1)
+    eval echo "\$DEFAULT_PPL_VERSION_FOR_GCC_$V"
+}
 
 # Return default NDK ABI for a given architecture name
 # $1: Architecture name

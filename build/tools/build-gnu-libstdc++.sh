@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -59,6 +59,9 @@ register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directl
 ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions to build by"
+
 JOBS="$BUILD_NUM_CPUS"
 register_var_option "-j<number>" JOBS "Use <number> build jobs in parallel"
 
@@ -109,6 +112,8 @@ build_gnustl_for_abi ()
     local DSTDIR="$5"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
+    local GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
+
     prepare_target_build $ABI $PLATFORM $NDK_DIR
     fail_panic "Could not setup target build."
 
@@ -124,7 +129,7 @@ build_gnustl_for_abi ()
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION)
 
-    GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
+    GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
     # Sanity check
     if [ ! -d "$GNUSTL_SRCDIR" ]; then
         echo "ERROR: Not a valid toolchain source tree."
@@ -138,6 +143,17 @@ build_gnustl_for_abi ()
     fi
 
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+
+    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
+    mkdir -p $CRYSTAX_TMPDIR
+    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
+    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_static.a $CRYSTAX_TMPDIR/lib/libcrystax.a
+    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_shared.so $CRYSTAX_TMPDIR/lib/libcrystax.so
+    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
+
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then
 	echo "ERROR: Empty sysroot! you probably need to run gen-platforms.sh before this script."
@@ -163,6 +179,8 @@ build_gnustl_for_abi ()
 
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2"
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR"
+    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
@@ -174,7 +192,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-nostdinc -L$SYSROOT/usr/lib -lc"
+    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -llog -lm -lc"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
@@ -194,7 +212,6 @@ build_gnustl_for_abi ()
 
     PROJECT="gnustl_$LIBTYPE gcc-$GCC_VERSION $ABI"
     echo "$PROJECT: configuring"
-    mkdir -p $BUILDDIR && rm -rf $BUILDDIR/* &&
     cd $BUILDDIR &&
     run $GNUSTL_SRCDIR/configure \
         --prefix=$INSTALLDIR \
@@ -203,6 +220,7 @@ build_gnustl_for_abi ()
         --disable-symvers \
         --disable-multilib \
         --enable-threads \
+        --enable-wchar_t \
         --disable-nls \
         --disable-sjlj-exceptions \
         --disable-tls \
@@ -246,17 +264,17 @@ copy_gnustl_libs ()
 	eval HAS_COMMON_HEADERS_$GCC_VERSION_NO_DOT=true
     fi
 
-    rm -rf "$DIR/libs/$ABI" && 
-    mkdir -p "$DDIR/libs/$ABI/include"
+    rm -rf "$DDIR/libs/$ABI/$VERSION" &&
+    mkdir -p "$DDIR/libs/$ABI/$VERSION/include"
 
     # Copy the ABI-specific headers
     copy_directory "$SDIR/include/c++/$GCC_VERSION/$PREFIX/bits" "$DDIR/libs/$ABI/include/bits"
 
     # Copy the ABI-specific libraries
     # Note: the shared library name is libgnustl_shared.so due our custom toolchain patch
-    copy_file_list "$SDIR/lib" "$DDIR/libs/$ABI" libsupc++.a libgnustl_shared.so
+    copy_file_list "$SDIR/lib" "$DDIR/libs/$ABI/$VERSION" libsupc++.a libgnustl_shared.so
     # Note: we need to rename libgnustl_shared.a to libgnustl_static.a
-    cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/libgnustl_static.a"
+    cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/$VERSION/libgnustl_static.a"
 }
 
 

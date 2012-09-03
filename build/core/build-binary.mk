@@ -208,7 +208,7 @@ LOCAL_DEPENDENCY_DIRS :=
 
 # all_source_patterns contains the list of filename patterns that correspond
 # to source files recognized by our build system
-all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION)
+all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION) .m .mm
 all_source_patterns   := $(foreach _ext,$(all_source_extensions),%$(_ext))
 all_cpp_patterns      := $(foreach _ext,$(LOCAL_CPP_EXTENSION),%$(_ext))
 
@@ -228,6 +228,10 @@ $(foreach _ext,$(all_source_extensions),\
 LOCAL_OBJECTS := $(filter %.o,$(LOCAL_OBJECTS))
 LOCAL_OBJECTS := $(subst ../,__/,$(LOCAL_OBJECTS))
 LOCAL_OBJECTS := $(foreach _obj,$(LOCAL_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
+
+ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
+    LOCAL_OBJCFLAGS += -fobjc-exceptions
+endif
 
 # If the module has any kind of C++ features, enable them in LOCAL_CPPFLAGS
 #
@@ -252,6 +256,8 @@ endif
 
 $(foreach src,$(filter %.c,$(LOCAL_SRC_FILES)), $(call compile-c-source,$(src),$(call get-object-name,$(src))))
 $(foreach src,$(filter %.S %.s,$(LOCAL_SRC_FILES)), $(call compile-s-source,$(src),$(call get-object-name,$(src))))
+$(foreach src,$(filter %.m,$(LOCAL_SRC_FILES)), $(call compile-objc-source,$(src),$(call get-object-name,$(src))))
+$(foreach src,$(filter %.mm,$(LOCAL_SRC_FILES)), $(call compile-objcpp-source,$(src),$(call get-object-name,$(src))))
 
 $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\
     $(call compile-cpp-source,$(src),$(call get-object-name,$(src)))\
@@ -289,6 +295,10 @@ $(LOCAL_BUILT_MODULE): $(static_libraries) $(whole_static_libraries) $(shared_li
 ifneq ($(filter -l%,$(LOCAL_LDLIBS)),)
     LOCAL_LDLIBS := -L$(call host-path,$(SYSROOT)/usr/lib) $(LOCAL_LDLIBS)
 endif
+
+# Add TARGET_OUT to library search path to ensure it'll find correct libcrystax (.a or .so)
+# which is already copied to TARGET_OUT
+LOCAL_LDLIBS += -L$(call host-path,$(TARGET_OUT))
 
 # The list of object/static/shared libraries passed to the linker when
 # building shared libraries and executables. order is important.
@@ -347,7 +357,7 @@ $(LOCAL_BUILT_MODULE): PRIVATE_WHOLE_STATIC_LIBRARIES := $(whole_static_librarie
 $(LOCAL_BUILT_MODULE): PRIVATE_SHARED_LIBRARIES := $(shared_libraries)
 $(LOCAL_BUILT_MODULE): PRIVATE_OBJECTS          := $(LOCAL_OBJECTS)
 $(LOCAL_BUILT_MODULE): PRIVATE_LINKER_OBJECTS_AND_LIBRARIES := $(linker_objects_and_libraries)
-$(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC)
+$(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC) $(TARGET_LIBGCC_EH)
 
 $(LOCAL_BUILT_MODULE): PRIVATE_LD := $(TARGET_LD)
 $(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS)

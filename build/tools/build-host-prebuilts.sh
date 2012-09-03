@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -41,6 +41,9 @@ do_SYSTEMS () { CUSTOM_SYSTEMS=true; SYSTEMS=$1; }
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
 
+GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
+register_var_option "--gcc-versions=<list>" GCC_VERSIONS "List of GCC versions to build"
+
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
 
@@ -75,9 +78,10 @@ if [ ! -d "$SRC_DIR" ]; then
     exit 1
 fi
 
-if [ ! -f "$SRC_DIR/build/configure" -o ! -d "$SRC_DIR/gcc/gcc-$DEFAULT_GCC_VERSION" ]; then
+GCC_DIR=$(get_gcc_source_directory $DEFAULT_GCC_VERSION)
+if [ ! -f "$SRC_DIR/build/configure" -o ! -d "$SRC_DIR/gcc/$GCC_DIR" ]; then
     echo "ERROR: The file $SRC_DIR/build/configure or"
-    echo "       the directory $SRC_DIR/gcc/gcc-$DEFAULT_GCC_VERSION does not exist"
+    echo "       the directory $SRC_DIR/gcc/$GCC_DIR does not exist"
     echo "This is not the top of a toolchain tree: $SRC_DIR"
     echo "You must give the path to a copy of the toolchain source directories"
     echo "created by 'download-toolchain-sources.sh."
@@ -101,6 +105,7 @@ fi
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
 ARCHS=$(commas_to_spaces $ARCHS)
 LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
+GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 if [ "$DARWIN_SSH" -a -z "$CUSTOM_SYSTEMS" ]; then
     SYSTEMS=" darwin-x86"
@@ -122,6 +127,9 @@ if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
     FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
+fi
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 fi
 
 do_remote_host_build ()
@@ -171,10 +179,12 @@ do_remote_host_build ()
 
     # Time to run the show :-)
     for ARCH in $(commas_to_spaces $ARCHS); do
-        dump "Running remote $ARCH toolchain build..."
-        SYSROOT=$TMPREMOTE/ndk/platforms/android-$(get_default_api_level_for_arch $ARCH)/arch-$ARCH
-        run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
-        fail_panic "Could not build prebuilt $ARCH toolchain on Darwin!"
+        for GCC_VERSION in $GCC_VERSIONS; do
+            dump "Running remote $ARCH-$GCC_VERSION toolchain build..."
+            SYSROOT=$TMPREMOTE/ndk/platforms/android-$(get_default_api_level_for_arch $ARCH)/arch-$ARCH
+            run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --gcc-versions=$GCC_VERSION --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
+            fail_panic "Could not build prebuilt $ARCH-$GCC_VERSION toolchain on Darwin!"
+        done
     done
     # Get the results
     dump "Copying back Darwin prebuilt packages..."
