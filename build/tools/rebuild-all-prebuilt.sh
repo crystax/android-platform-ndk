@@ -87,6 +87,9 @@ fi
 if [ "$VERBOSE2" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
+if [ "$DRY_RUN" = "yes" ]; then
+    FLAGS=$FLAGS" --dry-run"
+fi
 FLAGS=$FLAGS" --ndk-dir=$NDK_DIR"
 FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"

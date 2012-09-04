@@ -477,8 +477,15 @@ do_option_verbose ()
     fi
 }
 
+DRY_RUN=no
+do_option_dry_run ()
+{
+    DRY_RUN=yes
+}
+
 register_option "--help"          do_option_help     "Print this help."
 register_option "--verbose"       do_option_verbose  "Enable verbose mode."
+register_option "--dry-run"       do_option_dry_run  "Don't run configure/build commands; just print them to stdout/log"
 
 case $HOST_TAG in
     darwin-*)

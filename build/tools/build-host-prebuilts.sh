@@ -118,6 +118,9 @@ fi
 if [ "$VERBOSE2" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
+if [ "$DRY_RUN" = "yes" ]; then
+    FLAGS=$FLAGS" --dry-run"
+fi
 if [ "$TRY64" = "yes" ]; then
     FLAGS=$FLAGS" --try-64"
 else

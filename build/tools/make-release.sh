@@ -219,6 +219,9 @@ if timestamp_check build-prebuilts; then
     if [ "$VERBOSE" = "yes" ] ; then
         FLAGS=$FLAGS" --verbose"
     fi
+    if [ "$DRY_RUN" = "yes" ] ; then
+        FLAGS=$FLAGS" --dry-run"
+    fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
         run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"

@@ -157,13 +157,13 @@ run ()
 {
     if [ "$VERBOSE" = "yes" ] ; then
         echo "## COMMAND: $@"
-        "$@" 2>&1
+        [ "$DRY_RUN" = "yes" ] || "$@" 2>&1
     else
         if [ -n "$TMPLOG" ] ; then
             echo "## COMMAND: $@" >> $TMPLOG
-            "$@" >>$TMPLOG 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     fi
 }
@@ -172,20 +172,20 @@ run2 ()
 {
     if [ "$VERBOSE2" = "yes" ] ; then
         echo "## COMMAND: $@"
-        "$@" 2>&1
+        [ "$DRY_RUN" = "yes" ] || "$@" 2>&1
     elif [ "$VERBOSE" = "yes" ]; then
         echo "## COMMAND: $@"
         if [ -n "$TMPLOG" ]; then
-            echo "## COMMAND: $@" >> $TMPLOG
+            [ "$DRY_RUN" == "yes" ] || echo "## COMMAND: $@" >> $TMPLOG
             "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     else
         if [ -n "$TMPLOG" ]; then
-            "$@" >>$TMPLOG 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     fi
 }

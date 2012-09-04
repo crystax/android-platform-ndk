@@ -68,6 +68,9 @@ fi
 if [ "$VERBOSE2" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
+if [ "$DRY_RUN" = "yes" ] ; then
+    FLAGS=$FLAGS" --dry-run"
+fi
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
