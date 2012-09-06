@@ -100,8 +100,12 @@ setup_default_log_file ()
     fi
     export NDK_LOGFILE
     TMPLOG="$NDK_LOGFILE"
-    rm -rf "$TMPLOG" && mkdir -p `dirname "$TMPLOG"` && touch "$TMPLOG"
-    echo "To follow build in another terminal, please use: tail -F $TMPLOG"
+    rm -rf "$TMPLOG" && mkdir -p `dirname "$TMPLOG"` && touch "$TMPLOG" && \
+    echo "To follow build in another terminal, please use: tail -F $TMPLOG" && \
+    date >>$TMPLOG && \
+    echo "======================== ENVIRONMENT BEGIN =============================" >>$TMPLOG && \
+    set >>$TMPLOG && \
+    echo "======================== ENVIRONMENT END ===============================" >>$TMPLOG
 }
 
 dump ()
