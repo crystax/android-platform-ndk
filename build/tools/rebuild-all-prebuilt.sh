@@ -24,14 +24,15 @@ PROGDIR=`dirname $0`
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Put binaries into NDK install directory"
 
-BUILD_DIR=/tmp/ndk-$USER/build
-register_var_option "--build-dir=<path>" BUILD_DIR "Specify temporary build directory"
+BUILD_OUT=/tmp/ndk-$USER/build
+OPTION_BUILD_OUT=
+register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Specify temporary build directory"
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
 
-GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
-register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify GCC versions to build"
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "Specify GCC versions to build"
 
 SYSTEMS=$HOST_TAG32
 if [ "$HOST_TAG32" = "linux-x86" ]; then
@@ -52,6 +53,20 @@ fi
 
 register_try64_option
 
+SKIP_HOST_PREBUILTS=no
+register_option "--skip-host-prebuilts" do_skip_host_prebuilts "Skip build of host prebuilts"
+do_skip_host_prebuilts ()
+{
+    SKIP_HOST_PREBUILTS=yes
+}
+
+SKIP_TARGET_PREBUILTS=no
+register_option "--skip-target-prebuilts" do_skip_target_prebuilts "Skip build of target prebuilts"
+do_skip_target_prebuilts ()
+{
+    SKIP_TARGET_PREBUILTS=yes
+}
+
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
 PROGRAM_DESCRIPTION=\
 "This script is used to rebuild all host and target prebuilts from scratch.
@@ -71,7 +86,8 @@ script.
 
 extract_parameters "$@"
 
-setup_default_log_file $BUILD_DIR/build.log
+fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
+setup_default_log_file $BUILD_OUT/build.log
 
 SRC_DIR="$PARAMETERS"
 check_toolchain_src_dir "$SRC_DIR"
@@ -93,10 +109,14 @@ fi
 FLAGS=$FLAGS" --ndk-dir=$NDK_DIR"
 FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"
-FLAGS=$FLAGS" --gcc-versions=$(spaces_to_commas $GCC_VERSIONS)"
+FLAGS=$FLAGS" --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 
 if [ -n "$XCODE_PATH" ]; then
     FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+fi
+
+if [ -n "$OPTION_BUILD_OUT" ]; then
+    FLAGS=$FLAGS" --build-out=$BUILD_OUT"
 fi
 
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
@@ -107,13 +127,17 @@ if [ "$DARWIN_SSH" ]; then
     HOST_FLAGS=$HOST_FLAGS" --darwin-ssh=$DARWIN_SSH"
 fi
 
-$PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
-fail_panic "Could not build host prebuilts!"
+if [ "$SKIP_HOST_PREBUILTS" != "yes" ]; then
+    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
+    fail_panic "Could not build host prebuilts!"
+fi
 
 TARGET_FLAGS=$FLAGS
 
-$PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
-fail_panic "Could not build target prebuilts!"
+if [ "$SKIP_TARGET_PREBUILTS" != "yes" ]; then
+    $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
+    fail_panic "Could not build target prebuilts!"
+fi
 
 echo "Done, see $PACKAGE_DIR:"
 ls -l $PACKAGE_DIR

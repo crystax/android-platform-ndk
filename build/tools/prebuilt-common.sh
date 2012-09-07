@@ -1030,7 +1030,7 @@ convert_abi_to_arch ()
             RET=mips
             ;;
         *)
-            2> echo "ERROR: Unsupported ABI name: $1, use one of: armeabi, armeabi-v7a or x86 or mips"
+            echo "ERROR: Unsupported ABI name: $1, use one of: armeabi, armeabi-v7a or x86 or mips" 1>&2
             exit 1
             ;;
     esac

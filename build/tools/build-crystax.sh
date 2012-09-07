@@ -47,18 +47,12 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
-
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
+BUILD_OUT=/tmp/ndk-$USER/build/target
+OPTION_BUILD_OUT=
+register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Specify temporary build dir."
 
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
-
-GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
-register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions to build by"
 
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
@@ -68,7 +62,6 @@ register_jobs_option
 extract_parameters "$@"
 
 ABIS=$(commas_to_spaces $ABIS)
-GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
@@ -81,13 +74,12 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-crystax
-else
-    BUILD_DIR=$OPTION_BUILD_DIR
-fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
+setup_default_log_file $BUILD_OUT/build.log
+BUILD_OUT=$BUILD_OUT/crystax
+run rm -Rf "$BUILD_OUT"
+run mkdir -p "$BUILD_OUT"
+fail_panic "Could not create build directory: $BUILD_OUT"
 
 # Location of the crystax source tree
 STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl/system
@@ -117,7 +109,7 @@ CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 # -j$NUM_JOBS to build stuff in parallel.
 #
 if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_DIR/Makefile
+    MAKEFILE=$BUILD_OUT/Makefile
 else
     MAKEFILE=
 fi
@@ -126,9 +118,8 @@ build_crystax_libs_for_abi ()
 {
     local ARCH BINPREFIX
     local ABI=$1
-    local GCC_VERSION=$2
-    local BUILDDIR="$3"
-    local DSTDIR="$4"
+    local BUILDDIR="$2"
+    local DSTDIR="$3"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
     local CFLAGS CXXFLAGS LDFLAGS
@@ -150,12 +141,12 @@ build_crystax_libs_for_abi ()
 
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
-        DSTDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION
+        DSTDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI
     fi
 
     mkdir -p "$DSTDIR"
 
-    builder_begin_android $ABI $GCC_VERSION "$BUILDDIR" "$MAKEFILE"
+    builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
     builder_set_srcdir "$CRYSTAX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
@@ -175,33 +166,29 @@ build_crystax_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
-    for GCC_VERSION in $GCC_VERSIONS; do
-        build_crystax_libs_for_abi $ABI $GCC_VERSION "$BUILD_DIR/$ABI/$GCC_VERSION"
-    done
+    build_crystax_libs_for_abi $ABI "$BUILD_OUT/$ABI"
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
-        for GCC_VERSION in $GCC_VERSIONS; do
-            FILES=""
-            for LIB in libcrystax_static.a libcrystax_shared.so; do
-                FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$GCC_VERSION/$LIB"
-            done
-            PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI-$GCC_VERSION.tar.bz2"
-            log "Packaging: $PACKAGE"
-            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI-$GCC_VERSION crystax binaries!"
-            dump "Packaging: $PACKAGE"
+        FILES=""
+        for LIB in libcrystax_static.a libcrystax_shared.so; do
+            FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$LIB"
         done
+        PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI.tar.bz2"
+        log "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Could not package $ABI crystax binaries!"
+        dump "Packaging: $PACKAGE"
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
+if [ -z "$OPTION_BUILD_OUT" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_DIR
+    rm -rf $BUILD_OUT
 else
-    log "Don't forget to cleanup: $BUILD_DIR"
+    log "Don't forget to cleanup: $BUILD_OUT"
 fi
 
 log "Done!"

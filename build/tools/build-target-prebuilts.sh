@@ -20,17 +20,56 @@
 PROGDIR=$(dirname $0)
 . $PROGDIR/prebuilt-common.sh
 
+BUILD_OUT=/tmp/ndk-$USER/build
+OPTION_BUILD_OUT=
+register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
 
-GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
-register_var_option "--gcc-versions=<list>" GCC_VERSIONS "List of GCC versions to use for build"
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "List of GCC versions to use for build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
+
+SKIP_BUILD_GDBSERVER=no
+register_option "--skip-build-gdbserver" do_skip_build_gdbserver "Skip build of gdbserver binaries"
+do_skip_build_gdbserver ()
+{
+    SKIP_BUILD_GDBSERVER=yes
+}
+
+SKIP_BUILD_GABIXX=no
+register_option "--skip-build-gabi" do_skip_build_gabixx "Skip build of gabi++ binaries"
+do_skip_build_gabixx ()
+{
+    SKIP_BUILD_GABIXX=yes
+}
+
+SKIP_BUILD_CRYSTAX=no
+register_option "--skip-build-crystax" do_skip_build_crystax "Skip build of crystax binaries"
+do_skip_build_crystax ()
+{
+    SKIP_BUILD_CRYSTAX=yes
+}
+
+SKIP_BUILD_STLPORT=no
+register_option "--skip-build-stlport" do_skip_build_stlport "Skip build of stlport binaries"
+do_skip_build_stlport ()
+{
+    SKIP_BUILD_STLPORT=yes
+}
+
+SKIP_BUILD_GNUSTL=yes
+register_option "--skip-build-gnustl" do_skip_build_gnustl "Skip build of GNU libstdc++"
+do_skip_build_gnustl ()
+{
+    SKIP_BUILD_GNUSTL=yes
+}
 
 register_jobs_option
 
@@ -41,6 +80,9 @@ You need to give it the path to the toolchain source directory, as
 downloaded by the 'download-toolchain-sources.sh' dev-script."
 
 extract_parameters "$@"
+
+fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
+setup_default_log_file $BUILD_OUT/build.log
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -59,7 +101,6 @@ run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-
 fail_panic "Could not generate platforms and samples directores!"
 
 ARCHS=$(commas_to_spaces $ARCHS)
-GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
 
 FLAGS=
 if [ "$VERBOSE" = "yes" ]; then
@@ -79,41 +120,52 @@ fi
 if [ -n "$XCODE_PATH" ]; then
     FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 fi
+if [ -n "$OPTION_BUILD_OUT" ]; then
+    FLAGS=$FLAGS" --build-out=$BUILD_OUT"
+fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 
-# First, gdbserver
-for ARCH in $ARCHS; do
-    GDB_TOOLCHAINS=$(get_default_toolchain_name_for_arch $ARCH)
-    for GDB_TOOLCHAIN in $GDB_TOOLCHAINS; do
-        dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
-        run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
-        fail_panic "Could not build $GDB_TOOLCHAIN gdb-server!"
+if [ "$SKIP_BUILD_GDBSERVER" != "yes" ]; then
+    # First, gdbserver
+    for ARCH in $ARCHS; do
+        GDB_TOOLCHAINS=$(get_default_toolchain_name_for_arch $ARCH)
+        for GDB_TOOLCHAIN in $GDB_TOOLCHAINS; do
+            dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
+            run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
+            fail_panic "Could not build $GDB_TOOLCHAIN gdb-server!"
+        done
     done
-done
+fi
 
 FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 
 FLAGS=$FLAGS" --abis=$ABIS"
-dump "Building $ABIS gabi++ binaries..."
-run $BUILDTOOLS/build-gabi++.sh $FLAGS
-fail_panic "Could not build gabi++!"
 
-dump "Building crystax binaries..."
-run $BUILDTOOLS/build-crystax.sh $FLAGS
-fail_panic "Could not build crystax!"
+if [ "$SKIP_BUILD_GABIXX" != "yes" ]; then
+    dump "Building $ABIS gabi++ binaries..."
+    run $BUILDTOOLS/build-gabi++.sh $FLAGS
+    fail_panic "Could not build gabi++!"
+fi
 
-dump "Building crystax vfs binaries..."
-run $BUILDTOOLS/build-crystax-vfs.sh $FLAGS
-fail_panic "Could not build crystax vfs!"
+if [ "$SKIP_BUILD_CRYSTAX" != "yes" ]; then
+    dump "Building $ABIS crystax binaries..."
+    run $BUILDTOOLS/build-crystax.sh $FLAGS
+    fail_panic "Could not build crystax binaries!"
+fi
 
-dump "Building $ABIS stlport binaries..."
-run $BUILDTOOLS/build-stlport.sh $FLAGS
-fail_panic "Could not build stlport!"
+if [ "$SKIP_BUILD_STLPORT" != "yes" ]; then
+    dump "Building $ABIS stlport binaries..."
+    run $BUILDTOOLS/build-stlport.sh $FLAGS
+    fail_panic "Could not build stlport!"
+fi
 
-dump "Building $ABIS gnustl binaries..."
-run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS "$SRC_DIR"
-fail_panic "Could not build gnustl!"
+if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
+    dump "Building $ABIS gnustl binaries..."
+    FLAGS=$FLAGS" --gcc-ver-list=$GCC_VERSION_LIST"
+    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS "$SRC_DIR"
+    fail_panic "Could not build gnustl!"
+fi
 
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"

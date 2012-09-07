@@ -42,35 +42,26 @@ DEFAULT_GCC_VERSION_LIST="4.6 4.7 4.4.3"
 DEFAULT_GCC_VERSION=$(echo "$DEFAULT_GCC_VERSION_LIST" | tr ' ' '\n' | head -n 1)
 
 DEFAULT_BINUTILS_VERSION=2.21
-DEFAULT_GDB_VERSION=7.3.x
-DEFAULT_MPFR_VERSION=2.4.1
-DEFAULT_GMP_VERSION=5.0.5
-DEFAULT_MPC_VERSION=0.8.1
+DEFAULT_BINUTILS_VERSION_FOR_arm_GCC_4_4_3=2.19
+DEFAULT_BINUTILS_VERSION_FOR_x86_GCC_4_4_3=2.19
 
-#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_4_3=2.19
-#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_6_4=2.22
-#DEFAULT_BINUTILS_VERSION_FOR_GCC_4_7_2=2.22
-#DEFAULT_GDB_VERSION_FOR_GCC_4_4_3=6.6
-#DEFAULT_GDB_VERSION_FOR_GCC_4_6_4=7.4
-#DEFAULT_GDB_VERSION_FOR_GCC_4_7_2=7.4
-#DEFAULT_MPFR_VERSION_FOR_GCC_4_4_3=2.4.1
-#DEFAULT_MPFR_VERSION_FOR_GCC_4_6_4=3.0.1
-#DEFAULT_MPFR_VERSION_FOR_GCC_4_7_2=3.0.1
-#DEFAULT_GMP_VERSION_FOR_GCC_4_4_3=4.2.4
-#DEFAULT_GMP_VERSION_FOR_GCC_4_6_4=5.0.2
-#DEFAULT_GMP_VERSION_FOR_GCC_4_7_2=5.0.2
-#DEFAULT_MPC_VERSION_FOR_GCC_4_4_3=0.8.1
-#DEFAULT_MPC_VERSION_FOR_GCC_4_6_4=0.9
-#DEFAULT_MPC_VERSION_FOR_GCC_4_7_2=0.9
-#DEFAULT_EXPAT_VERSION_FOR_GCC_4_4_3=2.0.1
-#DEFAULT_EXPAT_VERSION_FOR_GCC_4_6_4=2.0.1
-#DEFAULT_EXPAT_VERSION_FOR_GCC_4_7_2=2.0.1
-#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_4_3=0.15.9
-#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_6_4=0.15.9
-#DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_4_7_2=0.15.9
-#DEFAULT_PPL_VERSION_FOR_GCC_4_4_3=0.11.2
-#DEFAULT_PPL_VERSION_FOR_GCC_4_6_4=0.11.2
-#DEFAULT_PPL_VERSION_FOR_GCC_4_7_2=0.11.2
+DEFAULT_GDB_VERSION=7.4
+DEFAULT_GDB_VERSION_FOR_GCC_4_4_3=6.6
+
+DEFAULT_MPFR_VERSION=3.0.1
+DEFAULT_MPFR_VERSION_FOR_GCC_4_4_3=2.4.1
+
+DEFAULT_GMP_VERSION=5.0.5
+DEFAULT_GMP_VERSION_FOR_GCC_4_4_3=4.2.4
+
+DEFAULT_MPC_VERSION=0.9
+DEFAULT_MPC_VERSION_FOR_GCC_4_4_3=0.8.1
+
+DEFAULT_EXPAT_VERSION=2.0.1
+
+DEFAULT_CLOOG_VERSION=0.15.9
+
+DEFAULT_PPL_VERSION=0.11.2
 
 # The list of default CPU architectures we support
 DEFAULT_ARCHS="arm x86 mips"
@@ -97,120 +88,179 @@ DEFAULT_LLVM_URL="http://llvm.org/releases"
 # The list of default host NDK systems we support
 DEFAULT_SYSTEMS="linux-x86 windows darwin-x86"
 
-# Return modified "plain" variant for a given GCC version
-# $1: GCC version
+# Return modified "plain" version for a given toolchain
+# $1: Toolchain name (e.g. arm-linux-androideabi-4.4.3) or GCC version
 # Out: plain version (e.g. 4_4_3)
-get_plain_gcc_version()
+get_plain_toolchain_version()
 {
-    local V
+    echo $1 | sed -e 's/^.*-\([0-9.]\+.*\)$/\1/' | sed -e 's/[^A-Za-z0-9_]/_/g'
+}
+
+# Return default binutils version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: binutils version
+get_default_binutils_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_BINUTILS_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_BINUTILS_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET="$DEFAULT_BINUTILS_VERSION"
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default binutils version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default GDB version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: GDB version
+get_default_gdb_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_GDB_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_GDB_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_GDB_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default gdb version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default GMP version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: GMP version
+get_default_gmp_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_GMP_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_GMP_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_GMP_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default gmp version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default MPFR version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: MPFR version
+get_default_mpfr_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_MPFR_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_MPFR_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_MPFR_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default mpfr version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default MPC version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: MPC version
+get_default_mpc_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_MPC_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_MPC_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_MPC_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default mpc version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default EXPAT version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: EXPAT version
+get_default_expat_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_EXPAT_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_EXPAT_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_EXPAT_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default expat version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default CLOOG version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: CLOOG version
+get_default_cloog_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_CLOOG_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_CLOOG_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_CLOOG_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default cloog version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return default PPL version for a given toolchain
+# $1: Toolchain name or prefix (e.g. arm-linux-androideabi-4.4.3)
+# Out: PPL version
+get_default_ppl_version()
+{
+    local V A RET
+    V=$(get_plain_toolchain_version $1)
+    A=$(get_arch_for_toolchain $1)
+    eval RET="\$DEFAULT_PPL_VERSION_FOR_${A}_GCC_${V}"
+    [ -z "$RET" ] && eval RET="\$DEFAULT_PPL_VERSION_FOR_GCC_${V}"
+    [ -z "$RET" ] && RET=$DEFAULT_PPL_VERSION
+    if [ -z "$RET" ] ; then
+        echo "ERROR: No default ppl version found for $1" 1>&2
+        exit 1
+    fi
+    echo $RET
+}
+
+# Return architecture name for a given toolchain name
+# $1: Toolchain name (e.g. arm-linux-androideabi-4.4.3, x86-4.6 etc)
+# Out: Architecture name
+get_arch_for_toolchain ()
+{
+    local RET
     case $1 in
-        4.4.3)
-            V=4_4_3
+        arm*)
+            RET=arm
             ;;
-        4.6.4)
-            V=4_6_4
+        x86*|i686-*)
+            RET=x86
             ;;
-        4.7.2)
-            V=4_7_2
+        mips*)
+            RET=mips
             ;;
         *)
-            echo "ERROR: Unsupported GCC version: $1, use one of: $SUPPORTED_GCC_VERSIONS" 1>&2
-            exit 1
+            RET=unknown
             ;;
     esac
-    echo "$V"
-}
-
-# Return gcc source directory for given version
-# $1: GCC version
-# Out: gcc source directory name (example: gcc-4.4.3, gcc-4.6.x)
-get_gcc_source_directory()
-{
-    if [ "x$1" = "x4.4.3" ]; then
-        echo gcc-$1
-    else
-        echo gcc-$(echo $1 | sed -e 's/\.[0-9]\+$/.x/')
-    fi
-}
-
-# Return default binutils version for a given GCC version
-# $1: GCC version
-# Out: binutils version
-get_default_binutils_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_BINUTILS_VERSION_FOR_GCC_$V"
-}
-
-# Return default GDB version for a given GCC version
-# $1: GCC version
-# Out: GDB version
-get_default_gdb_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_GDB_VERSION_FOR_GCC_$V"
-}
-
-# Return default GMP version for a given GCC version
-# $1: GCC version
-# Out: GMP version
-get_default_gmp_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_GMP_VERSION_FOR_GCC_$V"
-}
-
-# Return default MPFR version for a given GCC version
-# $1: GCC version
-# Out: MPFR version
-get_default_mpfr_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_MPFR_VERSION_FOR_GCC_$V"
-}
-
-# Return default MPC version for a given GCC version
-# $1: GCC version
-# Out: MPC version
-get_default_mpc_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_MPC_VERSION_FOR_GCC_$V"
-}
-
-# Return default EXPAT version for a given GCC version
-# $1: GCC version
-# Out: EXPAT version
-get_default_expat_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_EXPAT_VERSION_FOR_GCC_$V"
-}
-
-# Return default CLOOG-PPL version for a given GCC version
-# $1: GCC version
-# Out: CLOOG-PPL version
-get_default_cloog_ppl_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_CLOOG_PPL_VERSION_FOR_GCC_$V"
-}
-
-# Return default PPL version for a given GCC version
-# $1: GCC version
-# Out: PPL version
-get_default_ppl_version_for_gcc()
-{
-    local V
-    V=$(get_plain_gcc_version $1)
-    eval echo "\$DEFAULT_PPL_VERSION_FOR_GCC_$V"
+    echo "$RET"
 }
 
 # Return default NDK ABI for a given architecture name
@@ -230,7 +280,7 @@ get_default_abi_for_arch ()
             RET="mips"
             ;;
         *)
-            2> echo "ERROR: Unsupported architecture name: $1, use one of: arm x86 mips"
+            echo "ERROR: Unsupported architecture name: $1, use one of: arm x86 mips" 1>&2
             exit 1
             ;;
     esac
@@ -255,7 +305,7 @@ get_default_abis_for_arch ()
             RET="mips"
             ;;
         *)
-            2> echo "ERROR: Unsupported architecture name: $1, use one of: arm x86 mips"
+            echo "ERROR: Unsupported architecture name: $1, use one of: arm x86 mips" 1>&2
             exit 1
             ;;
     esac
@@ -296,40 +346,22 @@ get_default_toolchain_prefix_for_arch ()
 
 # Get the list of all toolchain names for a given architecture
 # $1: architecture (e.g. 'arm')
+# $2: toolchain versions list (optional, delimited by commas)
 # Out: list of toolchain names for this arch (e.g. arm-linux-androideabi-4.6 arm-linux-androideabi-4.4.3)
 # Return empty for unknown arch
 get_toolchain_name_list_for_arch ()
 {
-    local PREFIX VERSION RET
+    local PREFIX VERSION_LIST VERSION RET
     PREFIX=$(eval echo \"\$DEFAULT_ARCH_TOOLCHAIN_NAME_$1\")
     if [ -z "$PREFIX" ]; then
         return 0
     fi
-    RET=""
-    for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+    VERSION_LIST=$(commas_to_spaces $2)
+    [ -z "$VERSION_LIST" ] && VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+    for VERSION in $VERSION_LIST; do
         RET=$RET" $PREFIX-$VERSION"
     done
     RET=${RET## }
     echo "$RET"
 }
 
-# Return the binutils version to be used by default when
-# building a given version of GCC. This is needed to ensure
-# we use binutils-2.19 when building gcc-4.4.3 for ARM and x86,
-# and binutils-2.21 in other cases (mips, or gcc-4.6).
-#
-# Note that technically, we could use 2.21 for all versions of
-# GCC, however, in NDK r7, we did build GCC 4.4.3 with binutils-2.20.1
-# and this resulted in weird C++ debugging bugs. For NDK r7b and higher,
-# binutils was reverted to 2.19, to ensure at least
-# feature/bug compatibility.
-#
-# $1: toolchain with version numer (e.g. 'arm-linux-androideabi-4.6')
-#
-get_default_binutils_version_for_gcc ()
-{
-    case $1 in
-        arm-*-4.4.3|x86-4.4.3|x86-*-4.4.3) echo "2.19";;
-        *) echo "$DEFAULT_BINUTILS_VERSION";;
-    esac
-}

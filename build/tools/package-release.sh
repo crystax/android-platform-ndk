@@ -360,7 +360,6 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gabixx-libs-$ABI.tar.bz2 "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI.tar.bz2 "$REFERENCE"
         unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt crystax-vfs-libs-$ABI.tar.bz2 "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"

@@ -39,9 +39,8 @@ NOTE: The --platform option is ignored if --sysroot is used."
 VERBOSE=no
 
 OPTION_BUILD_OUT=
-BUILD_OUT=/tmp/ndk-$USER/build/gdbserver
-register_option "--build-out=<path>" do_build_out "Set temporary build directory"
-do_build_out () { OPTION_BUILD_OUT="$1"; }
+BUILD_OUT=/tmp/ndk-$USER/build/target
+register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
 OPTION_PLATFORM=
 register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
@@ -65,12 +64,9 @@ register_jobs_option
 
 extract_parameters "$@"
 
-if [ -n "$OPTION_BUILD_OUT" ] ; then
-    BUILD_OUT="$OPTION_BUILD_OUT"
-fi
+fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
 setup_default_log_file $BUILD_OUT/build.log
 log "Using build directory: $BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
 
 set_parameters ()
 {
@@ -123,7 +119,7 @@ prepare_target_build
 parse_toolchain_name $TOOLCHAIN
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
-GDB_VERSION=$(get_default_gdb_version_for_gcc $GCC_VERSION)
+GDB_VERSION=$(get_default_gdb_version $GCC_VERSION)
 fix_option GDB_VERSION "$OPTION_GDB_VERSION" "gdb version"
 
 SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
@@ -143,6 +139,10 @@ log "Using GDB source directory: $SRC_DIR"
 #
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
+
+BUILD_OUT=$BUILD_OUT/gdbserver-$TOOLCHAIN
+run rm -Rf "$BUILD_OUT"
+run mkdir -p "$BUILD_OUT"
 
 # Copy the sysroot to a temporary build directory
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
@@ -194,7 +194,7 @@ CRTEND="$BUILD_SYSROOT/usr/lib/crtend_android.o"
 #       a function (__div0) which depends on raise(), implemented
 #       in the C library.
 #
-LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lgcc_eh -lc $CRTEND "
+LIBRARY_LDFLAGS="$CRTBEGIN -lc -lm -lgcc -lc $CRTEND "
 
 case "$GDB_VERSION" in
     6.6)

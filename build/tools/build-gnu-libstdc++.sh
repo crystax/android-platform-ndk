@@ -49,9 +49,9 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
+BUILD_OUT=/tmp/ndk-$USER/build/target
+OPTION_BUILD_OUT=
+register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Specify temporary build dir."
 
 OUT_DIR=
 register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
@@ -59,11 +59,8 @@ register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directl
 ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
-GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
-register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions to build by"
-
-JOBS="$BUILD_NUM_CPUS"
-register_var_option "-j<number>" JOBS "Use <number> build jobs in parallel"
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "Specify list of GCC versions to build by"
 
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
@@ -77,6 +74,7 @@ SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
@@ -89,13 +87,12 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-gnustl
-else
-    BUILD_DIR=$OPTION_BUILD_DIR
-fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
+setup_default_log_file $BUILD_OUT/build.log
+BUILD_OUT=$BUILD_OUT/gnustl
+run rm -Rf "$BUILD_OUT"
+run mkdir -p "$BUILD_OUT"
+fail_panic "Could not create build directory: $BUILD_OUT"
 
 # $1: ABI name
 # $2: Build directory
@@ -112,7 +109,7 @@ build_gnustl_for_abi ()
     local DSTDIR="$5"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
-    local GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
+    local GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
 
     prepare_target_build $ABI $PLATFORM $NDK_DIR
     fail_panic "Could not setup target build."
@@ -129,7 +126,7 @@ build_gnustl_for_abi ()
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION)
 
-    GNUSTL_SRCDIR=$SRCDIR/gcc/$(get_gcc_source_directory $GCC_VERSION)/libstdc++-v3
+    GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
     # Sanity check
     if [ ! -d "$GNUSTL_SRCDIR" ]; then
         echo "ERROR: Not a valid toolchain source tree."
@@ -279,17 +276,17 @@ copy_gnustl_libs ()
 
 
 
-for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
-        build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION
-        build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION
-        copy_gnustl_libs $ABI "$BUILD_DIR" $VERSION
+        build_gnustl_for_abi $ABI "$BUILD_OUT" static $VERSION
+        build_gnustl_for_abi $ABI "$BUILD_OUT" shared $VERSION
+        copy_gnustl_libs $ABI "$BUILD_OUT" $VERSION
     done
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+    for VERSION in $GCC_VERSION_LIST; do
         # First, the headers as a single package for a given gcc version
         PACKAGE="$PACKAGE_DIR/gnu-libstdc++-headers-$VERSION.tar.bz2"
         dump "Packaging: $PACKAGE"
@@ -309,11 +306,11 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
+if [ -z "$OPTION_BUILD_OUT" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_DIR
+    rm -rf $BUILD_OUT
 else
-    log "Don't forget to cleanup: $BUILD_DIR"
+    log "Don't forget to cleanup: $BUILD_OUT"
 fi
 
 log "Done!"
