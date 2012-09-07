@@ -224,7 +224,7 @@ if timestamp_check build-prebuilts; then
     fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
         fail_panic "Can't build $HOST_SYSTEM binaries."
         timestamp_set build-host-prebuilts
     fi
