@@ -20,7 +20,7 @@
 PROGDIR=$(dirname $0)
 . $PROGDIR/prebuilt-common.sh
 
-BUILD_OUT=/tmp/ndk-$USER/build
+BUILD_OUT=/tmp/ndk-$USER/build/target
 OPTION_BUILD_OUT=
 register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
@@ -35,6 +35,13 @@ register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "List of GCC versio
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
+
+SKIP_GEN_PLATFORMS=no
+register_option "--skip-gen-platforms" do_skip_gen_platforms "Skip generation of platforms"
+do_skip_gen_platforms ()
+{
+    SKIP_GEN_PLATFORMS=yes
+}
 
 SKIP_BUILD_GDBSERVER=no
 register_option "--skip-build-gdbserver" do_skip_build_gdbserver "Skip build of gdbserver binaries"
@@ -64,7 +71,7 @@ do_skip_build_stlport ()
     SKIP_BUILD_STLPORT=yes
 }
 
-SKIP_BUILD_GNUSTL=yes
+SKIP_BUILD_GNUSTL=no
 register_option "--skip-build-gnustl" do_skip_build_gnustl "Skip build of GNU libstdc++"
 do_skip_build_gnustl ()
 {
@@ -97,8 +104,11 @@ if [ "$PACKAGE_DIR" ]; then
     PACKAGE_FLAGS="--package-dir=$PACKAGE_DIR"
 fi
 
-run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS
-fail_panic "Could not generate platforms and samples directores!"
+if [ "$SKIP_GEN_PLATFORMS" != "yes" ]; then
+    dump "Generating platforms..."
+    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS
+    fail_panic "Could not generate platforms and samples directores!"
+fi
 
 ARCHS=$(commas_to_spaces $ARCHS)
 
@@ -162,7 +172,7 @@ fi
 
 if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
     dump "Building $ABIS gnustl binaries..."
-    FLAGS=$FLAGS" --gcc-ver-list=$GCC_VERSION_LIST"
+    FLAGS=$FLAGS" --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST)"
     run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS "$SRC_DIR"
     fail_panic "Could not build gnustl!"
 fi
