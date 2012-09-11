@@ -261,17 +261,17 @@ copy_gnustl_libs ()
 	eval HAS_COMMON_HEADERS_$GCC_VERSION_NO_DOT=true
     fi
 
-    rm -rf "$DDIR/libs/$ABI/$VERSION" &&
-    mkdir -p "$DDIR/libs/$ABI/$VERSION/include"
+    rm -rf "$DDIR/libs/$ABI" &&
+    mkdir -p "$DDIR/libs/$ABI/include"
 
     # Copy the ABI-specific headers
     copy_directory "$SDIR/include/c++/$GCC_VERSION/$PREFIX/bits" "$DDIR/libs/$ABI/include/bits"
 
     # Copy the ABI-specific libraries
     # Note: the shared library name is libgnustl_shared.so due our custom toolchain patch
-    copy_file_list "$SDIR/lib" "$DDIR/libs/$ABI/$VERSION" libsupc++.a libgnustl_shared.so
+    copy_file_list "$SDIR/lib" "$DDIR/libs/$ABI" libsupc++.a libgnustl_shared.so
     # Note: we need to rename libgnustl_shared.a to libgnustl_static.a
-    cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/$VERSION/libgnustl_static.a"
+    cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/libgnustl_static.a"
 }
 
 
