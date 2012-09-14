@@ -246,8 +246,8 @@ if [ -z "$EXPLICIT_CLOOG_VERSION" ]; then
     dump "Auto-config: --cloog-version=$CLOOG_VERSION"
 fi
 
-CLOOG_MAJOR_VERSION=$(expr $CLOOG_VERSION : "^\([0-9]\+\)\.")
-CLOOG_MINOR_VERSION=$(expr $CLOOG_VERSION : "^[0-9]\+\.\([0-9]\+\)")
+CLOOG_MAJOR_VERSION=$(expr $CLOOG_VERSION : "^\([0-9][0-9]*\)\.")
+CLOOG_MINOR_VERSION=$(expr $CLOOG_VERSION : "^[0-9][0-9]*\.\([0-9][0-9]*\)")
 if [ $CLOOG_MAJOR_VERSION -eq 0 -a $CLOOG_MINOR_VERSION -le 15 ]; then
     # CLooG/PPL relies on the PPL for version 0.15.x
     CLOOG_PACKAGE=$SRC_DIR/cloog/cloog-ppl-$CLOOG_VERSION.tar.gz
@@ -334,14 +334,13 @@ export CFLAGS_FOR_TARGET="$ABI_CFLAGS_FOR_TARGET"
 export CXXFLAGS_FOR_TARGET="$ABI_CXXFLAGS_FOR_TARGET"
 # Needed to build a 32-bit gmp on 64-bit systems
 export ABI=$HOST_GMP_ABI
-# CrystaX: is this needed?
-#export CFLAGS="$HOST_CFLAGS"
-#export CXXFLAGS="$HOST_CFLAGS"
-#export LDFLAGS="$HOST_LDFLAGS"
+export CFLAGS="$HOST_CFLAGS"
+export CXXFLAGS="$HOST_CFLAGS"
+export LDFLAGS="$HOST_LDFLAGS"
 
 # -Wno-error is needed because our gdb-6.6 sources use -Werror by default
 # and fail to build with recent GCC versions.
-export CFLAGS="-Wno-error"
+export CFLAGS=$CFLAGS" -Wno-error"
 
 # This extra flag is used to slightly speed up the build
 EXTRA_CONFIG_FLAGS="--disable-bootstrap"

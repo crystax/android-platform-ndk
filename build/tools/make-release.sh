@@ -91,6 +91,7 @@ HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 # 2) On MacOSX, darwin-x86 is the default, no need to be explicit.
 #
 HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
+[ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
 
 TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
@@ -222,10 +223,13 @@ if timestamp_check build-prebuilts; then
     if [ "$DRY_RUN" = "yes" ] ; then
         FLAGS=$FLAGS" --dry-run"
     fi
+	if [ -n "$XCODE_PATH" ]; then
+		FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+	fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
         run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
-        fail_panic "Can't build $HOST_SYSTEM binaries."
+        fail_panic "Can't build $HOST_SYSTEMS binaries."
         timestamp_set build-host-prebuilts
     fi
     if [ -n "$DARWIN_SSH" ] ; then
@@ -243,7 +247,7 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT"
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1

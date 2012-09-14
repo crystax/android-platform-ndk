@@ -769,8 +769,17 @@ prepare_common_build ()
     STRIP=${STRIP:-strip}
     case $HOST_TAG in
         darwin-*)
-            PATH=$XCODE_PATH/usr/bin:$PATH
-            export PATH
+            #PATH=$XCODE_PATH/usr/bin:$PATH
+            #export PATH
+
+            log "Forcing generation of Darwin binaries with $XCODE_PATH"
+            if [ -x $XCODE_PATH/usr/bin/gcc-4.2 -a -x $XCODE_PATH/usr/bin/g++-4.2 ]; then
+                CC=$XCODE_PATH/usr/bin/gcc-4.2
+                CXX=$XCODE_PATH/usr/bin/g++-4.2
+            elif [ -x $XCODE_PATH/usr/bin/gcc ]; then
+                CC=$XCODE_PATH/usr/bin/gcc
+                CXX=$XCODE_PATH/usr/bin/g++
+            fi
 
             # Try to build with Tiger SDK if available
             if check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
