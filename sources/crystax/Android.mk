@@ -31,7 +31,7 @@ LOCAL_PATH := $(call my-dir)
 
 CRYSTAX_FORCE_REBUILD := $(strip $(CRYSTAX_FORCE_REBUILD))
 ifndef CRYSTAX_FORCE_REBUILD
-  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_static.a)))
+  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/libcrystax.a)))
     $(call __ndk_info,WARNING: Rebuilding crystax libraries from sources!)
     $(call __ndk_info,You might want to use $$NDK/build/tools/build-crystax.sh)
     $(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
@@ -41,7 +41,7 @@ endif
 
 CRYSTAX_VFS_FORCE_REBUILD := $(strip $(CRYSTAX_VFS_FORCE_REBUILD))
 ifndef CRYSTAX_VFS_FORCE_REBUILD
-  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_static.a)))
+  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/armeabi/libcrystaxvfs_static.a)))
     #$(call __ndk_info,WARNING: Rebuilding crystax vfs libraries from sources!)
     #$(call __ndk_info,You might want to use $$NDK/build/tools/build-crystax-vfs.sh)
     #$(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
@@ -49,11 +49,11 @@ ifndef CRYSTAX_VFS_FORCE_REBUILD
   endif
 endif
 
-include $(CLEAR_VARS)
-LOCAL_MODULE            := crystax_empty
-LOCAL_MODULE_FILENAME   := libcrystax
-LOCAL_SRC_FILES         :=
-include $(BUILD_STATIC_LIBRARY)
+# include $(CLEAR_VARS)
+# LOCAL_MODULE            := crystax_empty
+# LOCAL_MODULE_FILENAME   := libcrystax
+# LOCAL_SRC_FILES         :=
+# include $(BUILD_STATIC_LIBRARY)
 
 #CRYSTAX_LDLIBS := -llog
 CRYSTAX_LDLIBS :=
@@ -88,20 +88,22 @@ $(call ndk_log,Using prebuilt crystax libraries)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_static.a
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_MODULE_FILENAME   := libcrystax
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.a
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystax_shared.so
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_MODULE_FILENAME   := libcrystax
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.so
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(PREBUILT_SHARED_LIBRARY)
 
 else # CRYSTAX_FORCE_REBUILD == true
@@ -114,28 +116,30 @@ CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
+LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(CRYSTAX_SRC_FILES)
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
 LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
+LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := $(CRYSTAX_SRC_FILES) src/crystax/android_jni.cpp
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES)
 LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
 LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(BUILD_SHARED_LIBRARY)
 
 endif # CRYSTAX_FORCE_REBUILD == true
@@ -149,8 +153,8 @@ $(call ndk_log,Using prebuilt crystax vfs libraries)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystaxvfs_static
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_static.a
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystaxvfs_static.a
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
 LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
@@ -158,8 +162,8 @@ include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystaxvfs_shared
-LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/$(TARGET_TOOLCHAIN_VERSION)/libcrystaxvfs_shared.so
-LOCAL_SHARED_LIBRARIES  := crystax_empty
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystaxvfs_shared.so
+#LOCAL_SHARED_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
 LOCAL_EXPORT_LDLIBS     := $(CRYSTAX_LDLIBS)
@@ -179,7 +183,7 @@ LOCAL_SRC_FILES         := $(CRYSTAX_VFS_SRC_FILES)
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES) $(LOCAL_PATH)/vfs $(LOCAL_PATH)/vfs/include
 LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
 LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
-LOCAL_STATIC_LIBRARIES  := crystax_empty
+#LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include
@@ -192,7 +196,7 @@ LOCAL_SRC_FILES         := $(CRYSTAX_VFS_SRC_FILES) vfs/android_jni.cpp
 LOCAL_C_INCLUDES        := $(CRYSTAX_INTERNAL_INCLUDES) $(LOCAL_PATH)/vfs $(LOCAL_PATH)/vfs/include
 LOCAL_CFLAGS            := $(CRYSTAX_CFLAGS)
 LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
-LOCAL_SHARED_LIBRARIES  := crystax_empty
+#LOCAL_SHARED_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/vfs/include

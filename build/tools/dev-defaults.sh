@@ -34,7 +34,7 @@ GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 TOOLCHAIN_GIT_DATE=2012-08-31
 
 # The space-separated list of all GCC versions we support in this NDK
-DEFAULT_GCC_VERSION_LIST="4.6 4.7 4.4.3"
+DEFAULT_GCC_VERSION_LIST="4.7 4.6 4.4.3"
 
 # The default GCC version for this NDK, i.e. the first item in
 # $DEFAULT_GCC_VERSION_LIST

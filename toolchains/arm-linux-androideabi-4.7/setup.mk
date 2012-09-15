@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the arm-linux-androideabi-4.6.4
+# this file is used to prepare the NDK to build with the arm gcc-4.7
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,8 +23,6 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME := arm-linux-androideabi-4.6.4
-
 TARGET_CFLAGS := \
     -fpic \
     -ffunction-sections \
@@ -33,28 +31,10 @@ TARGET_CFLAGS := \
     -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
     -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__ \
 
-ifeq ($(TARGET_USE_CPP0X),true)
-    TARGET_CXXFLAGS += --std=gnu++0x
-else
-ifeq ($(TARGET_USE_CPP0X),strict)
-    TARGET_CXXFLAGS += --std=c++0x
-endif
-endif
-
 TARGET_LDFLAGS :=
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
-
-# This is to avoid the dreaded warning compiler message:
-#   note: the mangling of 'va_list' has changed in GCC 4.4
-#
-# The fact that the mangling changed does not affect the NDK ABI
-# very fortunately (since none of the exposed APIs used va_list
-# in their exported C++ functions). Also, GCC 4.5 has already
-# removed the warning from the compiler.
-#
-TARGET_CFLAGS += -Wno-psabi
 
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
     TARGET_CFLAGS += -march=armv7-a \
@@ -119,42 +99,3 @@ $(call add-src-files-target-cflags,\
     $(TARGET_CFLAGS.neon)) \
 $(call set-src-files-text,$(__arm_sources),arm$(space)$(space)) \
 $(call set-src-files-text,$(__thumb_sources),thumb)
-
-#
-# We need to add -lsupc++ to the final link command to make exceptions
-# and RTTI work properly (when -fexceptions and -frtti are used).
-#
-# Normally, the toolchain should be configured to do that automatically,
-# this will be debugged later.
-#
-define cmd-build-shared-library
-$(PRIVATE_CXX) \
-    -Wl,-soname,$(notdir $@) \
-    -shared \
-    --sysroot=$(call host-path,$(PRIVATE_SYSROOT)) \
-    $(call host-path, $(PRIVATE_OBJECTS)) \
-    $(call link-whole-archives,$(PRIVATE_WHOLE_STATIC_LIBRARIES)) \
-    $(call host-path,\
-        $(PRIVATE_STATIC_LIBRARIES) \
-        $(PRIVATE_LIBGCC) \
-        $(PRIVATE_SHARED_LIBRARIES)) \
-    $(PRIVATE_LDFLAGS) \
-    $(PRIVATE_LDLIBS) \
-    -o $(call host-path,$@)
-endef
-
-define cmd-build-executable
-$(PRIVATE_CXX) \
-    -Wl,--gc-sections \
-    -Wl,-z,nocopyreloc \
-    --sysroot=$(call host-path,$(PRIVATE_SYSROOT)) \
-    $(call host-path, $(PRIVATE_OBJECTS)) \
-    $(call link-whole-archives,$(PRIVATE_WHOLE_STATIC_LIBRARIES)) \
-    $(call host-path,\
-        $(PRIVATE_STATIC_LIBRARIES) \
-        $(PRIVATE_LIBGCC) \
-        $(PRIVATE_SHARED_LIBRARIES)) \
-    $(PRIVATE_LDFLAGS) \
-    $(PRIVATE_LDLIBS) \
-    -o $(call host-path,$@)
-endef

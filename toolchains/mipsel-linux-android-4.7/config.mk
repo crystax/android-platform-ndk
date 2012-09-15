@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-# config file for the arm-linux-androideabi-4.7.2 toolchain for the Android NDK
+# config file for the mipsel gcc-4.7 toolchain for the Android NDK
 # the real meat is in the setup.mk file adjacent to this one
 #
-TOOLCHAIN_ARCH := arm
-TOOLCHAIN_ABIS := armeabi armeabi-v7a
+TOOLCHAIN_ARCH := mips
+TOOLCHAIN_ABIS := mips

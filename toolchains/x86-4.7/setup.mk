@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the x86-4.6.4
+# this file is used to prepare the NDK to build with the x86 gcc-4.7
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,20 +23,12 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := x86-4.6.4
-TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/i686-android-linux-
+TOOLCHAIN_NAME   := x86-4.7
+TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/i686-linux-android-
 
 TARGET_CFLAGS := \
     -ffunction-sections \
     -funwind-tables
-
-ifeq ($(TARGET_USE_CPP0X),true)
-    TARGET_CXXFLAGS += --std=gnu++0x
-else
-ifeq ($(TARGET_USE_CPP0X),strict)
-    TARGET_CXXFLAGS += --std=c++0x
-endif
-endif
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
@@ -44,8 +36,7 @@ TARGET_C_INCLUDES := \
 # Add and LDFLAGS for the target here
 # TARGET_LDFLAGS :=
 
-# Fix this after ssp.c is fixed for x86
-# TARGET_CFLAGS += -fstack-protector
+TARGET_CFLAGS += -fstack-protector
 
 TARGET_x86_release_CFLAGS :=  -O2 \
                               -fomit-frame-pointer \
@@ -71,44 +62,3 @@ $(call set-src-files-text,$(LOCAL_SRC_FILES),x86$(space)$(space)) \
 # The ABI-specific sub-directory that the SDK tools recognize for
 # this toolchain's generated binaries
 TARGET_ABI_SUBDIR := x86
-
-
-#
-# We need to add -lsupc++ to the final link command to make exceptions
-# and RTTI work properly (when -fexceptions and -frtti are used).
-#
-# Normally, the toolchain should be configured to do that automatically,
-# this will be debugged later.
-#
-
-define cmd-build-shared-library
-$(PRIVATE_CXX) \
-    -Wl,-soname,$(notdir $@) \
-    -shared \
-    --sysroot=$(call host-path,$(PRIVATE_SYSROOT)) \
-    $(call host-path, $(PRIVATE_OBJECTS)) \
-    $(call link-whole-archives,$(PRIVATE_WHOLE_STATIC_LIBRARIES)) \
-    $(call host-path,\
-        $(PRIVATE_STATIC_LIBRARIES) \
-        $(PRIVATE_LIBGCC) \
-        $(PRIVATE_SHARED_LIBRARIES)) \
-    $(PRIVATE_LDFLAGS) \
-    $(PRIVATE_LDLIBS) \
-    -o $(call host-path,$@)
-endef
-
-define cmd-build-executable
-$(PRIVATE_CXX) \
-    -Wl,--gc-sections \
-    -Wl,-z,nocopyreloc \
-    --sysroot=$(call host-path,$(PRIVATE_SYSROOT)) \
-    $(call host-path, $(PRIVATE_OBJECTS)) \
-    $(call link-whole-archives,$(PRIVATE_WHOLE_STATIC_LIBRARIES)) \
-    $(call host-path,\
-        $(PRIVATE_STATIC_LIBRARIES) \
-        $(PRIVATE_LIBGCC) \
-        $(PRIVATE_SHARED_LIBRARIES)) \
-    $(PRIVATE_LDFLAGS) \
-    $(PRIVATE_LDLIBS) \
-    -o $(call host-path,$@)
-endef

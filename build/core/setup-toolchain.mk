@@ -34,7 +34,6 @@ ifndef NDK_TOOLCHAIN
         $(eval TARGET_TOOLCHAIN_LIST := \
             $(filter-out %-clang$(_ver),$(TARGET_TOOLCHAIN_LIST))))
 
-    TARGET_TOOLCHAIN_LIST := $(strip $(filter %-$(NDK_TOOLCHAIN_VERSION),$(NDK_ABI.$(TARGET_ARCH_ABI).toolchains)))
     ifndef TARGET_TOOLCHAIN_LIST
         $(call __ndk_info,There is no toolchain that supports the $(TARGET_ARCH_ABI) ABI.)
         $(call __ndk_info,Please modify the APP_ABI definition in $(NDK_APP_APPLICATION_MK) to use)
@@ -77,9 +76,6 @@ else # NDK_TOOLCHAIN is not empty
     endif
     TARGET_TOOLCHAIN := $(NDK_TOOLCHAIN)
 endif # NDK_TOOLCHAIN is not empty
-
-TOOLCHAIN_SETUP := $(NDK_TOOLCHAIN.$(TARGET_TOOLCHAIN).setup)
-TARGET_TOOLCHAIN_VERSION := $(shell $(HOST_AWK) -f $(BUILD_AWK)/extract-toolchain-version.awk $(call host-path,$(TOOLCHAIN_SETUP)))
 
 TARGET_ABI := $(TARGET_PLATFORM)-$(TARGET_ARCH_ABI)
 

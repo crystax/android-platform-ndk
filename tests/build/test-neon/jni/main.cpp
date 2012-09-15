@@ -1,3 +1,4 @@
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #include <arm_neon.h>
 
 namespace math {
@@ -77,7 +78,7 @@ namespace math {
             const float m00, const float m10, const float m20,
             const float m01, const float m11, const float m21,
             const float m02, const float m12, const float m22,
-            const float m03, const float m13, const float m23);
+            const float m03, const float m13, const float m23) {}
     };
 
     inline Vector3 operator-(const Vector3& srcVector1, const Vector3& srcVector2) {
@@ -146,8 +147,4 @@ namespace cam {
         math::Matrix43 _viewInverse = transpose3x3(_view);
     }
 }
-
-int main()
-{
-    return 0;
-}
+#endif

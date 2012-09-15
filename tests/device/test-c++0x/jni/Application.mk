@@ -1,2 +1,2 @@
-APP_TOOLCHAIN_VERSION := 4.6.4
+APP_ABI := all
 APP_USE_CPP0X := true

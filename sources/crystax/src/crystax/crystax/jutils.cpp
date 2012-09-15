@@ -203,7 +203,7 @@ bool jexcheck(JNIEnv *env)
     jmethodID mid = get_method_id(env, jex, "getMessage", "()Ljava/lang/String;");
 
     scope_c_ptr_t<const char> s(jcast<const char *>((jstring)env->CallObjectMethod(jex.get(), mid)));
-    __android_log_print(ANDROID_LOG_ERROR, "CRYSTAX_ERRO", "java exception: %s", s.get());
+    ERR("java exception: %s", s.get());
 
     env->ExceptionDescribe();
 

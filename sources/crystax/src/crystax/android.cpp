@@ -122,7 +122,7 @@ void __crystax_on_load()
 
     if (!__crystax_init())
     {
-        __android_log_print(ANDROID_LOG_FATAL, "CRYSTAX", "libcrystax initialization failed");
+        PANIC("libcrystax initialization failed");
         ::abort();
     }
 

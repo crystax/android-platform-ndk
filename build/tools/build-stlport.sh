@@ -142,7 +142,7 @@ build_stlport_libs_for_abi ()
     local ABI=$1
     local BUILDDIR="$2"
     local DSTDIR="$3"
-    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
     mkdir -p "$BUILDDIR"
 
@@ -151,41 +151,48 @@ build_stlport_libs_for_abi ()
         DSTDIR=$NDK_DIR/$STLPORT_SUBDIR/libs/$ABI
     fi
 
-    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    mkdir -p "$DSTDIR"
+
+    CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
     CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
     mkdir -p $CRYSTAX_TMPDIR
     copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
     copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
-    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_static.a $CRYSTAX_TMPDIR/lib/libcrystax.a
-    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_shared.so $CRYSTAX_TMPDIR/lib/libcrystax.so
     CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
     CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
-
-    mkdir -p "$DSTDIR"
 
     builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
 
     builder_set_dstdir "$DSTDIR"
 
+    CFLAGS=$GABIXX_CFLAGS" -I$CRYSTAX_INCDIR"
+    CXXFLAGS=$GABIXX_CXXFLAGS
+    LDFLAGS=$GABIXX_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
+
     builder_set_srcdir "$GABIXX_SRCDIR"
-    builder_cflags "$GABIXX_CFLAGS"
-    builder_cxxflags "$GABIXX_CXXFLAGS"
-    builder_ldflags "$GABIXX_LDFLAGS"
+    builder_cflags "$CFLAGS"
+    builder_cxxflags "$CXXFLAGS"
+    builder_ldflags "$LDFLAGS"
     builder_sources $GABIXX_SOURCES
+
+
+    CFLAGS=$STLPORT_CFLAGS" -I$CRYSTAX_INCDIR"
+    CXXFLAGS=$STLPORT_CXXFLAGS
+    LDFLAGS=$STLPORT_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
 
     builder_set_srcdir "$STLPORT_SRCDIR"
     builder_reset_cflags
-    builder_cflags "$STLPORT_CFLAGS"
-    builder_cflags "-I$CRYSTAX_INCDIR"
+    builder_cflags "$CFLAGS"
     builder_reset_cxxflags
-    builder_cxxflags "$STLPORT_CXXFLAGS"
+    builder_cxxflags "$CXXFLAGS"
+    builder_reset_ldflags
+    builder_ldflags "$LDFLAGS"
     builder_sources $STLPORT_SOURCES
 
     log "Building $DSTDIR/libstlport_static.a"
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
-    builder_ldflags "-L$CRYSTAX_LIBDIR -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }

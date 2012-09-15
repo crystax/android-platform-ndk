@@ -182,6 +182,11 @@ builder_reset_cxxflags ()
     _BUILD_CXXFLAGS=
 }
 
+builder_reset_ldflags ()
+{
+    _BUILD_LDFLAGS=
+}
+
 builder_reset_c_includes ()
 {
     _BUILD_C_INCLUDES=

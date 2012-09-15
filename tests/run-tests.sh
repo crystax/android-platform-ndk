@@ -390,7 +390,7 @@ if [ "$PLATFORM" != "" ]; then
 fi
 
 if [ "$TOOLCHAIN_VERSION" != "" ]; then
-    NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION"
+    NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS NDK_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION"
 fi
 
 # Use --verbose twice to see build commands for the tests
@@ -591,15 +591,12 @@ if is_testable device; then
             if [ "$DSTFILE" = "gdbserver" -o "$DSTFILE" = "gdb.setup" ] ; then
                 continue
             fi
+            dump "SRCFILE: $SRCFILE"
             SRCFILE="$SRCDIR/$SRCFILE"
             if [ $HOST_OS = cygwin ]; then
                 SRCFILE=`cygpath -m $SRCFILE`
             fi
             DSTFILE="$DSTDIR/$DSTFILE"
-            SRCFILE="$SRCDIR/$SRCFILE"
-            if uname -s | grep -qi cygwin; then
-                SRCFILE=$(cygpath -w $SRCFILE)
-            fi
             run $ADB_CMD push "$SRCFILE" "$DSTFILE" &&
             run $ADB_CMD shell chmod 0755 $DSTFILE
             if [ $? != 0 ] ; then

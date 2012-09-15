@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-# config file for the x86-4.7.2 toolchain for the Android NDK
+# config file for the arm gcc-4.7 toolchain for the Android NDK
 # the real meat is in the setup.mk file adjacent to this one
 #
-TOOLCHAIN_ARCH := x86
-TOOLCHAIN_ABIS := x86
+TOOLCHAIN_ARCH := arm
+TOOLCHAIN_ABIS := armeabi armeabi-v7a

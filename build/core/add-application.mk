@@ -225,7 +225,7 @@ ifdef APP_OBJC
     $(call ndk-objc-check,$(APP_OBJC))
 endif
 
-# Check that APP_STL is defined. If not, use the default value (gnustl_static)
+# Check that APP_STL is defined. If not, use the default value
 # otherwise, check that the name is correct.
 APP_STL := $(strip $(APP_STL))
 ifdef APP_STL
@@ -233,7 +233,7 @@ ifdef APP_STL
 endif
 
 ifndef APP_CRYSTAX
-    ifneq ($(or $(findstring shared,$(APP_OBJC)),$(findstring shared,$(APP_STL))),)
+    ifneq ($(strip $(foreach lib,$(APP_OBJC) $(APP_STL),$(findstring shared,$(lib)))),)
         APP_CRYSTAX := shared
     else
         APP_CRYSTAX := static
@@ -242,7 +242,7 @@ endif
 $(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
 
 ifndef APP_OBJC
-    ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_STL))),)
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_STL),$(findstring shared,$(lib)))),)
         APP_OBJC := $(DEFAULT_LIBOBJC)_shared
     else
         APP_OBJC := $(DEFAULT_LIBOBJC)_static
@@ -251,7 +251,7 @@ endif
 $(call ndk_log,Using APP_OBJC: $(APP_OBJC))
 
 ifndef APP_STL
-    ifneq ($(or $(findstring shared,$(APP_CRYSTAX)),$(findstring shared,$(APP_OBJC))),)
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_OBJC),$(findstring shared,$(lib)))),)
         APP_STL := $(DEFAULT_LIBSTDCXX)_shared
     else
         APP_STL := $(DEFAULT_LIBSTDCXX)_static

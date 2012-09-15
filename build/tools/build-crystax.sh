@@ -86,10 +86,9 @@ STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl/system
 CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
-CRYSTAX_CFLAGS="-fpic -ffunction-sections -funwind-tables -fstack-protector"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS"  -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -g -O2 -DANDROID -DNDEBUG -Wno-psabi"
+CRYSTAX_CFLAGS="-fPIC -g -O2 -DANDROID -D__ANDROID__ -DNDEBUG"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
 for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
@@ -97,7 +96,7 @@ for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
 done
 CRYSTAX_CXXFLAGS="-std=gnu++0x -fuse-cxa-atexit -fno-exceptions -fno-rtti"
 CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
-CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -llog -ldl"
+CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -ldl"
 
 # List of sources to compile
 CRYSTAX_C_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.c' -print)
@@ -131,9 +130,9 @@ build_crystax_libs_for_abi ()
     LDFLAGS=$CRYSTAX_LDFLAGS
 
     if [ "$ABI" = "armeabi" ]; then
-        CFLAGS=$CFLAGS" -march=armv5te -msoft-float"
+        CFLAGS=$CFLAGS" -march=armv5te -marm -msoft-float"
     elif [ "$ABI" = "armeabi-v7a" ]; then
-        CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+        CFLAGS=$CFLAGS" -march=armv7-a -marm -mfloat-abi=softfp -mfpu=vfpv3-d16"
         LDFLAGS=$LDFLAGS" -Wl,--fix-cortex-a8"
     fi
 
@@ -155,12 +154,12 @@ build_crystax_libs_for_abi ()
     builder_ldflags "$LDFLAGS"
     builder_sources $CRYSTAX_SOURCES
 
-    log "Building $DSTDIR/libcrystax_static.a"
-    builder_static_library libcrystax_static
+    log "Building $DSTDIR/libcrystax.a"
+    builder_static_library libcrystax
 
-    log "Building $DSTDIR/libcrystax_shared.so"
+    log "Building $DSTDIR/libcrystax.so"
     builder_sources src/crystax/android_jni.cpp
-    builder_shared_library libcrystax_shared
+    builder_shared_library libcrystax
 
     builder_end
 }

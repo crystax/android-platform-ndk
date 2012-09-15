@@ -78,20 +78,31 @@
     )
 
 #if CRYSTAX_DEBUG
+
+#   define CRYSTAX_LEVEL_TAG(level) "CRYSTAX_" #level
 #   define CRYSTAX_DEBUG_FORMAT "(%08x) ...%s:%-5d: %-15s: " 
+
+#define CRYSTAX_LEVEL_DBUG ANDROID_LOG_DEBUG
+#define CRYSTAX_LEVEL_INFO ANDROID_LOG_INFO
+#define CRYSTAX_LEVEL_WARN ANDROID_LOG_WARN
+#define CRYSTAX_LEVEL_ERRO ANDROID_LOG_ERROR
+#define CRYSTAX_LEVEL_PANI ANDROID_LOG_FATAL
+
+#define CRYSTAX_LEVEL_VAL(level) CRYSTAX_LEVEL_ ## level
+
 #   if CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_STDOUT
 #       define CRYSTAX_LOG(level, fmt, ...) \
-            printf("CRYSTAX_" #level ": " \
+            printf(CRYSTAX_LEVEL_TAG(level) ": " \
                 CRYSTAX_DEBUG_FORMAT fmt "\n", \
-                (unsigned)::pthread_self(), __SHORT_FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+                (unsigned)pthread_self(), __SHORT_FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #   elif CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_STDERR
 #       define CRYSTAX_LOG(level, fmt, ...) \
-            fprintf(stderr, "CRYSTAX_" #level ": " \
+            fprintf(stderr, CRYSTAX_LEVEL_TAG(level) ": " \
                 CRYSTAX_DEBUG_FORMAT fmt "\n", \
-                (unsigned)::pthread_self(), __SHORT_FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+                (unsigned)pthread_self(), __SHORT_FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #   elif CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_LOGCAT
 #       define CRYSTAX_LOG(level, fmt, ...) \
-            __android_log_print(ANDROID_LOG_DEBUG, "CRYSTAX_" #level, \
+            __android_log_print(CRYSTAX_LEVEL_VAL(level), CRYSTAX_LEVEL_TAG(level), \
                 CRYSTAX_DEBUG_FORMAT fmt, \
                 (unsigned)::pthread_self(), __SHORT_FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #   endif
@@ -99,10 +110,11 @@
 #   define CRYSTAX_LOG(...) do {} while(0)
 #endif
 
-#define DBG(fmt, ...)  CRYSTAX_LOG(DBUG, fmt, ##__VA_ARGS__)
-#define INFO(fmt, ...) CRYSTAX_LOG(INFO, fmt, ##__VA_ARGS__)
-#define WARN(fmt, ...) CRYSTAX_LOG(WARN, fmt, ##__VA_ARGS__)
-#define ERR(fmt, ...)  CRYSTAX_LOG(ERRO, fmt, ##__VA_ARGS__)
+#define DBG(fmt, ...)   CRYSTAX_LOG(DBUG, fmt, ##__VA_ARGS__)
+#define INFO(fmt, ...)  CRYSTAX_LOG(INFO, fmt, ##__VA_ARGS__)
+#define WARN(fmt, ...)  CRYSTAX_LOG(WARN, fmt, ##__VA_ARGS__)
+#define ERR(fmt, ...)   CRYSTAX_LOG(ERRO, fmt, ##__VA_ARGS__)
+#define PANIC(fmt, ...) CRYSTAX_LOG(PANI, fmt, ##__VA_ARGS__)
 
 #define TRACE DBG("***")
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # The purpose of this dummy build test is to ensure that all the
 # armeabi-v7a prebuilt binaries distributed with the NDK were
@@ -215,6 +215,11 @@ check_armv7_elf_binary ()
         exit 1
     fi
 }
+
+CRYSTAX_LIBS=$NDK/sources/crystax/libs/armeabi-v7a
+
+check_armv7_elf_binary $CRYSTAX_LIBS/libcrystax.so
+check_armv7_elf_binary $CRYSTAX_LIBS/libcrystax.a
 
 GABIXX_LIBS=$NDK/sources/cxx-stl/gabi++/libs/armeabi-v7a
 

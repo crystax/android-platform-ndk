@@ -146,8 +146,6 @@ build_gnustl_for_abi ()
     mkdir -p $CRYSTAX_TMPDIR
     copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
     copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
-    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_static.a $CRYSTAX_TMPDIR/lib/libcrystax.a
-    mv -f $CRYSTAX_TMPDIR/lib/libcrystax_shared.so $CRYSTAX_TMPDIR/lib/libcrystax.so
     CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
     CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
 
@@ -189,7 +187,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -llog -lm -lc"
+    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -lm -lc"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"

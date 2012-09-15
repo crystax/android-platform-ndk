@@ -109,7 +109,7 @@ build_gabixx_libs_for_abi ()
     local ABI=$1
     local BUILDDIR="$2"
     local DSTDIR="$3"
-    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
     mkdir -p "$BUILDDIR"
 
@@ -120,13 +120,25 @@ build_gabixx_libs_for_abi ()
 
     mkdir -p "$DSTDIR"
 
+    CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
+    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
+    mkdir -p $CRYSTAX_TMPDIR
+    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
+    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
+    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
+
+    CFLAGS=$GABIXX_CFLAGS" -I$CRYSTAX_INCDIR"
+    CXXFLAGS=$GABIXX_CXXFLAGS
+    LDFLAGS=$GABIXX_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
+
     builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
     builder_set_srcdir "$GABIXX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
-    builder_cflags "$GABIXX_CFLAGS"
-    builder_cxxflags "$GABIXX_CXXFLAGS"
-    builder_ldflags "$GABIXX_LDFLAGS"
+    builder_cflags "$CFLAGS"
+    builder_cxxflags "$CXXFLAGS"
+    builder_ldflags "$LDFLAGS"
     builder_sources $GABIXX_SOURCES
 
     log "Building $DSTDIR/libgabi++_static.a"
