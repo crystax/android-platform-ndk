@@ -94,6 +94,7 @@ CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
 for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
     CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$p"
 done
+CRYSTAX_ARM_CFLAGS="-marm -mno-unaligned-access"
 CRYSTAX_CXXFLAGS="-std=gnu++0x -fuse-cxa-atexit -fno-exceptions -fno-rtti"
 CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
 CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -ldl"
@@ -130,9 +131,11 @@ build_crystax_libs_for_abi ()
     LDFLAGS=$CRYSTAX_LDFLAGS
 
     if [ "$ABI" = "armeabi" ]; then
-        CFLAGS=$CFLAGS" -march=armv5te -marm -msoft-float"
+        CFLAGS=$CFLAGS" -march=armv5te -msoft-float"
+        CFLAGS=$CFLAGS" $CRYSTAX_ARM_CFLAGS"
     elif [ "$ABI" = "armeabi-v7a" ]; then
-        CFLAGS=$CFLAGS" -march=armv7-a -marm -mfloat-abi=softfp -mfpu=vfpv3-d16"
+        CFLAGS=$CFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
+        CFLAGS=$CFLAGS" $CRYSTAX_ARM_CFLAGS"
         LDFLAGS=$LDFLAGS" -Wl,--fix-cortex-a8"
     fi
 
