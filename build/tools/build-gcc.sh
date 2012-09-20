@@ -318,8 +318,9 @@ fi
 
 dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
 CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+run mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
 for lib in libcrystax.a libcrystax.so; do
-    cp -f $CRYSTAX_SRCDIR/empty/$ARCH/$lib $TOOLCHAIN_BUILD_SYSROOT/usr/lib/
+    run cp -f "$CRYSTAX_SRCDIR/empty/$ARCH/$lib" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/"
     if [ $? != 0 ] ; then
         echo "Error while copying libcrystax stubs. See $TMPLOG"
         exit 1
