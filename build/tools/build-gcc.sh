@@ -316,6 +316,16 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
+dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
+CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+for lib in libcrystax.a libcrystax.so; do
+    cp -f $CRYSTAX_SRCDIR/empty/$ARCH/$lib $TOOLCHAIN_BUILD_SYSROOT/usr/lib/
+    if [ $? != 0 ] ; then
+        echo "Error while copying libcrystax stubs. See $TMPLOG"
+        exit 1
+    fi
+done
+
 # configure the toolchain
 #
 dump "Configure: $TOOLCHAIN toolchain build"
@@ -436,6 +446,44 @@ run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"
 # don't forget to copy the GPL and LGPL license files
 run cp -f $TOOLCHAIN_LICENSES/COPYING $TOOLCHAIN_LICENSES/COPYING.LIB $TOOLCHAIN_PATH
 
+# move gnuobjc headers/libraries
+GNUOBJC_SRCDIR=$NDK_DIR/$GNUOBJC_SUBDIR
+
+# $1: SRCDIR
+# #2: ABI
+copy_gnuobjc_libs ()
+{
+    local SRCDIR=$1
+    local ABI=$2
+
+    # Copy static library
+    run rm -rf "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI"
+    run mkdir -p "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI"
+    run mv "$SRCDIR/libobjc.a" "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI/libgnuobjc_static.a"
+
+    # Create shared library
+    run rm -rf "$BUILD_OUT/gnuobjc-$ABI"
+    run mkdir -p "$BUILD_OUT/gnuobjc-$ABI"
+    cd $BUILD_OUT/gnuobjc-$ABI &&
+    run "$TOOLCHAIN_PATH/bin/$ABI_CONFIGURE_TARGET-ar" x "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI/libgnuobjc_static.a" &&
+    run "$TOOLCHAIN_PATH/bin/$ABI_CONFIGURE_TARGET-gcc" -o "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI/libgnuobjc_shared.so" \
+        -shared -Wl,-soname,libgnuobjc_shared.so --sysroot=$TOOLCHAIN_BUILD_SYSROOT -lcrystax *.o
+    fail_panic "Could not build $ABI gnuobjc_shared"
+}
+
+run rm -rf "$GNUOBJC_SRCDIR/$GCC_VERSION/include"
+run mkdir -p "$GNUOBJC_SRCDIR/$GCC_VERSION/include"
+run mv "$TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/objc" "$GNUOBJC_SRCDIR/$GCC_VERSION/include"
+
+copy_gnuobjc_libs "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib" "$ABI"
+if [ -d "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/armv7-a" ]; then
+    copy_gnuobjc_libs "$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/armv7-a" "armeabi-v7a"
+fi
+
+run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libobjc.*
+run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libobjc.*
+run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/*/libobjc.*
+
 # remove some unneeded files
 run rm -f $TOOLCHAIN_PATH/bin/*-gccbug
 run rm -rf $TOOLCHAIN_PATH/info
@@ -476,6 +524,16 @@ if [ "$PACKAGE_DIR" ]; then
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
+
+    # Package gnuobjc headers
+    PACKAGE="$PACKAGE_DIR/gnu-libobjc-headers-$GCC_VERSION.tar.bz2"
+    pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SRCDIR/$GCC_VERSION/include"
+    fail_panic "Could not package $GCC_VERSION gnuobjc headers"
+
+    # Package gnuobjc libraries
+    PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$GCC_VERSION-$ABI.tar.bz2"
+    pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SRCDIR/$GCC_VERSION/libs/$ABI"
+    fail_panic "Could not package $ABI $GCC_VERSION gnuobjc binaries"
 fi
 
 dump "Done."

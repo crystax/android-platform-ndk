@@ -109,8 +109,6 @@ build_gnustl_for_abi ()
     local DSTDIR="$5"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
-    local GNUSTL_SRCDIR=$SRCDIR/gcc/gcc-$GCC_VERSION/libstdc++-v3
-
     prepare_target_build $ABI $PLATFORM $NDK_DIR
     fail_panic "Could not setup target build."
 
@@ -299,7 +297,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
             PACKAGE="$PACKAGE_DIR/gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI STLport binaries!"
+            fail_panic "Could not package $ABI GNU libstdc++ binaries!"
         done
     done
 fi
