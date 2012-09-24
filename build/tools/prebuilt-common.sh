@@ -914,6 +914,7 @@ parse_toolchain_name ()
 
     ABI_CFLAGS_FOR_TARGET=
     ABI_CXXFLAGS_FOR_TARGET=
+    ABI_LDFLAGS_FOR_TARGET=
 
     # Determine ABI based on toolchain name
     #
