@@ -172,9 +172,14 @@ fi
 
 if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
     dump "Building $ABIS gnustl binaries..."
-    FLAGS=$FLAGS" --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST)"
-    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS "$SRC_DIR"
+    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
     fail_panic "Could not build gnustl!"
+fi
+
+if [ "$SKIP_BUILD_GNUOBJC" != "yes" ]; then
+    dump "Building $ABIS gnuobjc binaries..."
+    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+    fail_panic "Could not build gnuobjc!"
 fi
 
 if [ "$PACKAGE_DIR" ]; then
