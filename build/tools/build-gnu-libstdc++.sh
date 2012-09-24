@@ -137,15 +137,11 @@ build_gnustl_for_abi ()
         exit 1
     fi
 
-    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
-
     CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
-    mkdir -p $CRYSTAX_TMPDIR
-    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
-    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
-    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
-    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
+    CRYSTAX_INCDIR=$CRYSTAX_SRCDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_SRCDIR/libs/$ABI
+
+    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
 
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then

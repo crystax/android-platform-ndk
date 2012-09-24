@@ -154,12 +154,8 @@ build_stlport_libs_for_abi ()
     mkdir -p "$DSTDIR"
 
     CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
-    CRYSTAX_TMPDIR=$BUILDDIR/libcrystax
-    mkdir -p $CRYSTAX_TMPDIR
-    copy_directory "$CRYSTAX_SRCDIR/include" "$CRYSTAX_TMPDIR/include"
-    copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$CRYSTAX_TMPDIR/lib"
-    CRYSTAX_INCDIR=$CRYSTAX_TMPDIR/include
-    CRYSTAX_LIBDIR=$CRYSTAX_TMPDIR/lib
+    CRYSTAX_INCDIR=$CRYSTAX_SRCDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_SRCDIR/libs/$ABI
 
     builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
 
