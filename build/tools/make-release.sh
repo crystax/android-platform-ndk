@@ -21,6 +21,33 @@
 
 . `dirname $0`/prebuilt-common.sh
 
+PROGRAM_PARAMETERS="<toolchain-src-dir>"
+PROGRAM_DESCRIPTION=\
+"This script is used to generate an NDK release package from scratch.
+
+This process is EXTREMELY LONG and consists in the following steps:
+
+  - downloading toolchain sources from the Internet
+  - patching them appropriately (if needed)
+  - rebuilding the toolchain binaries for the host system
+  - rebuilding the platforms and samples directories from ../development/ndk
+  - packaging everything into a host-specific archive
+
+This can take several hours on a dual-core machine, even assuming a very
+nice Internet connection and plenty of RAM and disk space.
+
+Note that on Linux, if you have the 'mingw32' package installed, the script
+will also automatically generate a windows release package. You can prevent
+that by using the --platforms option.
+
+IMPORTANT:
+        If you intend to package NDK releases often, please read the
+        file named docs/DEVELOPMENT.TXT which provides ways to do that
+        more quickly, by preparing toolchain binary tarballs that can be
+        reused for each package operation. This will save you hours of
+        your time compared to using this script!
+"
+
 force_32bit_binaries
 
 # The default release name (use today's date)
@@ -93,12 +120,30 @@ HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
 
-TOOLCHAIN_SRCDIR=
-register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
-
 extract_parameters "$@"
 
 setup_default_log_file $OUT_DIR/build.log
+
+set_parameters ()
+{
+    TOOLCHAIN_SRCDIR="$1"
+
+    # Check source directory
+    #
+    if [ -z "$TOOLCHAIN_SRCDIR" ] ; then
+        echo "ERROR: Missing source directory parameter. See --help for details."
+        exit 1
+    fi
+
+    if [ ! -d "$TOOLCHAIN_SRCDIR/gcc" ] ; then
+        echo "ERROR: Source directory does not contain gcc sources: $TOOLCHAIN_SRCDIR"
+        exit 1
+    fi
+
+    log "Using source directory: $TOOLCHAIN_SRCDIR"
+}
+
+set_parameters $PARAMETERS
 
 # Print a warning and ask the user if he really wants to do that !
 #
@@ -122,33 +167,6 @@ if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
             exit 0
     esac
 fi
-
-PROGRAM_PARAMETERS=
-PROGRAM_DESCRIPTION=\
-"This script is used to generate an NDK release package from scratch.
-
-This process is EXTREMELY LONG and consists in the following steps:
-
-  - downloading toolchain sources from the Internet
-  - patching them appropriately (if needed)
-  - rebuilding the toolchain binaries for the host system
-  - rebuilding the platforms and samples directories from ../development/ndk
-  - packaging everything into a host-specific archive
-
-This can take several hours on a dual-core machine, even assuming a very
-nice Internet connection and plenty of RAM and disk space.
-
-Note that on Linux, if you have the 'mingw32' package installed, the script
-will also automatically generate a windows release package. You can prevent
-that by using the --platforms option.
-
-IMPORTANT:
-        If you intend to package NDK releases often, please read the
-        file named docs/DEVELOPMENT.TXT which provides ways to do that
-        more quickly, by preparing toolchain binary tarballs that can be
-        reused for each package operation. This will save you hours of
-        your time compared to using this script!
-"
 
 # Create directory where everything will be performed.
 RELEASE_DIR=$NDK_TMPDIR/release-$RELEASE
