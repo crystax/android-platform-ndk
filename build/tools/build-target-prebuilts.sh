@@ -78,6 +78,13 @@ do_skip_build_gnustl ()
     SKIP_BUILD_GNUSTL=yes
 }
 
+SKIP_BUILD_GNUOBJC=no
+register_option "--skip-build-gnuobjc" do_skip_build_gnuobjc "Skip build of GNU libobjc"
+do_skip_build_gnuobjc ()
+{
+    SKIP_BUILD_GNUOBJC=yes
+}
+
 register_jobs_option
 
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
