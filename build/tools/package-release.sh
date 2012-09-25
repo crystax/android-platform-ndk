@@ -357,9 +357,9 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libobjc-headers-$VERSION.tar.bz2 "$REFERENCE"
     done
     for ABI in $ABIS; do
+        unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
         unpack_prebuilt gabixx-libs-$ABI.tar.bz2 "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
@@ -422,6 +422,13 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
+            done
+        done
+
+        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+            copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
+            for OBJC_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
         done
     else
