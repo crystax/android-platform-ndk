@@ -298,7 +298,7 @@ $(foreach src,$(filter $(all_objc_patterns),$(LOCAL_SRC_FILES)),\
 )
 
 $(foreach src,$(filter $(all_objcpp_patterns),$(LOCAL_SRC_FILES)),\
-    $(call compile-objcpp-source,$(src),$(call get-object-name,$(src)))\
+    $(call compile-objc++-source,$(src),$(call get-object-name,$(src)))\
 )
 
 $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\

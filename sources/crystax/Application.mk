@@ -28,3 +28,4 @@
 #
 
 APP_STL := system
+APP_ABI := all

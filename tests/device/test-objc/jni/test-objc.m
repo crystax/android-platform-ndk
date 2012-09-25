@@ -1,7 +1,7 @@
-#include <stdio.h>
-#include <objc/Object.h>
+#import <stdio.h>
+#import "base.h"
 
-@interface foo : Object
+@interface foo : BaseObject
 
 -(id) init;
 -(void) bar;

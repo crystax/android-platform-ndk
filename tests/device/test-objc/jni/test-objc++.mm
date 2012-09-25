@@ -1,5 +1,5 @@
-#include <stdio.h>
-#include <objc/Object.h>
+#import <stdio.h>
+#import "base.h"
 
 class Foo
 {
@@ -8,7 +8,7 @@ public:
     ~Foo() {printf("%s\n", __PRETTY_FUNCTION__);}
 };
 
-@interface foo2 : Object
+@interface foo2 : BaseObject
 
 -(id) init;
 -(void) bar;

@@ -821,12 +821,33 @@ modules-get-all-installable = $(strip \
 module-is-system-prebuilt = \
     $(strip $(filter crystax_static crystax_shared $(NDK_OBJC_LIST) $(NDK_STL_LIST),$1))
 
+# Return the Obj-C extension of a given module
+# $1: module name
+module-get-objc-extension = $(strip \
+    $(if $(__ndk_modules.$1.OBJC_EXTENSION),\
+        $(__ndk_modules.$1.OBJC_EXTENSION),\
+        .m\
+    ))
+
+# Return the Obj-C++ extension of a given module
+# $1: module name
+module-get-objc++-extension = $(strip \
+    $(if $(__ndk_modules.$1.OBJCPP_EXTENSION),\
+        $(__ndk_modules.$1.OBJCPP_EXTENSION),\
+        .mm\
+    ))
+
 # Return the list of Obj-C sources of a given module
 module-get-objc-sources = \
-    $(or $(filter $(all_objc_patterns),$(__ndk_modules.$1.SRC_FILES)),$(filter $(all_objcpp_patterns),$(__ndk_modules.$1.SRC_FILES)))
+    $(eval __files := $(__ndk_modules.$1.SRC_FILES:%.neon=%))\
+    $(eval __files := $(__files:%.arm=%))\
+    $(or $(filter %$(call module-get-objc-extension,$1),$(__files)),\
+        $(filter %$(call module-get-objc++-extension),$(__files)))
 
 module-get-objc++-sources = \
-    $(filter $(all_objcpp_patterns),$(__ndk_modules.$1.SRC_FILES))
+    $(eval __files := $(__ndk_modules.$1.SRC_FILES:%.neon=%))\
+    $(eval __files := $(__files:%.arm=%))\
+    $(filter %$(call module-get-objc++-extension),$(__files))
 
 # Returns true if a module has Obj-C sources
 module-has-objc-sources = $(strip $(call module-get-objc-sources,$1))
