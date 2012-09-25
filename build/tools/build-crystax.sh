@@ -175,7 +175,7 @@ done
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $ABIS; do
         FILES=""
-        for LIB in libcrystax_static.a libcrystax_shared.so; do
+        for LIB in libcrystax.a libcrystax.so; do
             FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$LIB"
         done
         PACKAGE="$PACKAGE_DIR/crystax-libs-$ABI.tar.bz2"
