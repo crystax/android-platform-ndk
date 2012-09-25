@@ -159,16 +159,16 @@ ABIS=$(convert_archs_to_abis $ARCHS)
 
 FLAGS=$FLAGS" --abis=$ABIS"
 
-if [ "$SKIP_BUILD_GABIXX" != "yes" ]; then
-    dump "Building $ABIS gabi++ binaries..."
-    run $BUILDTOOLS/build-gabi++.sh $FLAGS
-    fail_panic "Could not build gabi++!"
-fi
-
 if [ "$SKIP_BUILD_CRYSTAX" != "yes" ]; then
     dump "Building $ABIS crystax binaries..."
     run $BUILDTOOLS/build-crystax.sh $FLAGS
     fail_panic "Could not build crystax binaries!"
+fi
+
+if [ "$SKIP_BUILD_GABIXX" != "yes" ]; then
+    dump "Building $ABIS gabi++ binaries..."
+    run $BUILDTOOLS/build-gabi++.sh $FLAGS
+    fail_panic "Could not build gabi++!"
 fi
 
 if [ "$SKIP_BUILD_STLPORT" != "yes" ]; then
