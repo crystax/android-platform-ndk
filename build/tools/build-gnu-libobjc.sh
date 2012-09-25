@@ -245,6 +245,9 @@ copy_gnuobjc_libs ()
 
     # Copy the ABI-specific libraries
     copy_file_list "$SDIR/$PREFIX/lib" "$DDIR/libs/$ABI" libgnuobjc_static.a libgnuobjc_shared.so
+    if [ -d $SDIR/$PREFIX/lib/armv7-a ]; then
+        copy_file_list "$SDIR/$PREFIX/lib/armv7-a" "$DDIR/libs/armeabi-v7a" libgnuobjc_static.a libgnuobjc_shared.so
+    fi
 }
 
 for VERSION in $GCC_VERSION_LIST; do
