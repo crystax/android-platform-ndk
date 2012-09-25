@@ -114,6 +114,7 @@ build_gnustl_for_abi ()
 
     INSTALLDIR=$BUILDDIR/install
     BUILDDIR=$BUILDDIR/$LIBTYPE-$ABI-$GCC_VERSION
+    mkdir -p $BUILDDIR
 
     # If the output directory is not specified, use default location
     if [ -z "$DSTDIR" ]; then
