@@ -81,6 +81,8 @@ run rm -Rf "$BUILD_OUT"
 run mkdir -p "$BUILD_OUT"
 fail_panic "Could not create build directory: $BUILD_OUT"
 
+CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
+
 GABIXX_SRCDIR=$ANDROID_NDK_ROOT/$GABIXX_SUBDIR
 GABIXX_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__ -I$GABIXX_SRCDIR/include"
 GABIXX_CXXFLAGS="-fno-exceptions -frtti"
@@ -144,6 +146,9 @@ build_stlport_libs_for_abi ()
     local DSTDIR="$3"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
+    ARCH=$(convert_abi_to_arch $ABI)
+    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+
     mkdir -p "$BUILDDIR"
 
     # If the output directory is not specified, use default location
@@ -153,42 +158,36 @@ build_stlport_libs_for_abi ()
 
     mkdir -p "$DSTDIR"
 
-    CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
-    CRYSTAX_INCDIR=$CRYSTAX_SRCDIR/include
-    CRYSTAX_LIBDIR=$CRYSTAX_SRCDIR/libs/$ABI
-
     builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
 
     builder_set_dstdir "$DSTDIR"
 
-    CFLAGS=$GABIXX_CFLAGS" -I$CRYSTAX_INCDIR"
-    CXXFLAGS=$GABIXX_CXXFLAGS
-    LDFLAGS=$GABIXX_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
-
     builder_set_srcdir "$GABIXX_SRCDIR"
-    builder_cflags "$CFLAGS"
-    builder_cxxflags "$CXXFLAGS"
-    builder_ldflags "$LDFLAGS"
+    builder_cflags "--sysroot=$SYSROOT"
+    builder_cflags "-I$CRYSTAX_SRCDIR/include"
+    builder_cflags "$GABIXX_CFLAGS"
+    builder_cxxflags "--sysroot=$SYSROOT"
+    builder_cxxflags "-I$CRYSTAX_SRCDIR/include"
+    builder_cxxflags "$GABIXX_CXXFLAGS"
+    builder_ldflags "$GABIXX_LDFLAGS"
     builder_sources $GABIXX_SOURCES
-
-
-    CFLAGS=$STLPORT_CFLAGS" -I$CRYSTAX_INCDIR"
-    CXXFLAGS=$STLPORT_CXXFLAGS
-    LDFLAGS=$STLPORT_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
 
     builder_set_srcdir "$STLPORT_SRCDIR"
     builder_reset_cflags
-    builder_cflags "$CFLAGS"
+    builder_cflags "--sysroot=$SYSROOT"
+    builder_cflags "-I$CRYSTAX_SRCDIR/include"
+    builder_cflags "$STLPORT_CFLAGS"
     builder_reset_cxxflags
-    builder_cxxflags "$CXXFLAGS"
-    builder_reset_ldflags
-    builder_ldflags "$LDFLAGS"
+    builder_cxxflags "--sysroot=$SYSROOT"
+    builder_cxxflags "-I$CRYSTAX_SRCDIR/include"
+    builder_cxxflags "$STLPORT_CXXFLAGS"
     builder_sources $STLPORT_SOURCES
 
     log "Building $DSTDIR/libstlport_static.a"
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
+    builder_ldflags "-L$CRYSTAX_SRCDIR/libs/$ABI -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }
