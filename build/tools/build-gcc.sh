@@ -464,9 +464,6 @@ run strip $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1$HOST_EXE
 run strip $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1plus$HOST_EXE
 run strip $TOOLCHAIN_PATH/libexec/gcc/*/*/collect2$HOST_EXE
 
-# Remove temporary sysroot
-run rm -rf $TOOLCHAIN_PATH/sysroot
-
 # copy SOURCES file if present
 if [ -f "$SRC_DIR/SOURCES" ]; then
     cp "$SRC_DIR/SOURCES" "$TOOLCHAIN_PATH/SOURCES"
