@@ -32,7 +32,7 @@ TOOLCHAIN_NAME=
 register_var_option "--toolchain=<name>" TOOLCHAIN_NAME "Specify toolchain name"
 
 LLVM_VERSION=
-register_var_option "--llvm-ver=<vers>" LLVM_VERSION "List of LLVM release versions"
+register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
 
 ARCH=
 register_option "--arch=<name>" do_arch "Specify target architecture" "arm"
@@ -181,7 +181,7 @@ fi
 # Get GCC_BASE_VERSION.  Note that GCC_BASE_VERSION may be slightly different from GCC_VERSION.
 # eg. In gcc4.6 GCC_BASE_VERSION is "4.6.x-google"
 LIBGCC_PATH=`$TOOLCHAIN_GCC -print-libgcc-file-name`
-LIBGCC_BASE_PATH=${LIBGCC_PATH%/libgcc.a}  # base path of libgcc.a
+LIBGCC_BASE_PATH=${LIBGCC_PATH%/*}         # base path of libgcc.a
 GCC_BASE_VERSION=${LIBGCC_BASE_PATH##*/}   # stuff after the last /
 
 # Create temporary directory
@@ -197,6 +197,56 @@ run copy_directory "$TOOLCHAIN_PATH" "$TMPDIR"
 if [ -n "$LLVM_VERSION" ]; then
   # Copy the clang/llvm toolchain prebuilt binaries
   run copy_directory "$LLVM_TOOLCHAIN_PATH" "$TMPDIR"
+
+  # Move clang and clang++ to clang${LLVM_VERSION} and clang${LLVM_VERSION}++,
+  # then create scripts linking them with predefined -target flag.  This is to
+  # make clang/++ easier drop-in replacement for gcc/++ in NDK standalone mode.
+  # Note that the file name of "clang" isn't important, and the trailing
+  # "++" tells clang to compile in C++ mode
+  LLVM_TARGET=
+  case "$ARCH" in
+      arm) # NOte: -target may change by clang based on the
+           #        presence of subsequent -march=armv7-a and/or -mthumb
+          LLVM_TARGET=armv5te-none-linux-androideabi
+          ;;
+      x86)
+          LLVM_TARGET=i686-none-linux-android
+          ;;
+      mips)
+          LLVM_TARGET=mipsel-none-linux-android
+          ;;
+      *)
+        dump "ERROR: Unsupported NDK architecture!"
+  esac
+  # Need to remove '.' from LLVM_VERSION when constructing new clang name,
+  # otherwise clang3.1++ may still compile *.c code as C, not C++, which
+  # is not consistent with g++
+  LLVM_VERSION_WITHOUT_DOT=$(echo "$LLVM_VERSION" | sed -e "s!\.!!")
+  mv "$TMPDIR/bin/clang${HOST_EXE}" "$TMPDIR/bin/clang${LLVM_VERSION_WITHOUT_DOT}${HOST_EXE}"
+  if [ -h "$TMPDIR/bin/clang++${HOST_EXE}" ] ; then
+    ## clang++ is a link to clang.  Remove it and reconstruct
+    rm "$TMPDIR/bin/clang++${HOST_EXE}"
+    ln -s "clang${LLVM_VERSION_WITHOUT_DOT}${HOST_EXE}" "$TMPDIR/bin/clang${LLVM_VERSION_WITHOUT_DOT}++${HOST_EXE}"
+  else
+    mv "$TMPDIR/bin/clang++${HOST_EXE}" "$TMPDIR/bin/clang$LLVM_VERSION_WITHOUT_DOT++${HOST_EXE}"
+  fi
+
+  cat > "$TMPDIR/bin/clang" <<EOF
+\`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT -target $LLVM_TARGET "\$@"
+EOF
+  cat > "$TMPDIR/bin/clang++" <<EOF
+\`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT++ -target $LLVM_TARGET "\$@"
+EOF
+  chmod 0755 "$TMPDIR/bin/clang" "$TMPDIR/bin/clang++"
+
+  if [ -n "$HOST_EXE" ] ; then
+    cat > "$TMPDIR/bin/clang.cmd" <<EOF
+%~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}${HOST_EXE} -target $LLVM_TARGET %*
+EOF
+    cat > "$TMPDIR/bin/clang++.cmd" <<EOF
+%~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}++${HOST_EXE} -target $LLVM_TARGET %*
+EOF
+  fi
 fi
 
 dump "Copying sysroot headers and libraries..."

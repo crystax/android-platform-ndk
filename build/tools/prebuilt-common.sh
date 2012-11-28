@@ -687,8 +687,12 @@ prepare_mingw_toolchain ()
     LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.7-4.6"
     $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=x86_64-linux-gnu- \
             --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/x86_64-linux-" "$MINGW_WRAP_DIR"
+    $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=x86_64-pc-linux-gnu- \
+            --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/x86_64-linux-" "$MINGW_WRAP_DIR"
     LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.6"
     $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=i386-linux-gnu- \
+            --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/i686-linux-" "$MINGW_WRAP_DIR"
+    $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=i386-pc-linux-gnu- \
             --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/i686-linux-" "$MINGW_WRAP_DIR"
     fail_panic "Could not create mingw wrapper toolchain in $MINGW_WRAP_DIR"
 
@@ -754,12 +758,19 @@ prepare_common_build ()
     # We only do this if the CC variable is not defined to a given value
     # and the --mingw or --try-64 options are not used.
     #
-    if [ "$HOST_OS" = "linux" -a -z "$CC" -a "$MINGW" != "yes" -a "$TRY64" != "yes" ]; then
-        LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.6"
+    if [ -z "$CC" -a "$MINGW" != "yes" ]; then
+        LEGACY_TOOLCHAIN_DIR=
+        if [ "$HOST_OS" = "linux" ]; then
+            LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/tools/gcc-sdk"
+            LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/"
+        elif [ "$HOST_OS" = "darwin" ]; then
+            LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/i686-apple-darwin-4.2.1/bin"
+            LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/i686-apple-darwin10-"
+        fi
         if [ -d "$LEGACY_TOOLCHAIN_DIR" ] ; then
-            log "Forcing generation of Linux binaries with legacy toolchain"
-            CC="$LEGACY_TOOLCHAIN_DIR/bin/i686-linux-gcc"
-            CXX="$LEGACY_TOOLCHAIN_DIR/bin/i686-linux-g++"
+            log "Forcing generation of $HOST_OS binaries with legacy toolchain"
+            CC="${LEGACY_TOOLCHAIN_PREFIX}gcc"
+            CXX="${LEGACY_TOOLCHAIN_PREFIX}g++"
         fi
     fi
 
@@ -813,7 +824,6 @@ prepare_common_build ()
     int test_array[1-2*(sizeof(void*) != 4)];
 EOF
     log_n "Checking whether the compiler generates 32-bit binaries..."
-    HOST_BITS=32
     log2 $CC $HOST_CFLAGS -c -o $TMPO $TMPC
     $NDK_CCACHE $CC $HOST_CFLAGS -c -o $TMPO $TMPC >$TMPL 2>&1
     if [ $? != 0 ] ; then
@@ -824,15 +834,18 @@ EOF
             #        will not work well with the GCC toolchain scripts.
             CC="$CC -m32"
             CXX="$CXX -m32"
-        else
-            HOST_BITS=64
         fi
     else
         log "yes"
+        if [ "$TRY64" = "yes" ]; then
+            CC="$CC -m64"
+            CXX="$CXX -m64"
+        fi
     fi
 
-    # For now, we only support building 32-bit binaries anyway
-    if [ "$TRY64" != "yes" ]; then
+    if [ "$TRY64" = "yes" ]; then
+        HOST_BITS=64
+    else
         force_32bit_binaries  # to modify HOST_TAG and others
         HOST_BITS=32
     fi
@@ -924,11 +937,12 @@ parse_toolchain_name ()
         ABI="armeabi"
         ABI_CONFIGURE_TARGET="arm-linux-androideabi"
         ABI_CONFIGURE_EXTRA_FLAGS="--with-arch=armv5te"
-        # Disable ARM Gold linker for now, it doesn't build on Windows, it
-        # crashes with SIGBUS on Darwin, and produces weird executables on
-        # linux that strip complains about... Sigh.
-        #ABI_CONFIGURE_EXTRA_FLAGS="$ABI_CONFIGURE_EXTRA_FLAGS --enable-gold=both/gold"
-
+        ;;
+    arm-eabi-*)
+        ARCH="arm"
+        ABI="armeabi"
+        ABI_CONFIGURE_TARGET="arm-eabi"
+        ABI_CONFIGURE_EXTRA_FLAGS="--with-arch=armv5te --disable-gold --disable-multilib"
         ;;
     x86-*)
         ARCH="x86"

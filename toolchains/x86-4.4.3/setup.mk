@@ -36,17 +36,20 @@ TARGET_C_INCLUDES := \
 # Add and LDFLAGS for the target here
 # TARGET_LDFLAGS :=
 
-# Fix this after ssp.c is fixed for x86
-# TARGET_CFLAGS += -fstack-protector
+TARGET_CFLAGS += -fstack-protector
 
-TARGET_x86_release_CFLAGS :=  -O2 \
-                              -fomit-frame-pointer \
-                              -fstrict-aliasing    \
-                              -funswitch-loops     \
-                              -finline-limit=300
+TARGET_x86_release_CFLAGS := -O2 \
+                             -g \
+                             -DNDEBUG \
+                             -fomit-frame-pointer \
+                             -fstrict-aliasing    \
+                             -funswitch-loops     \
+                             -finline-limit=300
 
 # When building for debug, compile everything as x86.
 TARGET_x86_debug_CFLAGS := $(TARGET_x86_release_CFLAGS) \
+                           -O0 \
+                           -UNDEBUG \
                            -fno-omit-frame-pointer \
                            -fno-strict-aliasing
 

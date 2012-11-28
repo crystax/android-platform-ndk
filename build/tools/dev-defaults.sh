@@ -31,7 +31,7 @@ GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
-TOOLCHAIN_GIT_DATE=2012-08-31
+TOOLCHAIN_GIT_DATE=now
 
 # The space-separated list of all GCC versions we support in this NDK
 DEFAULT_GCC_VERSION_LIST="4.7 4.6 4.4.3"
@@ -44,6 +44,9 @@ DEFAULT_GCC_VERSION=$(echo "$DEFAULT_GCC_VERSION_LIST" | tr ' ' '\n' | head -n 1
 DEFAULT_BINUTILS_VERSION=2.21
 DEFAULT_BINUTILS_VERSION_FOR_arm_GCC_4_4_3=2.19
 DEFAULT_BINUTILS_VERSION_FOR_x86_GCC_4_4_3=2.19
+DEFAULT_BINUTILS_VERSION_FOR_arm_GCC_4_7=2.22
+DEFAULT_BINUTILS_VERSION_FOR_x86_GCC_4_7=2.22
+DEFAULT_BINUTILS_VERSION_FOR_mips_GCC_4_7=2.22
 
 DEFAULT_GDB_VERSION=7.4
 DEFAULT_GDB_VERSION_FOR_GCC_4_4_3=6.6
@@ -81,6 +84,9 @@ DEFAULT_ARCH_TOOLCHAIN_PREFIX_mips=mipsel-linux-android
 
 # The space-separated list of all LLVM versions we support in NDK
 DEFAULT_LLVM_VERSION_LIST="3.1"
+
+# The default LLVM version (first item in the list)
+DEFAULT_LLVM_VERSION=$(echo "$DEFAULT_LLVM_VERSION_LIST" | tr ' ' '\n' | head -n 1)
 
 # The default URL to download the LLVM tar archive
 DEFAULT_LLVM_URL="http://llvm.org/releases"
@@ -262,6 +268,9 @@ get_arch_for_toolchain ()
     esac
     echo "$RET"
 }
+
+# The default issue tracker URL
+DEFAULT_ISSUE_TRACKER_URL="http://source.android.com/source/report-bugs.html"
 
 # Return default NDK ABI for a given architecture name
 # $1: Architecture name

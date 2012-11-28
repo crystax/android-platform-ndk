@@ -30,13 +30,13 @@
 LLVM_VERSION := 3.1
 LLVM_NAME := llvm-$(LLVM_VERSION)
 LLVM_TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(LLVM_NAME)
-LLVM_TOOLCHAIN_PREBUILT_ROOT := $(LLVM_TOOLCHAIN_ROOT)/prebuilt/$(HOST_TAG)
+LLVM_TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(LLVM_TOOLCHAIN_ROOT))
 LLVM_TOOLCHAIN_PREFIX := $(LLVM_TOOLCHAIN_PREBUILT_ROOT)/bin/
 
 TOOLCHAIN_VERSION := 4.6
 TOOLCHAIN_NAME := arm-linux-androideabi-$(TOOLCHAIN_VERSION)
 TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
-TOOLCHAIN_PREBUILT_ROOT := $(TOOLCHAIN_ROOT)/prebuilt/$(HOST_TAG)
+TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/arm-linux-androideabi-
 
 TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang
@@ -47,8 +47,7 @@ TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++
 #
 
 TARGET_CFLAGS := \
-    -B$(TOOLCHAIN_PREBUILT_ROOT) \
-    -isystem $(LLVM_TOOLCHAIN_PREBUILT_ROOT)/lib/clang/$(LLVM_VERSION)/include \
+    -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
     -fpic \
     -ffunction-sections \
     -funwind-tables \
@@ -57,7 +56,7 @@ TARGET_CFLAGS := \
     -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__
 
 TARGET_LDFLAGS := \
-    -B$(TOOLCHAIN_PREBUILT_ROOT)
+    -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT))
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
@@ -65,43 +64,49 @@ TARGET_C_INCLUDES := \
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
     LLVM_TRIPLE := armv7-none-linux-androideabi
 
-    TARGET_CFLAGS += -ccc-host-triple $(LLVM_TRIPLE) \
+    TARGET_CFLAGS += -target $(LLVM_TRIPLE) \
                      -march=armv7-a \
                      -mfloat-abi=softfp \
-                     -mfpu=vfp3-d16 \
-                     -integrated-as
+                     -mfpu=vfpv3-d16
 
-    TARGET_LDFLAGS += -ccc-host-triple $(LLVM_TRIPLE) \
+    TARGET_LDFLAGS += -target $(LLVM_TRIPLE) \
                       -Wl,--fix-cortex-a8
 else
     LLVM_TRIPLE := armv5te-none-linux-androideabi
 
-    TARGET_CFLAGS += -ccc-host-triple $(LLVM_TRIPLE) \
+    TARGET_CFLAGS += -target $(LLVM_TRIPLE) \
                      -march=armv5te \
                      -mtune=xscale \
                      -msoft-float
 
-    TARGET_LDFLAGS += -ccc-host-triple $(LLVM_TRIPLE)
+    TARGET_LDFLAGS += -target $(LLVM_TRIPLE)
 endif
 
 TARGET_CFLAGS.neon := -mfpu=neon
 
 TARGET_arm_release_CFLAGS :=  -O2 \
+                              -g \
+                              -DNDEBUG \
                               -fomit-frame-pointer \
-                              -fstrict-aliasing \
-                              -funswitch-loops
+                              -fstrict-aliasing
 
 TARGET_thumb_release_CFLAGS := -mthumb \
                                -Os \
+                               -g \
+                               -DNDEBUG \
                                -fomit-frame-pointer \
                                -fno-strict-aliasing
 
 # When building for debug, compile everything as arm.
 TARGET_arm_debug_CFLAGS := $(TARGET_arm_release_CFLAGS) \
+                           -O0 \
+                           -UNDEBUG \
                            -fno-omit-frame-pointer \
                            -fno-strict-aliasing
 
 TARGET_thumb_debug_CFLAGS := $(TARGET_thumb_release_CFLAGS) \
+                             -O0 \
+                             -UNDEBUG \
                              -marm \
                              -fno-omit-frame-pointer
 

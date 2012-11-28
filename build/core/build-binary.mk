@@ -60,6 +60,14 @@ LOCAL_OBJECTS :=
 #
 LOCAL_CFLAGS := -DANDROID $(LOCAL_CFLAGS)
 
+# enable PIE for executable beyond certain API level
+ifeq ($(NDK_APP_PIE),true)
+  ifeq ($(call module-get-class,$(LOCAL_MODULE)),EXECUTABLE)
+    LOCAL_CFLAGS += -fPIE
+    LOCAL_LDFLAGS += -fPIE -pie
+  endif
+endif
+
 #
 # Add the default system shared libraries to the build
 #
@@ -68,7 +76,6 @@ ifeq ($(LOCAL_SYSTEM_SHARED_LIBRARIES),none)
 else
   LOCAL_SHARED_LIBRARIES += $(LOCAL_SYSTEM_SHARED_LIBRARIES)
 endif
-
 
 #
 # Check LOCAL_CPP_EXTENSION, use '.cpp' by default
@@ -81,7 +88,7 @@ endif
 LOCAL_CPP_EXTENSION := $(strip $(LOCAL_CPP_EXTENSION))
 ifeq ($(LOCAL_CPP_EXTENSION),)
   # Match the default GCC C++ extensions.
-  LOCAL_CPP_EXTENSION := .cc .cp .cxx .cpp .CPP .c++ .C
+  LOCAL_CPP_EXTENSION := $(default-c++-extensions)
 else
 endif
 
@@ -222,6 +229,12 @@ ifeq ($(LOCAL_ARM_MODE),thumb)
 endif
 $(call tag-src-files,$(arm_sources),arm)
 
+# tag debug if APP_OPTIM is 'debug'
+#
+ifeq ($(APP_OPTIM),debug)
+    $(call tag-src-files,$(LOCAL_SRC_FILES),debug)
+endif
+
 # Process all source file tags to determine toolchain-specific
 # target compiler flags, and text.
 #
@@ -341,7 +354,8 @@ endif
 # The list of object/static/shared libraries passed to the linker when
 # building shared libraries and executables. order is important.
 #
-linker_objects_and_libraries := $(strip $(call TARGET-get-linker-objects-and-libraries,\
+# Cannot use immediate evaluation because PRIVATE_LIBGCC may not be defined at this point.
+linker_objects_and_libraries = $(strip $(call TARGET-get-linker-objects-and-libraries,\
     $(LOCAL_OBJECTS), \
     $(static_libraries), \
     $(whole_static_libraries), \
@@ -470,7 +484,6 @@ $(LOCAL_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries
 	$(hide) $(call host-install,$(PRIVATE_SRC),$(PRIVATE_DST))
 	$(hide) $(PRIVATE_STRIP_CMD)
 
-$(call generate-dir,$(NDK_APP_DST_DIR))
-$(LOCAL_INSTALLED): $(NDK_APP_DST_DIR)
+$(call generate-file-dir,$(LOCAL_INSTALLED))
 
 endif

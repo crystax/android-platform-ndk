@@ -30,13 +30,13 @@
 LLVM_VERSION := 3.1
 LLVM_NAME := llvm-$(LLVM_VERSION)
 LLVM_TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(LLVM_NAME)
-LLVM_TOOLCHAIN_PREBUILT_ROOT := $(LLVM_TOOLCHAIN_ROOT)/prebuilt/$(HOST_TAG)
+LLVM_TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(LLVM_TOOLCHAIN_ROOT))
 LLVM_TOOLCHAIN_PREFIX := $(LLVM_TOOLCHAIN_PREBUILT_ROOT)/bin/
 
 TOOLCHAIN_VERSION := 4.6
 TOOLCHAIN_NAME := mipsel-linux-android-$(TOOLCHAIN_VERSION)
 TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
-TOOLCHAIN_PREBUILT_ROOT := $(TOOLCHAIN_ROOT)/prebuilt/$(HOST_TAG)
+TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/mipsel-linux-android-
 
 TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang
@@ -49,8 +49,8 @@ TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++
 LLVM_TRIPLE := mipsel-none-linux-android
 
 TARGET_CFLAGS := \
-        -B$(TOOLCHAIN_PREBUILT_ROOT) \
-        -ccc-host-triple $(LLVM_TRIPLE) \
+        -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
+        -target $(LLVM_TRIPLE) \
         -fpic \
         -fno-strict-aliasing \
         -finline-functions \
@@ -59,16 +59,19 @@ TARGET_CFLAGS := \
         -fmessage-length=0
 
 TARGET_LDFLAGS := \
-        -B$(TOOLCHAIN_PREBUILT_ROOT) \
-        -ccc-host-triple $(LLVM_TRIPLE)
+        -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
+        -target $(LLVM_TRIPLE)
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
 
 TARGET_mips_release_CFLAGS := -O2 \
+                              -g \
+                              -DNDEBUG \
                               -fomit-frame-pointer
 
-TARGET_mips_debug_CFLAGS := -O0 -g \
+TARGET_mips_debug_CFLAGS := -O0 \
+                            -g \
                             -fno-omit-frame-pointer
 
 

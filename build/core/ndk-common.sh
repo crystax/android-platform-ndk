@@ -271,6 +271,14 @@ log2 "HOST_EXE=$HOST_EXE"
 HOST_ARCH=`uname -m`
 case "$HOST_ARCH" in
     i?86) HOST_ARCH=x86
+    # "uname -m" reports i386 on Snow Leopard even though its architecture is
+    # 64-bit. In order to use it to build 64-bit toolchains we need to fix the
+    # reporting anomoly here.
+    if [ "$HOST_OS" = darwin ] ; then
+        if ! echo __LP64__ | (CCOPTS= gcc -E - 2>/dev/null) | grep -q __LP64__ ; then
+            HOST_ARCH=x86_64
+        fi
+    fi
     ;;
     amd64) HOST_ARCH=x86_64
     ;;
@@ -617,6 +625,14 @@ prepare_download ()
     find_program CMD_SCRP scp
 }
 
+find_pbzip2 ()
+{
+    if [ -z "$_PBZIP2_initialized" ] ; then
+        find_program PBZIP2 pbzip2
+        _PBZIP2_initialized="yes"
+    fi
+}
+
 # Download a file with either 'curl', 'wget' or 'scp'
 #
 # $1: source URL (e.g. http://foo.com, ssh://blah, /some/path)
@@ -690,7 +706,12 @@ unpack_archive ()
             run tar z$TARFLAGS "$ARCHIVE" -C $DIR
             ;;
         *.tar.bz2)
-            run tar j$TARFLAGS "$ARCHIVE" -C $DIR
+            find_pbzip2
+            if [ -n "$PBZIP2" ] ; then
+                run tar --use-compress-prog=pbzip2 -$TARFLAGS "$ARCHIVE" -C $DIR
+            else
+                run tar j$TARFLAGS "$ARCHIVE" -C $DIR
+            fi
             ;;
         *)
             panic "Cannot unpack archive with unknown extension: $ARCHIVE"
@@ -737,7 +758,12 @@ pack_archive ()
             (cd $SRCDIR && run tar z$TARFLAGS "$ARCHIVE" $SRCFILES)
             ;;
         *.tar.bz2)
-            (cd $SRCDIR && run tar j$TARFLAGS "$ARCHIVE" $SRCFILES)
+            find_pbzip2
+            if [ -n "$PBZIP2" ] ; then
+                (cd $SRCDIR && run tar --use-compress-prog=pbzip2 -$TARFLAGS "$ARCHIVE" $SRCFILES)
+            else
+                (cd $SRCDIR && run tar j$TARFLAGS "$ARCHIVE" $SRCFILES)
+            fi
             ;;
         *)
             panic "Unsupported archive format: $ARCHIVE"

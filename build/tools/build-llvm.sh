@@ -66,8 +66,8 @@ set_parameters ()
         exit 1
     fi
 
-    if [ ! -d "$SRC_DIR/llvm" ] ; then
-        echo "ERROR: Source directory does not contain llvm sources: $SRC_DIR"
+    if [ ! -d "$SRC_DIR/$TOOLCHAIN/llvm" ] ; then
+        echo "ERROR: Source directory does not contain llvm sources: $SRC_DIR/$TOOLCHAIN/llvm"
         exit 1
     fi
 
@@ -96,10 +96,6 @@ set_parameters ()
         echo "ERROR: Missing toolchain name parameter. See --help for details."
         exit 1
     fi
-
-    if [ ! -d "$SRC_DIR/llvm/$TOOLCHAIN" ] ; then
-        echo "ERROR: Source directory does not contain llvm sources for $TOOLCHAIN"
-    fi
 }
 
 set_parameters $PARAMETERS
@@ -125,10 +121,11 @@ TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
 dump "Configure: $TOOLCHAIN toolchain build"
 cd $BUILD_OUT
 export CC CXX CFLAGS CXXFLAGS
-run $SRC_DIR/llvm/$TOOLCHAIN/configure \
+run $SRC_DIR/$TOOLCHAIN/llvm/configure \
     --prefix=$TOOLCHAIN_BUILD_PREFIX \
     --host=$ABI_CONFIGURE_HOST \
     --build=$ABI_CONFIGURE_BUILD \
+    --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
     --enable-targets=arm,mips,x86 \
     $CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
@@ -137,7 +134,7 @@ fail_panic "Couldn't configure llvm toolchain"
 # build the toolchain
 dump "Building : llvm toolchain [this can take a long time]."
 cd $BUILD_OUT
-export CC CXX CFLAGS CXXFLAGS
+export CC CXX CFLAGS CXXFLAGS REQUIRES_RTTI=1
 run make -j$NUM_JOBS
 fail_panic "Couldn't compile llvm toolchain"
 
@@ -152,6 +149,17 @@ rm -rf $TOOLCHAIN_BUILD_PREFIX/include
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/*.a
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/*.so
 rm -rf $TOOLCHAIN_BUILD_PREFIX/share
+
+UNUSED_LLVM_EXECUTABLES="
+bugpoint c-index-test clang-tblgen lli llvm-ar llvm-as llvm-bcanalyzer
+llvm-config llvm-cov llvm-diff llvm-dwarfdump llvm-extract llvm-ld llvm-mc
+llvm-nm llvm-objdump llvm-prof llvm-ranlib llvm-readobj llvm-rtdyld llvm-size
+llvm-stress llvm-stub llvm-tblgen macho-dump"
+
+for i in $UNUSED_LLVM_EXECUTABLES; do
+    rm -f $TOOLCHAIN_BUILD_PREFIX/bin/$i
+    rm -f $TOOLCHAIN_BUILD_PREFIX/bin/$i.exe
+done
 
 # copy to toolchain path
 run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"

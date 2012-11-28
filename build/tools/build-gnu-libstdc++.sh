@@ -42,6 +42,8 @@ The output will be placed in appropriate sub-directories of
 <ndk>/$GNUSTL_SUBDIR/<gcc-version>, but you can override this with the --out-dir=<path>
 option.
 "
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC versions"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
@@ -59,14 +61,10 @@ register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directl
 ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
-GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "Specify list of GCC versions to build by"
-
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
 
-NUM_JOBS=$BUILD_NUM_CPUS
-register_var_option "-j<number>" NUM_JOBS "Run <number> build jobs in parallel"
+register_jobs_option
 
 extract_parameters "$@"
 
@@ -193,7 +191,12 @@ build_gnustl_for_abi ()
     if [ $LIBTYPE = "static" ]; then
         # Ensure we disable visibility for the static library to reduce the
         # size of the code that will be linked against it.
-        LIBTYPE_FLAGS="--enable-static --disable-shared --disable-visibility"
+        LIBTYPE_FLAGS="--enable-static --disable-shared"
+        if [ $GCC_VERSION = "4.4.3" -o $GCC_VERSION = "4.6" ]; then
+            LIBTYPE_FLAGS=$LIBTYPE_FLAGS" --disable-visibility"
+        else
+            LIBTYPE_FLAGS=$LIBTYPE_FLAGS" --disable-libstdcxx-visibility"
+        fi
         CXXFLAGS=$CXXFLAGS" -fvisibility=hidden -fvisibility-inlines-hidden"
     else
         LIBTYPE_FLAGS="--disable-static --enable-shared"
@@ -266,8 +269,6 @@ copy_gnustl_libs ()
     # Note: we need to rename libgnustl_shared.a to libgnustl_static.a
     cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/libgnustl_static.a"
 }
-
-
 
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do

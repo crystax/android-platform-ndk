@@ -136,6 +136,9 @@ check-required-vars = $(foreach __varname,$1,\
   )\
 )
 
+# The list of default C++ extensions supported by GCC.
+default-c++-extensions := .cc .cp .cxx .cpp .CPP .c++ .C
+
 # -----------------------------------------------------------------------------
 # Function : host-path
 # Arguments: 1: file path
@@ -286,7 +289,7 @@ generate-dir = $(eval $(call ev-generate-dir,$1))
 define ev-generate-file-dir
 __ndk_file_dir := $(call parent-dir,$1)
 $$(call generate-dir,$$(__ndk_file_dir))
-$1: $$(__ndk_file_dir)
+$1:| $$(__ndk_file_dir)
 endef
 
 generate-file-dir = $(eval $(call ev-generate-file-dir,$1))
@@ -856,10 +859,10 @@ module-has-objc++-sources = $(strip $(call module-get-objc++-sources,$1))
 
 # Return the C++ extension of a given module
 # $1: module name
-module-get-cpp-extension = $(strip \
+module-get-c++-extensions = $(strip \
     $(if $(__ndk_modules.$1.CPP_EXTENSION),\
         $(__ndk_modules.$1.CPP_EXTENSION),\
-        .cpp\
+        $(default-c++-extensions)\
     ))
 
 # Return the list of C++ sources of a given module
@@ -867,7 +870,8 @@ module-get-cpp-extension = $(strip \
 module-get-c++-sources = \
     $(eval __files := $(__ndk_modules.$1.SRC_FILES:%.neon=%)) \
     $(eval __files := $(__files:%.arm=%)) \
-    $(filter %$(call module-get-cpp-extension,$1),$(__files))
+    $(eval __extensions := $(call module-get-c++-extensions,$1))\
+    $(filter $(foreach __extension,$(__extensions),%$(__extension)),$(__files))
 
 # Returns true if a module has C++ sources
 #
@@ -1328,7 +1332,7 @@ NDK_APP_VARS_REQUIRED :=
 NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CXXFLAGS \
                          APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
                          APP_PROJECT_PATH APP_STL APP_SHORT_COMMANDS \
-                         APP_CRYSTAX APP_OBJC
+                         APP_PIE APP_CRYSTAX APP_OBJC
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
@@ -1411,7 +1415,7 @@ convert-deps = $1.org
 cmd-convert-deps = && $(NDK_DEPENDENCIES_CONVERTER) $1
 else
 convert-deps = $1
-cmd-convert-deps = 
+cmd-convert-deps =
 endif
 
 # This assumes that many variables have been pre-defined:
