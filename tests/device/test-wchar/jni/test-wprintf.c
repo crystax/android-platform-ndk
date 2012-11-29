@@ -3,13 +3,19 @@
 GLOBAL
 int test_swprintf()
 {
-    wchar_t wbuf[1024];
+
+#define WBUF_SIZE 1024
+
+    wchar_t wbuf[WBUF_SIZE];
+    int len, checklen;
 
 #define DO_WPRINTF_TEST(n, check, fmt, ...) \
     memset(wbuf, 0, sizeof wbuf); \
-    if (swprintf(wbuf, sizeof wbuf, L##fmt, ##__VA_ARGS__) != wcslen(L##check)) \
+    len = swprintf(wbuf, WBUF_SIZE, L##fmt, ##__VA_ARGS__); \
+    checklen = wcslen(L##check); \
+    if (len != checklen) \
     { \
-        printf("FAIL! wbuf is \"%ls\", but expected \"%ls\"\n", wbuf, L##check); \
+        printf("FAIL! wbuf len is %d, but expected %d\n", len, checklen); \
         return 1; \
     } \
     if (wcscmp(wbuf, L##check) != 0) \
