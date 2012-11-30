@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -235,8 +235,8 @@ if [ -z "$EXPLICIT_EXPAT_VERSION" ]; then
     dump "Auto-config: --expat-version=$EXPAT_VERSION"
 fi
 
-if [ ! -f $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz ] ; then
-    echo "ERROR: Missing expat sources: $SRC_DIR/expat/expat-$EXPAT_VERSION.tar.gz"
+if [ ! -d $SRC_DIR/expat/expat-$EXPAT_VERSION ] ; then
+    echo "ERROR: Missing expat sources: $SRC_DIR/expat/expat-$EXPAT_VERSION"
     echo "       Use --expat-version=<version> to specify alternative."
     exit 1
 fi
