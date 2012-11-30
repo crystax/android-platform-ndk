@@ -56,8 +56,7 @@
  * or implied, of Dmitry Moskalchuk.
  */
 
-#ifndef LIBCRYSTAX_FPMATH_H
-#define LIBCRYSTAX_FPMATH_H
+#pragma once
 
 #include <endian.h>
 #include "_fpmath.h"
@@ -105,6 +104,3 @@ union IEEEd2bits {
 #endif
 	} bits;
 };
-
-
-#endif  /* LIBCRYSTAX_FPMATH_H */
