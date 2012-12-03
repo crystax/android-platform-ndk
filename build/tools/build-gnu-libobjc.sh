@@ -60,7 +60,7 @@ ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
 GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "Specify list of GCC versions to build by"
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "Specify list of GCC versions to build by"
 
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"

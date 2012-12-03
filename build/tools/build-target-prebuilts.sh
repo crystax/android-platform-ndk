@@ -31,7 +31,7 @@ ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
 
 GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "List of GCC versions to use for build"
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to use for build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -179,13 +179,13 @@ fi
 
 if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
     dump "Building $ABIS gnustl binaries..."
-    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
     fail_panic "Could not build gnustl!"
 fi
 
 if [ "$SKIP_BUILD_GNUOBJC" != "yes" ]; then
     dump "Building $ABIS gnuobjc binaries..."
-    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
     fail_panic "Could not build gnuobjc!"
 fi
 

@@ -32,7 +32,7 @@ ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
 
 GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "Specify GCC versions to build"
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to build"
 
 SYSTEMS=$HOST_TAG32
 if [ "$HOST_TAG32" = "linux-x86" ]; then
@@ -109,7 +109,7 @@ fi
 FLAGS=$FLAGS" --ndk-dir=$NDK_DIR"
 FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"
-FLAGS=$FLAGS" --gcc-ver-list=$(spaces_to_commas $GCC_VERSION_LIST)"
+FLAGS=$FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 
 if [ -n "$XCODE_PATH" ]; then
     FLAGS=$FLAGS" --xcode=$XCODE_PATH"

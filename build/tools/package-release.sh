@@ -53,8 +53,8 @@ register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architecture(s)"
 
-GCC_VERSIONS=$SUPPORTED_GCC_VERSIONS
-register_var_option "--gcc-versions=<list>" GCC_VERSIONS "Specify list of GCC versions"
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions"
 
 # set to 'yes' if we should use 'git ls-files' to list the files to
 # be copied into the archive.
@@ -111,7 +111,7 @@ extract_parameters "$@"
 # Ensure that SYSTEMS is space-separated
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
 
-GCC_VERSIONS=$(commas_to_spaces $GCC_VERSIONS)
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 # Do we need to support x86?
 ARCHS=$(commas_to_spaces $ARCHS)
@@ -150,7 +150,7 @@ LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 # Ensure that TOOLCHAINS is space-separated after this.
 #
 TOOLCHAINS=
-for GCC_VERSION in $GCC_VERSIONS; do
+for GCC_VERSION in $GCC_VERSION_LIST; do
     TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_gcc_and_arch $GCC_VERSION arm)"
 done
 if [ -n "$OPTION_TOOLCHAINS" ]; then

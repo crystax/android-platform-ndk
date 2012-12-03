@@ -46,7 +46,7 @@ ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
 
 GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-register_var_option "--gcc-ver-list=<list>" GCC_VERSION_LIST "List of GCC versions to build"
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -243,7 +243,7 @@ do_remote_host_build ()
         for GCC_VERSION in $GCC_VERSION_LIST; do
             dump "Running remote $ARCH-$GCC_VERSION toolchain build..."
             SYSROOT=$TMPREMOTE/ndk/platforms/android-$(get_default_api_level_for_arch $ARCH)/arch-$ARCH
-            run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --gcc-versions=$GCC_VERSION --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
+            run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --gcc-version-list=$GCC_VERSION --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
             fail_panic "Could not build prebuilt $ARCH-$GCC_VERSION toolchain on Darwin!"
         done
     done
