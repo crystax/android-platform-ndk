@@ -33,17 +33,17 @@
 /*
  * Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Dmitry Moskalchuk ''AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Dmitry Moskalchuk OR
@@ -53,7 +53,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of Dmitry Moskalchuk.
@@ -121,6 +121,26 @@ struct grouping_state {
 };
 
 static const mbstate_t initial_mbs;
+
+static inline int
+crystax_use_ms_style_wprintf(void)
+{
+    return getenv("CRYSTAX_USE_MS_STYLE_WPRINTF") ? 1 : 0;
+}
+
+static inline int
+crystax_wprintf_selector(int flags)
+{
+    if (crystax_use_ms_style_wprintf()) {
+        if (!(flags & SHORTINT))
+            return 1;
+    } else {
+        if (flags & LONGINT)
+            return 1;
+    }
+
+    return 0;
+}
 
 static inline wchar_t
 get_decpt(void)
@@ -712,13 +732,16 @@ reswitch:	switch (ch) {
 			flags |= SIZET;
 			goto rflag;
 		case 'C':
-			flags |= LONGINT;
+            if (crystax_use_ms_style_wprintf())
+                flags |= SHORTINT;
+            else
+                flags |= LONGINT;
 			/*FALLTHROUGH*/
 		case 'c':
-			if (flags & LONGINT)
-				*(cp = buf) = (wchar_t)GETARG(wint_t);
-			else
-				*(cp = buf) = (wchar_t)btowc(GETARG(int));
+            if (crystax_wprintf_selector(flags))
+                *(cp = buf) = (wchar_t)GETARG(wint_t);
+            else
+                *(cp = buf) = (wchar_t)btowc(GETARG(int));
 			size = 1;
 			sign = '\0';
 			break;
@@ -915,10 +938,13 @@ fp_common:
 			ox[1] = 'x';
 			goto nosign;
 		case 'S':
-			flags |= LONGINT;
+            if (crystax_use_ms_style_wprintf())
+                flags |= SHORTINT;
+            else
+                flags |= LONGINT;
 			/*FALLTHROUGH*/
 		case 's':
-			if (flags & LONGINT) {
+            if (crystax_wprintf_selector(flags)) {
 				if ((cp = GETARG(wchar_t *)) == NULL)
 					cp = L"(null)";
 			} else {
