@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -182,6 +182,7 @@ dump "Configure: $TOOLCHAIN gdbserver-$GDB_VERSION build."
 OLD_CC="$CC"
 OLD_CFLAGS="$CFLAGS"
 OLD_LDFLAGS="$LDFLAGS"
+OLD_LIBS="$LIBS"
 
 INCLUDE_DIRS=\
 "-I$TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include \
@@ -200,7 +201,7 @@ case "$GDB_VERSION" in
     6.6)
         CONFIGURE_FLAGS="--with-sysroot=$BUILD_SYSROOT"
         ;;
-    7.3.x|7.4)
+    7.3.x|7.4|7.5)
         # This flag is required to link libthread_db statically to our
         # gdbserver binary. Otherwise, the program will try to dlopen()
         # the threads binary, which is not possible since we build a
@@ -219,6 +220,7 @@ cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export CFLAGS="-O2 -nostdlib -D__ANDROID__ -DANDROID -DSTDC_HEADERS $INCLUDE_DIRS $GDBSERVER_CFLAGS"  &&
 export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined $LIBRARY_LDFLAGS $GDBSERVER_LDFLAGS" &&
+export LIBS="-lc" &&
 run $SRC_DIR/configure \
 --host=$GDBSERVER_HOST \
 $CONFIGURE_FLAGS
@@ -229,6 +231,7 @@ fi
 CC="$OLD_CC"
 CFLAGS="$OLD_CFLAGS"
 LDFLAGS="$OLD_LDFLAGS"
+LIBS="$OLD_LIBS"
 
 # build gdbserver
 dump "Building : $TOOLCHAIN gdbserver."
