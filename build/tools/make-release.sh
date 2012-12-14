@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ nice Internet connection and plenty of RAM and disk space.
 
 Note that on Linux, if you have the 'mingw32' package installed, the script
 will also automatically generate a windows release package. You can prevent
-that by using the --platforms option.
+that by using the --systems option.
 
 IMPORTANT:
         If you intend to package NDK releases often, please read the
@@ -111,6 +111,9 @@ if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
         exit 1
     fi
 fi
+
+extract_parameters "$@"
+
 HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 # Filter out darwin-x86 in $HOST_SYSTEMS_FLAGS, because
 # 1) On linux, cross-compiling is done via "--darwin-ssh".  Keeping darwin-x86 in --systems list
@@ -119,8 +122,6 @@ HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 #
 HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
-
-extract_parameters "$@"
 
 setup_default_log_file $OUT_DIR/build.log
 
