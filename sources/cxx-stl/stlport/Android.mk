@@ -1,4 +1,6 @@
 LOCAL_PATH := $(call my-dir)
+#CRYSTAX_SRCDIR = $ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
+CRYSTAX_SRCDIR := $(dir $(LOCAL_PATH))/../crystax
 
 # Normally, we distribute the NDK with prebuilt binaries of STLport
 # in $LOCAL_PATH/<abi>/. However,
@@ -50,7 +52,7 @@ libstlport_src_files := \
         src/c_locale.c \
         src/cxa.c \
 
-libstlport_cflags := -D_GNU_SOURCE
+libstlport_cflags := -D_GNU_SOURCE  -I$(CRYSTAX_SRCDIR)/include
 libstlport_cppflags := -fuse-cxa-atexit
 libstlport_c_includes := $(libstlport_path)/stlport
 
@@ -110,6 +112,7 @@ LOCAL_CPPFLAGS := $(libstlport_cppflags)
 LOCAL_C_INCLUDES := $(libstlport_c_includes)
 LOCAL_EXPORT_C_INCLUDES := $(libstlport_c_includes)
 LOCAL_CPP_FEATURES := rtti exceptions
+LOCAL_LDLIBS := -L$(CRYSTAX_SRCDIR)/libs/$(TARGET_ARCH_ABI)
 include $(BUILD_SHARED_LIBRARY)
 
 endif # STLPORT_FORCE_REBUILD == true
