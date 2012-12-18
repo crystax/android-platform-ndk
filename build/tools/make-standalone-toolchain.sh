@@ -264,22 +264,22 @@ CRYSTAX_LIBS=$CRYSTAX_DIR/libs
 copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
 case "$ARCH" in
     arm)
-        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_static.a"
-        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_shared.so"
-        mv -f "$ABI_TARGET/lib/libcrystax_static.a" "$ABI_TARGET/lib/libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.so"
 
-        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libcrystax_static.a"
-        copy_file_list "$CRYSTAX_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libcrystax_shared.so"
-        mv -f "$ABI_TARGET/lib/thumb/libcrystax_static.a" "$ABI_TARGET/lib/thumb/libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.so"
 
-        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libcrystax_static.a"
-        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libcrystax_shared.so"
-        mv -f "$ABI_TARGET/lib/armv7-a/libcrystax_static.a" "$ABI_TARGET/lib/armv7-a/libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.so"
+        ;;
+    mips)
+        copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.so"
         ;;
     x86)
-        copy_file_list "$CRYSTAX_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_static.a"
-        copy_file_list "$CRYSTAX_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libcrystax_shared.so"
-        mv -f "$ABI_TARGET/lib/libcrystax_static.a" "$ABI_TARGET/lib/libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/x86" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/x86" "$ABI_TARGET/lib" "libcrystax.so"
         ;;
     *)
         dump "ERROR: Unsupported NDK architecture!"
@@ -288,26 +288,30 @@ esac
 dump "Copying libobjc headers and libraries..."
 
 GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
-GNUOBJC_LIBS=$GNUOBJC_DIR/libs
 
-copy_directory "$GNUOBJC_DIR/include/$GCC_VERSION" "$ABI_TARGET/include"
+copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$ABI_TARGET/include"
 case "$ARCH" in
     arm)
-        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_static.a"
-        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
         mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
 
-        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
-        copy_file_list "$GNUOBJC_LIBS/armeabi/$GCC_VERSION" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
         mv -f "$ABI_TARGET/lib/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/thumb/libobjc.a"
 
-        copy_file_list "$GNUOBJC_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
-        copy_file_list "$GNUOBJC_LIBS/armeabi-v7a/$GCC_VERSION" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
         mv -f "$ABI_TARGET/lib/armv7-a/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/libobjc.a"
         ;;
+    mips)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
     x86)
-        copy_file_list "$GNUOBJC_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_static.a"
-        copy_file_list "$GNUOBJC_LIBS/x86/$GCC_VERSION" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
         mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
         ;;
     *)
@@ -322,7 +326,7 @@ GNUSTL_LIBS=$GNUSTL_DIR/libs
 ABI_STL="$TMPDIR/$ABI_CONFIGURE_TARGET"
 ABI_STL_INCLUDE="$TMPDIR/include/c++/$GCC_BASE_VERSION"
 
-copy_directory "$GNUSTL_DIR/include/$GCC_VERSION" "$ABI_STL_INCLUDE"
+copy_directory "$GNUSTL_DIR/include" "$ABI_STL_INCLUDE"
 ABI_STL_INCLUDE_TARGET="$ABI_STL_INCLUDE/$ABI_CONFIGURE_TARGET"
 mkdir -p "$ABI_STL_INCLUDE_TARGET"
 fail_panic "Can't create directory: $ABI_STL_INCLUDE_TARGET"
