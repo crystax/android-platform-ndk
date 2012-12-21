@@ -149,11 +149,7 @@ LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 #
 # Ensure that TOOLCHAINS is space-separated after this.
 #
-TOOLCHAINS=
-for GCC_VERSION in $GCC_VERSION_LIST; do
-    TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_arch arm $GCC_VERSION)"
-done
-if [ -n "$OPTION_TOOLCHAINS" ]; then
+if [ "$OPTION_TOOLCHAINS" != "$TOOLCHAINS" ]; then
     TOOLCHAINS=$(commas_to_spaces $OPTION_TOOLCHAINS)
 else
     if [ "$TRY_X86" = "yes" ]; then
