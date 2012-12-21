@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009-2010 The Android Open Source Project
+# Copyright (C) 2009-2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -151,7 +151,7 @@ LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 #
 TOOLCHAINS=
 for GCC_VERSION in $GCC_VERSION_LIST; do
-    TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_gcc_and_arch $GCC_VERSION arm)"
+    TOOLCHAINS="$TOOLCHAINS $(get_toolchain_name_for_arch arm $GCC_VERSION)"
 done
 if [ -n "$OPTION_TOOLCHAINS" ]; then
     TOOLCHAINS=$(commas_to_spaces $OPTION_TOOLCHAINS)
@@ -360,16 +360,16 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
     # Unpack C++ runtimes
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
-        unpack_prebuilt gnu-libstdc++-headers-$VERSION.tar.bz2 "$REFERENCE"
-        unpack_prebuilt gnu-libobjc-headers-$VERSION.tar.bz2 "$REFERENCE"
+        unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
+        unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     for ABI in $ABIS; do
-        unpack_prebuilt crystax-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt gabixx-libs-$ABI.tar.bz2 "$REFERENCE"
-        unpack_prebuilt stlport-libs-$ABI.tar.bz2 "$REFERENCE"
+        unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
+        unpack_prebuilt gabixx-libs-$ABI "$REFERENCE"
+        unpack_prebuilt stlport-libs-$ABI "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
-            unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
-            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI.tar.bz2 "$REFERENCE"
+            unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI "$REFERENCE"
+            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
     done
 fi
