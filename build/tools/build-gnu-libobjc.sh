@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,6 +74,8 @@ SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
+# since we do not build armeabi-v7a specific version,
+# exclude it from the list
 if [ $(echo $ABIS | tr ' ' '\n' | grep armeabi | wc -l) -gt 1 ]; then
     ABIS="armeabi "$(echo $ABIS | tr ' ' '\n' | grep -v armeabi | tr '\n' ' ')
 fi
@@ -267,7 +269,8 @@ if [ -n "$PACKAGE_DIR" ] ; then
         fail_panic "Could not package $VERSION GNU libobjc headers!"
 
         # Then, one package per version/ABI for libraries
-        for ABI in $ABIS; do
+        # readd armeabi-v7a to build specific package
+        for ABI in $ABIS armeabi-v7a; do
             FILES=""
             for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
                 FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
