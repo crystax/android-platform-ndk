@@ -1,0 +1,11 @@
+# A simple test for the minimal standard C++ library
+#
+
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+#LOCAL_CPPFLAGS += --std=c++11
+LOCAL_MODULE := test-c++11
+LOCAL_SRC_FILES := main.cpp                 \
+                   test-chrono-duration.cpp
+include $(BUILD_EXECUTABLE)
