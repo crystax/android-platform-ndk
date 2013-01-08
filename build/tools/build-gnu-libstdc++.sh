@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -167,8 +167,8 @@ build_gnustl_for_abi ()
 
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2"
-    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR"
-    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR"
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS"
+    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
