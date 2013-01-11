@@ -39,8 +39,8 @@ TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
 TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/i686-linux-android-
 
-TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang
-TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++
+TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang$(HOST_EXEEXT)
+TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++$(HOST_EXEEXT)
 
 LLVM_TRIPLE := i686-none-linux-android
 
@@ -50,7 +50,8 @@ TARGET_CFLAGS := \
     -ffunction-sections \
     -funwind-tables \
     -fstack-protector \
-    -fPIC
+    -fPIC \
+    -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include
@@ -58,7 +59,8 @@ TARGET_C_INCLUDES := \
 # Add and LDFLAGS for the target here
 TARGET_LDFLAGS := \
     -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
-    -target $(LLVM_TRIPLE)
+    -target $(LLVM_TRIPLE) \
+    -no-canonical-prefixes
 
 TARGET_x86_release_CFLAGS := -O2 \
                              -g \

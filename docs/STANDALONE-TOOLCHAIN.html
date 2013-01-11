@@ -17,7 +17,7 @@ This document explains how to do that:
 
 Before anything else, you need to decide whether your standalone toolchain
 is going to target ARM-based devices, x86-based, or MIPS-based one.
-Each architecture corresponds to a different toolchain name:
+Each architecture corresponds to a different toolchain name.  For example:
 
   * arm-linux-androideabi-4.6   => targeting ARM-based Android devices
   * x86-4.6                     => targeting x86-based Android devices
@@ -80,15 +80,23 @@ life easier. For example, consider the following command:
 This will create a directory named /tmp/my-android-toolchain containing a
 copy of the android-5/arch-arm sysroot, and of the toolchain binaries.
 
-Note that by default, the ARM-based GCC 4.6 toolchain will be selected by the script.
-Use the '--arch=x86' option to specify the x86-based one,
-use the '--arch=mips' option to specify the MIPS-based one, or alternatively
+Note that by default, the 32-bit ARM-based GCC 4.6 toolchain will be selected by the script.
+Use the '--arch=x86' option to specify the x86 GCC 4.6, or add '--arch=mips' option
+to specify the MIPS GCC 4.6, or alternatively
 '--toolchain=&lt;name&gt;'.  For example:
 
   --toolchain=x86-4.4.3                  # select x86 GCC 4.4.3 compiler
+  --toolchain=arm-linux-androideabi-4.7  # select ARM GCC 4.7 compiler
   --toolchain=mipsel-linux-android-4.6   # select MIPS GCC 4.6 compiler, same as --arch=mips
 
-If you wish, add --llvm-version=3.1 to also copy clang/llvm 3.1.
+If you wish, add '--llvm-version=3.1' to also copy clang/llvm 3.1, or
+use --toolchain with '-clang3.1' suffix.  For example:
+
+  --toolchain=arm-linux-androideabi-clang3.1  # same as --arch=arm --llvm-version=3.1
+
+You may specify --system=linux-x86_64 on 64-bit Linux or --system=darwin-x86_64 on 64-bit
+MacOSX to make 64-bit host toolchain instead of the 32-bit one (default).
+64-bit Windows toolchain isn't available yet.  See IV of NDK-BUILD.html
 
 You can later use it directly with something like:
 
@@ -126,14 +134,9 @@ ARM standalone package, clang is a one-liner:
 
 clang++ is another:
 
-   `dirname $0`/clang31 -target armv5te-none-linux-androideabi -x c++ "$@"
+   `dirname $0`/clang++31 -target armv5te-none-linux-androideabi "$@"
 
-Note that the extra "-x c++" isn't needed, but it's there to silence warning
-message when compiling *.c file:
-
-   clang31: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated
-
-Also note that for arm, clang will change target based on the presence of
+Note that for arm, clang will change target based on the presence of
 subsequent option "-march=armv7-a" and/or "-mthumb".  ie.
 
   1/ With "-march=armv7-a", -target becomes armv7-none-linux-androideabi

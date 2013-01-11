@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,25 +50,71 @@ esac
 
 # If NDK_LOG is set to 1 or true in the environment, or the command-line
 # then enable log messages below
+# Also normalize NDK_HOST_32BIT and NDK_ANALYZE to 1 or 0
 if [ -z "$NDK_LOG" ]; then
   NDK_LOG=0
 fi
 
+if [ -z "$NDK_HOST_32BIT" ]; then
+  NDK_HOST_32BIT=0
+fi
+
+if [ -z "$NDK_ANALYZE" ]; then
+  NDK_ANALYZE=0
+fi
+
+PROJECT_PATH=
+PROJECT_PATH_NEXT=
 for opt; do
-    case $opt in
-      NDK_LOG=1|NDK_LOG=true)
-        NDK_LOG=1
-        ;;
-      NDK_LOG=*)
-        NDK_LOG=0
-        ;;
-    esac
+    if [ -z "$PROJECT_PATH" -a "$PROJECT_PATH_NEXT" = "yes" ] ; then
+        PROJECT_PATH=$opt
+        PROJECT_PATH_NEXT=
+    else
+        case $opt in
+          NDK_LOG=1|NDK_LOG=true)
+            NDK_LOG=1
+            ;;
+          NDK_LOG=*)
+            NDK_LOG=0
+            ;;
+          NDK_HOST_32BIT=1|NDK_HOST_32BIT=true)
+            NDK_HOST_32BIT=1
+            ;;
+          NDK_HOST_32BIT=*)
+            NDK_HOST_32BIT=0
+            ;;
+          NDK_ANALYZE=1|NDK_ANALYZE=true)
+            NDK_ANALYZE=1
+            ;;
+          NDK_ANALYZE=*)
+            NDK_ANALYZE=0
+            ;;
+          NDK_TOOLCHAIN_VERSION=*)
+            NDK_TOOLCHAIN_VERSION=${opt#NDK_TOOLCHAIN_VERSION=}
+            ;;
+          APP_ABI=*)
+            APP_ABI=${opt#APP_ABI=}
+            ;;
+          -C)
+            PROJECT_PATH_NEXT="yes"
+            ;;
+        esac
+    fi
 done
 
 if [ "$NDK_LOG" = "true" ]; then
   NDK_LOG=1
 fi
-if [ "$NDK_LOG" = 1 ]; then
+
+if [ "$NDK_HOST_32BIT" = "true" ]; then
+  NDK_HOST_32BIT=1
+fi
+
+if [ "$NDK_ANALYZE" = "true" ]; then
+  NDK_ANALYZE=1
+fi
+
+if [ "$NDK_LOG" = "1" ]; then
   log () {
     echo "$@"
   }
@@ -112,25 +158,32 @@ case $HOST_TAG in
     file -L "$SHELL" | grep -q "x86[_-]64"
     if [ $? != 0 ]; then
       HOST_ARCH=x86
-      HOST_TAG=$HOST_OS-x86
       log "HOST_ARCH=$HOST_ARCH (32-bit userland detected)"
     fi
     ;;
-  windows-x86) # Special case windows-x86 -> windows
-    HOST_TAG=windows
 esac
 
 # Check that we have 64-bit binaries on 64-bit system, otherwise fallback
 # on 32-bit ones. This gives us more freedom in packaging the NDK.
-if [ $HOST_ARCH = x86_64 -a ! -d $PROGDIR/prebuilt/$HOST_TAG ]; then
-  HOST_TAG=$HOST_OS-x86
-  if [ $HOST_TAG = windows-x86 ]; then
-    HOST_TAG=windows
+LOG_MESSAGE=
+if [ $HOST_ARCH = x86_64 ]; then
+  if [ ! -d $PROGDIR/prebuilt/$HOST_TAG ]; then
+    HOST_ARCH=x86
+    LOG_MESSAGE="(no 64-bit prebuilt binaries detected)"
   fi
-  log "HOST_TAG=$HOST_TAG (no 64-bit prebuilt binaries detected)"
-else
-  log "HOST_TAG=$HOST_TAG"
+
+  if [ "$NDK_HOST_32BIT" = "1" ]; then
+    HOST_ARCH=x86
+    LOG_MESSAGE="(force 32-bit host toolchain)"
+  fi
 fi
+
+HOST_TAG=$HOST_OS-$HOST_ARCH
+# Special case windows-x86 -> windows
+if [ $HOST_TAG = windows-x86 ]; then
+  HOST_TAG=windows
+fi
+log "HOST_TAG=$HOST_TAG $LOG_MESSAGE"
 
 # If GNUMAKE is defined, check that it points to a valid file
 if [ -n "$GNUMAKE" ] ; then
@@ -190,125 +243,53 @@ if [ "$OSTYPE" = "cygwin" ] ; then
     log "Cygwin-compatible GNU make detected"
 fi
 
-# Detect if ANALYZE option specified in command line
-# It can be specified more than once; in this case last
-# occurence overrides all previous.
-ANALYZE=
-for param in "$@"; do
-    case $param in
-        ANALYZE=1|ANALYZE=yes|ANALYZE=true )
-            ANALYZE=1
-            ;;
-        ANALYZE=0|ANALYZE=no|ANALYZE=false )
-            ANALYZE=
-            ;;
-        * )
-            ;;
-    esac
-done
+if [ "$NDK_ANALYZE" = 1 ]; then
+    . $PROGDIR/build/tools/dev-defaults.sh  # for DEFAULT_LLVM_VERSION
 
-# Hook point for user; if someone has custom scan-build it
-# might be specified in SCAN_BUILD environment variable or
-# in command line
-for param in "$@"; do
-    case $param in
-        SCAN_BUILD=* )
-            eval $param
-            ;;
-        * )
-            ;;
-    esac
-done
-[ -z "$SCAN_BUILD" ] && SCAN_BUILD=scan-build
-
-if [ -n "$ANALYZE" ]; then
-    # Use clang static analyzer
-
-    . $PROGDIR/build/core/ndk-common.sh
-
-    force_32bit_binaries
-    compute_host_tag
-
-    # Detect working directory
-    WRKDIR=
-    for param in "$@"; do
-        if [ -n "$WRKDIR" ]; then
-            WRKDIR=$param
-            break
-        fi
-        if [ "$param" = "-C" ]; then
-            WRKDIR=1
-        fi
-    done
-
-    case "$WRKDIR" in
-        ""|1 )
-            WRKDIR=$(pwd)
-            ;;
-        /* ) ;;
-        * )
-            WRKDIR=$(pwd)/$WRKDIR
-            ;;
-    esac
-
-    HOST_SED=$PROGDIR/prebuilt/$HOST_TAG/bin/sed$HOST_EXE
-    [ -f $HOST_SED ] && HOST_SED=sed
-
-    TOOLCHAIN_ABI=
-    TOOLCHAIN_VERSION=
-    if [ -f $WRKDIR/jni/Application.mk ]; then
-        TOOLCHAIN_ABI=$(grep '^\s*APP_ABI\s*:=\s*' $WRKDIR/jni/Application.mk | $HOST_SED 's/^\s*APP_ABI\s*:=\s*\(.*\)$/\1/')
-        TOOLCHAIN_VERSION=$(grep '^\s*APP_TOOLCHAIN_VERSION\s*:=\s*' $WRKDIR/jni/Application.mk | $HOST_SED 's/^\s*APP_TOOLCHAIN_VERSION\s*:=\s*\(\S*\).*$/\1/')
-    fi
-    [ -z "$TOOLCHAIN_ABI" ] && TOOLCHAIN_ABI="armeabi"
-    [ "$TOOLCHAIN_ABI" = "all" ] && TOOLCHAIN_ABI="armeabi armeabi-v7a x86"
-    [ -z "$TOOLCHAIN_VERSION" ] && TOOLCHAIN_VERSION="4.4.3"
-
-    get_toolchain_name_for_abi()
+    # Return flags send in env. or command line which are enough to retrive APP_ABI and TOOLCHAIN_PREFIX later
+    gen_flags ()
     {
-        case $1 in
-            armeabi* )
-                echo "arm-linux-androideabi"
-                ;;
-            x86 )
-                echo "x86"
-                ;;
-        esac
+        local FLAGS=
+
+        if [ -n "$PROJECT_PATH" ] ; then
+            FLAGS=$FLAGS" -C $PROJECT_PATH"
+        fi
+        if [ -n "$APP_ABI" ] ; then
+            FLAGS=$FLAGS" APP_ABI=$APP_ABI"
+        fi
+        if [ -n "$NDK_HOST_32BIT" ] ; then
+            FLAGS=$FLAGS" NDK_HOST_32BIT=$NDK_HOST_32BIT"
+        fi
+        if [ -n "$NDK_TOOLCHAIN_VERSION" ] ; then
+            FLAGS=$FLAGS" NDK_TOOLCHAIN_VERSION=$NDK_TOOLCHAIN_VERSION"
+        fi
+        echo "$FLAGS"
     }
 
-    get_toolchain_prefix_for_abi()
+    get_build_var ()
     {
-        case $1 in
-            armeabi* )
-                echo "arm-linux-androideabi"
-                ;;
-            x86 )
-                echo "i686-android-linux"
-                ;;
-        esac
+        local VAR=$1
+        local FLAGS=`gen_flags`
+        $GNUMAKE --no-print-dir -f $PROGDIR/build/core/build-local.mk $FLAGS DUMP_${VAR} | tail -1
     }
 
-    VERBOSE=
-    for p in "$@"; do
-        case $p in
-            V=1 )
-                VERBOSE=-v
-                ;;
-            V=0 )
-                VERBOSE=
-                ;;
-            * )
-                ;;
-        esac
-    done
+    get_build_var_for_abi ()
+    {
+        local VAR=$1
+        local ABI=$2
+        local FLAGS=`gen_flags`
+        $GNUMAKE --no-print-dir -f $PROGDIR/build/core/build-local.mk $FLAGS DUMP_${VAR} APP_ABI=${ABI} | tail -1
+    }
 
-    for ABI in $TOOLCHAIN_ABI; do
-        TOOLCHAIN_NAME=$(get_toolchain_name_for_abi $ABI)
-        TOOLCHAIN_PREFIX=$(get_toolchain_prefix_for_abi $ABI)
-        TOOLCHAIN_PATH=$PROGDIR/toolchains/$TOOLCHAIN_NAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG/bin
-        SCAN_BUILD_PARAMS="--use-cc $TOOLCHAIN_PREFIX-gcc --use-c++ $TOOLCHAIN_PREFIX-g++ --status-bugs $VERBOSE"
-        PATH=$TOOLCHAIN_PATH:$PATH $SCAN_BUILD $SCAN_BUILD_PARAMS $GNUMAKE -f $PROGDIR/build/core/build-local.mk NDK_APP_ABI=$ABI "$@"
-        [ $? -ne 0 ] && exit $?
+    APP_ABIS=`get_build_var APP_ABI`
+    for ABI in $APP_ABIS; do
+        TOOLCHAIN_PREFIX=`get_build_var_for_abi TOOLCHAIN_PREFIX $ABI`
+        $PROGDIR/prebuilt/common/scan-build/scan-build \
+            --use-analyzer $PROGDIR/toolchains/llvm-${DEFAULT_LLVM_VERSION}/prebuilt/$HOST_TAG/bin/${ABI}/analyzer \
+            --use-cc ${TOOLCHAIN_PREFIX}gcc \
+            --use-c++ ${TOOLCHAIN_PREFIX}g++ \
+            --status-bugs -v -v \
+            $GNUMAKE -f $PROGDIR/build/core/build-local.mk "$@" APP_ABI=$ABI
     done
 else
     $GNUMAKE -f $PROGDIR/build/core/build-local.mk "$@"

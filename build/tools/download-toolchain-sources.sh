@@ -188,6 +188,8 @@ toolchain_clone build
 toolchain_clone gmp
 toolchain_clone mpfr
 toolchain_clone mpc
+toolchain_clone cloog
+toolchain_clone ppl
 toolchain_clone expat
 toolchain_clone binutils
 toolchain_clone gcc
@@ -199,6 +201,8 @@ toolchain_checkout "" $BRANCH build .
 toolchain_checkout "" $BRANCH gmp .
 toolchain_checkout "" $BRANCH mpfr .
 toolchain_checkout "" $BRANCH mpc .
+toolchain_checkout "" $BRANCH cloog .
+toolchain_checkout "" $BRANCH ppl .
 toolchain_checkout "" $BRANCH expat .
 toolchain_checkout "" $BRANCH binutils binutils-2.19 binutils-2.21 binutils-2.22
 toolchain_checkout "" $BRANCH gcc gcc-4.4.3 gcc-4.6 gcc-4.7
@@ -209,7 +213,19 @@ for LLVM_VERSION in $LLVM_VERSION_LIST; do
     LLVM_BRANCH="release_$LLVM_VERSION_NO_DOT"
     toolchain_checkout "llvm-$LLVM_VERSION" $LLVM_BRANCH clang .
     toolchain_checkout "llvm-$LLVM_VERSION" $LLVM_BRANCH llvm .
-    (cd "$TMPDIR/llvm-$LLVM_VERSION/llvm" && ln -s ../../clang tools)
+    # Adjust directory structure a bit
+    # 1. Create symbolic link for clang which is always built
+    # 2. Move tools/polly up to be a sibling of llvm and clang.  Script build-llvm.sh
+    #    will only create symbolic link when --with-polly is specified.
+    (cd "$TMPDIR/llvm-$LLVM_VERSION/llvm" && \
+        ln -s ../../clang tools && \
+        mv tools/polly ..)
+    # In polly/utils/cloog_src, touch Makefile.in, aclocal.m4, and configure to
+    # make sure they are not regenerated.
+    (cd "$TMPDIR/llvm-$LLVM_VERSION/polly" && \
+        find . -name "Makefile.in" -exec touch {} \; && \
+        find . -name "aclocal.m4" -exec touch {} \; && \
+        find . -name "configure" -exec touch {} \; )
 done
 
 PYVERSION=2.7.3
@@ -249,9 +265,10 @@ else
     SRC_DIR=`cd $SRC_DIR && pwd`
     rm -rf $SRC_DIR && mkdir -p $SRC_DIR
     fail_panic "Could not create target source directory: $SRC_DIR"
-    copy_directory "$TMPDIR" "$SRC_DIR"
     cp $SOURCES_LIST $SRC_DIR/SOURCES
-    fail_panic "Could not copy downloaded sources to: $SRC_DIR"
+    fail_panic "Could not copy $SOURCES_LIST to $SRC_DIR"
+    mv "$TMPDIR"/* "$SRC_DIR"  #copy_directory "$TMPDIR" "$SRC_DIR"
+    fail_panic "Could not move to target source directory: $TMPDIR -> $SRC_DIR"
     dump "Toolchain sources downloaded and copied to $SRC_DIR"
 fi
 

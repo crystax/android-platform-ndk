@@ -42,9 +42,12 @@ clean: $(cleantarget)
 
 $(cleantarget): PRIVATE_MODULE      := $(LOCAL_MODULE)
 $(cleantarget): PRIVATE_TEXT        := [$(TARGET_ARCH_ABI)]
+ifneq ($(LOCAL_BUILT_MODULE_NOT_COPIED),true)
 $(cleantarget): PRIVATE_CLEAN_FILES := $(LOCAL_BUILT_MODULE) \
                                        $($(my)OBJS)
-
+else
+$(cleantarget): PRIVATE_CLEAN_FILES := ($(my)OBJS)
+endif
 $(cleantarget)::
 	@$(HOST_ECHO) "Clean: $(PRIVATE_MODULE) $(PRIVATE_TEXT)"
 	$(hide) $(call host-rmdir,$(PRIVATE_CLEAN_FILES))
@@ -412,7 +415,7 @@ $(LOCAL_BUILT_MODULE): PRIVATE_LINKER_OBJECTS_AND_LIBRARIES := $(linker_objects_
 $(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC)
 
 $(LOCAL_BUILT_MODULE): PRIVATE_LD := $(TARGET_LD)
-$(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS)
+$(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)
 $(LOCAL_BUILT_MODULE): PRIVATE_LDLIBS  := $(LOCAL_LDLIBS) $(TARGET_LDLIBS)
 
 $(LOCAL_BUILT_MODULE): PRIVATE_NAME := $(notdir $(LOCAL_BUILT_MODULE))
@@ -460,9 +463,9 @@ ALL_EXECUTABLES += $(LOCAL_BUILT_MODULE)
 endif
 
 #
-# If this is a prebuilt module
+# If this is a copyable prebuilt module
 #
-ifeq ($(call module-is-prebuilt,$(LOCAL_MODULE)),$(true))
+ifeq ($(call module-is-copyable,$(LOCAL_MODULE)),$(true))
 $(LOCAL_BUILT_MODULE): $(LOCAL_OBJECTS)
 	@ $(HOST_ECHO) "Prebuilt       : $(PRIVATE_NAME) <= $(call pretty-dir,$(dir $<))"
 	$(hide) $(call host-cp,$<,$@)

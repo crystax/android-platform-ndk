@@ -39,8 +39,8 @@ TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
 TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/arm-linux-androideabi-
 
-TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang
-TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++
+TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang$(HOST_EXEEXT)
+TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++$(HOST_EXEEXT)
 
 #
 # CFLAGS and LDFLAGS
@@ -52,11 +52,11 @@ TARGET_CFLAGS := \
     -ffunction-sections \
     -funwind-tables \
     -fstack-protector \
-    -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ \
-    -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__
+    -no-canonical-prefixes
 
 TARGET_LDFLAGS := \
-    -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT))
+    -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
+    -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include

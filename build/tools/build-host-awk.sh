@@ -58,6 +58,13 @@ BUILD_MINGW=
 if [ "$MINGW" = "yes" ]; then
   BUILD_MINGW=yes
 fi
+if [ "$TRY64" = "yes" ]; then
+  BUILD_TRY64=yes
+fi
+V=0
+if [ "$VERBOSE2" = "yes" ]; then
+  V=1
+fi
 
 CFLAGS="$HOST_CFLAGS"
 CFLAGS=$CFLAGS" -O2 -I$BUILD_DIR -I$AWK_SRCDIR"
@@ -69,14 +76,17 @@ mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
 prepare_mingw_toolchain $BUILD_DIR
 log "Building $HOST_TAG awk"
 export HOST_CC="$CC" &&
+export CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 run $GNUMAKE \
     -C "$AWK_SRCDIR" \
     -j $NUM_JOBS \
     CFLAGS="$CFLAGS" \
     LDFLAGS="$LDFLAGS" \
     BUILD_DIR="$BUILD_DIR" \
-    MINGW="$BUILD_MINGW"
-fail_panic "Failed to build the sed-$AWK_VERSION executable!"
+    MINGW="$BUILD_MINGW" \
+    TRY64="$BUILD_TRY64" \
+    V="$V"
+fail_panic "Failed to build the awk-$AWK_VERSION executable!"
 
 log "Copying executable to prebuilt location"
 run mkdir -p $(dirname "$OUT") && cp "$BUILD_DIR/$(get_host_exec_name ndk-awk)" "$OUT"

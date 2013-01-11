@@ -11,6 +11,7 @@ LDFLAGS := -Wl,-s
 BISON   := bison
 
 MINGW := $(strip $(WIN32))
+TRY64 := $(strip $(TRY64))
 
 ifeq ($(V),1)
 hide :=
@@ -30,8 +31,14 @@ SOURCES := \
 EXE :=
 
 ifdef MINGW
+ifdef TRY64
+CC      := x86_64-pc-mingw32msvc-gcc
+else
 CC      := i586-pc-mingw32msvc-gcc
+endif
 EXE     := .exe
+else
+WINE    :=
 endif
 
 PROGRAM := $(BUILD_DIR)/ndk-awk$(EXE)
@@ -77,7 +84,7 @@ $(eval $(call build-c-file,$(PROCTAB_C),$(PROCTAB_O)))
 
 $(PROCTAB_C): $(MAKETAB) $(YTAB_H)
 	@echo "Gen: $(notdir $@)"
-	$(hide)$(MAKETAB) $(YTAB_H) > $@
+	$(hide)$(WINE) $(MAKETAB) $(YTAB_H) > $@
 
 
 $(PROGRAM): $(OBJECTS)

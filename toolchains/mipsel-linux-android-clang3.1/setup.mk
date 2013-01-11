@@ -39,8 +39,8 @@ TOOLCHAIN_ROOT := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
 TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/mipsel-linux-android-
 
-TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang
-TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++
+TARGET_CC := $(LLVM_TOOLCHAIN_PREFIX)clang$(HOST_EXEEXT)
+TARGET_CXX := $(LLVM_TOOLCHAIN_PREFIX)clang++$(HOST_EXEEXT)
 
 #
 # CFLAGS, C_INCLUDES, and LDFLAGS
@@ -56,11 +56,13 @@ TARGET_CFLAGS := \
         -finline-functions \
         -ffunction-sections \
         -funwind-tables \
-        -fmessage-length=0
+        -fmessage-length=0 \
+        -no-canonical-prefixes
 
 TARGET_LDFLAGS := \
         -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
-        -target $(LLVM_TRIPLE)
+        -target $(LLVM_TRIPLE) \
+        -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
     $(SYSROOT)/usr/include

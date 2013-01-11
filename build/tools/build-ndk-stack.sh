@@ -94,6 +94,7 @@ fi
 LDFLAGS="$HOST_LDFLAGS"
 
 # Let's roll
+export CFLAGS=$HOST_CFLAGS" -O2 -s"
 run $GNUMAKE -C $SRCDIR -f $SRCDIR/GNUMakefile \
     -B -j$NUM_JOBS \
     PROGNAME="$OUT" \

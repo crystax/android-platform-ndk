@@ -25,8 +25,6 @@ a working sysroot. The result is something that can more easily be
 used as a standalone cross-compiler, e.g. to run configure and
 make scripts."
 
-force_32bit_binaries
-
 # For now, this is the only toolchain that works reliably.
 TOOLCHAIN_NAME=
 register_var_option "--toolchain=<name>" TOOLCHAIN_NAME "Specify toolchain name"
@@ -43,7 +41,8 @@ NDK_DIR=`dirname $NDK_DIR`
 NDK_DIR=`dirname $NDK_DIR`
 register_var_option "--ndk-dir=<path>" NDK_DIR "Take source files from NDK at <path>"
 
-SYSTEM=$HOST_TAG
+# Create 32-bit host toolchain by default
+SYSTEM=$HOST_TAG32
 register_var_option "--system=<name>" SYSTEM "Specify host system"
 
 PACKAGE_DIR=/tmp/ndk-$USER
@@ -88,6 +87,16 @@ fi
 if [ -z "$TOOLCHAIN_NAME" ]; then
     TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch $ARCH)
     echo "Auto-config: --toolchain=$TOOLCHAIN_NAME"
+fi
+
+# Detect LLVM version from toolchain name
+if [ -z "$LLVM_VERSION" ]; then
+    LLVM_VERSION_EXTRACT=$(echo "$TOOLCHAIN_NAME" | grep 'clang[0-9]\.[0-9]$' | sed -e 's/.*-clang//')
+    if [ -n "$LLVM_VERSION_EXTRACT" ]; then
+        TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch $ARCH)
+        LLVM_VERSION=$LLVM_VERSION_EXTRACT
+        echo "Auto-config: --toolchain=$TOOLCHAIN_NAME, --llvm-version=$LLVM_VERSION"
+    fi
 fi
 
 # Check PLATFORM
@@ -232,19 +241,47 @@ if [ -n "$LLVM_VERSION" ]; then
   fi
 
   cat > "$TMPDIR/bin/clang" <<EOF
-\`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT -target $LLVM_TARGET "\$@"
+if [ "\$1" != "-cc1" ]; then
+    \`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT -target $LLVM_TARGET "\$@"
+else
+    # target/triple already spelled out.
+    \`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT "\$@"
+fi
 EOF
   cat > "$TMPDIR/bin/clang++" <<EOF
-\`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT++ -target $LLVM_TARGET "\$@"
+if [ "\$1" != "-cc1" ]; then
+    \`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT++ -target $LLVM_TARGET "\$@"
+else
+    # target/triple already spelled out.
+    \`dirname \$0\`/clang$LLVM_VERSION_WITHOUT_DOT++ "\$@"
+fi
 EOF
   chmod 0755 "$TMPDIR/bin/clang" "$TMPDIR/bin/clang++"
 
   if [ -n "$HOST_EXE" ] ; then
     cat > "$TMPDIR/bin/clang.cmd" <<EOF
+@echo off
+if "%1" == "-cc1" goto :L
 %~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}${HOST_EXE} -target $LLVM_TARGET %*
+if ERRORLEVEL 1 exit /b 1
+goto :done
+:L
+rem target/triple already spelled out.
+%~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}${HOST_EXE} %*
+if ERRORLEVEL 1 exit /b 1
+:done
 EOF
     cat > "$TMPDIR/bin/clang++.cmd" <<EOF
+@echo off
+if "%1" == "-cc1" goto :L
 %~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}++${HOST_EXE} -target $LLVM_TARGET %*
+if ERRORLEVEL 1 exit /b 1
+goto :done
+:L
+rem target/triple already spelled out.
+%~dp0\\clang${LLVM_VERSION_WITHOUT_DOT}++${HOST_EXE} %*
+if ERRORLEVEL 1 exit /b 1
+:done
 EOF
   fi
 fi
@@ -338,9 +375,9 @@ case "$ARCH" in
         cp -p "$GNUSTL_LIBS/armeabi/libgnustl_static.a" "$ABI_STL/lib/libstdc++.a"
 
         copy_directory "$GNUSTL_LIBS/armeabi/include/bits" "$ABI_STL_INCLUDE_TARGET/thumb/bits"
-        copy_file_list "$GNUSTL_LIBS/armeabi" "$ABI_STL/lib/thumb" "libgnustl_shared.so"
-        copy_file_list "$GNUSTL_LIBS/armeabi" "$ABI_STL/lib/thumb" "libsupc++.a"
-        cp -p "$GNUSTL_LIBS/armeabi/libgnustl_static.a" "$ABI_STL/lib/thumb/libstdc++.a"
+        copy_file_list "$GNUSTL_LIBS/armeabi/thumb" "$ABI_STL/lib/thumb" "libgnustl_shared.so"
+        copy_file_list "$GNUSTL_LIBS/armeabi/thumb" "$ABI_STL/lib/thumb" "libsupc++.a"
+        cp -p "$GNUSTL_LIBS/armeabi/thumb/libgnustl_static.a" "$ABI_STL/lib/thumb/libstdc++.a"
 
         copy_directory "$GNUSTL_LIBS/armeabi-v7a/include/bits" "$ABI_STL_INCLUDE_TARGET/armv7-a/bits"
         copy_file_list "$GNUSTL_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a" "libgnustl_shared.so"
@@ -348,9 +385,9 @@ case "$ARCH" in
         cp -p "$GNUSTL_LIBS/armeabi-v7a/libgnustl_static.a" "$ABI_STL/lib/armv7-a/libstdc++.a"
 
         copy_directory "$GNUSTL_LIBS/armeabi-v7a/include/bits" "$ABI_STL_INCLUDE_TARGET/armv7-a/thumb/bits"
-        copy_file_list "$GNUSTL_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a/thumb/" "libgnustl_shared.so"
-        copy_file_list "$GNUSTL_LIBS/armeabi-v7a" "$ABI_STL/lib/armv7-a/thumb/" "libsupc++.a"
-        cp -p "$GNUSTL_LIBS/armeabi-v7a/libgnustl_static.a" "$ABI_STL/lib/armv7-a//thumb/libstdc++.a"
+        copy_file_list "$GNUSTL_LIBS/armeabi-v7a/thumb" "$ABI_STL/lib/armv7-a/thumb/" "libgnustl_shared.so"
+        copy_file_list "$GNUSTL_LIBS/armeabi-v7a/thumb" "$ABI_STL/lib/armv7-a/thumb/" "libsupc++.a"
+        cp -p "$GNUSTL_LIBS/armeabi-v7a/thumb/libgnustl_static.a" "$ABI_STL/lib/armv7-a//thumb/libstdc++.a"
         ;;
     x86)
         copy_directory "$GNUSTL_LIBS/x86/include/bits" "$ABI_STL_INCLUDE_TARGET/bits"

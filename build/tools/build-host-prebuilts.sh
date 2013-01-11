@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,6 +59,10 @@ register_var_option "--no-gen-platforms" NO_GEN_PLATFORMS "Don't generate platfo
 
 LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
 register_var_option "--llvm-version-list=<vers>" LLVM_VERSION_LIST "List of LLVM release versions"
+
+CHECK_FLAG=
+do_check_option () { CHECK_FLAG="--check"; }
+register_option "--check" do_check_option "Check host prebuilts"
 
 register_try64_option
 
@@ -270,14 +274,14 @@ do_remote_host_build ()
 
 for SYSTEM in $SYSTEMS; do
 
-    # First, build the toolchains
+    # Add --mingw flag
     TOOLCHAIN_FLAGS=$FLAGS
-    if [ "$HOST_TAG" = "linux-x86" -a "$SYSTEM" = "windows" ]; then
+    if [ "$HOST_TAG32" = "linux-x86" -a "$SYSTEM" = "windows" ]; then
         TOOLCHAIN_FLAGS=$TOOLCHAIN_FLAGS" --mingw"
     fi
 
-     # Should we do a remote build?
-    if [ "$SYSTEM" != "$HOST_TAG" ]; then
+    # Should we do a remote build?
+    if [ "$SYSTEM" != "$HOST_TAG32" ]; then
         case $SYSTEM in
             darwin-*)
                 if [ "$DARWIN_SSH" ]; then
@@ -290,33 +294,49 @@ for SYSTEM in $SYSTEMS; do
         esac
     fi
 
-    if [ "$SKIP_BUILD_NDK_STACK" != "yes" ]; then
-        # First, ndk-stack
-        echo "Building $SYSTEM ndk-stack"
+    # Determin the display system name
+    SYSNAME=$SYSTEM
+    if [ "$TRY64" = "yes" ]; then
+        case $SYSTEM in
+            darwin-x86|linux-x86)
+                SYSNAME=${SYSTEM%%x86}x86-64
+                ;;
+            windows)
+                SYSNAME=windows-x86_64
+                ;;
+        esac
+    fi
+
+    # First, ndk-stack
+    if [ "$TRY64" != "yes" -a "$SKIP_BUILD_NDK_STACK" != "yes" ]; then
+        # Don't build ndk-stack in 64-bit because unlike other host toolchains
+        # ndk-stack doesn't have separate directories for 32-bit and 64-bit.
+        # 64-bit one will overwrite the 32-bit one
+        echo "Building $SYSNAME ndk-stack"
         run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS
         fail_panic "ndk-stack build failure!"
     fi
 
     if [ "$SKIP_BUILD_MAKE" != "yes" ]; then
-        echo "Building $SYSTEM ndk-make"
+        echo "Building $SYSNAME ndk-make"
         run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
         fail_panic "make build failure!"
     fi
 
     if [ "$SKIP_BUILD_AWK" != "yes" ]; then
-        echo "Building $SYSTEM ndk-awk"
+        echo "Building $SYSNAME ndk-awk"
         run $BUILDTOOLS/build-host-awk.sh $TOOLCHAIN_FLAGS
         fail_panic "awk build failure!"
     fi
 
     if [ "$SKIP_BUILD_SED" != "yes" ]; then
-        echo "Building $SYSTEM ndk-sed"
+        echo "Building $SYSNAME ndk-sed"
         run $BUILDTOOLS/build-host-sed.sh $TOOLCHAIN_FLAGS
         fail_panic "sed build failure!"
     fi
 
-    if [ "$SYSTEM" = "windows" -a "$SKIP_BUILD_TOOLBOX" != "yes" ]; then
-        echo "Building $SYSTEM toolbox"
+    if [ "$SYSNAME" = "windows" -a "$SKIP_BUILD_TOOLBOX" != "yes" ]; then
+        echo "Building $SYSNAME toolbox"
         run $BUILDTOOLS/build-host-toolbox.sh $FLAGS
         fail_panic "Windows toolbox build failure!"
     fi
@@ -331,24 +351,31 @@ for SYSTEM in $SYSTEMS; do
             fi
 
             for TOOLCHAIN_NAME in $TOOLCHAIN_NAMES; do
-                echo "Building $SYSTEM toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
+                echo "Building $SYSNAME toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
                 run $BUILDTOOLS/build-gcc.sh "$SRC_DIR" "$NDK_DIR" $TOOLCHAIN_NAME $TOOLCHAIN_FLAGS
-                fail_panic "Could not build $TOOLCHAIN_NAME-$SYSTEM!"
+                fail_panic "Could not build $TOOLCHAIN_NAME-$SYSNAME!"
             done
         done
     fi
 
     if [ "$SKIP_BUILD_LLVM" != "yes" ]; then
         # Build llvm and clang
+        POLLY_FLAGS=
+        if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
+            POLLY_FLAGS="--with-polly"
+        fi
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
-            echo "Building $SYSTEM clang/llvm-$LLVM_VERSION"
-            run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS
-            fail_panic "Could not build llvm for $SYSTEM"
+            echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
+            run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
+            fail_panic "Could not build llvm for $SYSNAME"
         done
     fi
 
     # We're done for this system
 done
+
+# Build tools common to all system
+run $BUILDTOOLS/build-analyzer.sh "$SRC_DIR" "$NDK_DIR" "llvm-$DEFAULT_LLVM_VERSION" --package-dir="$PACKAGE_DIR"
 
 if [ "$PACKAGE_DIR" ]; then
     echo "Done, please look at $PACKAGE_DIR"

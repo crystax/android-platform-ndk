@@ -28,7 +28,7 @@ ifeq ($(NDK_ROOT),)
     # for the case when we're invoked from the NDK install path
     NDK_ROOT := .
 endif
-ifdef NDK_LOG
+ifeq ($(NDK_LOG),1)
     $(info Android NDK: NDK installation path auto-detected: '$(NDK_ROOT)')
 endif
 ifneq ($(words $(NDK_ROOT)),1)
@@ -156,14 +156,14 @@ _app            := local
 _application_mk := $(NDK_APPLICATION_MK)
 NDK_APPS        := $(_app)
 
+include $(BUILD_SYSTEM)/add-application.mk
+
 # For cygwin, put generated dependency conversion script here
 # Do not define this variable for other host platforms
 #
 ifeq ($(HOST_OS),cygwin)
 NDK_DEPENDENCIES_CONVERTER := $(NDK_APP_OUT)/convert-dependencies.sh
 endif
-
-include $(BUILD_SYSTEM)/add-application.mk
 
 # If a goal is DUMP_xxx then we dump a variable xxx instead
 # of building anything

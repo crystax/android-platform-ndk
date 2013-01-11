@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,7 +62,13 @@ cd $BUILD_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
 export CC CFLAGS LDFLAGS &&
-run $SED_SRCDIR/configure --disable-nls --disable-rpath --disable-i18n --disable-acl
+run $SED_SRCDIR/configure \
+    --disable-nls \
+    --disable-rpath \
+    --disable-i18n \
+    --disable-acl \
+    --host=$ABI_CONFIGURE_HOST \
+    --build=$ABI_CONFIGURE_BUILD
 fail_panic "Failed to configure the sed-$SED_VERSION build!"
 
 log "Building sed"

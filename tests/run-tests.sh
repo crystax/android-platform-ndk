@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ NDK_BUILDTOOLS_PATH=$ROOTDIR/build/tools
 
 # The list of tests that are too long to be part of a normal run of
 # run-tests.sh. Most of these do not run properly at the moment.
-LONG_TESTS="prebuild-stlport test-stlport test-gnustl"
+LONG_TESTS="prebuild-stlport test-stlport test-gnustl-full test-stlport_shared-exception test-stlport_static-exception"
 
 #
 # Parse options
@@ -178,10 +178,10 @@ adb_var_shell_cmd ()
     # Run the command, while storing the standard output to ADB_SHELL_CMD_LOG
     # and appending the exit code as the last line.
     if [ $VERBOSE = "yes" ] ; then
-        echo "$ADB_CMD -s \"$DEVICE\" shell $@"
-        $ADB_CMD -s "$DEVICE" shell $@ ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG
+        echo "$ADB_CMD -s \"$DEVICE\" shell \"$@\""
+        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG
     else
-        $ADB_CMD -s "$DEVICE" shell $@ ";" echo \$? | sed -e 's![[:cntrl:]]!!g' > $ADB_SHELL_CMD_LOG
+        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' > $ADB_SHELL_CMD_LOG
     fi
     # Get last line in log, which contains the exit code from the command
     RET=`sed -e '$!d' $ADB_SHELL_CMD_LOG`
@@ -388,6 +388,23 @@ fi
 ###
 
 NDK_BUILD_FLAGS="-B"
+if [ "$WINE" ]; then
+    case "$NDK_HOST_32BIT" in
+        1|true)
+            WINE=wine12
+            ;;
+        *)
+            WINE=wine15
+            NDK_BUILD_FLAGS=""  # make.exe -B hangs in wine > 1.2.x
+            if [ "$NDK_TOOLCHAIN_VERSION" != "4.4.3" ] ; then
+                APP_LDFLAGS=-fuse-ld=bfd # 64-bit ld.gold can't run in any wine!
+            fi
+            ;;
+    esac
+    find_program WINE_PROG $WINE
+    fail_panic "Can't locate $WINE"
+fi
+
 case $ABI in
     default)  # Let the APP_ABI in jni/Application.mk decide what to build
         ;;
@@ -416,19 +433,100 @@ fi
 
 run_ndk_build ()
 {
+    EXTRA_FLAGS=
+    if [ -n "$APP_LDFLAGS" ] ; then
+        # APP_LDFLAGS in env. var. doesn't work
+        EXTRA_FLAGS="APP_LDFLAGS=$APP_LDFLAGS"
+    fi
     if [ "$WINE" ]; then
-        run wine cmd /c Z:$NDK/ndk-build.cmd -j$JOBS "$@"
+        if [ "$WINE" = "wine12" ]; then
+            run $WINE cmd /c Z:$NDK/ndk-build.cmd -j$JOBS "$@" $EXTRA_FLAGS
+        else
+            # do "clean" instead of -B
+            run $WINE cmd /c Z:$NDK/ndk-build.cmd clean
+            # make.exe can't do parallel build in wine > 1.2.x
+            run $WINE cmd /c Z:$NDK/ndk-build.cmd "$@" -j1 $EXTRA_FLAGS
+        fi
     else
-        run $NDK/ndk-build -j$JOBS "$@"
+        run $NDK/ndk-build -j$JOBS "$@" $EXTRA_FLAGS
     fi
 }
 
+# get build var
+# $1: project directory
+# $2: var
 get_build_var ()
 {
+    local PROJECT=$1
+    local VAR=$2
+
     if [ -z "$GNUMAKE" ] ; then
         GNUMAKE=make
     fi
-    $GNUMAKE --no-print-dir -f $NDK/build/core/build-local.mk -C $DIR DUMP_$1 | tail -1
+    $GNUMAKE --no-print-dir -f $NDK/build/core/build-local.mk -C $PROJECT DUMP_$VAR | tail -1
+}
+
+
+# check if the project is broken and shouldn't be built
+# $1: project directory
+# $2: optional error message
+is_broken_build ()
+{
+    local PROJECT="$1"
+    local ERRMSG="$2"
+
+    if [ -z $RUN_TESTS ] ; then
+        if [ -f "$PROJECT/BROKEN_BUILD" ] ; then
+            if [ ! -s "$PROJECT/BROKEN_BUILD" ] ; then
+                # skip all
+                if [ -z "$ERRMSG" ] ; then
+                    echo "Skipping `basename $PROJECT`: (build)"
+                else
+                    echo "Skipping $ERRMSG: `basename $PROJECT`"
+                fi
+                return 0
+            else
+                # only skip listed in file
+                TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
+                TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                grep -q -w -e "$TARGET_TOOLCHAIN_VERSION" "$PROJECT/BROKEN_BUILD"
+                if [ $? = 0 ] ; then
+                    if [ -z "$ERRMSG" ] ; then
+                        echo "Skipping `basename $PROJECT`: (no build for $TARGET_TOOLCHAIN_VERSION)"
+                    else
+                        echo "Skipping $ERRMSG: `basename $PROJECT` (no build for $TARGET_TOOLCHAIN_VERSION)"
+                    fi
+                    return 0
+                fi
+            fi
+        fi
+    fi
+    return 1
+}
+
+# check if $ABI is incompatible and shouldn't be built
+# $1: project directory
+is_incompatible_abi ()
+{
+    local PROJECT="$1"
+
+    if [ "$ABI" != "default" ] ; then
+        # check APP_ABI
+        local APP_ABIS=`get_build_var $PROJECT APP_ABI`
+        APP_ABIS=$APP_ABIS" "
+        if [ "$APP_ABIS" != "${APP_ABIS%%all*}" ] ; then
+        # replace the first "all" with all available ABIs
+          ALL_ABIS=`get_build_var $PROJECT NDK_ALL_ABIS`
+          APP_ABIS_FRONT="${APP_ABIS%%all*}"
+          APP_ABIS_BACK="${APP_ABIS#*all}"
+          APP_ABIS="${APP_ABIS_FRONT}${ALL_ABIS}${APP_ABIS_BACK}"
+        fi
+        if [ "$APP_ABIS" = "${APP_ABIS%$ABI *}" ] ; then
+            echo "Skipping `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
+            return 0
+        fi
+    fi
+    return 1
 }
 
 build_project ()
@@ -436,27 +534,16 @@ build_project ()
     local NAME=`basename $1`
     local CHECK_ABI=$2
     local DIR="$BUILD_DIR/$NAME"
-    if [ -f "$1/BROKEN_BUILD" -a -z "$RUN_TESTS" ] ; then
-        echo "Skipping `basename $1`: (build)"
-        return 0
+
+    if is_broken_build $1; then
+        return 0;
     fi
-    rm -rf "$DIR" && cp -r "$1" "$DIR"
-    if [ "$ABI" != "default" -a "$CHECK_ABI" = "yes" ] ; then
-        # check APP_ABI
-        local APP_ABIS=`get_build_var APP_ABI`
-        APP_ABIS=$APP_ABIS" "
-        if [ "$APP_ABIS" != "${APP_ABIS%%all*}" ] ; then
-        # replace the first "all" with all available ABIs
-          ALL_ABIS=`get_build_var NDK_ALL_ABIS`
-          APP_ABIS_FRONT="${APP_ABIS%%all*}"
-          APP_ABIS_BACK="${APP_ABIS#*all}"
-          APP_ABIS="${APP_ABIS_FRONT}${ALL_ABIS}${APP_ABIS_BACK}"
-        fi
-        if [ "$APP_ABIS" = "${APP_ABIS%$ABI *}" ] ; then
-            echo "Skipping `basename $1`: incompatible ABI, needs $APP_ABIS"
+    if [ "$CHECK_ABI" = "yes" ] ; then
+        if is_incompatible_abi $1 ; then
             return 0
         fi
     fi
+    rm -rf "$DIR" && cp -r "$1" "$DIR"
     # build it
     (run cd "$DIR" && run_ndk_build $NDK_BUILD_FLAGS)
     RET=$?
@@ -535,10 +622,22 @@ fi
 if is_testable build; then
     build_build_test ()
     {
+        local NAME="$(basename $1)"
         echo "Building NDK build test: `basename $1`"
         if [ -f $1/build.sh ]; then
+            local DIR="$BUILD_DIR/$NAME"
+            if [ -f "$1/jni/Android.mk" -a -f "$1/jni/Application.mk" ] ; then
+                # exclude jni/Android.mk with import-module because it needs NDK_MODULE_PATH
+                grep -q  "call import-module" "$1/jni/Android.mk"
+                if [ $? != 0 ] ; then
+                    if (is_broken_build $1 || is_incompatible_abi $1) then
+                        return 0;
+                    fi
+                fi
+            fi
+            rm -rf "$DIR" && cp -r "$1" "$DIR"
             export NDK
-            run $1/build.sh $NDK_BUILD_FLAGS
+            (cd "$DIR" && run ./build.sh -j$JOBS $NDK_BUILD_FLAGS)
             if [ $? != 0 ]; then
                 echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
                 if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
@@ -565,11 +664,8 @@ CPU_ABIS=
 if is_testable device; then
     build_device_test ()
     {
-        # Do not build test if BROKEN_BUILD is defined, except if we
-        # Have listed the test explicitely.
-        if [ -f "$1/BROKEN_BUILD" -a -z "$RUN_TESTS" ] ; then
-            echo "Skipping broken device test build: `basename $1`"
-            return 0
+        if is_broken_build $1 "broken device test build"; then
+            return 0;
         fi
         echo "Building NDK device test: `basename $1`"
         build_project $1 "yes"
@@ -592,15 +688,33 @@ if is_testable device; then
         local PROGRAMS=
         local PROGRAM
         # Do not run the test if BROKEN_RUN is defined
-        if [ -f "$TEST/BROKEN_RUN" -o -f "$TEST/BROKEN_BUILD" ] ; then
-	    if [ -z "$RUN_TESTS" ]; then
-		dump "Skipping NDK device test run: `basename $TEST`"
-		return 0
-	    fi
+        if [ -z "$RUN_TESTS" ]; then
+            if is_broken_build $TEST "NDK device test not built"; then
+                return 0
+            fi
+            if [ -f "$TEST/BROKEN_RUN" ] ; then
+                if [ ! -s "$TEST/BROKEN_RUN" ] ; then
+                    # skip all
+                    dump "Skipping NDK device test run: $TEST_NAME"
+                    return 0
+                else
+                    # skip all tests built by toolchain
+                    TARGET_TOOLCHAIN=`get_build_var $TEST TARGET_TOOLCHAIN`
+                    TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                    grep -q -w -e "$TARGET_TOOLCHAIN_VERSION" "$TEST/BROKEN_RUN"
+                    if [ $? = 0 ] ; then
+                        dump "Skipping NDK device test run: $TEST_NAME (no run for binary built by $TARGET_TOOLCHAIN_VERSION)"
+                        return 0
+                    fi
+                    # skip tests listed in file
+                    SKIPPED_EXECUTABLES=`cat $TEST/BROKEN_RUN | tr '\n' ' '`
+                    dump "Skipping NDK device test run: $TEST_NAME ($SKIPPED_EXECUTABLES)"
+                fi
+            fi
         fi
         SRCDIR="$BUILD_DIR/`basename $TEST`/libs/$CPU_ABI"
         if [ ! -d "$SRCDIR" ]; then
-            dump "Skipping NDK device test run (no $CPU_ABI binaries): `basename $TEST`"
+            dump "Skipping NDK device test run (no $CPU_ABI binaries): $TEST_NAME"
             return 0
         fi
         # CRYSTAX BEGIN: should we keep it here?
@@ -612,14 +726,20 @@ if is_testable device; then
         #fi
         #adb_cmd_mkdir $DSTDIR
         # CRYSTAX END
-        # First, copy all files to the device, except for gdbserver or gdb.setup.
+        # First, copy all files to the device, except for gdbserver, gdb.setup, and
+        # those declared in $TEST/BROKEN_RUN
         adb_shell_mkdir "$DEVICE" $DSTDIR
         for SRCFILE in `ls $SRCDIR`; do
             DSTFILE=`basename $SRCFILE`
             if [ "$DSTFILE" = "gdbserver" -o "$DSTFILE" = "gdb.setup" ] ; then
                 continue
             fi
-            dump "SRCFILE: $SRCFILE"
+            if [ -z "$RUN_TESTS" -a -f "$TEST/BROKEN_RUN" ]; then
+                grep -q -w -e "$DSTFILE" "$TEST/BROKEN_RUN"
+                if [ $? = 0 ] ; then
+                    continue
+                fi
+            fi
             SRCFILE="$SRCDIR/$SRCFILE"
             if [ $HOST_OS = cygwin ]; then
                 SRCFILE=`cygpath -m $SRCFILE`
@@ -634,12 +754,12 @@ if is_testable device; then
             # If its name doesn't end with .so, add it to PROGRAMS
             echo "$DSTFILE" | grep -q -e '\.so$'
             if [ $? != 0 ] ; then
-                PROGRAMS="$PROGRAMS $DSTFILE"
+                PROGRAMS="$PROGRAMS `basename $DSTFILE`"
             fi
         done
         for PROGRAM in $PROGRAMS; do
             dump "Running device test [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
-            adb_var_shell_cmd "$DEVICE" "" LD_LIBRARY_PATH="$DSTDIR" $PROGRAM
+            adb_var_shell_cmd "$DEVICE" "" "cd $DSTDIR && LD_LIBRARY_PATH=$DSTDIR ./$PROGRAM"
             if [ $? != 0 ] ; then
                 dump "   ---> TEST FAILED!!"
             fi

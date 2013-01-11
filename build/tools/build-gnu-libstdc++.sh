@@ -96,7 +96,7 @@ fail_panic "Could not create build directory: $BUILD_OUT"
 # $2: Build directory
 # $3: "static" or "shared"
 # $4: GCC version
-# $5: Destination directory (optional, will default to $GNUSTL_SUBDIR/<gcc-version>/lib/$ABI)
+# $5: optional "thumb"
 build_gnustl_for_abi ()
 {
     local ARCH BINPREFIX SYSROOT GNUSTL_SRCDIR
@@ -104,21 +104,18 @@ build_gnustl_for_abi ()
     local BUILDDIR="$2"
     local LIBTYPE="$3"
     local GCC_VERSION="$4"
-    local DSTDIR="$5"
+    local THUMB="$5"
+    local DSTDIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION/libs/$ABI/$THUMB
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
 
     prepare_target_build $ABI $PLATFORM $NDK_DIR
     fail_panic "Could not setup target build."
 
-    INSTALLDIR=$BUILDDIR/install
-    BUILDDIR=$BUILDDIR/$LIBTYPE-$ABI-$GCC_VERSION
-    mkdir -p $BUILDDIR
+    INSTALLDIR=$BUILDDIR/install-$ABI-$GCC_VERSION/$THUMB
+    BUILDDIR=$BUILDDIR/$LIBTYPE-${ABI}${THUMB}-$GCC_VERSION
 
-    # If the output directory is not specified, use default location
-    if [ -z "$DSTDIR" ]; then
-        DSTDIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION/libs/$ABI
-    fi
     mkdir -p $DSTDIR
+    mkdir -p $BUILDDIR
 
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION)
@@ -165,13 +162,18 @@ build_gnustl_for_abi ()
             ;;
     esac
 
+    EXTRA_FLAGS=
+    if [ -n "$THUMB" ] ; then
+        EXTRA_FLAGS="-mthumb"
+    fi
+    export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
+    export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
+
     # zuav: todo: replace bare linux-x86 with respective var value
     GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/linux-x86/lib/gcc/$BUILD_HOST/$GCC_VERSION/include
     echo "GTHREADS_INC_DIR: " $GTHREADS_INC_DIR
 
     # zuav: todo: put _POSIX_TIMEOUTS in some include file in /usr/include
-    export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2"
-    export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2"
     export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
     export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
 
@@ -185,7 +187,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -lm -lc"
+    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -lm -lc $EXTRA_FLAGS"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
@@ -208,13 +210,14 @@ build_gnustl_for_abi ()
         #LDFLAGS=$LDFLAGS" -lsupc++"
     fi
 
-    PROJECT="gnustl_$LIBTYPE gcc-$GCC_VERSION $ABI"
+    PROJECT="gnustl_$LIBTYPE gcc-$GCC_VERSION $ABI $THUMB"
     echo "$PROJECT: configuring"
     cd $BUILDDIR &&
     run $GNUSTL_SRCDIR/configure \
         --prefix=$INSTALLDIR \
         --host=$BUILD_HOST \
         $LIBTYPE_FLAGS \
+        --enable-libstdcxx-time \
         --disable-symvers \
         --disable-multilib \
         --enable-libstdcxx-threads \
@@ -234,7 +237,7 @@ build_gnustl_for_abi ()
 
     echo "$PROJECT: installing"
     run make install
-    fail_panic "Could not create $ABI prebuilts for GNU libsupc++/libstdc++"
+    fail_panic "Could not create $ABI $THUMB prebuilts for GNU libsupc++/libstdc++"
 }
 
 
@@ -252,7 +255,7 @@ copy_gnustl_libs ()
     local PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
     PREFIX=${PREFIX%%-}
 
-    local SDIR="$BUILDDIR/install"
+    local SDIR="$BUILDDIR/install-$ABI-$GCC_VERSION"
     local DDIR="$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION"
 
     local GCC_VERSION_NO_DOT=$(echo $GCC_VERSION|sed 's/\./_/g')
@@ -274,12 +277,20 @@ copy_gnustl_libs ()
     copy_file_list "$SDIR/lib" "$DDIR/libs/$ABI" libsupc++.a libgnustl_shared.so
     # Note: we need to rename libgnustl_shared.a to libgnustl_static.a
     cp "$SDIR/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/libgnustl_static.a"
+    if [ -d "$SDIR/thumb" ] ; then
+        copy_file_list "$SDIR/thumb/lib" "$DDIR/libs/$ABI/thumb" libsupc++.a libgnustl_shared.so
+        cp "$SDIR/thumb/lib/libgnustl_shared.a" "$DDIR/libs/$ABI/thumb/libgnustl_static.a"
+    fi
 }
 
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
         build_gnustl_for_abi $ABI "$BUILD_OUT" static $VERSION
         build_gnustl_for_abi $ABI "$BUILD_OUT" shared $VERSION
+        if [ "$ABI" != "${ABI%%arm*}" ] ; then
+            build_gnustl_for_abi $ABI "$BUILD_OUT" static $VERSION thumb
+            build_gnustl_for_abi $ABI "$BUILD_OUT" shared $VERSION thumb
+        fi
         copy_gnustl_libs $ABI "$BUILD_OUT" $VERSION
     done
 done
@@ -297,6 +308,10 @@ if [ -n "$PACKAGE_DIR" ] ; then
             FILES=""
             for LIB in include/bits libsupc++.a libgnustl_static.a libgnustl_shared.so; do
                 FILES="$FILES $GNUSTL_SUBDIR/$VERSION/libs/$ABI/$LIB"
+                THUMB_FILE="$GNUSTL_SUBDIR/$VERSION/libs/$ABI/thumb/$LIB"
+                if [ -f "$NDK_DIR/$THUMB_FILE" ] ; then
+                    FILES="$FILES $THUMB_FILE"
+                fi
             done
             PACKAGE="$PACKAGE_DIR/gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
             dump "Packaging: $PACKAGE"

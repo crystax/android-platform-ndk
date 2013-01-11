@@ -24,4 +24,10 @@ LOCAL_MAKEFILE     := $(local-makefile)
 LOCAL_PREBUILT_PREFIX := lib
 LOCAL_PREBUILT_SUFFIX := .a
 
+# Prebuilt static libraries don't need to be copied to TARGET_OUT
+# to facilitate debugging, so use the prebuilt version directly
+# at link time.
+LOCAL_BUILT_MODULE := $(call local-prebuilt-path,$(LOCAL_SRC_FILES))
+LOCAL_BUILT_MODULE_NOT_COPIED := true
+
 include $(BUILD_SYSTEM)/prebuilt-library.mk

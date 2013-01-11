@@ -87,8 +87,8 @@ _builder_varval ()
 
 _builder_varadd ()
 {
-    local _varname=$1
-    local _varval=$(_builder_varval $_varname)
+    local _varname="$1"
+    local _varval="$(_builder_varval $_varname)"
     shift
     if [ -z "$_varval" ]; then
         eval $_varname=\"$@\"

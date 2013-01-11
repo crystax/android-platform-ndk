@@ -261,11 +261,15 @@ unpack_prebuilt ()
 {
     local PREBUILT=${1}.tar.bz2
     local PREBUILT64=${1}_64.tar.bz2
+    local PREBUILT64_ALT=${1}-x86_64.tar.bz2
     local DDIR="${2:-$DSTDIR}"
     echo "Unpacking $PREBUILT"
     if [ -f "$PREBUILT_DIR/$PREBUILT" ] ; then
         unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
         fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
+        if [ ! -f "$PREBUILT_DIR/$PREBUILT64" ] ; then
+            PREBUILT64=$PREBUILT64_ALT
+        fi
         if [ -f "$PREBUILT_DIR/$PREBUILT64" ] ; then
             echo "Unpacking $PREBUILT64"
             unpack_archive "$PREBUILT_DIR/$PREBUILT64" "$DDIR"
@@ -458,6 +462,9 @@ for SYSTEM in $SYSTEMS; do
             unpack_prebuilt toolbox-$SYSTEM
         fi
     fi
+
+    # Unpack other host tools
+    unpack_prebuilt scan-build
 
     # Create an archive for the final package. Extension depends on the
     # host system.

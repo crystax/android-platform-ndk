@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -659,11 +659,12 @@ module-get-built = $(__ndk_modules.$1.BUILT_MODULE)
 #
 module-is-installable = $(call module-class-is-installable,$(call module-get-class,$1))
 
-# Returns $(true) if module $1 is prebuilt
-# A prebuilt module is one declared with BUILD_PREBUILT_SHARED_LIBRARY or
-# BUILD_PREBUILT_STATIC_LIBRARY
+# Returns $(true) if module $1 is a copyable prebuilt
+# A copyable prebuilt module is one that will be copied to $NDK_OUT/<abi>/
+# at build time. At the moment, this is only used for prebuilt shared
+# libraries, since it helps ndk-gdb.
 #
-module-is-prebuilt = $(call module-class-is-prebuilt,$(call module-get-class,$1))
+module-is-copyable = $(call module-class-is-copyable,$(call module-get-class,$1))
 
 # -----------------------------------------------------------------------------
 # Function : module-get-export
@@ -1134,6 +1135,18 @@ handle-module-built = \
 strip-lib-prefix = $(1:lib%=%)
 
 # -----------------------------------------------------------------------------
+# Compute the real path of a prebuilt file.
+#
+# Function : local-prebuilt-path
+# Arguments: 1: prebuilt path (as listed in $(LOCAL_SRC_FILES))
+# Returns  : full path. If $1 begins with a /, the path is considered
+#            absolute and returned as-is. Otherwise, $(LOCAL_PATH)/$1 is
+#            returned instead.
+# Usage    : $(call local-prebuilt-path,$(LOCAL_SRC_FILES))
+# -----------------------------------------------------------------------------
+local-prebuilt-path = $(if $(filter /%,$1),$1,$(LOCAL_PATH)/$1)
+
+# -----------------------------------------------------------------------------
 # This is used to strip any lib prefix from LOCAL_MODULE, then check that
 # the corresponding module name is not already defined.
 #
@@ -1329,7 +1342,7 @@ $(foreach __src,$(LOCAL_SRC_FILES),$(info LOCAL_SRC_FILES_TEXT.$(__src) = $(LOCA
 NDK_APP_VARS_REQUIRED :=
 
 # the list of variables that *may* be defined in Application.mk files
-NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CXXFLAGS \
+NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CXXFLAGS APP_LDFLAGS \
                          APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
                          APP_PROJECT_PATH APP_STL APP_SHORT_COMMANDS \
                          APP_PIE APP_CRYSTAX APP_OBJC
@@ -1807,9 +1820,6 @@ module-class-register-installable = \
     $(call module-class-register,$1,$2,$3) \
     $(eval NDK_MODULE_CLASS.$1.INSTALLABLE := $(true))
 
-module-class-set-prebuilt = \
-    $(eval NDK_MODULE_CLASS.$1.PREBUILT := $(true))
-
 # Returns $(true) if $1 is a valid/registered LOCAL_MODULE_CLASS value
 #
 module-class-check = $(call set_is_member,$(NDK_MODULE_CLASSES),$1)
@@ -1818,9 +1828,9 @@ module-class-check = $(call set_is_member,$(NDK_MODULE_CLASSES),$1)
 #
 module-class-is-installable = $(if $(NDK_MODULE_CLASS.$1.INSTALLABLE),$(true),$(false))
 
-# Returns $(true) if $1 corresponds to an installable module class
+# Returns $(true) if $1 corresponds to a copyable prebuilt module class
 #
-module-class-is-prebuilt = $(if $(NDK_MODULE_CLASS.$1.PREBUILT),$(true),$(false))
+module-class-is-copyable = $(if $(call seq,$1,PREBUILT_SHARED_LIBRARY),$(true),$(false))
 
 #
 # Register valid module classes
@@ -1844,12 +1854,10 @@ $(call module-class-register-installable,EXECUTABLE,,)
 # <foo> -> <foo>  (we assume it is already well-named)
 # it is installable
 $(call module-class-register-installable,PREBUILT_SHARED_LIBRARY,,)
-$(call module-class-set-prebuilt,PREBUILT_SHARED_LIBRARY)
 
 # prebuilt static library
 # <foo> -> <foo> (we assume it is already well-named)
 $(call module-class-register,PREBUILT_STATIC_LIBRARY,,)
-$(call module-class-set-prebuilt,PREBUILT_STATIC_LIBRARY)
 
 #
 # Objective-C support

@@ -494,7 +494,8 @@ get_default_binutils_version_for_gcc ()
     local RET
     case $1 in
         arm-*-4.4.3|x86-*-4.4.3|x86-4.4.3) RET=2.19;;
-        *) RET=2.21;;
+        *-4.6) RET=2.21;;
+        *) RET=2.22;;
     esac
     echo "$RET"
 }
@@ -776,8 +777,6 @@ select_toolchain_for_host ()
                 *) panic "Sorry, this script only supports building windows binaries on Linux."
                 ;;
             esac
-            HOST_CFLAGS=$HOST_CFLAGS" -D__USE_MINGW_ANSI_STDIO=1"
-            HOST_CXXFLAGS=$HOST_CXXFLAGS" -D__USE_MINGW_ANSI_STDIO=1"
             ;;
 
         windows-x86_64)
@@ -823,8 +822,6 @@ select_toolchain_for_host ()
                 *) panic "Sorry, this script only supports building windows binaries on Linux."
                 ;;
             esac
-            HOST_CFLAGS=$HOST_CFLAGS" -D__USE_MINGW_ANSI_STDIO=1"
-            HOST_CXXFLAGS=$HOST_CXXFLAGS" -D__USE_MINGW_ANSI_STDIO=1"
             ;;
     esac
 
@@ -1317,6 +1314,12 @@ build_host_binutils ()
                 ARGS=$ARGS" --enable-gold=both/gold"
             fi
         fi
+        if [ "$HOST_OS" = 'windows' ]; then
+            # gold may have runtime dependency on libgcc_sjlj_1.dll and
+            # libstdc++-6.dll when built by newer versions of mingw.
+            # Link them statically to avoid that.
+            ARGS=$ARGS" --with-gold-ldflags='-static-libgcc -static-libstdc++'"
+        fi
     fi
 
     # This is used to install libbfd which is later used to compile
@@ -1325,6 +1328,17 @@ build_host_binutils ()
     # build. TODO: Probably want to move this step to its own script
     # like build-host-libbfd.sh in the future.
     ARGS=$ARGS" --enable-install-libbfd"
+
+    # Enable plugins support for binutils-2.21+
+    # This is common feature for binutils and gcc
+    case "$BINUTILS_VERSION" in
+      2.19)
+        # Add nothing
+        ;;
+      *)
+        ARGS=$ARGS" --enable-plugins"
+        ;;
+    esac
 
     dump "$(host_text)$(target_text) Building binutils-$BINUTILS_VERSION"
     (
@@ -1386,12 +1400,18 @@ build_host_gcc_core ()
 
     ARGS=$HOST_PREREQS_ARGS
 
+    case "$GCC_VERSION" in
+      4.4.3|4.6)
+        ARGS=$ARGS" --disable-plugin"
+        ;;
+    esac
+
     ARGS=$ARGS" --with-gnu-as --with-gnu-ld"
     ARGS=$ARGS" --enable-threads --disable-libssp --disable-libmudflap"
     ARGS=$ARGS" --disable-libgomp"  # TODO: Add option to enable this
     ARGS=$ARGS" --disable-libstdc__-v3 --disable-sjlj-exceptions"
     ARGS=$ARGS" --disable-tls"
-    ARGS=$ARGS" --disable-libquadmath --disable-plugin --disable-libitm --disable-bootstrap"
+    ARGS=$ARGS" --disable-libquadmath --disable-libitm --disable-bootstrap"
     ARGS=$ARGS" --enable-languages=c,c++"
     ARGS=$ARGS" --disable-shared"
     ARGS=$ARGS" --disable-nls"

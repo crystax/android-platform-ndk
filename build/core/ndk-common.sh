@@ -208,6 +208,13 @@ fail_panic ()
     fi
 }
 
+fail_warning ()
+{
+    if [ $? != 0 ] ; then
+        dump "WARNING: $@"
+    fi
+}
+
 
 ## Utilities
 ##
@@ -276,6 +283,7 @@ case "$HOST_ARCH" in
     # reporting anomoly here.
     if [ "$HOST_OS" = darwin ] ; then
         if ! echo __LP64__ | (CCOPTS= gcc -E - 2>/dev/null) | grep -q __LP64__ ; then
+        # or if gcc -dM -E - < /dev/null | grep -q __LP64__; then
             HOST_ARCH=x86_64
         fi
     fi
@@ -712,6 +720,8 @@ unpack_archive ()
             else
                 run tar j$TARFLAGS "$ARCHIVE" -C $DIR
             fi
+            # remove ._* files by MacOSX to preserve resource forks we don't need
+            find $DIR -name "\._*" -exec rm {} \;
             ;;
         *)
             panic "Cannot unpack archive with unknown extension: $ARCHIVE"
