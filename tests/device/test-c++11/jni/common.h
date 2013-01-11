@@ -24,3 +24,4 @@ int test_chrono_duration_ctor();
 int test_chrono_duration_operators();
 int test_chrono_duration_count();
 int test_chrono_duration_min_max();
+int test_thread();

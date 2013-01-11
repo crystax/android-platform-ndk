@@ -1,6 +1,6 @@
 #include "common.h"
 
-#if GCC_ATLEAST(4, 7)
+#if GCC_ATLEAST(4, 6)
 
 #include <sstream>
 #include <ratio>
@@ -147,4 +147,4 @@ int test_chrono_duration_min_max()
 }
 
 
-#endif  // GCC_ATLEAST(4, 7)
+#endif  // GCC_ATLEAST(4, 6)
