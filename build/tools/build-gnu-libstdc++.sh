@@ -165,10 +165,15 @@ build_gnustl_for_abi ()
             ;;
     esac
 
+    # zuav: todo: replace bare linux-x86 with respective var value
+    GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/linux-x86/lib/gcc/$BUILD_HOST/$GCC_VERSION/include
+    echo "GTHREADS_INC_DIR: " $GTHREADS_INC_DIR
+
+    # zuav: todo: put _POSIX_TIMEOUTS in some include file in /usr/include
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2"
-    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS"
-    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS"
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
+    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
@@ -212,7 +217,8 @@ build_gnustl_for_abi ()
         $LIBTYPE_FLAGS \
         --disable-symvers \
         --disable-multilib \
-        --enable-threads \
+        --enable-libstdcxx-threads \
+        --enable-libstdcxx-time \
         --enable-wchar_t \
         --disable-nls \
         --disable-sjlj-exceptions \
