@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2012 The Android Open Source Project
+# Copyright (C) 2010, 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -366,6 +366,9 @@ case "$TOOLCHAIN" in
         ;;
 esac
 
+#zuav:
+echo "TOOLCHAIN_BUILD_PREFIX:"  $TOOLCHAIN_BUILD_PREFIX
+
 cd $BUILD_OUT && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \
@@ -435,6 +438,23 @@ run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"
 
 # don't forget to copy the GPL and LGPL license files
 run cp -f $TOOLCHAIN_LICENSES/COPYING $TOOLCHAIN_LICENSES/COPYING.LIB $TOOLCHAIN_PATH
+
+#zuav:
+echo "TOOLCHAIN_BUILD_PREFIX:"  $TOOLCHAIN_BUILD_PREFIX
+echo "GCC_VERSION:           "  $GCC_VERSION
+echo "ABI_CONFIGURE_TARGET:  "  $ABI_CONFIGURE_TARGET
+case "$GCC_VERSION" in
+    4.4.3|4.6)
+        # zuav: todo
+        GTHR_FILE=
+        ;;
+    4.7)
+        GTHR_FILE=$TOOLCHAIN_BUILD_PREFIX/../gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/gthr-default.h
+        ;;
+esac
+
+# zuav: todo: add case by GCC version: 4.7, 4.6, ...
+run cp -f  $GTHR_FILE $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/
 
 # remove some unneeded files
 run rm -f $TOOLCHAIN_PATH/bin/*-gccbug
