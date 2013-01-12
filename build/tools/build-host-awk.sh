@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ if [ "$VERBOSE2" = "yes" ]; then
 fi
 
 CFLAGS="$HOST_CFLAGS"
-CFLAGS=$CFLAGS" -O2 -I$BUILD_DIR -I$AWK_SRCDIR"
+CFLAGS=$CFLAGS" -O2 -s -I$BUILD_DIR -I$AWK_SRCDIR"
 LDFLAGS="$HOST_LDFLAGS"
 LDFLAGS=$LDFLAGS" -Wl,-s"
 
@@ -76,7 +76,6 @@ mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
 prepare_mingw_toolchain $BUILD_DIR
 log "Building $HOST_TAG awk"
 export HOST_CC="$CC" &&
-export CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 run $GNUMAKE \
     -C "$AWK_SRCDIR" \
     -j $NUM_JOBS \
