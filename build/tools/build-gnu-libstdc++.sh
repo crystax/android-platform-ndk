@@ -169,13 +169,12 @@ build_gnustl_for_abi ()
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
 
-    # zuav: todo: replace bare linux-x86 with respective var value
-    GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/linux-x86/lib/gcc/$BUILD_HOST/$GCC_VERSION/include
-    echo "GTHREADS_INC_DIR: " $GTHREADS_INC_DIR
+    # zuav: todo: check how $HOST_OS-$HOST_ARCH will work on MacOS 
+    GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/$HOST_OS-$HOST_ARCH/lib/gcc/$BUILD_HOST/$GCC_VERSION/include
+    #echo "GTHREADS_INC_DIR: " $GTHREADS_INC_DIR
 
-    # zuav: todo: put _POSIX_TIMEOUTS in some include file in /usr/include
-    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
-    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -D_POSIX_TIMEOUTS -I$GTHREADS_INC_DIR"
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -I$GTHREADS_INC_DIR"
+    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -I$GTHREADS_INC_DIR"
 
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
