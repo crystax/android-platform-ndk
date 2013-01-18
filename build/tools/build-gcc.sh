@@ -324,7 +324,7 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
-# zuav: currently this is requred only for gcc-4.7/libgomp
+# currently this is requred only for gcc-4.7/libgomp
 dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
 CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
 run mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
@@ -481,22 +481,17 @@ fi
 # don't forget to copy the GPL and LGPL license files
 run cp -f $TOOLCHAIN_LICENSES/COPYING $TOOLCHAIN_LICENSES/COPYING.LIB $TOOLCHAIN_PATH
 
-#zuav:
-echo "TOOLCHAIN_BUILD_PREFIX:"  $TOOLCHAIN_BUILD_PREFIX
-echo "GCC_VERSION:           "  $GCC_VERSION
-echo "ABI_CONFIGURE_TARGET:  "  $ABI_CONFIGURE_TARGET
+# this is required to correctly compile libstdc++ with thread support
 case "$GCC_VERSION" in
     4.4.3|4.6)
-        # zuav: todo
-        GTHR_FILE=
+        GTHR_FILE=$TOOLCHAIN_BUILD_PREFIX/../gcc-$GCC_VERSION/gcc/gthr-default.h
         ;;
     4.7)
         GTHR_FILE=$TOOLCHAIN_BUILD_PREFIX/../gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/gthr-default.h
         ;;
 esac
 
-# zuav: todo: add case by GCC version: 4.7, 4.6, ...
-run cp -f  $GTHR_FILE $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/
+run cp -f  $GTHR_FILE    $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/
 
 # remove some unneeded files
 run rm -f $TOOLCHAIN_PATH/bin/*-gccbug
