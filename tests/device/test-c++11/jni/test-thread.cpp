@@ -14,6 +14,9 @@
 #error _GLIBCXX_USE_NANOSLEEP undefined!
 #endif
 
+#if !defined(_POSIX_TIMEOUTS)
+#error _POSIX_TIMEOUTS undefined!
+#endif
 
 #include <iostream>
 #include <utility>
