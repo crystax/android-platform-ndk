@@ -47,9 +47,10 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_OUT=/tmp/ndk-$USER/build/target
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Specify temporary build dir."
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify temporary build dir." "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
@@ -74,12 +75,13 @@ else
     fi
 fi
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/build.log
-BUILD_OUT=$BUILD_OUT/crystax
-run rm -Rf "$BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
-fail_panic "Could not create build directory: $BUILD_OUT"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/crystax
+
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
+fail_panic "Could not create build directory: $OUT_DIR"
 
 # Location of the crystax source tree
 STDCXX_SRCDIR=$ANDROID_NDK_ROOT/sources/cxx-stl/system
@@ -109,7 +111,7 @@ CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 # -j$NUM_JOBS to build stuff in parallel.
 #
 if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_OUT/Makefile
+    MAKEFILE=$OUT_DIR/Makefile
 else
     MAKEFILE=
 fi
@@ -168,7 +170,7 @@ build_crystax_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
-    build_crystax_libs_for_abi $ABI "$BUILD_OUT/$ABI"
+    build_crystax_libs_for_abi $ABI "$OUT_DIR/$ABI"
 done
 
 # If needed, package files into tarballs
@@ -186,11 +188,16 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-if [ -z "$OPTION_BUILD_OUT" ]; then
+if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_OUT
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 else
-    log "Don't forget to cleanup: $BUILD_OUT"
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done!"

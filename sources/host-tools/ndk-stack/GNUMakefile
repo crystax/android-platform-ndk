@@ -17,7 +17,7 @@
 CC        := gcc
 CXX       := g++
 STRIP     := strip
-BUILD_DIR := /tmp/ndk-$(USER)/build/build-ndk-stack
+OUT_DIR   := /tmp/ndk-$(USER)/build/build-ndk-stack
 PROGNAME  := /tmp/ndk-$(USER)/ndk-stack
 
 EXECUTABLE := $(PROGNAME)
@@ -74,11 +74,11 @@ $1: $2
 endef
 
 $(foreach src,$(filter %.c,$(SOURCES)),\
-    $(eval $(call build-c-object,$(BUILD_DIR)/$(src:%.c=%.o),$(src)))\
+    $(eval $(call build-c-object,$(OUT_DIR)/$(src:%.c=%.o),$(src)))\
 )
 
 $(foreach src,$(filter %.cc,$(SOURCES)),\
-    $(eval $(call build-cxx-object,$(BUILD_DIR)/$(src:%.cc=%.o),$(src)))\
+    $(eval $(call build-cxx-object,$(OUT_DIR)/$(src:%.cc=%.o),$(src)))\
 )
 
 clean:

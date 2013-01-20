@@ -20,9 +20,9 @@
 PROGDIR=$(dirname $0)
 . $PROGDIR/prebuilt-common.sh
 
-BUILD_OUT=/tmp/ndk-$USER/build/target
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Set temporary build directory"
 
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
@@ -95,8 +95,8 @@ downloaded by the 'download-toolchain-sources.sh' dev-script."
 
 extract_parameters "$@"
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/build.log
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -137,8 +137,8 @@ fi
 if [ -n "$XCODE_PATH" ]; then
     FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 fi
-if [ -n "$OPTION_BUILD_OUT" ]; then
-    FLAGS=$FLAGS" --build-out=$BUILD_OUT"
+if [ -n "$OPTION_OUT_DIR" ]; then
+    FLAGS=$FLAGS" --out-dir=$OUT_DIR"
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 

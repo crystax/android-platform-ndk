@@ -63,8 +63,10 @@ DEVELOPMENT_ROOT=`dirname $ANDROID_NDK_ROOT`/development/ndk
 register_var_option "--development=<path>" DEVELOPMENT_ROOT "Path to development/ndk directory"
 
 # Default location for final packages
-OUT_DIR=/tmp/ndk-$USER/release
-register_var_option "--out-dir=<path>" OUT_DIR "Path to output directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Path to output directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 # Force the build
 FORCE=no
@@ -114,6 +116,9 @@ fi
 
 extract_parameters "$@"
 
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+setup_default_log_file $OUT_DIR/build.log
+
 HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 # Filter out darwin-x86 in $HOST_SYSTEMS_FLAGS, because
 # 1) On linux, cross-compiling is done via "--darwin-ssh".  Keeping darwin-x86 in --systems list
@@ -122,8 +127,6 @@ HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 #
 HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
-
-setup_default_log_file $OUT_DIR/build.log
 
 set_parameters ()
 {
@@ -169,22 +172,9 @@ if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
     esac
 fi
 
-# Create directory where everything will be performed.
-RELEASE_DIR=$NDK_TMPDIR/release-$RELEASE
-unset NDK_TMPDIR  # prevent later script from reusing/removing it
-if [ "$INCREMENTAL" = "no" ] ; then
-    rm -rf $RELEASE_DIR && mkdir -p $RELEASE_DIR
-else
-    if [ ! -d "$RELEASE_DIR" ] ; then
-        echo "ERROR: Can't make incremental, missing release dir: $RELEASE_DIR"
-        exit 1
-    fi
-fi
-
-
 #
 # Timestamp management
-TIMESTAMP_DIR="$RELEASE_DIR/timestamps"
+TIMESTAMP_DIR="$OUT_DIR/timestamps"
 mkdir -p "$TIMESTAMP_DIR"
 if [ "$INCREMENTAL" = "no" ] ; then
     run rm -rf "$TIMESTAMP_DIR/*"
@@ -217,7 +207,7 @@ if [ -n "$TOOLCHAIN_SRCDIR" ] ; then
 else
     if timestamp_check toolchain-download-sources; then
         dump "Downloading toolchain sources..."
-        TOOLCHAIN_SRCDIR="$RELEASE_DIR/toolchain-src"
+        TOOLCHAIN_SRCDIR="$OUT_DIR/toolchain-src"
         log "Using toolchain source directory: $TOOLCHAIN_SRCDIR"
         run $ANDROID_NDK_ROOT/build/tools/download-toolchain-sources.sh "$TOOLCHAIN_SRCDIR"
         if [ "$?" != 0 ] ; then
@@ -234,7 +224,7 @@ fi
 
 # Step 2, build the host toolchain binaries and package them
 if timestamp_check build-prebuilts; then
-    PREBUILT_DIR="$RELEASE_DIR/prebuilt"
+    PREBUILT_DIR="$OUT_DIR/prebuilt"
     FLAGS=""
     if [ "$VERBOSE" = "yes" ] ; then
         FLAGS=$FLAGS" --verbose"
@@ -245,6 +235,9 @@ if timestamp_check build-prebuilts; then
 	if [ -n "$XCODE_PATH" ]; then
 		FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 	fi
+    if [ -n "$OPTION_OUT_DIR" ]; then
+        FLAGS=$FLAGS" --out-dir=$OUT_DIR"
+    fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
         run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"

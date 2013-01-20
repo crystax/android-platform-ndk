@@ -24,9 +24,10 @@ PROGDIR=`dirname $0`
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Put binaries into NDK install directory"
 
-BUILD_OUT=/tmp/ndk-$USER/build
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Specify temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
@@ -47,7 +48,7 @@ register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
 do_ALSO_64 () { ALSO_64=yes; }
 
 RELEASE=`date +%Y%m%d`
-PACKAGE_DIR=/tmp/ndk-$USER/prebuilt-$RELEASE
+PACKAGE_DIR=$OUT_DIR/prebuilt-$RELEASE
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
 
 DARWIN_SSH=
@@ -90,8 +91,8 @@ script.
 
 extract_parameters "$@"
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/build.log
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
 
 SRC_DIR="$PARAMETERS"
 check_toolchain_src_dir "$SRC_DIR"
@@ -119,8 +120,8 @@ if [ -n "$XCODE_PATH" ]; then
     FLAGS=$FLAGS" --xcode=$XCODE_PATH"
 fi
 
-if [ -n "$OPTION_BUILD_OUT" ]; then
-    FLAGS=$FLAGS" --build-out=$BUILD_OUT"
+if [ -n "$OPTION_OUT_DIR" ]; then
+    FLAGS=$FLAGS" --out-dir=$OUT_DIR"
 fi
 
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"

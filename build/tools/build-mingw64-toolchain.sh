@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2012 The Android Open Source Project
 #
@@ -369,17 +369,17 @@ mkdir -p $SRC_DIR
 mkdir -p $STAMP_DIR
 
 INSTALL_DIR=$TEMP_DIR/install-$HOST_TAG/$TARGET_TAG
-BUILD_DIR=$TEMP_DIR/build-$HOST_TAG
+OUT_DIR=$TEMP_DIR/build-$HOST_TAG
 
 if [ "$FORCE_BUILD" ]; then
     rm -f $STAMP_DIR/*
     rm -rf $INSTALL_DIR
-    rm -rf $BUILD_DIR
+    rm -rf $OUT_DIR
 fi
 
 # Make temp install directory
 mkdir -p $INSTALL_DIR
-mkdir -p $BUILD_DIR
+mkdir -p $OUT_DIR
 
 # Copy this script
 cp $0 $INSTALL_DIR/ &&
@@ -471,8 +471,8 @@ build_host_package ()
 
     if [ ! -f $STAMP_DIR/$PKGNAME ]; then
         (
-            mkdir -p $BUILD_DIR/$PKGNAME &&
-            cd $BUILD_DIR/$PKGNAME &&
+            mkdir -p $OUT_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             setup_build_env $HOST_BINPREFIX &&
             log "$PKGNAME: Configuring" &&
             run $SRC_DIR/$PKGNAME/configure "$@"
@@ -517,8 +517,8 @@ build_mingw_headers ()
     local PKGNAME=$1
     if [ ! -f "$STAMP_DIR/$PKGNAME" ]; then
         (
-            mkdir -p $BUILD_DIR/$PKGNAME &&
-            cd $BUILD_DIR/$PKGNAME &&
+            mkdir -p $OUT_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             log "$PKGNAME: Configuring" &&
             run $MINGW_W64_SRC/mingw-w64-headers/configure --prefix=$INSTALL_DIR --host=$TARGET_TAG --build=$HOST_TAG
             fail_panic "Can't configure mingw-64-headers"
@@ -545,8 +545,8 @@ build_core_gcc ()
 
     if [ ! -f "$STAMP_DIR/core-$PKGNAME" ]; then
         (
-            mkdir -p $BUILD_DIR/$PKGNAME &&
-            cd $BUILD_DIR/$PKGNAME &&
+            mkdir -p $OUT_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             setup_build_env $HOST_BINPREFIX &&
             log "core-$PKGNAME: Configuring" &&
             run $SRC_DIR/$PKGNAME/configure "$@"
@@ -573,8 +573,8 @@ build_mingw_crt ()
 
     if [ ! -f $STAMP_DIR/$PKGNAME ]; then
         (
-            mkdir -p $BUILD_DIR/$PKGNAME &&
-            cd $BUILD_DIR/$PKGNAME &&
+            mkdir -p $OUT_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             export PATH=$INSTALL_DIR/bin:$PATH
             log "$PKGNAME: Configuring" &&
             run $MINGW_W64_SRC/mingw-w64-crt/configure "$@"
@@ -602,7 +602,7 @@ build_libgcc ()
         (
             # No configure step here! We're resuming work that was started
             # in build_core_gcc.
-            cd $BUILD_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             setup_build_env $HOST_BINPREFIX &&
             log "libgcc-$PKGNAME: Building" &&
             run make -j$JOBS

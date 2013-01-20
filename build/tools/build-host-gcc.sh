@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2012 The Android Open Source Project
 #
@@ -451,20 +451,20 @@ run_on_setup ()
 
 setup_build ()
 {
-    BUILD_DIR=/tmp/ndk-$USER/build/host-gcc
-    run_on_setup mkdir -p "$BUILD_DIR"
+    OUT_DIR=/tmp/ndk-$USER/build/host-gcc
+    run_on_setup mkdir -p "$OUT_DIR"
     if [ -n "$FORCE" ]; then
-        rm -rf "$BUILD_DIR"/*
+        rm -rf "$OUT_DIR"/*
     fi
 
-    TOP_BUILD_DIR=$BUILD_DIR
+    TOP_OUT_DIR=$OUT_DIR
 
-    setup_default_log_file $BUILD_DIR/build.log
+    setup_default_log_file $OUT_DIR/build.log
 
-    WRAPPERS_DIR="$BUILD_DIR/toolchain-wrappers"
+    WRAPPERS_DIR="$OUT_DIR/toolchain-wrappers"
     run_on_setup mkdir -p "$WRAPPERS_DIR" && run_on_setup rm -rf "$WRAPPERS_DIR/*"
 
-    STAMPS_DIR="$BUILD_DIR/timestamps"
+    STAMPS_DIR="$OUT_DIR/timestamps"
     run_on_setup mkdir -p "$STAMPS_DIR"
     if [ -n "$FORCE" ]; then
         run_on_setup rm -f "$STAMPS_DIR"/*
@@ -652,7 +652,7 @@ select_toolchain_for_host ()
     # then save the result in host-specific global variables.
     #
     # In the build phase, we will simply restore the values into the
-    # global HOST_FULLPREFIX / HOST_BUILD_DIR
+    # global HOST_FULLPREFIX / HOST_OUT_DIR
     # variables.
     #
 
@@ -825,9 +825,9 @@ select_toolchain_for_host ()
             ;;
     esac
 
-    mkdir -p "$(host_build_dir)"
+    mkdir -p "$(host_out_dir)"
     if [ "$FORCE" ]; then
-        rm -rf "$(host_build_dir)"/*
+        rm -rf "$(host_out_dir)"/*
     fi
 
     # Determine the default bitness of our compiler. It it doesn't match
@@ -900,46 +900,46 @@ setup_build_for_host ()
 }
 
 # Returns the location of all $HOST specific files (build and install)
-host_build_dir ()
+host_out_dir ()
 {
-    echo "$TOP_BUILD_DIR/$HOST"
+    echo "$TOP_OUT_DIR/$HOST"
 }
 
 # Return the location of the build directory for a specific component
 # $1: component name (e.g. gmp-4.2.4)
-host_build_dir_for ()
+host_out_dir_for ()
 {
-    echo "$(host_build_dir)/build-$1"
+    echo "$(host_out_dir)/build-$1"
 }
 
 # Returns the install location of the $HOST pre-reqs libraries
 host_prereqs_install_dir ()
 {
-    echo "$(host_build_dir)/temp-prereqs"
+    echo "$(host_out_dir)/temp-prereqs"
 }
 
 # Returns the install location of the $HOST binutils cross-toolchain
 host_binutils_install_dir ()
 {
-    echo "$(host_build_dir)/temp-binutils-$BINUTILS_VERSION-$TARGET"
+    echo "$(host_out_dir)/temp-binutils-$BINUTILS_VERSION-$TARGET"
 }
 
 # Returns the install location of the $HOST binutils cross-toolchain
 build_binutils_install_dir ()
 {
-    echo "$TOP_BUILD_DIR/$BUILD/temp-binutils-$BINUTILS_VERSION-$TARGET"
+    echo "$TOP_OUT_DIR/$BUILD/temp-binutils-$BINUTILS_VERSION-$TARGET"
 }
 
 # Returns the install location of the $HOST gcc cross-toolchain
 host_gcc_install_dir ()
 {
-    echo "$(host_build_dir)/temp-$TOOLCHAIN"
+    echo "$(host_out_dir)/temp-$TOOLCHAIN"
 }
 
 # Returns the install location of the $BUILD gcc cross-toolchain
 build_gcc_install_dir ()
 {
-    echo "$TOP_BUILD_DIR/$BUILD/temp-$TOOLCHAIN"
+    echo "$TOP_OUT_DIR/$BUILD/temp-$TOOLCHAIN"
 }
 
 
@@ -963,7 +963,7 @@ host_sysroot ()
 #
 host_gcc_final_dir ()
 {
-    echo "$(host_build_dir)/final-$TOOLCHAIN"
+    echo "$(host_out_dir)/final-$TOOLCHAIN"
 }
 
 setup_build_for_toolchain ()
@@ -1086,7 +1086,7 @@ setup_host_env ()
 # $1: NDK architecture name (e.g. 'arm')
 arch_sysroot_install_dir ()
 {
-    echo "$BUILD_DIR/arch-$1/sysroot"
+    echo "$OUT_DIR/arch-$1/sysroot"
 }
 
 # $1: NDK architecture name (e.g. 'arm')
@@ -1109,7 +1109,7 @@ gen_minimal_sysroot ()
 # $1: gmp version
 extract_gmp_sources ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src"
 
     dump "Extracting gmp-$1"
     run2 mkdir -p "$SRC_DIR" &&
@@ -1119,18 +1119,18 @@ extract_gmp_sources ()
 # $1: gmp version
 build_gmp ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src/gmp-$1"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src/gmp-$1"
     local INSTALL_DIR="$(host_prereqs_install_dir)"
-    local BUILD_DIR
+    local OUT_DIR
 
     stamps_do extract-gmp-$1 extract_gmp_sources $1
 
     dump "$(host_text) Building gmp-$1"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for gmp-$GMP_VERSION)" &&
-        run2 mkdir -p "$BUILD_DIR" && run2 rm -rf "$BUILD_DIR"/* &&
-        cd "$BUILD_DIR" &&
+        OUT_DIR="$(host_out_dir_for gmp-$GMP_VERSION)" &&
+        run2 mkdir -p "$OUT_DIR" && run2 rm -rf "$OUT_DIR"/* &&
+        cd "$OUT_DIR" &&
         run2 "$SRC_DIR"/configure \
             --prefix=$INSTALL_DIR \
             --build=$BUILD \
@@ -1144,7 +1144,7 @@ build_gmp ()
 
 extract_mpfr_sources ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src"
 
     dump "Extracting mpfr-$1"
     run2 mkdir -p "$SRC_DIR" &&
@@ -1154,9 +1154,9 @@ extract_mpfr_sources ()
 # $1: mpfr-version
 build_mpfr ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src/mpfr-$1"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src/mpfr-$1"
     local INSTALL_DIR="$(host_prereqs_install_dir)"
-    local BUILD_DIR
+    local OUT_DIR
 
     stamps_do extract-mpfr-$MPFR_VERSION extract_mpfr_sources $1
 
@@ -1165,9 +1165,9 @@ build_mpfr ()
     dump "$(host_text) Building mpfr-$1"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for mpfr-$MPFR_VERSION)" &&
-        run2 mkdir -p "$BUILD_DIR" && run2 rm -rf "$BUILD_DIR"/* &&
-        cd $BUILD_DIR &&
+        OUT_DIR="$(host_out_dir_for mpfr-$MPFR_VERSION)" &&
+        run2 mkdir -p "$OUT_DIR" && run2 rm -rf "$OUT_DIR"/* &&
+        cd $OUT_DIR &&
         run2 "$SRC_DIR"/configure \
             --prefix=$INSTALL_DIR \
             --build=$BUILD \
@@ -1183,7 +1183,7 @@ build_mpfr ()
 # $1: mpc-version
 extract_mpc_sources ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src"
 
     dump "Extracting mpc-$1"
     run2 mkdir -p "$SRC_DIR" &&
@@ -1194,9 +1194,9 @@ extract_mpc_sources ()
 # $1: mpc-version
 build_mpc ()
 {
-    local SRC_DIR="$TOP_BUILD_DIR/temp-src/mpc-$1"
+    local SRC_DIR="$TOP_OUT_DIR/temp-src/mpc-$1"
     local INSTALL_DIR="$(host_prereqs_install_dir)"
-    local BUILD_DIR
+    local OUT_DIR
 
     stamps_do extract-mpc-$1 extract_mpc_sources $1
 
@@ -1205,9 +1205,9 @@ build_mpc ()
     dump "$(host_text) Building mpc-$1"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for mpc-$MPC_VERSION)" &&
-        run2 mkdir -p "$BUILD_DIR" && run2 rm -rf "$BUILD_DIR"/* &&
-        cd $BUILD_DIR &&
+        OUT_DIR="$(host_out_dir_for mpc-$MPC_VERSION)" &&
+        run2 mkdir -p "$OUT_DIR" && run2 rm -rf "$OUT_DIR"/* &&
+        cd $OUT_DIR &&
         run2 "$SRC_DIR"/configure \
             --prefix=$INSTALL_DIR \
             --build=$BUILD \
@@ -1223,7 +1223,7 @@ build_mpc ()
 
 # Build all pre-required host libraries (gmp, mpfr, etc...) that are needed
 # by binutils and gcc, as static libraries that will be placed under
-# $HOST_BUILD_DIR/temp-install
+# $HOST_OUT_DIR/temp-install
 #
 # $1: toolchain source directory
 #
@@ -1343,9 +1343,9 @@ build_host_binutils ()
     dump "$(host_text)$(target_text) Building binutils-$BINUTILS_VERSION"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for binutils-$BINUTILS_VERSION-$TARGET)" &&
-        run2 mkdir -p "$BUILD_DIR" && run2 rm -rf "$BUILD_DIR"/* &&
-        cd "$BUILD_DIR" &&
+        OUT_DIR="$(host_out_dir_for binutils-$BINUTILS_VERSION-$TARGET)" &&
+        run2 mkdir -p "$OUT_DIR" && run2 rm -rf "$OUT_DIR"/* &&
+        cd "$OUT_DIR" &&
         run2 "$SRC_DIR"/configure \
             --prefix="$INSTALL_DIR" \
             --disable-shared \
@@ -1437,9 +1437,9 @@ build_host_gcc_core ()
     dump "$(host_text)$(toolchain_text) Building gcc-core"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for gcc-$GCC_VERSION-$TARGET)" &&
-        run2 mkdir -p "$BUILD_DIR" && run2 rm -rf "$BUILD_DIR"/* &&
-        cd "$BUILD_DIR" &&
+        OUT_DIR="$(host_out_dir_for gcc-$GCC_VERSION-$TARGET)" &&
+        run2 mkdir -p "$OUT_DIR" && run2 rm -rf "$OUT_DIR"/* &&
+        cd "$OUT_DIR" &&
         PATH=$NEW_PATH:$PATH &&
         run2 "$SRC_DIR"/configure \
             --prefix="$INSTALL_DIR" \
@@ -1467,8 +1467,8 @@ build_target_gcc_libs ()
     dump "$(host_text)$(toolchain_text) Building target libraries"
     (
         setup_host_env &&
-        BUILD_DIR="$(host_build_dir_for gcc-$GCC_VERSION-$TARGET)" &&
-        cd "$BUILD_DIR" &&
+        OUT_DIR="$(host_out_dir_for gcc-$GCC_VERSION-$TARGET)" &&
+        cd "$OUT_DIR" &&
         PATH=$NEW_PATH:$PATH &&
         run2 make -j$NUM_JOBS all &&
         run2 make -j$NUM_INSTALL_JOBS install

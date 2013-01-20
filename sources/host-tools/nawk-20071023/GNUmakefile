@@ -2,11 +2,11 @@
 # (C) 2011 The Android Open Source Project
 # yada yda yada Apache 2.0 License....
 
-BUILD_DIR ?= /tmp/ndk-$(USER)/build-awk
+OUT_DIR ?= /tmp/ndk-$(USER)/build-awk
 
 
 CC      := $(HOST_CC)
-CFLAGS  := -O2 -I$(BUILD_DIR) -I.
+CFLAGS  := -O2 -I$(OUT_DIR) -I.
 LDFLAGS := -Wl,-s
 BISON   := bison
 
@@ -41,14 +41,14 @@ else
 WINE    :=
 endif
 
-PROGRAM := $(BUILD_DIR)/ndk-awk$(EXE)
+PROGRAM := $(OUT_DIR)/ndk-awk$(EXE)
 
 all: $(PROGRAM)
 
 OBJECTS :=
 
-YTAB_H := $(BUILD_DIR)/ytab.h
-YTAB_C := $(BUILD_DIR)/ytab.c
+YTAB_H := $(OUT_DIR)/ytab.h
+YTAB_C := $(OUT_DIR)/ytab.c
 YTAB_O := $(YTAB_C:.c=.o)
 $(YTAB_C): awkgram.y
 	@echo "Bison: ytab.c"
@@ -69,15 +69,15 @@ $2: $1 $(YTAB_H)
 endef
 
 $(foreach src,$(filter %.c,$(SOURCES)),\
-    $(eval $(call build-c-file,$(src),$(BUILD_DIR)/$(src:%.c=%.o)))\
+    $(eval $(call build-c-file,$(src),$(OUT_DIR)/$(src:%.c=%.o)))\
 )
 
-MAKETAB := $(BUILD_DIR)/maketab$(EXE)
-$(MAKETAB): maketab.c $(BUILD_DIR)/ytab.h
+MAKETAB := $(OUT_DIR)/maketab$(EXE)
+$(MAKETAB): maketab.c $(OUT_DIR)/ytab.h
 	@echo "Executable: $(notdir $@)"
 	$(hide)$(CC) $(CFLAGS) $(LDFLAGS) maketab.c -o $@
 
-PROCTAB_C := $(BUILD_DIR)/proctab.c
+PROCTAB_C := $(OUT_DIR)/proctab.c
 PROCTAB_O := $(PROCTAB_C:%.c=%.o)
 
 $(eval $(call build-c-file,$(PROCTAB_C),$(PROCTAB_O)))

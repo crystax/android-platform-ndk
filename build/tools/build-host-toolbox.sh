@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -39,9 +39,9 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
+OUT_DIR=
+OPTION_OUT_DIR=
+register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Specify temporary build dir."
 
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
@@ -65,18 +65,18 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-toolbox
-    log "Auto-config: --build-dir=$BUILD_DIR"
-    rm -rf $BUILD_DIR/* && mkdir -p $BUILD_DIR
+if [ -z "$OPTION_OUT_DIR" ]; then
+    OUT_DIR=$NDK_TMPDIR/build-toolbox
+    log "Auto-config: --out-dir=$OUT_DIR"
+    rm -rf $OUT_DIR/* && mkdir -p $OUT_DIR
 else
-    BUILD_DIR=$OPTION_BUILD_DIR
+    OUT_DIR=$OPTION_OUT_DIR
 fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+mkdir -p "$OUT_DIR"
+fail_panic "Could not create build directory: $OUT_DIR"
 
 if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_DIR/Makefile
+    MAKEFILE=$OUT_DIR/Makefile
 else
     MAKEFILE=
 fi
@@ -89,7 +89,7 @@ if [ "$BUILD_WINDOWS_SOURCES" ]; then
     ORIGINAL_HOST_TAG=$HOST_TAG
     MINGW=yes
     handle_mingw
-    prepare_mingw_toolchain $BUILD_DIR
+    prepare_mingw_toolchain $OUT_DIR
 
     SUBDIR=$(get_prebuilt_install_prefix $HOST_TAG)/bin
     DSTDIR=$NDK_DIR/$SUBDIR
@@ -98,7 +98,7 @@ if [ "$BUILD_WINDOWS_SOURCES" ]; then
 
     # Build echo.exe
     HOST_TAG=$ORIGINAL_HOST_TAG
-    builder_begin_host "$BUILD_DIR" "$MAKEFILE"
+    builder_begin_host "$OUT_DIR" "$MAKEFILE"
     builder_set_srcdir "$TOOLBOX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
     builder_sources echo_win.c
@@ -107,7 +107,7 @@ if [ "$BUILD_WINDOWS_SOURCES" ]; then
 
     # Build cmp.exe
     HOST_TAG=$ORIGINAL_HOST_TAG
-    builder_begin_host "$BUILD_DIR" "$MAKEFILE"
+    builder_begin_host "$OUT_DIR" "$MAKEFILE"
     builder_set_srcdir "$TOOLBOX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
     builder_sources cmp_win.c

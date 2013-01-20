@@ -39,10 +39,19 @@ do_out () { CUSTOM_OUT=true; OUT=$1; }
 GNUMAKE=make
 register_var_option "--make=<path>" GNUMAKE "Specify GNU Make program for the build"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify path to build out directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
+
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binaries into package directory"
 
 extract_parameters "$@"
+
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/make
 
 if [ -z "$CUSTOM_OUT" ]; then
     SUBDIR=$(get_prebuilt_host_exec make)
@@ -61,7 +70,7 @@ log "Using sources from: $GNUMAKE_SRCDIR"
 
 prepare_host_build
 
-TMP_SRCDIR=$NDK_TMPDIR/src
+TMP_SRCDIR=$OUT_DIR/src
 
 # We need to copy the sources to a temporary directory because
 # the build system will modify some documentation files in the
@@ -70,8 +79,6 @@ log "Copying sources to temporary directory: $TMP_SRCDIR"
 mkdir -p "$TMP_SRCDIR" && copy_directory "$GNUMAKE_SRCDIR" "$TMP_SRCDIR"
 fail_panic "Could not copy GNU Make sources to: $TMP_SRCDIR"
 
-BUILD_DIR=$NDK_TMPDIR/build
-
 CONFIGURE_FLAGS="--disable-nls --disable-rpath"
 if [ "$MINGW" = "yes" ]; then
     # Required for a proper mingw compile
@@ -79,9 +86,9 @@ if [ "$MINGW" = "yes" ]; then
 fi
 
 log "Configuring the build"
-mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
-prepare_mingw_toolchain $BUILD_DIR
-cd $BUILD_DIR &&
+mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
+prepare_mingw_toolchain $OUT_DIR
+cd $OUT_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
 export CC CFLAGS LDFLAGS &&
@@ -104,7 +111,17 @@ if [ "$PACKAGE_DIR" ]; then
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
 fi
 
-log "Cleaning up"
-rm -rf $BUILD_DIR $TMP_SRCDIR
+if [ -z "$OPTION_OUT_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $TMP_SRCDIR
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
+fi
 
 log "Done."

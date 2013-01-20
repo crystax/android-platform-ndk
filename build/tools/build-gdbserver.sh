@@ -38,9 +38,10 @@ NOTE: The --platform option is ignored if --sysroot is used."
 
 VERBOSE=no
 
-OPTION_BUILD_OUT=
-BUILD_OUT=/tmp/ndk-$USER/build/target
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 OPTION_PLATFORM=
 register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
@@ -64,9 +65,10 @@ register_jobs_option
 
 extract_parameters "$@"
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/build.log
-log "Using build directory: $BUILD_OUT"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/gdbserver
+log "Using build directory: $OUT_DIR"
 
 set_parameters ()
 {
@@ -140,12 +142,12 @@ log "Using GDB source directory: $SRC_DIR"
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
 
-BUILD_OUT=$BUILD_OUT/gdbserver-$TOOLCHAIN
-run rm -Rf "$BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
+OUT_DIR=$OUT_DIR/$TOOLCHAIN
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
 
 # Copy the sysroot to a temporary build directory
-BUILD_SYSROOT="$BUILD_OUT/sysroot"
+BUILD_SYSROOT="$OUT_DIR/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
 
@@ -218,7 +220,7 @@ case "$GDB_VERSION" in
 esac
 
 GDBSERVER_CFLAGS="$GDBSERVER_CFLAGS -Wno-strict-aliasing"
-cd $BUILD_OUT &&
+cd $OUT_DIR &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export AR="$TOOLCHAIN_PREFIX-ar" &&
 export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
@@ -235,7 +237,7 @@ fi
 
 # build gdbserver
 dump "Building : $TOOLCHAIN gdbserver."
-cd $BUILD_OUT &&
+cd $OUT_DIR &&
 run make -j$NUM_JOBS
 if [ $? != 0 ] ; then
     dump "Could not build $TOOLCHAIN gdbserver. Use --verbose to see why."
@@ -262,7 +264,7 @@ fi
 dump "Install  : $TOOLCHAIN $DSTFILE."
 DEST=$ANDROID_NDK_ROOT/prebuilt/android-$ARCH/gdbserver
 mkdir -p $DEST &&
-run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $BUILD_OUT/gdbserver $DEST/$DSTFILE
+run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $OUT_DIR/gdbserver $DEST/$DSTFILE
 if [ $? != 0 ] ; then
     dump "Could not install $DSTFILE. See $TMPLOG"
     exit 1
@@ -274,7 +276,15 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$ANDROID_NDK_ROOT" "prebuilt/android-$ARCH/gdbserver/$DSTFILE"
 fi
 
-dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    run rm -rf $BUILD_OUT
+if [ -z "$OPTION_OUT_DIR" ] ; then
+    log "Cleaning up..."
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
+dump "Done."

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -49,6 +49,10 @@ These lists will then be saved into two files:
 NO_FILTERING=
 register_var_option "--no-symbol-filtering" NO_FILTERING "Disable symbol filtering"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Specify output directory for temporary files" "$OUT_DIR"
+
 extract_parameters "$@"
 
 parse_params ()
@@ -91,16 +95,27 @@ get_library_variables ()
     $READELF -s -D -W $1 | awk '$5 ~ /OBJECT/ && $6 ~ /GLOBAL|WEAK/ && $8 !~ /UND/ { print $9; }' | sort -u
 }
 
+if [ -n "$OPTION_OUT_DIR" ]; then
+    OUT_DIR="$OPTION_OUT_DIR"
+    mkdir -p $OUT_DIR
+    if [ $? != 0 ] ; then
+        echo "ERROR: Could not create output directory: $OUT_DIR"
+        exit 1
+    fi
+else
+    rm -Rf $OUT_DIR && mkdir -p $OUT_DIR
+fi
+
 # Temp file used to list shared library symbol exclusions
 # See set_symbol_excludes and extract_shared_library_xxxx functions below
-SYMBOL_EXCLUDES=/tmp/ndk-$USER/ndk-symbol-excludes.txt
+SYMBOL_EXCLUDES=$OUT_DIR/ndk-symbol-excludes.txt
 
 # Temp file used to list shared library symbol inclusions, these
 # are essentially overrides to the content of SYMBOL_EXCLUDES
-SYMBOL_INCLUDES=/tmp/ndk-$USER/ndk-symbol-includes.txt
+SYMBOL_INCLUDES=$OUT_DIR/ndk-symbol-includes.txt
 
 # Temp file used to filter symbols
-SYMBOL_TMPFILE=/tmp/ndk-$USER/ndk-symbols-list.txt
+SYMBOL_TMPFILE=$OUT_DIR/ndk-symbols-list.txt
 
 # Reset the symbol exclusion list to its default
 reset_symbol_excludes ()
