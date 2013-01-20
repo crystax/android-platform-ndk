@@ -34,10 +34,19 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK install directory"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive to package directory"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Path to build out directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
+
 GNUMAKE=make
 register_var_option "--make=<path>" GNUMAKE "Specify GNU Make program"
 
 extract_parameters "$@"
+
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host-awk
 
 SUBDIR=$(get_prebuilt_host_exec awk)
 OUT=$NDK_DIR/$SUBDIR
@@ -53,7 +62,6 @@ log "Using sources from: $AWK_SRCDIR"
 
 prepare_host_build
 
-BUILD_DIR=$NDK_TMPDIR
 BUILD_MINGW=
 if [ "$MINGW" = "yes" ]; then
   BUILD_MINGW=yes
@@ -67,13 +75,13 @@ if [ "$VERBOSE2" = "yes" ]; then
 fi
 
 CFLAGS="$HOST_CFLAGS"
-CFLAGS=$CFLAGS" -O2 -s -I$BUILD_DIR -I$AWK_SRCDIR"
+CFLAGS=$CFLAGS" -O2 -s -I$OUT_DIR -I$AWK_SRCDIR"
 LDFLAGS="$HOST_LDFLAGS"
 LDFLAGS=$LDFLAGS" -Wl,-s"
 
 log "Configuring the build"
-mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
-prepare_mingw_toolchain $BUILD_DIR
+mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
+prepare_mingw_toolchain $OUT_DIR
 log "Building $HOST_TAG awk"
 export HOST_CC="$CC" &&
 run $GNUMAKE \
@@ -81,14 +89,14 @@ run $GNUMAKE \
     -j $NUM_JOBS \
     CFLAGS="$CFLAGS" \
     LDFLAGS="$LDFLAGS" \
-    BUILD_DIR="$BUILD_DIR" \
+    OUT_DIR="$OUT_DIR" \
     MINGW="$BUILD_MINGW" \
     TRY64="$BUILD_TRY64" \
     V="$V"
 fail_panic "Failed to build the awk-$AWK_VERSION executable!"
 
 log "Copying executable to prebuilt location"
-run mkdir -p $(dirname "$OUT") && cp "$BUILD_DIR/$(get_host_exec_name ndk-awk)" "$OUT"
+run mkdir -p $(dirname "$OUT") && cp "$OUT_DIR/$(get_host_exec_name ndk-awk)" "$OUT"
 fail_panic "Could not copy executable to: $OUT"
 
 if [ "$PACKAGE_DIR" ]; then
@@ -100,7 +108,9 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 log "Cleaning up"
-rm -rf $BUILD_DIR
+if [ -z "$OPTION_OUT_DIR" ]; then
+    rm -rf $OUT_DIR
+fi
 
 log "Done."
 

@@ -31,9 +31,9 @@ the top-level NDK installation path and <toolchain> is the name of
 the toolchain to use (e.g. arm-linux-androideabi-4.4.3)."
 
 RELEASE=`date +%Y%m%d`
-BUILD_OUT=/tmp/ndk-$USER/build/toolchain
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Set temporary build directory"
 
 # Note: platform API level 9 or higher is needed for proper C++ support
 OPTION_PLATFORM=
@@ -121,10 +121,10 @@ register_jobs_option
 
 extract_parameters "$@"
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/build.log
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
 
-prepare_mingw_toolchain $BUILD_OUT
+prepare_mingw_toolchain $OUT_DIR
 
 set_parameters ()
 {
@@ -290,10 +290,9 @@ if [ "$MINGW" != "yes" ] ; then
     dump "Using C++ compiler: $CXX"
 fi
 
-FULL_BUILD_OUT=$BUILD_OUT
-BUILD_OUT=$BUILD_OUT/$TOOLCHAIN-$HOST_TAG
-rm -Rf $BUILD_OUT
-mkdir -p $BUILD_OUT
+OUT_DIR=$OUT_DIR/$TOOLCHAIN-$HOST_TAG
+rm -Rf $OUT_DIR
+mkdir -p $OUT_DIR
 
 # Location where the toolchain license files are
 TOOLCHAIN_LICENSES=$ANDROID_NDK_ROOT/build/tools/toolchain-licenses
@@ -312,10 +311,10 @@ TOOLCHAIN_LICENSES=$ANDROID_NDK_ROOT/build/tools/toolchain-licenses
 #  3) The path exists but not accessible, which crashes GCC!
 #
 # For canadian build --with-sysroot has to be sub-directory of --prefix.
-# Put TOOLCHAIN_BUILD_PREFIX to BUILD_OUT which is in /tmp by default,
+# Put TOOLCHAIN_BUILD_PREFIX to OUT_DIR which is in /tmp by default,
 # and TOOLCHAIN_BUILD_SYSROOT underneath.
 
-TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
+TOOLCHAIN_BUILD_PREFIX=$OUT_DIR/prefix
 TOOLCHAIN_BUILD_SYSROOT=$TOOLCHAIN_BUILD_PREFIX/sysroot
 dump "Sysroot  : Copying: $SYSROOT --> $TOOLCHAIN_BUILD_SYSROOT"
 mkdir -p $TOOLCHAIN_BUILD_SYSROOT && (cd $SYSROOT && tar ch *) | (cd $TOOLCHAIN_BUILD_SYSROOT && tar x)
@@ -401,7 +400,7 @@ case "$TOOLCHAIN" in
 esac
 
 #export LDFLAGS="$HOST_LDFLAGS"
-cd $BUILD_OUT && run \
+cd $OUT_DIR && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \
                         --host=$ABI_CONFIGURE_HOST \
@@ -427,7 +426,7 @@ fi
 ABI="$OLD_ABI"
 # build the toolchain
 dump "Building : $TOOLCHAIN toolchain [this can take a long time]."
-cd $BUILD_OUT
+cd $OUT_DIR
 export CC CXX
 export ABI=$HOST_GMP_ABI
 JOBS=$NUM_JOBS
@@ -459,7 +458,7 @@ ABI="$OLD_ABI"
 
 # install the toolchain to its final location
 dump "Install  : $TOOLCHAIN toolchain binaries."
-cd $BUILD_OUT && run make install
+cd $OUT_DIR && run make install
 if [ $? != 0 ] ; then
     echo "Error while installing toolchain. See $TMPLOG"
     exit 1
@@ -472,7 +471,7 @@ if [ "$MINGW" = "yes" ] ; then
     # For some reasons, libraries in $ABI_CONFIGURE_TARGET (*) are not installed.
     # Hack here to copy them over.
     # (*) FYI: libgcc.a and libgcov.a not installed there in the first place
-    INSTALL_TARGET_LIB_PATH="$BUILD_OUT/host-$ABI_CONFIGURE_BUILD/install/$ABI_CONFIGURE_TARGET/lib"
+    INSTALL_TARGET_LIB_PATH="$OUT_DIR/host-$ABI_CONFIGURE_BUILD/install/$ABI_CONFIGURE_TARGET/lib"
     TOOLCHAIN_TARGET_LIB_PATH="$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib"
     (cd "$INSTALL_TARGET_LIB_PATH" &&
         find . \( -name "*.a" -o -name "*.la" -o -name "*.spec" \) -exec install -D "{}" "$TOOLCHAIN_TARGET_LIB_PATH/{}" \;)
@@ -537,6 +536,6 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    rm -rf $BUILD_OUT
+if [ -z "$OPTION_OUT_DIR" ] ; then
+    rm -rf $OUT_DIR
 fi

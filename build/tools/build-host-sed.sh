@@ -34,10 +34,17 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK install directory"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive to package directory"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify path to build out directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
+
 GNUMAKE=make
 register_var_option "--make=<path>" GNUMAKE "Specify GNU Make program"
 
 extract_parameters "$@"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+OUT_DIR=$OUT_DIR/host-sed
 
 SUBDIR=$(get_prebuilt_host_exec sed)
 OUT=$NDK_DIR/$(get_prebuilt_host_exec sed)
@@ -53,12 +60,10 @@ log "Using sources from: $SED_SRCDIR"
 
 prepare_host_build
 
-BUILD_DIR=$NDK_TMPDIR
-
 log "Configuring the build"
-mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
-prepare_mingw_toolchain $BUILD_DIR
-cd $BUILD_DIR &&
+mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
+prepare_mingw_toolchain $OUT_DIR
+cd $OUT_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
 export CC CFLAGS LDFLAGS &&
@@ -88,7 +93,9 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 log "Cleaning up"
-rm -rf $BUILD_DIR
+if [ -z "$OPTION_OUT_DIR" ]; then
+    rm -rf $OUT_DIR
+fi
 
 log "Done."
 

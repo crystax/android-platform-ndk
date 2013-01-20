@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2012 The Android Open Source Project
 #
@@ -31,9 +31,10 @@ the top-level NDK installation path and <toolchain> is the name of
 the toolchain to use (e.g. llvm-3.1)."
 
 RELEASE=`date +%Y%m%d`
-BUILD_OUT=/tmp/ndk-$USER/build/toolchain
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 # Note: platform API level 9 or higher is needed for proper C++ support
 PLATFORM=$DEFAULT_PLATFORM
@@ -59,10 +60,11 @@ register_try64_option
 
 extract_parameters "$@"
 
-prepare_mingw_toolchain /tmp/ndk-$USER/build
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+OUT_DIR=$OUT_DIR/llvm
+setup_default_log_file $OUT_DIR/build.log
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/config.log
+prepare_mingw_toolchain $OUT_DIR
 
 set_parameters ()
 {
@@ -134,10 +136,10 @@ set_toolchain_ndk $NDK_DIR $TOOLCHAIN
 dump "Using C compiler: $CC"
 dump "Using C++ compiler: $CXX"
 
-rm -rf $BUILD_OUT
-mkdir -p $BUILD_OUT
+rm -rf $OUT_DIR
+mkdir -p $OUT_DIR
 
-TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
+TOOLCHAIN_BUILD_PREFIX=$OUT_DIR/prefix
 
 CFLAGS="$HOST_CFLAGS $CFLAGS -I$TOOLCHAIN_BUILD_PREFIX/include"
 CXXFLAGS="$CXXFLAGS -I$TOOLCHAIN_BUILD_PREFIX/include"  # polly doesn't look at CFLAGS !
@@ -151,12 +153,12 @@ if [ "$POLLY" = "yes" ]; then
     ln -s ../../polly $SRC_DIR/$TOOLCHAIN/llvm/tools
 
     # build polly dependencies
-    unpack_archive "$GMP_SOURCE" "$BUILD_OUT"
-    fail_panic "Couldn't unpack $SRC_DIR/gmp/gmp-$GMP_VERSION to $BUILD_OUT"
+    unpack_archive "$GMP_SOURCE" "$OUT_DIR"
+    fail_panic "Couldn't unpack $SRC_DIR/gmp/gmp-$GMP_VERSION to $OUT_DIR"
 
-    GMP_BUILD_OUT=$BUILD_OUT/gmp-$GMP_VERSION
-    cd $GMP_BUILD_OUT
-    fail_panic "Couldn't cd into gmp build path: $GMP_BUILD_OUT"
+    GMP_OUT_DIR=$OUT_DIR/gmp-$GMP_VERSION
+    cd $GMP_OUT_DIR
+    fail_panic "Couldn't cd into gmp build path: $GMP_OUT_DIR"
 
     OLD_ABI="${ABI}"
     export ABI=$HOST_GMP_ABI  # needed to build 32-bit on 64-bit host
@@ -174,9 +176,9 @@ if [ "$POLLY" = "yes" ]; then
     fail_panic "Couldn't install gmp to $TOOLCHAIN_BUILD_PREFIX"
     ABI="$OLD_ABI"
 
-    CLOOG_BUILD_OUT=$BUILD_OUT/cloog
-    mkdir -p $CLOOG_BUILD_OUT && cd $CLOOG_BUILD_OUT
-    fail_panic "Couldn't create cloog build path: $CLOOG_BUILD_OUT"
+    CLOOG_OUT_DIR=$OUT_DIR/cloog
+    mkdir -p $CLOOG_OUT_DIR && cd $CLOOG_OUT_DIR
+    fail_panic "Couldn't create cloog build path: $CLOOG_OUT_DIR"
 
     run $SRC_DIR/$TOOLCHAIN/llvm/tools/polly/utils/cloog_src/configure \
         --prefix=$TOOLCHAIN_BUILD_PREFIX \
@@ -196,9 +198,9 @@ fi # POLLY = yes
 
 # configure the toolchain
 dump "Configure: $TOOLCHAIN toolchain build"
-LLVM_BUILD_OUT=$BUILD_OUT/llvm
-mkdir -p $LLVM_BUILD_OUT && cd $LLVM_BUILD_OUT
-fail_panic "Couldn't cd into llvm build path: $LLVM_BUILD_OUT"
+LLVM_OUT_DIR=$OUT_DIR/llvm
+mkdir -p $LLVM_OUT_DIR && cd $LLVM_OUT_DIR
+fail_panic "Couldn't cd into llvm build path: $LLVM_OUT_DIR"
 
 run $SRC_DIR/$TOOLCHAIN/llvm/configure \
     --prefix=$TOOLCHAIN_BUILD_PREFIX \
@@ -213,19 +215,19 @@ fail_panic "Couldn't configure llvm toolchain"
 
 # build the toolchain
 dump "Building : llvm toolchain [this can take a long time]."
-cd $LLVM_BUILD_OUT
+cd $LLVM_OUT_DIR
 run make -j$NUM_JOBS
 fail_panic "Couldn't compile llvm toolchain"
 
 if [ "$CHECK" = "yes" -a "$MINGW" != "yes" ] ; then
     # run the regression test
     dump "Running  : llvm toolchain regression test"
-    cd $LLVM_BUILD_OUT
+    cd $LLVM_OUT_DIR
     run make check-all
     fail_warning "Couldn't pass all llvm regression test"  # change to fail_panic later
     if [ "$POLLY" = "yes" ]; then
         dump "Running  : polly toolchain regression test"
-        cd $LLVM_BUILD_OUT
+        cd $LLVM_OUT_DIR
         run make polly-test -C tools/polly/test
         fail_warning "Couldn't pass all polly regression test"  # change to fail_panic later
     fi
@@ -233,7 +235,7 @@ fi
 
 # install the toolchain to its final location
 dump "Install  : llvm toolchain binaries."
-cd $LLVM_BUILD_OUT && run make install
+cd $LLVM_OUT_DIR && run make install
 fail_panic "Couldn't install llvm toolchain to $TOOLCHAIN_BUILD_PREFIX"
 
 # clean static or shared libraries
@@ -341,6 +343,6 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    rm -rf $BUILD_OUT
+if [ -z "$OPTION_OUT_DIR" ] ; then
+    rm -rf $OUT_DIR
 fi

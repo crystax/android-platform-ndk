@@ -47,15 +47,15 @@ builder_log ()
 # $2: Optional Makefile name
 builder_begin ()
 {
-    _BUILD_DIR_NEW=
-    _BUILD_DIR=$1
-    if [ ! -d "$_BUILD_DIR" ]; then
-        mkdir -p "$_BUILD_DIR"
-        fail_panic "Can't create build directory: $_BUILD_DIR"
-        _BUILD_DIR_NEW=true
+    _OUT_DIR_NEW=
+    _OUT_DIR=$1
+    if [ ! -d "$_OUT_DIR" ]; then
+        mkdir -p "$_OUT_DIR"
+        fail_panic "Can't create build directory: $_OUT_DIR"
+        _OUT_DIR_NEW=true
     else
-        rm -rf "$_BUILD_DIR/*"
-        fail_panic "Can't cleanup build directory: $_BUILD_DIR"
+        rm -rf "$_OUT_DIR/*"
+        fail_panic "Can't cleanup build directory: $_OUT_DIR"
     fi
     _BUILD_TARGETS=
     _BUILD_PREFIX=
@@ -134,7 +134,7 @@ builder_set_binprefix ()
 
 builder_set_builddir ()
 {
-    _BUILD_DIR=$1
+    _OUT_DIR=$1
 }
 
 builder_set_srcdir ()
@@ -213,7 +213,7 @@ builder_link_with ()
 builder_sources ()
 {
     local src srcfull obj cc cflags text
-    if [ -z "$_BUILD_DIR" ]; then
+    if [ -z "$_OUT_DIR" ]; then
         panic "Build directory not set!"
     fi
     if [ -z "$_BUILD_CC" ]; then
@@ -262,7 +262,7 @@ builder_sources ()
         # This is useful to get good stack traces
         cflags=$cflags" -funwind-tables"
 
-        obj=$_BUILD_DIR/$obj.o
+        obj=$_OUT_DIR/$obj.o
         if [ "$_BUILD_MK" ]; then
             echo "$obj: $srcfull" >> $_BUILD_MK
         fi
@@ -408,10 +408,10 @@ builder_end ()
         fail_panic "Could not build project!"
     fi
 
-    if [ "$_BUILD_DIR_NEW" ]; then
-        log2 "Cleaning up build directory: $_BUILD_DIR"
-        rm -rf "$_BUILD_DIR"
-        _BUILD_DIR_NEW=
+    if [ "$_OUT_DIR_NEW" ]; then
+        log2 "Cleaning up build directory: $_OUT_DIR"
+        rm -rf "$_OUT_DIR"
+        _OUT_DIR_NEW=
     fi
 }
 

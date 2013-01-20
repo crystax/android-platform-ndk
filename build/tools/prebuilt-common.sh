@@ -821,6 +821,7 @@ prepare_common_build ()
     # So know, simply probe for the size of void* by performing a small runtime
     # compilation test.
     #
+    mkdir -p `dirname $TMPC`
     cat > $TMPC <<EOF
     /* this test should fail if the compiler generates 64-bit machine code */
     int test_array[1-2*(sizeof(void*) != 4)];
@@ -844,6 +845,7 @@ EOF
             CXX="$CXX -m64"
         fi
     fi
+    clean_temp
 
     if [ "$TRY64" = "yes" ]; then
         HOST_BITS=64
@@ -1312,6 +1314,15 @@ if [ -z "$NDK_TMPDIR" ]; then
         echo "ERROR: Could not create NDK_TMPDIR: $NDK_TMPDIR"
         exit 1
     fi
+    do_rmdir()
+    {
+        local dir=$1
+        while true; do
+            rmdir $dir >/dev/null 2>&1 || break
+            dir=`dirname $dir`
+        done
+    }
+    trap "do_rmdir $NDK_TMPDIR" EXIT INT
     export NDK_TMPDIR
 fi
 

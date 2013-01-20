@@ -29,8 +29,10 @@ PROGRAM_DESCRIPTION=\
 
 register_jobs_option
 
-BUILD_DIR=
-register_var_option "--build-dir=<path>" BUILD_DIR "Specify build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir  "Specify build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Place binary in NDK installation path"
@@ -49,14 +51,12 @@ register_try64_option
 
 extract_parameters "$@"
 
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+OUT_DIR=$OUT_DIR/ndk-stack
+
 prepare_host_build
 
-# Choose a build directory if not specified by --build-dir
-if [ -z "$BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-ndk-stack
-    log "Auto-config: --build-dir=$BUILD_DIR"
-fi
-prepare_mingw_toolchain $BUILD_DIR
+prepare_mingw_toolchain $OUT_DIR
 
 OUT=$NDK_DIR/$(get_host_exec_name ndk-stack)
 
@@ -98,7 +98,7 @@ export CFLAGS=$HOST_CFLAGS" -O2 -s"
 run $GNUMAKE -C $SRCDIR -f $SRCDIR/GNUMakefile \
     -B -j$NUM_JOBS \
     PROGNAME="$OUT" \
-    BUILD_DIR="$BUILD_DIR" \
+    OUT_DIR="$OUT_DIR" \
     CC="$CXX" CXX="$CXX" \
     CFLAGS="$CFLAGS" \
     LDFLAGS="$LDFLAGS" \
@@ -116,6 +116,10 @@ if [ "$PACKAGE_DIR" ]; then
     dump "Packaging: $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not create package: $PACKAGE_DIR/$ARCHIVE from $OUT"
+fi
+
+if [ -z "$OPTION_OUT_DIR" ]; then
+    rm -rf $OUT_DIR
 fi
 
 log "Done!"

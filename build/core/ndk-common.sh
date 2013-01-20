@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2009 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -421,17 +423,23 @@ disable_cygwin ()
 }
 
 # Various probes are going to need to run a small C program
-mkdir -p /tmp/ndk-$USER/tmp/tests
+TMPTESTSDIR=/tmp/ndk-$USER/tmp/tests
+mkdir -p $TMPTESTSDIR
 
-TMPC=/tmp/ndk-$USER/tmp/tests/test-$$.c
-TMPO=/tmp/ndk-$USER/tmp/tests/test-$$.o
-TMPE=/tmp/ndk-$USER/tmp/tests/test-$$$EXE
-TMPL=/tmp/ndk-$USER/tmp/tests/test-$$.log
+TMPC=$TMPTESTSDIR/test-$$.c
+TMPO=$TMPTESTSDIR/test-$$.o
+TMPE=$TMPTESTSDIR/test-$$$EXE
+TMPL=$TMPTESTSDIR/test-$$.log
 
 # cleanup temporary files
 clean_temp ()
 {
     rm -f $TMPC $TMPO $TMPL $TMPE
+    local dir=$TMPTESTSDIR
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 }
 
 # cleanup temp files then exit with an error
@@ -528,6 +536,8 @@ EOF
     fi
 
     log "CXX        : C++ compiler check ok ($CXX)"
+
+    clean_temp
 
     # XXX: TODO perform AR checks
     AR=ar
