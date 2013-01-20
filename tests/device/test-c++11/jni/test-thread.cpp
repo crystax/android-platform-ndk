@@ -26,9 +26,11 @@
 #include <functional>
 #include <atomic>
 
+#define NUM 5
+
 void f1(int n)
 {
-    for(int i=0; i<5; ++i) {
+    for(int i=0; i<NUM; ++i) {
         std::cout << "Thread " << n << " executing\n";
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
@@ -36,7 +38,7 @@ void f1(int n)
 
 void f2(int& n)
 {
-    for(int i=0; i<5; ++i) {
+    for(int i=0; i<NUM; ++i) {
         std::cout << "Thread 2 executing\n";
         ++n;
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -51,7 +53,13 @@ int test_thread()
     std::thread t4(std::move(t3));
     t1.join();
     t4.join();
-    std::cout << "Final value of n is " << n << '\n';
+
+    if (n == NUM)
+        std::cout << "Final value of n is " << n << std::endl;
+    else {
+        std::cout << "error: unexpected value of n: " << n << std::endl;
+        return 1;
+    }
 
     return 0;
 }
