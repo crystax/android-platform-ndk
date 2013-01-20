@@ -180,6 +180,8 @@ log "Using build sysroot: $BUILD_SYSROOT"
 # configure the gdbserver build now
 dump "Configure: $TOOLCHAIN gdbserver-$GDB_VERSION build."
 OLD_CC="$CC"
+OLD_AR="$AR"
+OLD_RANLIB="$RANLIB"
 OLD_CFLAGS="$CFLAGS"
 OLD_LDFLAGS="$LDFLAGS"
 OLD_LIBS="$LIBS"
@@ -218,6 +220,8 @@ esac
 GDBSERVER_CFLAGS="$GDBSERVER_CFLAGS -Wno-strict-aliasing"
 cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
+export AR="$TOOLCHAIN_PREFIX-ar" &&
+export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
 export CFLAGS="-O2 -nostdlib -D__ANDROID__ -DANDROID -DSTDC_HEADERS $INCLUDE_DIRS $GDBSERVER_CFLAGS"  &&
 export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined $LIBRARY_LDFLAGS $GDBSERVER_LDFLAGS" &&
 export LIBS="-lc" &&
@@ -228,10 +232,6 @@ if [ $? != 0 ] ; then
     dump "Could not configure gdbserver build. See $TMPLOG"
     exit 1
 fi
-CC="$OLD_CC"
-CFLAGS="$OLD_CFLAGS"
-LDFLAGS="$OLD_LDFLAGS"
-LIBS="$OLD_LIBS"
 
 # build gdbserver
 dump "Building : $TOOLCHAIN gdbserver."
@@ -241,6 +241,13 @@ if [ $? != 0 ] ; then
     dump "Could not build $TOOLCHAIN gdbserver. Use --verbose to see why."
     exit 1
 fi
+
+CC="$OLD_CC"
+AR="$OLD_AR"
+RANLIB="$OLD_RANLIB"
+CFLAGS="$OLD_CFLAGS"
+LDFLAGS="$OLD_LDFLAGS"
+LIBS="$OLD_LIBS"
 
 # install gdbserver
 #
