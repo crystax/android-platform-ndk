@@ -63,7 +63,7 @@ DEVELOPMENT_ROOT=`dirname $ANDROID_NDK_ROOT`/development/ndk
 register_var_option "--development=<path>" DEVELOPMENT_ROOT "Path to development/ndk directory"
 
 # Default location for final packages
-OUT_DIR=/tmp/ndk-$USER/release
+OUT_DIR=/tmp/ndk-$USER
 OPTION_OUT_DIR=
 register_option "--out-dir=<path>" do_out_dir "Path to output directory" "$OUT_DIR"
 do_out_dir() { OPTION_OUT_DIR=$1; }
@@ -172,25 +172,9 @@ if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
     esac
 fi
 
-# Create directory where everything will be performed.
-if [ -z "$OPTION_OUT_DIR" ]; then
-    RELEASE_DIR=/tmp/ndk-$USER/release-$RELEASE
-else
-    RELEASE_DIR=$OUT_DIR/release-$RELEASE
-fi
-if [ "$INCREMENTAL" = "no" ] ; then
-    rm -rf $RELEASE_DIR && mkdir -p $RELEASE_DIR
-else
-    if [ ! -d "$RELEASE_DIR" ] ; then
-        echo "ERROR: Can't make incremental, missing release dir: $RELEASE_DIR"
-        exit 1
-    fi
-fi
-
-
 #
 # Timestamp management
-TIMESTAMP_DIR="$RELEASE_DIR/timestamps"
+TIMESTAMP_DIR="$OUT_DIR/timestamps"
 mkdir -p "$TIMESTAMP_DIR"
 if [ "$INCREMENTAL" = "no" ] ; then
     run rm -rf "$TIMESTAMP_DIR/*"
@@ -223,7 +207,7 @@ if [ -n "$TOOLCHAIN_SRCDIR" ] ; then
 else
     if timestamp_check toolchain-download-sources; then
         dump "Downloading toolchain sources..."
-        TOOLCHAIN_SRCDIR="$RELEASE_DIR/toolchain-src"
+        TOOLCHAIN_SRCDIR="$OUT_DIR/toolchain-src"
         log "Using toolchain source directory: $TOOLCHAIN_SRCDIR"
         run $ANDROID_NDK_ROOT/build/tools/download-toolchain-sources.sh "$TOOLCHAIN_SRCDIR"
         if [ "$?" != 0 ] ; then
@@ -240,7 +224,7 @@ fi
 
 # Step 2, build the host toolchain binaries and package them
 if timestamp_check build-prebuilts; then
-    PREBUILT_DIR="$RELEASE_DIR/prebuilt"
+    PREBUILT_DIR="$OUT_DIR/prebuilt"
     FLAGS=""
     if [ "$VERBOSE" = "yes" ] ; then
         FLAGS=$FLAGS" --verbose"

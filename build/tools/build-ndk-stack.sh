@@ -52,7 +52,8 @@ register_try64_option
 extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
-OUT_DIR=$OUT_DIR/ndk-stack
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/ndk-stack
 
 prepare_host_build
 

@@ -33,7 +33,8 @@ the toolchain to use (e.g. arm-linux-androideabi-4.4.3)."
 RELEASE=`date +%Y%m%d`
 OUT_DIR=/tmp/ndk-$USER
 OPTION_OUT_DIR=
-register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Set temporary build directory"
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 # Note: platform API level 9 or higher is needed for proper C++ support
 OPTION_PLATFORM=
@@ -123,6 +124,7 @@ extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
 setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/toolchains
 
 prepare_mingw_toolchain $OUT_DIR
 

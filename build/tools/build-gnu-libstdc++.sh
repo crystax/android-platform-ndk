@@ -53,7 +53,8 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the bu
 
 OUT_DIR=/tmp/ndk-$USER
 OPTION_OUT_DIR=
-register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Specify output directory directly."
+register_option "--out-dir=<path>" do_out_dir "Specify output directory directly." "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
@@ -84,7 +85,8 @@ fi
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
 setup_default_log_file $OUT_DIR/build.log
-OUT_DIR=$OUT_DIR/gnustl
+OUT_DIR=$OUT_DIR/target/gnustl
+
 run rm -Rf "$OUT_DIR"
 run mkdir -p "$OUT_DIR"
 fail_panic "Could not create build directory: $OUT_DIR"

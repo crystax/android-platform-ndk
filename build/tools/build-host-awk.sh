@@ -46,7 +46,7 @@ extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
-OUT_DIR=$OUT_DIR/host-awk
+OUT_DIR=$OUT_DIR/host/awk
 
 SUBDIR=$(get_prebuilt_host_exec awk)
 OUT=$NDK_DIR/$SUBDIR

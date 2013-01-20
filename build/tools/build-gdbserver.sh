@@ -40,7 +40,8 @@ VERBOSE=no
 
 OUT_DIR=/tmp/ndk-$USER
 OPTION_OUT_DIR=
-register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Set temporary build directory"
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 OPTION_PLATFORM=
 register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
@@ -66,6 +67,7 @@ extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
 setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/gdbserver
 log "Using build directory: $OUT_DIR"
 
 set_parameters ()
@@ -140,7 +142,7 @@ log "Using GDB source directory: $SRC_DIR"
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
 
-OUT_DIR=$OUT_DIR/gdbserver-$TOOLCHAIN
+OUT_DIR=$OUT_DIR/$TOOLCHAIN
 run rm -Rf "$OUT_DIR"
 run mkdir -p "$OUT_DIR"
 

@@ -44,7 +44,8 @@ register_var_option "--make=<path>" GNUMAKE "Specify GNU Make program"
 
 extract_parameters "$@"
 fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
-OUT_DIR=$OUT_DIR/host-sed
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/sed
 
 SUBDIR=$(get_prebuilt_host_exec sed)
 OUT=$NDK_DIR/$(get_prebuilt_host_exec sed)
