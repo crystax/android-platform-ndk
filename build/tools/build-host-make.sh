@@ -53,6 +53,8 @@ fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
 OUT_DIR=$OUT_DIR/host/make
 
+mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
+
 if [ -z "$CUSTOM_OUT" ]; then
     SUBDIR=$(get_prebuilt_host_exec make)
     OUT=$NDK_DIR/$SUBDIR
@@ -86,18 +88,17 @@ if [ "$MINGW" = "yes" ]; then
 fi
 
 log "Configuring the build"
-mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
 prepare_mingw_toolchain $OUT_DIR
 cd $OUT_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
 export CC CFLAGS LDFLAGS &&
 run $TMP_SRCDIR/configure $CONFIGURE_FLAGS
-fail_panic "Failed to configure the sed-$GNUMAKE_VERSION build!"
+fail_panic "Failed to configure the make-$GNUMAKE_VERSION build!"
 
 log "Building make"
 run $GNUMAKE -j $NUM_JOBS
-fail_panic "Failed to build the sed-$GNUMAKE_VERSION executable!"
+fail_panic "Failed to build the make-$GNUMAKE_VERSION executable!"
 
 log "Copying executable to prebuilt location"
 run mkdir -p $(dirname "$OUT") && cp $(get_host_exec_name make) $OUT
