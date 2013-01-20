@@ -342,7 +342,15 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
 fi
 
-dump "Done."
 if [ -z "$OPTION_OUT_DIR" ] ; then
+    log "Cleaning up..."
     rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to clean up: $OUT_DIR"
 fi
+dump "Done."

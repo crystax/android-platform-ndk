@@ -70,7 +70,7 @@ log "Using sources from: $GNUMAKE_SRCDIR"
 
 prepare_host_build
 
-TMP_SRCDIR=$NDK_TMPDIR/src
+TMP_SRCDIR=$OUT_DIR/src
 
 # We need to copy the sources to a temporary directory because
 # the build system will modify some documentation files in the
@@ -111,10 +111,17 @@ if [ "$PACKAGE_DIR" ]; then
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
 fi
 
-log "Cleaning up"
-rm -rf $TMP_SRCDIR
 if [ -z "$OPTION_OUT_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $TMP_SRCDIR
     rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done."

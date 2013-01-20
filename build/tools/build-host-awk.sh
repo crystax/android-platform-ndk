@@ -107,9 +107,16 @@ if [ "$PACKAGE_DIR" ]; then
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
 fi
 
-log "Cleaning up"
 if [ -z "$OPTION_OUT_DIR" ]; then
+    log "Cleaning up..."
     rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done."
