@@ -1,4 +1,4 @@
-#define DO_PRINTF_TEST(name) if (test_ ## name () != 0) return 1
+#define DO_STDIO_TEST(name) if (test_ ## name () != 0) return 1
 
 int main()
 {
@@ -10,10 +10,13 @@ int main()
     /* printf("!!! sizeof(123.4567890123L)  = %d\n",  sz2); */
     /* printf("!!! sizeof(long double)      = %d\n",  sz3); */
 
-    DO_PRINTF_TEST(printf);
-    DO_PRINTF_TEST(fprintf);
-    DO_PRINTF_TEST(sprintf);
-    DO_PRINTF_TEST(snprintf);
+    DO_STDIO_TEST(printf);
+    DO_STDIO_TEST(fprintf);
+    DO_STDIO_TEST(sprintf);
+    DO_STDIO_TEST(snprintf);
+
+    DO_STDIO_TEST(getline);
+    DO_STDIO_TEST(getdelim);
 
     return 0;
 }
