@@ -61,8 +61,8 @@ register_try64_option
 extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
-OUT_DIR=$OUT_DIR/llvm
 setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/toolchain
 
 prepare_mingw_toolchain $OUT_DIR
 
@@ -72,6 +72,12 @@ set_parameters ()
     NDK_DIR="$2"
     TOOLCHAIN="$3"
 
+    if [ -z "$TOOLCHAIN" ]; then
+        echo "ERROR: Missing toolchain name parameter. See --help for details."
+        exit 1
+    fi
+    TOOLCHAIN_VERSION=$(echo $TOOLCHAIN | sed 's/^[^-]*-//')
+
     # Check source directory
     #
     if [ -z "$SRC_DIR" ] ; then
@@ -79,13 +85,13 @@ set_parameters ()
         exit 1
     fi
 
-    if [ ! -d "$SRC_DIR/$TOOLCHAIN/llvm" ] ; then
-        echo "ERROR: Source directory does not contain llvm sources: $SRC_DIR/$TOOLCHAIN/llvm"
+    if [ ! -d "$SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION" ] ; then
+        echo "ERROR: Source directory does not contain llvm sources: $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION"
         exit 1
     fi
-
-    if [ -e "$SRC_DIR/$TOOLCHAIN/llvm/tools/polly" -a ! -h "$SRC_DIR/$TOOLCHAIN/llvm/tools/polly" ] ; then
-        echo "ERROR: polly, if exist, needs to be a symbolic link: $SRC_DIR/$TOOLCHAIN/llvm/tools/polly"
+    
+    if [ ! -d "$SRC_DIR/clang/clang-$TOOLCHAIN_VERSION" ] ; then
+        echo "ERROR: Source directory does not contain clang sources: $SRC_DIR/clang/clang-$TOOLCHAIN_VERSION"
         exit 1
     fi
 
@@ -113,16 +119,10 @@ set_parameters ()
     fi
 
     log "Using NDK directory: $NDK_DIR"
-
-    # Check toolchain name
-    #
-    if [ -z "$TOOLCHAIN" ] ; then
-        echo "ERROR: Missing toolchain name parameter. See --help for details."
-        exit 1
-    fi
 }
 
 set_parameters $PARAMETERS
+OUT_DIR=$OUT_DIR/$TOOLCHAIN
 
 prepare_target_build
 
@@ -147,11 +147,7 @@ LDFLAGS="$LDFLAGS -L$TOOLCHAIN_BUILD_PREFIX/lib"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS REQUIRES_RTTI=1
 
 EXTRA_CONFIG_FLAGS=
-rm -rf $SRC_DIR/$TOOLCHAIN/llvm/tools/polly
 if [ "$POLLY" = "yes" ]; then
-    # crate symbolic link
-    ln -s ../../polly $SRC_DIR/$TOOLCHAIN/llvm/tools
-
     # build polly dependencies
     unpack_archive "$GMP_SOURCE" "$OUT_DIR"
     fail_panic "Couldn't unpack $SRC_DIR/gmp/gmp-$GMP_VERSION to $OUT_DIR"
@@ -180,7 +176,7 @@ if [ "$POLLY" = "yes" ]; then
     mkdir -p $CLOOG_OUT_DIR && cd $CLOOG_OUT_DIR
     fail_panic "Couldn't create cloog build path: $CLOOG_OUT_DIR"
 
-    run $SRC_DIR/$TOOLCHAIN/llvm/tools/polly/utils/cloog_src/configure \
+    run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/tools/polly/utils/cloog_src/configure \
         --prefix=$TOOLCHAIN_BUILD_PREFIX \
         --host=$ABI_CONFIGURE_HOST \
         --build=$ABI_CONFIGURE_BUILD \
@@ -193,8 +189,10 @@ if [ "$POLLY" = "yes" ]; then
     run make install
     fail_panic "Couldn't install cloog to $TOOLCHAIN_BUILD_PREFIX"
 
-    EXTRA_CONFIG_FLAGS="--with-cloog=$TOOLCHAIN_BUILD_PREFIX --with-isl=$TOOLCHAIN_BUILD_PREFIX"
-fi # POLLY = yes
+    EXTRA_CONFIG_FLAGS="--enable-polly --with-cloog=$TOOLCHAIN_BUILD_PREFIX --with-isl=$TOOLCHAIN_BUILD_PREFIX"
+else
+    EXTRA_CONFIG_FLAGS="--disable-polly"
+fi
 
 # configure the toolchain
 dump "Configure: $TOOLCHAIN toolchain build"
@@ -202,13 +200,14 @@ LLVM_OUT_DIR=$OUT_DIR/llvm
 mkdir -p $LLVM_OUT_DIR && cd $LLVM_OUT_DIR
 fail_panic "Couldn't cd into llvm build path: $LLVM_OUT_DIR"
 
-run $SRC_DIR/$TOOLCHAIN/llvm/configure \
+run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/configure \
     --prefix=$TOOLCHAIN_BUILD_PREFIX \
     --host=$ABI_CONFIGURE_HOST \
     --build=$ABI_CONFIGURE_BUILD \
     --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
     --enable-targets=arm,mips,x86 \
     --enable-optimized \
+    --with-clang-srcdir=$SRC_DIR/clang/clang-$TOOLCHAIN_VERSION \
     $EXTRA_CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
 
