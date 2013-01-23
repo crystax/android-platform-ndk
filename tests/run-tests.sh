@@ -396,7 +396,7 @@ if [ "$WINE" ]; then
         *)
             WINE=wine15
             NDK_BUILD_FLAGS=""  # make.exe -B hangs in wine > 1.2.x
-            if [ "$NDK_TOOLCHAIN_VERSION" != "4.4.3" ] ; then
+            if [ "$TOOLCHAIN_VERSION" != "4.4.3" ] ; then
                 APP_LDFLAGS=-fuse-ld=bfd # 64-bit ld.gold can't run in any wine!
             fi
             ;;
@@ -487,8 +487,13 @@ is_broken_build ()
                 return 0
             else
                 # only skip listed in file
-                TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
-                TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                if [ "$TOOLCHAIN_VERSION" != "" ]; then
+                    TARGET_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION
+                else
+                    TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
+                    TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                fi
+
                 grep -q -w -e "$TARGET_TOOLCHAIN_VERSION" "$PROJECT/BROKEN_BUILD"
                 if [ $? = 0 ] ; then
                     if [ -z "$ERRMSG" ] ; then
