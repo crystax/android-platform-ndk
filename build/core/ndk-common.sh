@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 # Copyright (C) 2009 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,8 +102,12 @@ setup_default_log_file ()
     fi
     export NDK_LOGFILE
     TMPLOG="$NDK_LOGFILE"
-    rm -rf "$TMPLOG" && mkdir -p `dirname "$TMPLOG"` && touch "$TMPLOG"
-    echo "To follow build in another terminal, please use: tail -F $TMPLOG"
+    rm -rf "$TMPLOG" && mkdir -p `dirname "$TMPLOG"` && touch "$TMPLOG" && \
+    echo "To follow build in another terminal, please use: tail -F $TMPLOG" && \
+    date >>$TMPLOG && \
+    echo "======================== ENVIRONMENT BEGIN =============================" >>$TMPLOG && \
+    set >>$TMPLOG && \
+    echo "======================== ENVIRONMENT END ===============================" >>$TMPLOG
 }
 
 dump ()
@@ -157,13 +163,13 @@ run ()
 {
     if [ "$VERBOSE" = "yes" ] ; then
         echo "## COMMAND: $@"
-        "$@" 2>&1
+        [ "$DRY_RUN" = "yes" ] || "$@" 2>&1
     else
         if [ -n "$TMPLOG" ] ; then
             echo "## COMMAND: $@" >> $TMPLOG
-            "$@" >>$TMPLOG 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     fi
 }
@@ -172,20 +178,20 @@ run2 ()
 {
     if [ "$VERBOSE2" = "yes" ] ; then
         echo "## COMMAND: $@"
-        "$@" 2>&1
+        [ "$DRY_RUN" = "yes" ] || "$@" 2>&1
     elif [ "$VERBOSE" = "yes" ]; then
         echo "## COMMAND: $@"
         if [ -n "$TMPLOG" ]; then
-            echo "## COMMAND: $@" >> $TMPLOG
+            [ "$DRY_RUN" == "yes" ] || echo "## COMMAND: $@" >> $TMPLOG
             "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     else
         if [ -n "$TMPLOG" ]; then
-            "$@" >>$TMPLOG 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" >>$TMPLOG 2>&1
         else
-            "$@" > /dev/null 2>&1
+            [ "$DRY_RUN" = "yes" ] || "$@" > /dev/null 2>&1
         fi
     fi
 }
@@ -417,17 +423,23 @@ disable_cygwin ()
 }
 
 # Various probes are going to need to run a small C program
-mkdir -p /tmp/ndk-$USER/tmp/tests
+TMPTESTSDIR=/tmp/ndk-$USER/tmp/tests
+mkdir -p $TMPTESTSDIR
 
-TMPC=/tmp/ndk-$USER/tmp/tests/test-$$.c
-TMPO=/tmp/ndk-$USER/tmp/tests/test-$$.o
-TMPE=/tmp/ndk-$USER/tmp/tests/test-$$$EXE
-TMPL=/tmp/ndk-$USER/tmp/tests/test-$$.log
+TMPC=$TMPTESTSDIR/test-$$.c
+TMPO=$TMPTESTSDIR/test-$$.o
+TMPE=$TMPTESTSDIR/test-$$$EXE
+TMPL=$TMPTESTSDIR/test-$$.log
 
 # cleanup temporary files
 clean_temp ()
 {
     rm -f $TMPC $TMPO $TMPL $TMPE
+    local dir=$TMPTESTSDIR
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 }
 
 # cleanup temp files then exit with an error
@@ -524,6 +536,8 @@ EOF
     fi
 
     log "CXX        : C++ compiler check ok ($CXX)"
+
+    clean_temp
 
     # XXX: TODO perform AR checks
     AR=ar

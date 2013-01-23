@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ LONG_TESTS="prebuild-stlport test-stlport test-gnustl-full test-stlport_shared-e
 VERBOSE=no
 ABI=default
 PLATFORM=""
+TOOLCHAIN_VERSION=
 NDK_ROOT=
 JOBS=$BUILD_NUM_CPUS
 find_program ADB_CMD adb
@@ -71,6 +72,9 @@ while [ -n "$1" ]; do
             ;;
         --platform=*)
             PLATFORM="$optarg"
+            ;;
+        --toolchain-version=*)
+            TOOLCHAIN_VERSION="$optarg"
             ;;
         --ndk=*)
             NDK_ROOT="$optarg"
@@ -140,6 +144,8 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    -j<N> --jobs=<N>  Launch parallel builds [$JOBS]"
     echo "    --abi=<name>      Only run tests for the specific ABI [$ABI]"
     echo "    --platform=<name> Force API level for testing; platform=<android-x>"
+    echo "    --toolchain-version=<version>"
+    echo "                      Force toolchain version for testing"
     echo "    --adb=<file>      Specify adb executable for device tests"
     echo "    --only-samples    Only rebuild samples"
     echo "    --only-build      Only rebuild build tests"
@@ -256,6 +262,12 @@ else # !FULL_TESTS
 fi # !FULL_TESTS
 
 
+if [ -z "$USER" ]; then
+    USER=$USERNAME
+fi
+if [ -z "$USER" ]; then
+    USER=$$
+fi
 TEST_DIR="/tmp/ndk-$USER/tests"
 mkdir -p $TEST_DIR
 setup_default_log_file "$TEST_DIR/build-tests.log"
@@ -384,7 +396,7 @@ if [ "$WINE" ]; then
         *)
             WINE=wine15
             NDK_BUILD_FLAGS=""  # make.exe -B hangs in wine > 1.2.x
-            if [ "$NDK_TOOLCHAIN_VERSION" != "4.4.3" ] ; then
+            if [ "$TOOLCHAIN_VERSION" != "4.4.3" ] ; then
                 APP_LDFLAGS=-fuse-ld=bfd # 64-bit ld.gold can't run in any wine!
             fi
             ;;
@@ -408,6 +420,10 @@ esac
 # Force all tests to run at one API level
 if [ "$PLATFORM" != "" ]; then
     NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS APP_PLATFORM=$PLATFORM"
+fi
+
+if [ "$TOOLCHAIN_VERSION" != "" ]; then
+    NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS NDK_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION"
 fi
 
 # Use --verbose twice to see build commands for the tests
@@ -471,8 +487,13 @@ is_broken_build ()
                 return 0
             else
                 # only skip listed in file
-                TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
-                TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                if [ "$TOOLCHAIN_VERSION" != "" ]; then
+                    TARGET_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION
+                else
+                    TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
+                    TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
+                fi
+
                 grep -q -w -e "$TARGET_TOOLCHAIN_VERSION" "$PROJECT/BROKEN_BUILD"
                 if [ $? = 0 ] ; then
                     if [ -z "$ERRMSG" ] ; then
@@ -701,6 +722,15 @@ if is_testable device; then
             dump "Skipping NDK device test run (no $CPU_ABI binaries): $TEST_NAME"
             return 0
         fi
+        # CRYSTAX BEGIN: should we keep it here?
+        # First, copy all files to the device, except for gdbserver
+        # or gdb.setup.
+        #if uname -s | grep -qi mingw; then
+        #    # Prevent MinGW path conversion. See http://www.mingw.org/wiki/Posix_path_conversion for details.
+        #    DSTDIR=/$DSTDIR
+        #fi
+        #adb_cmd_mkdir $DSTDIR
+        # CRYSTAX END
         # First, copy all files to the device, except for gdbserver, gdb.setup, and
         # those declared in $TEST/BROKEN_RUN
         adb_shell_mkdir "$DEVICE" $DSTDIR

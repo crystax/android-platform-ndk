@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2009-2010 The Android Open Source Project
+# Copyright (C) 2009-2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,6 +52,9 @@ register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
 # ARCH to build for
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architecture(s)"
+
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions"
 
 # set to 'yes' if we should use 'git ls-files' to list the files to
 # be copied into the archive.
@@ -107,6 +110,8 @@ extract_parameters "$@"
 
 # Ensure that SYSTEMS is space-separated
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
+
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 # Do we need to support x86?
 ARCHS=$(commas_to_spaces $ARCHS)
@@ -356,12 +361,15 @@ if [ -z "$PREBUILT_NDK" ]; then
     # Unpack C++ runtimes
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
+        unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     for ABI in $ABIS; do
+        unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
         unpack_prebuilt gabixx-libs-$ABI "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI "$REFERENCE"
+            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
     done
 fi
@@ -390,6 +398,15 @@ for SYSTEM in $SYSTEMS; do
         cd $UNZIP_DIR/android-ndk-* && cp -rP toolchains/* $DSTDIR/toolchains/
         fail_panic "Could not copy toolchain files from $PREBUILT_NDK"
 
+        if [ -d "$DSTDIR/$CRYSTAX_SUBDIR" ]; then
+            CRYSTAX_ABIS=$PREBUILT_ABIS
+            for CRYSTAX_ABI in $CRYSTAX_ABIS; do
+                copy_prebuilt "$CRYSTAX_SUBDIR/libs/$CRYSTAX_ABI" "$CRYSTAX_SUBDIR/libs"
+            done
+        else
+            echo "WARNING: Could not find crystax source tree!"
+        fi
+
         if [ -d "$DSTDIR/$GABIXX_SUBDIR" ]; then
             GABIXX_ABIS=$PREBUILT_ABIS
             for GABIXX_ABI in $GABIXX_ABIS; do
@@ -412,6 +429,13 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
+            done
+        done
+
+        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+            copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
+            for OBJC_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
         done
     else

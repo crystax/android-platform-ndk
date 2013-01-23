@@ -18,7 +18,7 @@
 #
 
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
-$(call assert-defined,NDK_APPS NDK_APP_STL)
+$(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_CRYSTAX NDK_APP_OBJC)
 
 LLVM_VERSION_LIST := 2.6 2.7 2.8 2.9 3.0 3.1
 
@@ -173,13 +173,22 @@ endif
 # free the dictionary of LOCAL_MODULE definitions
 $(call modules-clear)
 
+$(call ndk-crystax-select,$(NDK_APP_CRYSTAX))
+$(call ndk-objc-select,$(NDK_APP_OBJC))
 $(call ndk-stl-select,$(NDK_APP_STL))
 
 # now parse the Android.mk for the application, this records all
 # module declarations, but does not populate the dependency graph yet.
 include $(NDK_APP_BUILD_SCRIPT)
 
+# WARNING!! Adding NDK_APP_CRYSTAX twice is done intentionally.
+# This way we get include libcrystax before and after libstdc++/libobjc
+# in linker parameters. This is needed to override some functions
+# from libstdc++ and libobjc
+$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
+$(call ndk-objc-add-dependencies,$(NDK_APP_OBJC))
+$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)

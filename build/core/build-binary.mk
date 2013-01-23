@@ -96,6 +96,32 @@ else
 endif
 
 #
+# Check LOCAL_OBJC_EXTENSION, use '.m' by default
+#
+bad_objc_extensions := $(strip $(filter-out .%,$(LOCAL_OBJC_EXTENSION)))
+ifdef bad_objc_extensions
+    $(call __ndk_info,WARNING: Invalid LOCAL_OBJC_EXTENSION values: $(bad_objc_extensions))
+    LOCAL_OBJC_EXTENSION := $(filter $(bad_objc_extensions),$(LOCAL_OBJC_EXTENSION))
+endif
+LOCAL_OBJC_EXTENSION := $(strip $(LOCAL_OBJC_EXTENSION))
+ifeq ($(LOCAL_OBJC_EXTENSION),)
+    LOCAL_OBJC_EXTENSION = .m
+endif
+
+#
+# Check LOCAL_OBJCPP_EXTENSION, use '.mm' by default
+#
+bad_objcpp_extensions := $(strip $(filter-out .%,$(LOCAL_OBJCPP_EXTENSION)))
+ifdef bad_objcpp_extensions
+    $(call __ndk_info,WARNING: Invalid LOCAL_OBJCPP_EXTENSION values: $(bad_objcpp_extensions))
+    LOCAL_OBJCPP_EXTENSION := $(filter $(bad_objcpp_extensions),$(LOCAL_OBJCPP_EXTENSION))
+endif
+LOCAL_OBJCPP_EXTENSION := $(strip $(LOCAL_OBJCPP_EXTENSION))
+ifeq ($(LOCAL_OBJCPP_EXTENSION),)
+    LOCAL_OBJCPP_EXTENSION = .mm
+endif
+
+#
 # If LOCAL_ALLOW_UNDEFINED_SYMBOLS is not true, the linker will allow the generation
 # of a binary that uses undefined symbols.
 #
@@ -224,9 +250,11 @@ LOCAL_DEPENDENCY_DIRS :=
 
 # all_source_patterns contains the list of filename patterns that correspond
 # to source files recognized by our build system
-all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION)
+all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION)
 all_source_patterns   := $(foreach _ext,$(all_source_extensions),%$(_ext))
 all_cpp_patterns      := $(foreach _ext,$(LOCAL_CPP_EXTENSION),%$(_ext))
+all_objc_patterns     := $(foreach _ext,$(LOCAL_OBJC_EXTENSION),%$(_ext))
+all_objcpp_patterns   := $(foreach _ext,$(LOCAL_OBJCPP_EXTENSION),%$(_ext))
 
 unknown_sources := $(strip $(filter-out $(all_source_patterns),$(LOCAL_SRC_FILES)))
 ifdef unknown_sources
@@ -245,6 +273,10 @@ LOCAL_OBJECTS := $(filter %.o,$(LOCAL_OBJECTS))
 LOCAL_OBJECTS := $(subst ../,__/,$(LOCAL_OBJECTS))
 LOCAL_OBJECTS := $(foreach _obj,$(LOCAL_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
 
+ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
+    LOCAL_OBJCFLAGS += -fobjc-exceptions
+endif
+
 # If the module has any kind of C++ features, enable them in LOCAL_CPPFLAGS
 #
 ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),rtti))
@@ -252,6 +284,14 @@ ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),rtti))
 endif
 ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),exceptions))
     LOCAL_CPPFLAGS += -fexceptions
+endif
+
+ifeq ($(TARGET_USE_CXX11),true)
+    LOCAL_CPPFLAGS += --std=gnu++0x
+else
+ifeq ($(TARGET_USE_CXX11),strict)
+    LOCAL_CPPFLAGS += --std=c++0x
+endif
 endif
 
 # If we're using the 'system' STL and use rtti or exceptions, then
@@ -268,6 +308,14 @@ endif
 
 $(foreach src,$(filter %.c,$(LOCAL_SRC_FILES)), $(call compile-c-source,$(src),$(call get-object-name,$(src))))
 $(foreach src,$(filter %.S %.s,$(LOCAL_SRC_FILES)), $(call compile-s-source,$(src),$(call get-object-name,$(src))))
+
+$(foreach src,$(filter $(all_objc_patterns),$(LOCAL_SRC_FILES)),\
+    $(call compile-objc-source,$(src),$(call get-object-name,$(src)))\
+)
+
+$(foreach src,$(filter $(all_objcpp_patterns),$(LOCAL_SRC_FILES)),\
+    $(call compile-objc++-source,$(src),$(call get-object-name,$(src)))\
+)
 
 $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\
     $(call compile-cpp-source,$(src),$(call get-object-name,$(src)))\

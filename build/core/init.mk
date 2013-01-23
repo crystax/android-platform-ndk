@@ -423,6 +423,9 @@ endif # HOST_OS == cygwin
 # The location of the build system files
 BUILD_SYSTEM := $(NDK_ROOT)/build/core
 
+# Include default values
+include $(BUILD_SYSTEM)/defaults.mk
+
 # Include common definitions
 include $(BUILD_SYSTEM)/definitions.mk
 

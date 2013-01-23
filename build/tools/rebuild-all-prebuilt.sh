@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,11 +24,16 @@ PROGDIR=`dirname $0`
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Put binaries into NDK install directory"
 
-BUILD_DIR=/tmp/ndk-$USER/build
-register_var_option "--build-dir=<path>" BUILD_DIR "Specify temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
+
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to build"
 
 SYSTEMS=$HOST_TAG32
 if [ "$HOST_TAG32" = "linux-x86" ]; then
@@ -43,7 +48,7 @@ register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
 do_ALSO_64 () { ALSO_64=yes; }
 
 RELEASE=`date +%Y%m%d`
-PACKAGE_DIR=/tmp/ndk-$USER/prebuilt-$RELEASE
+PACKAGE_DIR=$OUT_DIR/prebuilt-$RELEASE
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
 
 DARWIN_SSH=
@@ -52,6 +57,20 @@ register_var_option "--darwin-ssh=<hostname>" DARWIN_SSH "Specify Darwin hostnam
 fi
 
 register_try64_option
+
+SKIP_HOST_PREBUILTS=no
+register_option "--skip-host-prebuilts" do_skip_host_prebuilts "Skip build of host prebuilts"
+do_skip_host_prebuilts ()
+{
+    SKIP_HOST_PREBUILTS=yes
+}
+
+SKIP_TARGET_PREBUILTS=no
+register_option "--skip-target-prebuilts" do_skip_target_prebuilts "Skip build of target prebuilts"
+do_skip_target_prebuilts ()
+{
+    SKIP_TARGET_PREBUILTS=yes
+}
 
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
 PROGRAM_DESCRIPTION=\
@@ -72,6 +91,9 @@ script.
 
 extract_parameters "$@"
 
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+
 SRC_DIR="$PARAMETERS"
 check_toolchain_src_dir "$SRC_DIR"
 
@@ -86,9 +108,21 @@ fi
 if [ "$VERBOSE2" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
+if [ "$DRY_RUN" = "yes" ]; then
+    FLAGS=$FLAGS" --dry-run"
+fi
 FLAGS=$FLAGS" --ndk-dir=$NDK_DIR"
 FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
 FLAGS=$FLAGS" --arch=$(spaces_to_commas $ARCHS)"
+FLAGS=$FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
+
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+fi
+
+if [ -n "$OPTION_OUT_DIR" ]; then
+    FLAGS=$FLAGS" --out-dir=$OUT_DIR"
+fi
 
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
 if [ "$TRY64" = "yes" ]; then
@@ -98,17 +132,21 @@ if [ "$DARWIN_SSH" ]; then
     HOST_FLAGS=$HOST_FLAGS" --darwin-ssh=$DARWIN_SSH"
 fi
 
-$PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
-fail_panic "Could not build host prebuilts!"
-if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
-    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
-    fail_panic "Could not build host prebuilts in 64-bit!"
+if [ "$SKIP_HOST_PREBUILTS" != "yes" ]; then
+    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
+    fail_panic "Could not build host prebuilts!"
+    if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
+        $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
+        fail_panic "Could not build host prebuilts in 64-bit!"
+    fi
 fi
 
 TARGET_FLAGS=$FLAGS
 
-$PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
-fail_panic "Could not build target prebuilts!"
+if [ "$SKIP_TARGET_PREBUILTS" != "yes" ]; then
+    $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
+    fail_panic "Could not build target prebuilts!"
+fi
 
 echo "Done, see $PACKAGE_DIR:"
 ls -l $PACKAGE_DIR

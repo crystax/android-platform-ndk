@@ -234,14 +234,49 @@ endif
 APP_CFLAGS := $(strip $(APP_CFLAGS))
 APP_LDFLAGS := $(strip $(APP_LDFLAGS))
 
-# Check that APP_STL is defined. If not, use the default value (system)
+APP_CRYSTAX := $(strip $(APP_CRYSTAX))
+ifdef APP_CRYSTAX
+    $(call ndk-crystax-check,$(APP_CRYSTAX))
+endif
+
+APP_OBJC := $(strip $(APP_OBJC))
+ifdef APP_OBJC
+    $(call ndk-objc-check,$(APP_OBJC))
+endif
+
+# Check that APP_STL is defined. If not, use the default value
 # otherwise, check that the name is correct.
 APP_STL := $(strip $(APP_STL))
-ifndef APP_STL
-    APP_STL := system
-else
+ifdef APP_STL
     $(call ndk-stl-check,$(APP_STL))
 endif
+
+ifndef APP_CRYSTAX
+    ifneq ($(strip $(foreach lib,$(APP_OBJC) $(APP_STL),$(findstring shared,$(lib)))),)
+        APP_CRYSTAX := shared
+    else
+        APP_CRYSTAX := static
+    endif
+endif
+$(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
+
+ifndef APP_OBJC
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_STL),$(findstring shared,$(lib)))),)
+        APP_OBJC := $(DEFAULT_LIBOBJC)_shared
+    else
+        APP_OBJC := $(DEFAULT_LIBOBJC)_static
+    endif
+endif
+$(call ndk_log,Using APP_OBJC: $(APP_OBJC))
+
+ifndef APP_STL
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_OBJC),$(findstring shared,$(lib)))),)
+        APP_STL := $(DEFAULT_LIBSTDCXX)_shared
+    else
+        APP_STL := $(DEFAULT_LIBSTDCXX)_static
+    endif
+endif
+$(call ndk_log,Using APP_STL: $(APP_STL))
 
 $(if $(call get,$(_map),defined),\
   $(call __ndk_info,Weird, the application $(_app) is already defined by $(call get,$(_map),defined))\

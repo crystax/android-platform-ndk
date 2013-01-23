@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,12 +51,10 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
-
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify output directory directly." "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
@@ -72,6 +70,7 @@ SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
@@ -84,13 +83,13 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-gnustl
-else
-    BUILD_DIR=$OPTION_BUILD_DIR
-fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/gnustl
+
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
+fail_panic "Could not create build directory: $OUT_DIR"
 
 # $1: ABI name
 # $2: Build directory
@@ -115,6 +114,7 @@ build_gnustl_for_abi ()
     BUILDDIR=$BUILDDIR/$LIBTYPE-${ABI}${THUMB}-$GCC_VERSION
 
     mkdir -p $DSTDIR
+    mkdir -p $BUILDDIR
 
     ARCH=$(convert_abi_to_arch $ABI)
     BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION)
@@ -132,7 +132,12 @@ build_gnustl_for_abi ()
         exit 1
     fi
 
+    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    CRYSTAX_INCDIR=$CRYSTAX_SRCDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_SRCDIR/libs/$ABI
+
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then
 	echo "ERROR: Empty sysroot! you probably need to run gen-platforms.sh before this script."
@@ -163,6 +168,13 @@ build_gnustl_for_abi ()
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
 
+    # zuav: todo: check how $HOST_OS-$HOST_ARCH will work on MacOS 
+    GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/$HOST_OS-$HOST_ARCH/lib/gcc/$BUILD_HOST/$GCC_VERSION/include
+    #echo "GTHREADS_INC_DIR: " $GTHREADS_INC_DIR
+
+    export CFLAGS="$CFLAGS -I$CRYSTAX_INCDIR -I$GTHREADS_INC_DIR"
+    export CXXFLAGS="$CXXFLAGS -I$CRYSTAX_INCDIR -I$GTHREADS_INC_DIR"
+
     export CC=${BINPREFIX}gcc
     export CXX=${BINPREFIX}g++
     export AS=${BINPREFIX}as
@@ -173,7 +185,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-L$SYSROOT/usr/lib -lc $EXTRA_FLAGS"
+    export LDFLAGS="-L$SYSROOT/usr/lib -L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -lm -lc $EXTRA_FLAGS"
 
     if [ "$ABI" = "armeabi-v7a" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16"
@@ -198,7 +210,6 @@ build_gnustl_for_abi ()
 
     PROJECT="gnustl_$LIBTYPE gcc-$GCC_VERSION $ABI $THUMB"
     echo "$PROJECT: configuring"
-    mkdir -p $BUILDDIR && rm -rf $BUILDDIR/* &&
     cd $BUILDDIR &&
     run $GNUSTL_SRCDIR/configure \
         --prefix=$INSTALLDIR \
@@ -207,6 +218,9 @@ build_gnustl_for_abi ()
         --enable-libstdcxx-time \
         --disable-symvers \
         --disable-multilib \
+        --enable-libstdcxx-threads \
+        --enable-libstdcxx-time \
+        --enable-wchar_t \
         --disable-nls \
         --disable-sjlj-exceptions \
         --disable-tls \
@@ -267,16 +281,15 @@ copy_gnustl_libs ()
     fi
 }
 
-GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
-        build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION
-        build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION
+        build_gnustl_for_abi $ABI "$OUT_DIR" static $VERSION
+        build_gnustl_for_abi $ABI "$OUT_DIR" shared $VERSION
         if [ "$ABI" != "${ABI%%arm*}" ] ; then
-            build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION thumb
-            build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION thumb
+            build_gnustl_for_abi $ABI "$OUT_DIR" static $VERSION thumb
+            build_gnustl_for_abi $ABI "$OUT_DIR" shared $VERSION thumb
         fi
-        copy_gnustl_libs $ABI "$BUILD_DIR" $VERSION
+        copy_gnustl_libs $ABI "$OUT_DIR" $VERSION
     done
 done
 
@@ -301,16 +314,21 @@ if [ -n "$PACKAGE_DIR" ] ; then
             PACKAGE="$PACKAGE_DIR/gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI STLport binaries!"
+            fail_panic "Could not package $ABI GNU libstdc++ binaries!"
         done
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
+if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_DIR
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 else
-    log "Don't forget to cleanup: $BUILD_DIR"
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done!"

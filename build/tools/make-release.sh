@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,33 @@
 
 . `dirname $0`/prebuilt-common.sh
 
+PROGRAM_PARAMETERS="<toolchain-src-dir>"
+PROGRAM_DESCRIPTION=\
+"This script is used to generate an NDK release package from scratch.
+
+This process is EXTREMELY LONG and consists in the following steps:
+
+  - downloading toolchain sources from the Internet
+  - patching them appropriately (if needed)
+  - rebuilding the toolchain binaries for the host system
+  - rebuilding the platforms and samples directories from ../development/ndk
+  - packaging everything into a host-specific archive
+
+This can take several hours on a dual-core machine, even assuming a very
+nice Internet connection and plenty of RAM and disk space.
+
+Note that on Linux, if you have the 'mingw32' package installed, the script
+will also automatically generate a windows release package. You can prevent
+that by using the --systems option.
+
+IMPORTANT:
+        If you intend to package NDK releases often, please read the
+        file named docs/DEVELOPMENT.TXT which provides ways to do that
+        more quickly, by preparing toolchain binary tarballs that can be
+        reused for each package operation. This will save you hours of
+        your time compared to using this script!
+"
+
 force_32bit_binaries
 
 # The default release name (use today's date)
@@ -36,8 +63,10 @@ DEVELOPMENT_ROOT=`dirname $ANDROID_NDK_ROOT`/development/ndk
 register_var_option "--development=<path>" DEVELOPMENT_ROOT "Path to development/ndk directory"
 
 # Default location for final packages
-OUT_DIR=/tmp/ndk-$USER/release
-register_var_option "--out-dir=<path>" OUT_DIR "Path to output directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Path to output directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 # Force the build
 FORCE=no
@@ -84,6 +113,12 @@ if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
         exit 1
     fi
 fi
+
+extract_parameters "$@"
+
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+setup_default_log_file $OUT_DIR/build.log
+
 HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 # Filter out darwin-x86 in $HOST_SYSTEMS_FLAGS, because
 # 1) On linux, cross-compiling is done via "--darwin-ssh".  Keeping darwin-x86 in --systems list
@@ -91,11 +126,28 @@ HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
 # 2) On MacOSX, darwin-x86 is the default, no need to be explicit.
 #
 HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
+[ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
 
-TOOLCHAIN_SRCDIR=
-register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
+set_parameters ()
+{
+    TOOLCHAIN_SRCDIR="$1"
 
-extract_parameters "$@"
+    # Check source directory
+    #
+    if [ -z "$TOOLCHAIN_SRCDIR" ] ; then
+        echo "ERROR: Missing source directory parameter. See --help for details."
+        exit 1
+    fi
+
+    if [ ! -d "$TOOLCHAIN_SRCDIR/gcc" ] ; then
+        echo "ERROR: Source directory does not contain gcc sources: $TOOLCHAIN_SRCDIR"
+        exit 1
+    fi
+
+    log "Using source directory: $TOOLCHAIN_SRCDIR"
+}
+
+set_parameters $PARAMETERS
 
 # Print a warning and ask the user if he really wants to do that !
 #
@@ -120,49 +172,9 @@ if [ "$FORCE" = "no" -a "$INCREMENTAL" = "no" ] ; then
     esac
 fi
 
-PROGRAM_PARAMETERS=
-PROGRAM_DESCRIPTION=\
-"This script is used to generate an NDK release package from scratch.
-
-This process is EXTREMELY LONG and consists in the following steps:
-
-  - downloading toolchain sources from the Internet
-  - patching them appropriately (if needed)
-  - rebuilding the toolchain binaries for the host system
-  - rebuilding the platforms and samples directories from ../development/ndk
-  - packaging everything into a host-specific archive
-
-This can take several hours on a dual-core machine, even assuming a very
-nice Internet connection and plenty of RAM and disk space.
-
-Note that on Linux, if you have the 'mingw32' package installed, the script
-will also automatically generate a windows release package. You can prevent
-that by using the --platforms option.
-
-IMPORTANT:
-        If you intend to package NDK releases often, please read the
-        file named docs/DEVELOPMENT.TXT which provides ways to do that
-        more quickly, by preparing toolchain binary tarballs that can be
-        reused for each package operation. This will save you hours of
-        your time compared to using this script!
-"
-
-# Create directory where everything will be performed.
-RELEASE_DIR=$NDK_TMPDIR/release-$RELEASE
-unset NDK_TMPDIR  # prevent later script from reusing/removing it
-if [ "$INCREMENTAL" = "no" ] ; then
-    rm -rf $RELEASE_DIR && mkdir -p $RELEASE_DIR
-else
-    if [ ! -d "$RELEASE_DIR" ] ; then
-        echo "ERROR: Can't make incremental, missing release dir: $RELEASE_DIR"
-        exit 1
-    fi
-fi
-
-
 #
 # Timestamp management
-TIMESTAMP_DIR="$RELEASE_DIR/timestamps"
+TIMESTAMP_DIR="$OUT_DIR/timestamps"
 mkdir -p "$TIMESTAMP_DIR"
 if [ "$INCREMENTAL" = "no" ] ; then
     run rm -rf "$TIMESTAMP_DIR/*"
@@ -170,6 +182,7 @@ fi
 
 timestamp_set ()
 {
+    mkdir -p $TIMESTAMP_DIR
     touch "$TIMESTAMP_DIR/$1"
 }
 
@@ -194,7 +207,7 @@ if [ -n "$TOOLCHAIN_SRCDIR" ] ; then
 else
     if timestamp_check toolchain-download-sources; then
         dump "Downloading toolchain sources..."
-        TOOLCHAIN_SRCDIR="$RELEASE_DIR/toolchain-src"
+        TOOLCHAIN_SRCDIR="$OUT_DIR/toolchain-src"
         log "Using toolchain source directory: $TOOLCHAIN_SRCDIR"
         run $ANDROID_NDK_ROOT/build/tools/download-toolchain-sources.sh "$TOOLCHAIN_SRCDIR"
         if [ "$?" != 0 ] ; then
@@ -211,17 +224,30 @@ fi
 
 # Step 2, build the host toolchain binaries and package them
 if timestamp_check build-prebuilts; then
-    PREBUILT_DIR="$RELEASE_DIR/prebuilt"
+    PREBUILT_DIR="$OUT_DIR/prebuilt"
+    FLAGS=""
+    if [ "$VERBOSE" = "yes" ] ; then
+        FLAGS=$FLAGS" --verbose"
+    fi
+    if [ "$DRY_RUN" = "yes" ] ; then
+        FLAGS=$FLAGS" --dry-run"
+    fi
+	if [ -n "$XCODE_PATH" ]; then
+		FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+	fi
+    if [ -n "$OPTION_OUT_DIR" ]; then
+        FLAGS=$FLAGS" --out-dir=$OUT_DIR"
+    fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
-        fail_panic "Can't build $HOST_SYSTEM binaries."
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
+        fail_panic "Can't build $HOST_SYSTEMS binaries."
         timestamp_set build-host-prebuilts
     fi
     if [ -n "$DARWIN_SSH" ] ; then
         if timestamp_check build-darwin-prebuilts; then
             dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
+            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
             fail_panic "Can't build Darwin binaries!"
             timestamp_set build-darwin-prebuilts
         fi
@@ -233,7 +259,7 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT"
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1

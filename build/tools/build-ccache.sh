@@ -38,17 +38,21 @@ CCACHE_URL=$DOWNLOAD_ROOT/$CCACHE_PACKAGE
 
 OPTION_PACKAGE=no
 
-BUILD_OUT=$NDK_TMPDIR/build-ccache
-OPTION_BUILD_OUT=
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
 OPTION_FROM=
 
 register_option "--from=<url>" do_from "Specify source package" "$PACKAGE"
-register_option "--build-out=<path>" do_build_out "Set temporary build directory" "/tmp/ndk-$USER/<random>"
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
 
 do_from () { CCACHE_URL=$1; CCACHE_PACKAGE=`basename $1`; }
-do_build_out () { OPTION_BUILD_OUT=$1; }
+do_out_dir () { OPTION_OUT_DIR=$1; }
 
 extract_parameters "$@"
+
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/ccache
 
 set_parameters ()
 {
@@ -74,42 +78,40 @@ set_parameters $PARAMETERS
 
 prepare_host_build
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-
 # Check for md5sum
 check_md5sum
 
 prepare_download
 
-run rm -rf $BUILD_OUT && run mkdir -p $BUILD_OUT
+run rm -rf $OUT_DIR && run mkdir -p $OUT_DIR
 if [ $? != 0 ] ; then
-    echo "ERROR: Could not create build directory: $BUILD_OUT"
+    echo "ERROR: Could not create build directory: $OUT_DIR"
     exit 1
 fi
 
 dump "Getting sources from $CCACHE_URL"
 
-download_file $CCACHE_URL $BUILD_OUT/$CCACHE_PACKAGE
+download_file $CCACHE_URL $OUT_DIR/$CCACHE_PACKAGE
 if [ $? != 0 ] ; then
     dump "Could not download $CCACHE_URL"
     dump "Aborting."
     exit 1
 fi
 
-cd $BUILD_OUT && tar xzf $BUILD_OUT/$CCACHE_PACKAGE
+cd $OUT_DIR && tar xzf $OUT_DIR/$CCACHE_PACKAGE
 if [ $? != 0 ] ; then
-    dump "Could not unpack $CCACHE_PACKAGE in $BUILD_OUT"
+    dump "Could not unpack $CCACHE_PACKAGE in $OUT_DIR"
     exit 1
 fi
 
 echo "Building ccache from sources..."
-cd $BUILD_OUT/$CCACHE_VERSION && run make clean && run make unpack && run make build
+cd $OUT_DIR/$CCACHE_VERSION && run make clean && run make unpack && run make build
 if [ $? != 0 ] ; then
-    dump "Could not build ccache in $BUILD_OUT"
+    dump "Could not build ccache in $OUT_DIR"
 fi
 
 PREBUILT_DIR=$NDK_DIR/build/prebuilt/$HOST_TAG/ccache
-mkdir -p $PREBUILT_DIR && cp -p $BUILD_OUT/$CCACHE_VERSION/ccache $PREBUILT_DIR
+mkdir -p $PREBUILT_DIR && cp -p $OUT_DIR/$CCACHE_VERSION/ccache $PREBUILT_DIR
 if [ $? != 0 ] ; then
     dump "Could not copy ccache binary!"
     exit 1

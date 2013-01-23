@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010 The Android Open Source Project
 #
@@ -47,12 +47,10 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
-
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify temporary build dir." "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
@@ -77,13 +75,15 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-stlport
-else
-    BUILD_DIR=$OPTION_BUILD_DIR
-fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/stlport
+
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
+fail_panic "Could not create build directory: $OUT_DIR"
+
+CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
 
 GABIXX_SRCDIR=$ANDROID_NDK_ROOT/$GABIXX_SUBDIR
 GABIXX_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__ -I$GABIXX_SRCDIR/include"
@@ -135,7 +135,7 @@ src/cxa.c"
 # -j$NUM_JOBS to build stuff in parallel.
 #
 if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_DIR/Makefile
+    MAKEFILE=$OUT_DIR/Makefile
 else
     MAKEFILE=
 fi
@@ -146,7 +146,10 @@ build_stlport_libs_for_abi ()
     local ABI=$1
     local BUILDDIR="$2"
     local DSTDIR="$3"
-    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
+
+    ARCH=$(convert_abi_to_arch $ABI)
+    SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
 
     mkdir -p "$BUILDDIR"
 
@@ -162,15 +165,23 @@ build_stlport_libs_for_abi ()
     builder_set_dstdir "$DSTDIR"
 
     builder_set_srcdir "$GABIXX_SRCDIR"
+    builder_cflags "--sysroot=$SYSROOT"
+    builder_cflags "-I$CRYSTAX_SRCDIR/include"
     builder_cflags "$GABIXX_CFLAGS"
+    builder_cxxflags "--sysroot=$SYSROOT"
+    builder_cxxflags "-I$CRYSTAX_SRCDIR/include"
     builder_cxxflags "$GABIXX_CXXFLAGS"
     builder_ldflags "$GABIXX_LDFLAGS"
     builder_sources $GABIXX_SOURCES
 
     builder_set_srcdir "$STLPORT_SRCDIR"
     builder_reset_cflags
+    builder_cflags "--sysroot=$SYSROOT"
+    builder_cflags "-I$CRYSTAX_SRCDIR/include"
     builder_cflags "$STLPORT_CFLAGS"
     builder_reset_cxxflags
+    builder_cxxflags "--sysroot=$SYSROOT"
+    builder_cxxflags "-I$CRYSTAX_SRCDIR/include"
     builder_cxxflags "$STLPORT_CXXFLAGS"
     builder_sources $STLPORT_SOURCES
 
@@ -178,12 +189,13 @@ build_stlport_libs_for_abi ()
     builder_static_library libstlport_static
 
     log "Building $DSTDIR/libstlport_shared.so"
+    builder_ldflags "-L$CRYSTAX_SRCDIR/libs/$ABI -lcrystax"
     builder_shared_library libstlport_shared
     builder_end
 }
 
 for ABI in $ABIS; do
-    build_stlport_libs_for_abi $ABI "$BUILD_DIR/$ABI"
+    build_stlport_libs_for_abi $ABI "$OUT_DIR/$ABI"
 done
 
 # If needed, package files into tarballs
@@ -201,11 +213,16 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
+if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_DIR
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 else
-    log "Don't forget to cleanup: $BUILD_DIR"
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done!"

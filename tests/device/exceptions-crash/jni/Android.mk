@@ -17,7 +17,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libfoo_shared
 LOCAL_SRC_FILES := foo.cpp
 LOCAL_CPP_FEATURES := exceptions
-LOCAL_SHARED_LIBRARIES := gnustl_shared
+LOCAL_SHARED_LIBRARIES := crystax_shared gnustl_shared
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)

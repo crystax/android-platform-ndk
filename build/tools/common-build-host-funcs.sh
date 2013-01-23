@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (C) 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -478,7 +479,7 @@ _bh_select_toolchain_for_host ()
     # then save the result in host-specific global variables.
     #
     # In the build phase, we will simply restore the values into the
-    # global HOST_FULLPREFIX / HOST_BUILD_DIR
+    # global HOST_FULLPREFIX / HOST_OUT_DIR
     # variables.
     #
 
@@ -701,19 +702,19 @@ _bh_select_toolchain_for_host ()
 #
 # $3: Either 'release' or 'debug'. Compilation mode.
 #
-bh_setup_build_dir ()
+bh_setup_out_dir ()
 {
-    BH_BUILD_DIR="$1"
-    if [ -z "$BH_BUILD_DIR" ]; then
-        BH_BUILD_DIR=/tmp/ndk-$USER/buildhost
+    BH_OUT_DIR="$1"
+    if [ -z "$BH_OUT_DIR" ]; then
+        BH_OUT_DIR=/tmp/ndk-$USER/buildhost
     fi
-    mkdir -p "$BH_BUILD_DIR"
-    fail_panic "Could not create build directory: $BH_BUILD_DIR"
+    mkdir -p "$BH_OUT_DIR"
+    fail_panic "Could not create build directory: $BH_OUT_DIR"
 
-    setup_default_log_file $BH_BUILD_DIR/build.log
+    setup_default_log_file $BH_OUT_DIR/build.log
 
     if [ "$_BH_OPTION_FORCE" ]; then
-        rm -rf "$BH_BUILD_DIR"/*
+        rm -rf "$BH_OUT_DIR"/*
     fi
 
     if [ "$_BH_OPTION_NO_STRIP" ]; then
@@ -723,12 +724,12 @@ bh_setup_build_dir ()
     fi
 
     # The directory that will contain our toolchain wrappers
-    BH_WRAPPERS_DIR=$BH_BUILD_DIR/toolchain-wrappers
+    BH_WRAPPERS_DIR=$BH_OUT_DIR/toolchain-wrappers
     rm -rf "$BH_WRAPPERS_DIR" && mkdir "$BH_WRAPPERS_DIR"
     fail_panic "Could not create wrappers dir: $BH_WRAPPERS_DIR"
 
     # The directory that will contain our timestamps
-    BH_STAMPS_DIR=$BH_BUILD_DIR/timestamps
+    BH_STAMPS_DIR=$BH_OUT_DIR/timestamps
     mkdir -p "$BH_STAMPS_DIR"
     fail_panic "Could not create timestamps dir"
 }

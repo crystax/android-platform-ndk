@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,10 @@ PROGDIR=$(dirname $0)
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTIONS_OUT_DIR=
+register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Specify temporary build directory"
+
 SYSTEMS=$HOST_TAG
 # Replace x86_64 by x86 at the end of SYSTEMS since we will produce
 # 32-bit toolchains by default, i.e. unless you use the --try-64 flag
@@ -40,6 +44,9 @@ do_SYSTEMS () { CUSTOM_SYSTEMS=true; SYSTEMS=$1; }
 
 ARCHS=$DEFAULT_ARCHS
 register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
+
+GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to build"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -59,6 +66,55 @@ register_option "--check" do_check_option "Check host prebuilts"
 
 register_try64_option
 
+SKIP_BUILD_NDK_STACK=no
+register_option "--skip-build-ndk-stack" do_skip_build_ndk_stack "Skip build of ndk-stack utility"
+do_skip_build_ndk_stack ()
+{
+    SKIP_BUILD_NDK_STACK=yes
+}
+
+SKIP_BUILD_MAKE=no
+register_option "--skip-build-make" do_skip_build_make "Skip build of make utility"
+do_skip_build_make ()
+{
+    SKIP_BUILD_MAKE=yes
+}
+
+SKIP_BUILD_AWK=no
+register_option "--skip-build-awk" do_skip_build_awk "Skip build of awk utility"
+do_skip_build_awk ()
+{
+    SKIP_BUILD_AWK=yes
+}
+
+SKIP_BUILD_SED=no
+register_option "--skip-build-sed" do_skip_build_sed "Skip build of sed utility"
+do_skip_build_sed ()
+{
+    SKIP_BUILD_SED=yes
+}
+
+SKIP_BUILD_TOOLBOX=no
+register_option "--skip-build-toolbox" do_skip_build_toolbox "Skip build of toolbox utility (Windows only)"
+do_skip_build_toolbox ()
+{
+    SKIP_BUILD_TOOLBOX=yes
+}
+
+SKIP_BUILD_GCC=no
+register_option "--skip-build-gcc" do_skip_build_gcc "Skip build of gcc-based toolchains"
+do_skip_build_gcc ()
+{
+    SKIP_BUILD_GCC=yes
+}
+
+SKIP_BUILD_LLVM=yes
+register_option "--try-build-llvm" do_try_build_llvm "Try build of llvm-based toolchains"
+do_try_build_llvm ()
+{
+    SKIP_BUILD_LLVM=no
+}
+
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
 PROGRAM_DESCRIPTION=\
 "This script can be used to rebuild all the host NDK toolchains at once.
@@ -66,6 +122,9 @@ You need to give it the path to the toolchain source directory, as
 downloaded by the 'download-toolchain-sources.sh' dev-script."
 
 extract_parameters "$@"
+
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -105,6 +164,7 @@ fi
 SYSTEMS=$(commas_to_spaces $SYSTEMS)
 ARCHS=$(commas_to_spaces $ARCHS)
 LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 if [ "$DARWIN_SSH" -a -z "$CUSTOM_SYSTEMS" ]; then
     SYSTEMS=" darwin-x86"
@@ -117,6 +177,9 @@ fi
 if [ "$VERBOSE2" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
+if [ "$DRY_RUN" = "yes" ]; then
+    FLAGS=$FLAGS" --dry-run"
+fi
 if [ "$TRY64" = "yes" ]; then
     FLAGS=$FLAGS" --try-64"
 else
@@ -126,6 +189,12 @@ if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
     FLAGS=$FLAGS" --package-dir=$PACKAGE_DIR"
+fi
+if [ -n "$XCODE_PATH" ]; then
+    FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+fi
+if [ -n "$OPTION_OUT_DIR" ]; then
+    FLAGS=$FLAGS" --out-dir=$OUT_DIR"
 fi
 
 do_remote_host_build ()
@@ -175,10 +244,12 @@ do_remote_host_build ()
 
     # Time to run the show :-)
     for ARCH in $(commas_to_spaces $ARCHS); do
-        dump "Running remote $ARCH toolchain build..."
-        SYSROOT=$TMPREMOTE/ndk/platforms/android-$(get_default_api_level_for_arch $ARCH)/arch-$ARCH
-        run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
-        fail_panic "Could not build prebuilt $ARCH toolchain on Darwin!"
+        for GCC_VERSION in $GCC_VERSION_LIST; do
+            dump "Running remote $ARCH-$GCC_VERSION toolchain build..."
+            SYSROOT=$TMPREMOTE/ndk/platforms/android-$(get_default_api_level_for_arch $ARCH)/arch-$ARCH
+            run ssh $REMOTE_HOST "$TMPREMOTE/ndk/build/tools/build-host-prebuilts.sh $TMPREMOTE/toolchain --package-dir=$TMPREMOTE/packages --arch=$ARCH --gcc-version-list=$GCC_VERSION --ndk-dir=$TMPREMOTE/ndk --no-gen-platforms"
+            fail_panic "Could not build prebuilt $ARCH-$GCC_VERSION toolchain on Darwin!"
+        done
     done
     # Get the results
     dump "Copying back Darwin prebuilt packages..."
@@ -237,7 +308,7 @@ for SYSTEM in $SYSTEMS; do
     fi
 
     # First, ndk-stack
-    if [ "$TRY64" != "yes" ]; then
+    if [ "$TRY64" != "yes" -a "$SKIP_BUILD_NDK_STACK" != "yes" ]; then
         # Don't build ndk-stack in 64-bit because unlike other host toolchains
         # ndk-stack doesn't have separate directories for 32-bit and 64-bit.
         # 64-bit one will overwrite the 32-bit one
@@ -245,49 +316,60 @@ for SYSTEM in $SYSTEMS; do
         run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS
         fail_panic "ndk-stack build failure!"
     fi
-    echo "Building $SYSNAME ndk-make"
-    run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
-    fail_panic "make build failure!"
 
-    echo "Building $SYSNAME ndk-awk"
-    run $BUILDTOOLS/build-host-awk.sh $TOOLCHAIN_FLAGS
-    fail_panic "awk build failure!"
+    if [ "$SKIP_BUILD_MAKE" != "yes" ]; then
+        echo "Building $SYSNAME ndk-make"
+        run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
+        fail_panic "make build failure!"
+    fi
 
-    echo "Building $SYSNAME ndk-sed"
-    run $BUILDTOOLS/build-host-sed.sh $TOOLCHAIN_FLAGS
-    fail_panic "sed build failure!"
+    if [ "$SKIP_BUILD_AWK" != "yes" ]; then
+        echo "Building $SYSNAME ndk-awk"
+        run $BUILDTOOLS/build-host-awk.sh $TOOLCHAIN_FLAGS
+        fail_panic "awk build failure!"
+    fi
 
-    if [ "$SYSTEM" = "windows" ]; then
+    if [ "$SKIP_BUILD_SED" != "yes" ]; then
+        echo "Building $SYSNAME ndk-sed"
+        run $BUILDTOOLS/build-host-sed.sh $TOOLCHAIN_FLAGS
+        fail_panic "sed build failure!"
+    fi
+
+    if [ "$SYSNAME" = "windows" -a "$SKIP_BUILD_TOOLBOX" != "yes" ]; then
         echo "Building $SYSNAME toolbox"
         run $BUILDTOOLS/build-host-toolbox.sh $FLAGS
         fail_panic "Windows toolbox build failure!"
     fi
 
-    # Then the toolchains
-    for ARCH in $ARCHS; do
-        TOOLCHAIN_NAMES=$(get_toolchain_name_list_for_arch $ARCH)
-        if [ -z "$TOOLCHAIN_NAMES" ]; then
-            echo "ERROR: Invalid architecture name: $ARCH"
-            exit 1
-        fi
+    if [ "$SKIP_BUILD_GCC" != "yes" ]; then
+        # Then the toolchains
+        for ARCH in $ARCHS; do
+            TOOLCHAIN_NAMES=$(get_toolchain_name_list_for_arch $ARCH $(spaces_to_commas $GCC_VERSION_LIST))
+            if [ -z "$TOOLCHAIN_NAMES" ]; then
+                echo "ERROR: Invalid architecture name: $ARCH"
+                exit 1
+            fi
 
-        for TOOLCHAIN_NAME in $TOOLCHAIN_NAMES; do
-            echo "Building $SYSNAME toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
-            run $BUILDTOOLS/build-gcc.sh "$SRC_DIR" "$NDK_DIR" $TOOLCHAIN_NAME $TOOLCHAIN_FLAGS
-            fail_panic "Could not build $TOOLCHAIN_NAME-$SYSTEM!"
+            for TOOLCHAIN_NAME in $TOOLCHAIN_NAMES; do
+                echo "Building $SYSNAME toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
+                run $BUILDTOOLS/build-gcc.sh "$SRC_DIR" "$NDK_DIR" $TOOLCHAIN_NAME $TOOLCHAIN_FLAGS
+                fail_panic "Could not build $TOOLCHAIN_NAME-$SYSNAME!"
+            done
         done
-    done
-
-    # Build llvm and clang
-    POLLY_FLAGS=
-    if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
-        POLLY_FLAGS="--with-polly"
     fi
-    for LLVM_VERSION in $LLVM_VERSION_LIST; do
-        echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
-        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
-        fail_panic "Could not build llvm for $SYSTEM"
-    done
+
+    if [ "$SKIP_BUILD_LLVM" != "yes" ]; then
+        # Build llvm and clang
+        POLLY_FLAGS=
+        if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
+            POLLY_FLAGS="--with-polly"
+        fi
+        for LLVM_VERSION in $LLVM_VERSION_LIST; do
+            echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
+            run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
+            fail_panic "Could not build llvm for $SYSNAME"
+        done
+    fi
 
     # We're done for this system
 done

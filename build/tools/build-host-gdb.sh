@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2012 The Android Open Source Project
 #
@@ -55,14 +55,14 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRC_DIR "Select toolc
 GDB_VERSION="6.6 7.3.x"
 register_var_option "--gdb-version=<version>" GDB_VERSION "Select GDB version(s)."
 
-BUILD_DIR=
-register_var_option "--build-dir=<path>" BUILD_DIR "Build GDB into directory"
+OUT_DIR=
+register_var_option "--out-dir=<path>" OUT_DIR "Build GDB into directory"
 
 PYTHON_VERSION=
 register_var_option "--python-version=<version>" PYTHON_VERSION "Python version."
 
-PYTHON_BUILD_DIR=
-register_var_option "--python-build-dir=<path>" PYTHON_BUILD_DIR "Python build directory."
+PYTHON_OUT_DIR=
+register_var_option "--python-out-dir=<path>" PYTHON_OUT_DIR "Python build directory."
 
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Select NDK install directory."
@@ -97,11 +97,11 @@ for VERSION in $(commas_to_spaces $GDB_VERSION); do
     fi
 done
 
-if [ -z "$BUILD_DIR" ] ; then
-    BUILD_DIR=/tmp/ndk-$USER/buildgdb
+if [ -z "$OUT_DIR" ] ; then
+    OUT_DIR=/tmp/ndk-$USER/buildgdb
 fi
 
-bh_setup_build_dir $BUILD_DIR
+bh_setup_out_dir $OUT_DIR
 
 # Sanity check that we have the right compilers for all hosts
 for SYSTEM in $BH_HOST_SYSTEMS; do
@@ -114,7 +114,7 @@ done
 # $3: gdb version
 gdb_build_install_dir ()
 {
-    echo "$BH_BUILD_DIR/install/$1/gdb-$(get_toolchain_name_for_arch $(bh_tag_to_arch $2))-$3"
+    echo "$BH_OUT_DIR/install/$1/gdb-$(get_toolchain_name_for_arch $(bh_tag_to_arch $2))-$3"
 }
 
 # $1: host system tag
@@ -135,7 +135,7 @@ gdb_ndk_install_dir ()
 
 python_build_install_dir ()
 {
-    echo "$PYTHON_BUILD_DIR/install/prebuilt/$1"
+    echo "$PYTHON_OUT_DIR/install/prebuilt/$1"
 }
 
 # $1: host system tag
@@ -143,8 +143,8 @@ build_expat ()
 {
     local ARGS
     local SRCDIR=$TOOLCHAIN_SRC_DIR/expat/expat-2.0.1
-    local BUILDDIR=$BH_BUILD_DIR/build-expat-2.0.1-$1
-    local INSTALLDIR=$BH_BUILD_DIR/install-expat-2.0.1-$1
+    local BUILDDIR=$BH_OUT_DIR/build-expat-2.0.1-$1
+    local INSTALLDIR=$BH_OUT_DIR/install-expat-2.0.1-$1
 
     ARGS=" --prefix=$INSTALLDIR"
     ARGS=$ARGS" --disable-shared --enable-static"
@@ -172,7 +172,7 @@ need_build_expat ()
 build_host_gdb ()
 {
     local SRCDIR=$TOOLCHAIN_SRC_DIR/gdb/gdb-$3
-    local BUILDDIR=$BH_BUILD_DIR/build-gdb-$1-$2-$3
+    local BUILDDIR=$BH_OUT_DIR/build-gdb-$1-$2-$3
     local INSTALLDIR=$(gdb_build_install_dir $1 $2 $3)
     local ARGS TEXT
 
@@ -184,7 +184,7 @@ build_host_gdb ()
     bh_setup_host_env
 
     need_build_expat $1
-    local EXPATPREFIX=$BH_BUILD_DIR/install-expat-2.0.1-$1
+    local EXPATPREFIX=$BH_OUT_DIR/install-expat-2.0.1-$1
 
     ARGS=" --prefix=$INSTALLDIR"
     ARGS=$ARGS" --disable-shared"

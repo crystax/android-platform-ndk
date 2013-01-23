@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,13 +38,13 @@ NOTE: The --platform option is ignored if --sysroot is used."
 
 VERBOSE=no
 
-OPTION_BUILD_OUT=
-BUILD_OUT=/tmp/ndk-$USER/build/gdbserver
-register_option "--build-out=<path>" do_build_out "Set temporary build directory"
-do_build_out () { OPTION_BUILD_OUT="$1"; }
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Target specific platform"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>" OPTION_PLATFORM "Target specific platform"
 
 SYSROOT=
 if [ -d $TOOLCHAIN_PATH/sysroot ] ; then
@@ -55,8 +55,8 @@ register_var_option "--sysroot=<path>" SYSROOT "Specify sysroot directory direct
 NOTHREADS=no
 register_var_option "--disable-threads" NOTHREADS "Disable threads support"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
-register_var_option "--gdb-version=<name>" GDB_VERSION "Use specific gdb version."
+OPTION_GDB_VERSION=
+register_var_option "--gdb-version=<name>" OPTION_GDB_VERSION "Use specific gdb version."
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
@@ -65,7 +65,10 @@ register_jobs_option
 
 extract_parameters "$@"
 
-setup_default_log_file
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/gdbserver
+log "Using build directory: $OUT_DIR"
 
 set_parameters ()
 {
@@ -77,17 +80,6 @@ set_parameters ()
     #
     if [ -z "$SRC_DIR" ] ; then
         echo "ERROR: Missing source directory parameter. See --help for details."
-        exit 1
-    fi
-
-    SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
-    if [ -d "$SRC_DIR2" ] ; then
-        SRC_DIR="$SRC_DIR2"
-        log "Found gdbserver source directory: $SRC_DIR"
-    fi
-
-    if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
-        echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
         exit 1
     fi
 
@@ -117,6 +109,8 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+fix_option PLATFORM "$OPTION_PLATFORM" "platform"
+
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
@@ -127,21 +121,37 @@ prepare_target_build
 parse_toolchain_name $TOOLCHAIN
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
+GDB_VERSION=$(get_default_gdb_version $GCC_VERSION)
+fix_option GDB_VERSION "$OPTION_GDB_VERSION" "gdb version"
+
+SRC_DIR2="$SRC_DIR/gdb/gdb-$GDB_VERSION/gdb/gdbserver"
+if [ -d "$SRC_DIR2" ] ; then
+    SRC_DIR="$SRC_DIR2"
+    log "Found gdbserver source directory: $SRC_DIR"
+fi
+
+if [ ! -f "$SRC_DIR/gdbreplay.c" ] ; then
+    echo "ERROR: Source directory does not contain gdbserver sources: $SRC_DIR"
+    exit 1
+fi
+
+log "Using GDB source directory: $SRC_DIR"
+
 # Check build directory
 #
 fix_sysroot "$SYSROOT"
 log "Using sysroot: $SYSROOT"
 
-if [ -n "$OPTION_BUILD_OUT" ] ; then
-    BUILD_OUT="$OPTION_BUILD_OUT"
-fi
-log "Using build directory: $BUILD_OUT"
-run mkdir -p "$BUILD_OUT"
+OUT_DIR=$OUT_DIR/$TOOLCHAIN
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
 
 # Copy the sysroot to a temporary build directory
-BUILD_SYSROOT="$BUILD_OUT/sysroot"
+BUILD_SYSROOT="$OUT_DIR/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
+
+run cp -f "$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR/ctype_orig.h" "$BUILD_SYSROOT/usr/include/ctype.h"
 
 # Remove libthread_db to ensure we use exactly the one we want.
 rm -f $BUILD_SYSROOT/usr/lib/libthread_db*
@@ -172,8 +182,11 @@ log "Using build sysroot: $BUILD_SYSROOT"
 # configure the gdbserver build now
 dump "Configure: $TOOLCHAIN gdbserver-$GDB_VERSION build."
 OLD_CC="$CC"
+OLD_AR="$AR"
+OLD_RANLIB="$RANLIB"
 OLD_CFLAGS="$CFLAGS"
 OLD_LDFLAGS="$LDFLAGS"
+OLD_LIBS="$LIBS"
 
 INCLUDE_DIRS=\
 "-I$TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include \
@@ -192,7 +205,7 @@ case "$GDB_VERSION" in
     6.6)
         CONFIGURE_FLAGS="--with-sysroot=$BUILD_SYSROOT"
         ;;
-    7.3.x)
+    7.3.x|7.4|7.5)
         # This flag is required to link libthread_db statically to our
         # gdbserver binary. Otherwise, the program will try to dlopen()
         # the threads binary, which is not possible since we build a
@@ -206,10 +219,14 @@ case "$GDB_VERSION" in
         CONFIGURE_FLAGS=""
 esac
 
-cd $BUILD_OUT &&
+GDBSERVER_CFLAGS="$GDBSERVER_CFLAGS -Wno-strict-aliasing"
+cd $OUT_DIR &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
+export AR="$TOOLCHAIN_PREFIX-ar" &&
+export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
 export CFLAGS="-O2 -nostdlib -D__ANDROID__ -DANDROID -DSTDC_HEADERS $INCLUDE_DIRS $GDBSERVER_CFLAGS"  &&
 export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined $LIBRARY_LDFLAGS $GDBSERVER_LDFLAGS" &&
+export LIBS="-lc" &&
 run $SRC_DIR/configure \
 --host=$GDBSERVER_HOST \
 $CONFIGURE_FLAGS
@@ -217,18 +234,22 @@ if [ $? != 0 ] ; then
     dump "Could not configure gdbserver build. See $TMPLOG"
     exit 1
 fi
-CC="$OLD_CC"
-CFLAGS="$OLD_CFLAGS"
-LDFLAGS="$OLD_LDFLAGS"
 
 # build gdbserver
 dump "Building : $TOOLCHAIN gdbserver."
-cd $BUILD_OUT &&
+cd $OUT_DIR &&
 run make -j$NUM_JOBS
 if [ $? != 0 ] ; then
     dump "Could not build $TOOLCHAIN gdbserver. Use --verbose to see why."
     exit 1
 fi
+
+CC="$OLD_CC"
+AR="$OLD_AR"
+RANLIB="$OLD_RANLIB"
+CFLAGS="$OLD_CFLAGS"
+LDFLAGS="$OLD_LDFLAGS"
+LIBS="$OLD_LIBS"
 
 # install gdbserver
 #
@@ -243,7 +264,7 @@ fi
 dump "Install  : $TOOLCHAIN $DSTFILE."
 DEST=$ANDROID_NDK_ROOT/prebuilt/android-$ARCH/gdbserver
 mkdir -p $DEST &&
-run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $BUILD_OUT/gdbserver $DEST/$DSTFILE
+run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $OUT_DIR/gdbserver $DEST/$DSTFILE
 if [ $? != 0 ] ; then
     dump "Could not install $DSTFILE. See $TMPLOG"
     exit 1
@@ -255,9 +276,15 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$ANDROID_NDK_ROOT" "prebuilt/android-$ARCH/gdbserver/$DSTFILE"
 fi
 
-log "Cleaning up."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    run rm -rf $BUILD_OUT
+if [ -z "$OPTION_OUT_DIR" ] ; then
+    log "Cleaning up..."
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
-
 dump "Done."

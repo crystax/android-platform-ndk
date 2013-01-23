@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -47,12 +47,10 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-BUILD_DIR=
-OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
-
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify temporary build dir." "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
@@ -77,13 +75,13 @@ else
     fi
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-gabi++
-else
-    BUILD_DIR=$OPTION_BUILD_DIR
-fi
-mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/target/gabi++
+
+run rm -Rf "$OUT_DIR"
+run mkdir -p "$OUT_DIR"
+fail_panic "Could not create build directory: $OUT_DIR"
 
 # Location of the GAbi++ source tree
 GABIXX_SRCDIR=$ANDROID_NDK_ROOT/$GABIXX_SUBDIR
@@ -102,7 +100,7 @@ GABIXX_SOURCES=$(cd $GABIXX_SRCDIR && ls src/*.cc)
 # -j$NUM_JOBS to build stuff in parallel.
 #
 if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_DIR/Makefile
+    MAKEFILE=$OUT_DIR/Makefile
 else
     MAKEFILE=
 fi
@@ -113,7 +111,7 @@ build_gabixx_libs_for_abi ()
     local ABI=$1
     local BUILDDIR="$2"
     local DSTDIR="$3"
-    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
     mkdir -p "$BUILDDIR"
 
@@ -124,13 +122,21 @@ build_gabixx_libs_for_abi ()
 
     mkdir -p "$DSTDIR"
 
+    CRYSTAX_SRCDIR=$ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
+    CRYSTAX_INCDIR=$CRYSTAX_SRCDIR/include
+    CRYSTAX_LIBDIR=$CRYSTAX_SRCDIR/libs/$ABI
+
+    CFLAGS=$GABIXX_CFLAGS" -I$CRYSTAX_INCDIR"
+    CXXFLAGS=$GABIXX_CXXFLAGS
+    LDFLAGS=$GABIXX_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
+
     builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
     builder_set_srcdir "$GABIXX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
-    builder_cflags "$GABIXX_CFLAGS"
-    builder_cxxflags "$GABIXX_CXXFLAGS"
-    builder_ldflags "$GABIXX_LDFLAGS"
+    builder_cflags "$CFLAGS"
+    builder_cxxflags "$CXXFLAGS"
+    builder_ldflags "$LDFLAGS"
     builder_sources $GABIXX_SOURCES
 
     log "Building $DSTDIR/libgabi++_static.a"
@@ -142,7 +148,7 @@ build_gabixx_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
-    build_gabixx_libs_for_abi $ABI "$BUILD_DIR/$ABI"
+    build_gabixx_libs_for_abi $ABI "$OUT_DIR/$ABI"
 done
 
 # If needed, package files into tarballs
@@ -160,11 +166,16 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
+if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."
-    rm -rf $BUILD_DIR
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
 else
-    log "Don't forget to cleanup: $BUILD_DIR"
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
 
 log "Done!"

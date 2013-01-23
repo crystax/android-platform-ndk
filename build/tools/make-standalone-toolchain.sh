@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (C) 2010 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -194,6 +195,9 @@ GCC_BASE_VERSION=${LIBGCC_BASE_PATH##*/}   # stuff after the last /
 
 # Create temporary directory
 TMPDIR=$NDK_TMPDIR/standalone/$TOOLCHAIN_NAME
+if [ "$HOST_OS" = "windows" ]; then
+    TMPDIR=$(cygpath -u $TMPDIR)
+fi
 
 dump "Copying prebuilt binaries..."
 # Now copy the GCC toolchain prebuilt binaries
@@ -286,6 +290,70 @@ dump "Copying sysroot headers and libraries..."
 # Copy the sysroot under $TMPDIR/sysroot. The toolchain was built to
 # expect the sysroot files to be placed there!
 run copy_directory_nolinks "$SRC_SYSROOT" "$TMPDIR/sysroot"
+
+ABI_TARGET="$TMPDIR/$ABI_CONFIGURE_TARGET"
+
+dump "Copying crystax headers and libraries..."
+
+CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
+CRYSTAX_LIBS=$CRYSTAX_DIR/libs
+
+copy_directory "$CRYSTAX_DIR/include" "$TMPDIR/sysroot/usr/include"
+case "$ARCH" in
+    arm)
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.so"
+
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.so"
+
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.so"
+        ;;
+    mips)
+        copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.so"
+        ;;
+    x86)
+        copy_file_list "$CRYSTAX_LIBS/x86" "$ABI_TARGET/lib" "libcrystax.a"
+        copy_file_list "$CRYSTAX_LIBS/x86" "$ABI_TARGET/lib" "libcrystax.so"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
+
+dump "Copying libobjc headers and libraries..."
+
+GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
+
+copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$ABI_TARGET/include"
+case "$ARCH" in
+    arm)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/thumb/libobjc.a"
+
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/armv7-a/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/libobjc.a"
+        ;;
+    mips)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
+    x86)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
 
 dump "Copying libstdc++ headers and libraries..."
 

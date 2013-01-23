@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # The purpose of this dummy build test is to ensure that all the
 # armeabi-v7a prebuilt binaries distributed with the NDK were
@@ -216,6 +216,11 @@ check_armv7_elf_binary ()
     fi
 }
 
+CRYSTAX_LIBS=$NDK/sources/crystax/libs/armeabi-v7a
+
+check_armv7_elf_binary $CRYSTAX_LIBS/libcrystax.so
+check_armv7_elf_binary $CRYSTAX_LIBS/libcrystax.a
+
 GABIXX_LIBS=$NDK/sources/cxx-stl/gabi++/libs/armeabi-v7a
 
 check_armv7_elf_binary $GABIXX_LIBS/libgabi++_shared.so
@@ -230,9 +235,12 @@ check_armv7_elf_binary $STLPORT_LIBS/libstlport_static.a
 
 for VERSION in $DEFAULT_GCC_VERSION_LIST; do
     GNUSTL_LIBS=$NDK/sources/cxx-stl/gnu-libstdc++/$VERSION/libs/armeabi-v7a
+    GNUOBJC_LIBS=$NDK/sources/objc/gnu-libobjc/$VERSION/libs/armeabi-v7a
     check_armv7_elf_binary $GNUSTL_LIBS/libsupc++.a
     check_armv7_elf_binary $GNUSTL_LIBS/libgnustl_shared.so
     check_armv7_elf_binary $GNUSTL_LIBS/libgnustl_static.a
+    check_armv7_elf_binary $GNUOBJC_LIBS/libgnuobjc_shared.so
+    check_armv7_elf_binary $GNUOBJC_LIBS/libgnuobjc_static.a
 done
 
 echo "Done!"

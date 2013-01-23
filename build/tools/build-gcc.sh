@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,21 +31,27 @@ the top-level NDK installation path and <toolchain> is the name of
 the toolchain to use (e.g. arm-linux-androideabi-4.4.3)."
 
 RELEASE=`date +%Y%m%d`
-BUILD_OUT=/tmp/ndk-$USER/build/toolchain
-OPTION_BUILD_OUT=
-register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Set temporary build directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
 
 # Note: platform API level 9 or higher is needed for proper C++ support
-PLATFORM=$DEFAULT_PLATFORM
-register_var_option "--platform=<name>"  PLATFORM "Specify platform name"
+OPTION_PLATFORM=
+register_var_option "--platform=<name>"  OPTION_PLATFORM "Specify platform name"
 
 OPTION_SYSROOT=
 register_var_option "--sysroot=<path>"   OPTION_SYSROOT   "Specify sysroot directory directly"
 
-GDB_VERSION=$DEFAULT_GDB_VERSION
-register_var_option "--gdb-version=<version>"  GDB_VERSION "Specify gdb version"
+GDB_VERSION=$(get_default_gdb_version $DEFAULT_GCC_VERSION)
+EXPLICIT_GDB_VERSION=
+register_option "--gdb-version=<version>" do_gdb_version "Specify gdb version" "$GDB_VERSION"
+do_gdb_version () {
+    GDB_VERSION=$1
+    EXPLICIT_GDB_VERSION=true
+}
 
-BINUTILS_VERSION=$DEFAULT_BINUTILS_VERSION
+BINUTILS_VERSION=$(get_default_binutils_version $DEFAULT_GCC_VERSION)
 EXPLICIT_BINUTILS_VERSION=
 register_option "--binutils-version=<version>" do_binutils_version "Specify binutils version" "$BINUTILS_VERSION"
 do_binutils_version () {
@@ -53,14 +59,53 @@ do_binutils_version () {
     EXPLICIT_BINUTILS_VERSION=true
 }
 
-GMP_VERSION=$DEFAULT_GMP_VERSION
-register_var_option "--gmp-version=<version>" GMP_VERSION "Specify gmp version"
+GMP_VERSION=$(get_default_gmp_version $DEFAULT_GCC_VERSION)
+EXPLICIT_GMP_VERSION=
+register_option "--gmp-version=<version>" do_gmp_version "Specify gmp version" "$GMP_VERSION"
+do_gmp_version () {
+    GMP_VERSION=$1
+    EXPLICIT_GMP_VERSION=true
+}
 
-MPFR_VERSION=$DEFAULT_MPFR_VERSION
-register_var_option "--mpfr-version=<version>" MPFR_VERSION "Specify mpfr version"
+MPFR_VERSION=$(get_default_mpfr_version $DEFAULT_GCC_VERSION)
+EXPLICIT_MPFR_VERSION=
+register_option "--mpfr-version=<version>" do_mpfr_version "Specify mpfr version" "$MPFR_VERSION"
+do_mpfr_version () {
+    MPFR_VERSION=$1
+    EXPLICIT_MPFR_VERSION=true
+}
 
-MPC_VERSION=$DEFAULT_MPC_VERSION
-register_var_option "--mpc-version=<version>" MPC_VERSION "Specify mpc version"
+MPC_VERSION=$(get_default_mpc_version $DEFAULT_GCC_VERSION)
+EXPLICIT_MPC_VERSION=
+register_option "--mpc-version=<version>" do_mpc_version "Specify mpc version" "$MPC_VERSION"
+do_mpc_version () {
+    MPC_VERSION=$1
+    EXPLICIT_MPC_VERSION=true
+}
+
+EXPAT_VERSION=$(get_default_expat_version $DEFAULT_GCC_VERSION)
+EXPLICIT_EXPAT_VERSION=
+register_option "--expat-version=<version>" do_expat_version "Specify expat version" "$EXPAT_VERSION"
+do_expat_version () {
+    EXPAT_VERSION=$1
+    EXPLICIT_EXPAT_VERSION=true
+}
+
+CLOOG_VERSION=$(get_default_cloog_version $DEFAULT_GCC_VERSION)
+EXPLICIT_CLOOG_VERSION=
+register_option "--cloog-version=<version>" do_cloog_version "Specify cloog version" "$CLOOG_VERSION"
+do_cloog_version () {
+    CLOOG_VERSION=$1
+    EXPLICIT_CLOOG_VERSION=true
+}
+
+PPL_VERSION=$(get_default_ppl_version $DEFAULT_GCC_VERSION)
+EXPLICIT_PPL_VERSION=
+register_option "--ppl-version=<version>" do_ppl_version "Specify ppl version" "$PPL_VERSION"
+do_ppl_version () {
+    PPL_VERSION=$1
+    EXPLICIT_PPL_VERSION=true
+}
 
 CLOOG_VERSION=$DEFAULT_CLOOG_VERSION
 register_var_option "--cloog-version=<version>" CLOOG_VERSION "Specify cloog version"
@@ -71,16 +116,17 @@ register_var_option "--ppl-version=<version>" PPL_VERSION "Specify ppl version"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
-register_jobs_option
 register_mingw_option
 register_try64_option
+register_jobs_option
 
 extract_parameters "$@"
 
-prepare_mingw_toolchain /tmp/ndk-$USER/build
+fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/toolchains
 
-fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
-setup_default_log_file $BUILD_OUT/config.log
+prepare_mingw_toolchain $OUT_DIR
 
 set_parameters ()
 {
@@ -137,6 +183,11 @@ fix_sysroot "$OPTION_SYSROOT"
 
 check_toolchain_src_dir "$SRC_DIR"
 
+if [ -z "$EXPLICIT_GDB_VERSION" ]; then
+    GDB_VERSION=$(get_default_gdb_version $TOOLCHAIN)
+    dump "Auto-config: --gdb-version=$GDB_VERSION"
+fi
+
 if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
     echo "       Use --gdb-version=<version> to specify alternative."
@@ -144,7 +195,7 @@ if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
 fi
 
 if [ -z "$EXPLICIT_BINUTILS_VERSION" ]; then
-    BINUTILS_VERSION=$(get_default_binutils_version_for_gcc $TOOLCHAIN)
+    BINUTILS_VERSION=$(get_default_binutils_version $TOOLCHAIN)
     dump "Auto-config: --binutils-version=$BINUTILS_VERSION"
 fi
 
@@ -154,10 +205,78 @@ if [ ! -d $SRC_DIR/binutils/binutils-$BINUTILS_VERSION ] ; then
     exit 1
 fi
 
-fix_option MPFR_VERSION "$OPTION_MPFR_VERSION" "mpfr version"
+if [ -z "$EXPLICIT_GMP_VERSION" ]; then
+    GMP_VERSION=$(get_default_gmp_version $TOOLCHAIN)
+    dump "Auto-config: --gmp-version=$GMP_VERSION"
+fi
+
+if [ ! -f $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing gmp sources: $SRC_DIR/gmp/gmp-$GMP_VERSION.tar.bz2"
+    echo "       Use --gmp-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ -z "$EXPLICIT_MPFR_VERSION" ]; then
+    MPFR_VERSION=$(get_default_mpfr_version $TOOLCHAIN)
+    dump "Auto-config: --mpfr-version=$MPFR_VERSION"
+fi
+
 if [ ! -f $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2 ] ; then
     echo "ERROR: Missing mpfr sources: $SRC_DIR/mpfr/mpfr-$MPFR_VERSION.tar.bz2"
     echo "       Use --mpfr-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ -z "$EXPLICIT_MPC_VERSION" ]; then
+    MPC_VERSION=$(get_default_mpc_version $TOOLCHAIN)
+    dump "Auto-config: --mpc-version=$MPC_VERSION"
+fi
+
+if [ ! -f $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz ] ; then
+    echo "ERROR: Missing mpc sources: $SRC_DIR/mpc/mpc-$MPC_VERSION.tar.gz"
+    echo "       Use --mpc-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ -z "$EXPLICIT_EXPAT_VERSION" ]; then
+    EXPAT_VERSION=$(get_default_expat_version $TOOLCHAIN)
+    dump "Auto-config: --expat-version=$EXPAT_VERSION"
+fi
+
+if [ ! -d $SRC_DIR/expat/expat-$EXPAT_VERSION ] ; then
+    echo "ERROR: Missing expat sources: $SRC_DIR/expat/expat-$EXPAT_VERSION"
+    echo "       Use --expat-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ -z "$EXPLICIT_CLOOG_VERSION" ]; then
+    CLOOG_VERSION=$(get_default_cloog_version $TOOLCHAIN)
+    dump "Auto-config: --cloog-version=$CLOOG_VERSION"
+fi
+
+CLOOG_MAJOR_VERSION=$(expr $CLOOG_VERSION : "^\([0-9][0-9]*\)\.")
+CLOOG_MINOR_VERSION=$(expr $CLOOG_VERSION : "^[0-9][0-9]*\.\([0-9][0-9]*\)")
+if [ $CLOOG_MAJOR_VERSION -eq 0 -a $CLOOG_MINOR_VERSION -le 15 ]; then
+    # CLooG/PPL relies on the PPL for version 0.15.x
+    CLOOG_PACKAGE=$SRC_DIR/cloog/cloog-ppl-$CLOOG_VERSION.tar.gz
+else
+    # CLooG 0.16.x has its own embedded polyhedral library
+    CLOOG_PACKAGE=$SRC_DIR/cloog/cloog-$CLOOG_VERSION.tar.gz
+fi
+if [ ! -f $CLOOG_PACKAGE ] ; then
+    echo "ERROR: Missing cloog sources: $CLOOG_PACKAGE"
+    echo "       Use --cloog-version=<version> to specify alternative."
+    exit 1
+fi
+
+if [ -z "$EXPLICIT_PPL_VERSION" ]; then
+    PPL_VERSION=$(get_default_ppl_version $TOOLCHAIN)
+    dump "Auto-config: --ppl-version=$PPL_VERSION"
+fi
+
+if [ ! -f $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2 ] ; then
+    echo "ERROR: Missing ppl sources: $SRC_DIR/ppl/ppl-$PPL_VERSION.tar.bz2"
+    echo "       Use --ppl-version=<version> to specify alternative."
     exit 1
 fi
 
@@ -173,8 +292,9 @@ if [ "$MINGW" != "yes" ] ; then
     dump "Using C++ compiler: $CXX"
 fi
 
-rm -rf $BUILD_OUT
-mkdir -p $BUILD_OUT
+OUT_DIR=$OUT_DIR/$TOOLCHAIN-$HOST_TAG
+rm -Rf $OUT_DIR
+mkdir -p $OUT_DIR
 
 # Location where the toolchain license files are
 TOOLCHAIN_LICENSES=$ANDROID_NDK_ROOT/build/tools/toolchain-licenses
@@ -193,10 +313,10 @@ TOOLCHAIN_LICENSES=$ANDROID_NDK_ROOT/build/tools/toolchain-licenses
 #  3) The path exists but not accessible, which crashes GCC!
 #
 # For canadian build --with-sysroot has to be sub-directory of --prefix.
-# Put TOOLCHAIN_BUILD_PREFIX to BUILD_OUT which is in /tmp by default,
+# Put TOOLCHAIN_BUILD_PREFIX to OUT_DIR which is in /tmp by default,
 # and TOOLCHAIN_BUILD_SYSROOT underneath.
 
-TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
+TOOLCHAIN_BUILD_PREFIX=$OUT_DIR/prefix
 TOOLCHAIN_BUILD_SYSROOT=$TOOLCHAIN_BUILD_PREFIX/sysroot
 dump "Sysroot  : Copying: $SYSROOT --> $TOOLCHAIN_BUILD_SYSROOT"
 mkdir -p $TOOLCHAIN_BUILD_SYSROOT && (cd $SYSROOT && tar ch *) | (cd $TOOLCHAIN_BUILD_SYSROOT && tar x)
@@ -204,6 +324,18 @@ if [ $? != 0 ] ; then
     echo "Error while copying sysroot files. See $TMPLOG"
     exit 1
 fi
+
+# currently this is requred only for gcc-4.7/libgomp
+dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
+CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+run mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
+for lib in libcrystax.a libcrystax.so; do
+    run cp -f "$CRYSTAX_SRCDIR/empty/$ARCH/$lib" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/"
+    if [ $? != 0 ] ; then
+        echo "Error while copying libcrystax stubs. See $TMPLOG"
+        exit 1
+    fi
+done
 
 # configure the toolchain
 #
@@ -216,15 +348,20 @@ BUILD_SRCDIR=$SRC_DIR/build
 if [ ! -d $BUILD_SRCDIR ] ; then
     BUILD_SRCDIR=$SRC_DIR
 fi
+
 OLD_ABI="${ABI}"
 export CC CXX
 export CFLAGS_FOR_TARGET="$ABI_CFLAGS_FOR_TARGET"
 export CXXFLAGS_FOR_TARGET="$ABI_CXXFLAGS_FOR_TARGET"
 # Needed to build a 32-bit gmp on 64-bit systems
 export ABI=$HOST_GMP_ABI
+export CFLAGS="$HOST_CFLAGS"
+export CXXFLAGS="$HOST_CFLAGS"
+export LDFLAGS="$HOST_LDFLAGS"
+
 # -Wno-error is needed because our gdb-6.6 sources use -Werror by default
 # and fail to build with recent GCC versions.
-export CFLAGS=$HOST_CFLAGS" -O2 -s -Wno-error"
+export CFLAGS=$CFLAGS" -O2 -s -Wno-error"
 
 # This extra flag is used to slightly speed up the build
 EXTRA_CONFIG_FLAGS="--disable-bootstrap"
@@ -251,7 +388,7 @@ EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-libgomp"
 # Enable Gold as default
 case "$TOOLCHAIN" in
     # Note that only ARM and X86 are supported
-    x86-4.6|arm-linux-androideabi-4.6|x86-4.7|arm-linux-androideabi-4.7)
+    x86-4.[6789]|arm-linux-androideabi-4.[6789])
         EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold=default"
     ;;
 esac
@@ -265,7 +402,7 @@ case "$TOOLCHAIN" in
 esac
 
 #export LDFLAGS="$HOST_LDFLAGS"
-cd $BUILD_OUT && run \
+cd $OUT_DIR && run \
 $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --enable-initfini-array \
                         --host=$ABI_CONFIGURE_HOST \
@@ -279,6 +416,7 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-gmp-version=$GMP_VERSION \
                         --with-gcc-version=$GCC_VERSION \
                         --with-gdb-version=$GDB_VERSION \
+                        --with-expat-version=$EXPAT_VERSION \
                         --with-gxx-include-dir=$TOOLCHAIN_BUILD_PREFIX/include/c++/$GCC_VERSION \
                         --with-bugurl=$DEFAULT_ISSUE_TRACKER_URL \
                         $EXTRA_CONFIG_FLAGS \
@@ -290,7 +428,7 @@ fi
 ABI="$OLD_ABI"
 # build the toolchain
 dump "Building : $TOOLCHAIN toolchain [this can take a long time]."
-cd $BUILD_OUT
+cd $OUT_DIR
 export CC CXX
 export ABI=$HOST_GMP_ABI
 JOBS=$NUM_JOBS
@@ -322,7 +460,7 @@ ABI="$OLD_ABI"
 
 # install the toolchain to its final location
 dump "Install  : $TOOLCHAIN toolchain binaries."
-cd $BUILD_OUT && run make install
+cd $OUT_DIR && run make install
 if [ $? != 0 ] ; then
     echo "Error while installing toolchain. See $TMPLOG"
     exit 1
@@ -335,7 +473,7 @@ if [ "$MINGW" = "yes" ] ; then
     # For some reasons, libraries in $ABI_CONFIGURE_TARGET (*) are not installed.
     # Hack here to copy them over.
     # (*) FYI: libgcc.a and libgcov.a not installed there in the first place
-    INSTALL_TARGET_LIB_PATH="$BUILD_OUT/host-$ABI_CONFIGURE_BUILD/install/$ABI_CONFIGURE_TARGET/lib"
+    INSTALL_TARGET_LIB_PATH="$OUT_DIR/host-$ABI_CONFIGURE_BUILD/install/$ABI_CONFIGURE_TARGET/lib"
     TOOLCHAIN_TARGET_LIB_PATH="$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib"
     (cd "$INSTALL_TARGET_LIB_PATH" &&
         find . \( -name "*.a" -o -name "*.la" -o -name "*.spec" \) -exec install -D "{}" "$TOOLCHAIN_TARGET_LIB_PATH/{}" \;)
@@ -343,6 +481,18 @@ fi
 
 # don't forget to copy the GPL and LGPL license files
 run cp -f $TOOLCHAIN_LICENSES/COPYING $TOOLCHAIN_LICENSES/COPYING.LIB $TOOLCHAIN_PATH
+
+# this is required to correctly compile libstdc++ with thread support
+case "$GCC_VERSION" in
+    4.4.3|4.6)
+        GTHR_FILE=$TOOLCHAIN_BUILD_PREFIX/../gcc-$GCC_VERSION/gcc/gthr-default.h
+        ;;
+    4.7)
+        GTHR_FILE=$TOOLCHAIN_BUILD_PREFIX/../gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/gthr-default.h
+        ;;
+esac
+
+run cp -f  $GTHR_FILE    $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/$GCC_VERSION/include/
 
 # remove some unneeded files
 run rm -f $TOOLCHAIN_PATH/bin/*-gccbug
@@ -364,6 +514,9 @@ run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libstdc++.*
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/include/c++
 
+# Remove shared libgcc
+run rm -rf $(find $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib -name 'libgcc_s.*' -print)
+
 # strip binaries to reduce final package size
 run strip $TOOLCHAIN_PATH/bin/*
 run strip $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/bin/*
@@ -381,9 +534,18 @@ if [ "$PACKAGE_DIR" ]; then
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+    fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
 fi
 
-dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    rm -rf $BUILD_OUT
+if [ -z "$OPTION_OUT_DIR" ] ; then
+    log "Cleaning up..."
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
 fi
+dump "Done."

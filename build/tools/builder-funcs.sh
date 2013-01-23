@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Copyright (C) 2011 The Android Open Source Project
 #
@@ -46,15 +47,15 @@ builder_log ()
 # $2: Optional Makefile name
 builder_begin ()
 {
-    _BUILD_DIR_NEW=
-    _BUILD_DIR=$1
-    if [ ! -d "$_BUILD_DIR" ]; then
-        mkdir -p "$_BUILD_DIR"
-        fail_panic "Can't create build directory: $_BUILD_DIR"
-        _BUILD_DIR_NEW=true
+    _OUT_DIR_NEW=
+    _OUT_DIR=$1
+    if [ ! -d "$_OUT_DIR" ]; then
+        mkdir -p "$_OUT_DIR"
+        fail_panic "Can't create build directory: $_OUT_DIR"
+        _OUT_DIR_NEW=true
     else
-        rm -rf "$_BUILD_DIR/*"
-        fail_panic "Can't cleanup build directory: $_BUILD_DIR"
+        rm -rf "$_OUT_DIR/*"
+        fail_panic "Can't cleanup build directory: $_OUT_DIR"
     fi
     _BUILD_TARGETS=
     _BUILD_PREFIX=
@@ -133,7 +134,7 @@ builder_set_binprefix ()
 
 builder_set_builddir ()
 {
-    _BUILD_DIR=$1
+    _OUT_DIR=$1
 }
 
 builder_set_srcdir ()
@@ -181,6 +182,11 @@ builder_reset_cxxflags ()
     _BUILD_CXXFLAGS=
 }
 
+builder_reset_ldflags ()
+{
+    _BUILD_LDFLAGS=
+}
+
 builder_reset_c_includes ()
 {
     _BUILD_C_INCLUDES=
@@ -207,7 +213,7 @@ builder_link_with ()
 builder_sources ()
 {
     local src srcfull obj cc cflags text
-    if [ -z "$_BUILD_DIR" ]; then
+    if [ -z "$_OUT_DIR" ]; then
         panic "Build directory not set!"
     fi
     if [ -z "$_BUILD_CC" ]; then
@@ -256,7 +262,7 @@ builder_sources ()
         # This is useful to get good stack traces
         cflags=$cflags" -funwind-tables"
 
-        obj=$_BUILD_DIR/$obj.o
+        obj=$_OUT_DIR/$obj.o
         if [ "$_BUILD_MK" ]; then
             echo "$obj: $srcfull" >> $_BUILD_MK
         fi
@@ -402,10 +408,10 @@ builder_end ()
         fail_panic "Could not build project!"
     fi
 
-    if [ "$_BUILD_DIR_NEW" ]; then
-        log2 "Cleaning up build directory: $_BUILD_DIR"
-        rm -rf "$_BUILD_DIR"
-        _BUILD_DIR_NEW=
+    if [ "$_OUT_DIR_NEW" ]; then
+        log2 "Cleaning up build directory: $_OUT_DIR"
+        rm -rf "$_OUT_DIR"
+        _OUT_DIR_NEW=
     fi
 }
 
@@ -415,7 +421,7 @@ builder_end ()
 # $3: Optional Makefile name
 builder_begin_android ()
 {
-    local ARCH ABI PLATFORM BUILDDIR DSTDIR SYSROOT CFLAGS
+    local ARCH ABI BUILDDIR DSTDIR SYSROOT CFLAGS
     local CRTBEGIN_SO_O CRTEND_SO_O CRTBEGIN_EXE_SO CRTEND_SO_O
     if [ -z "$NDK_DIR" ]; then
         panic "NDK_DIR is not defined!"
@@ -425,7 +431,6 @@ builder_begin_android ()
     ABI=$1
     ARCH=$(convert_abi_to_arch $ABI)
     PLATFORM=${2##android-}
-    SYSROOT=$NDK_DIR/platforms/android-$PLATFORM/arch-$ARCH
 
     BINPREFIX=$NDK_DIR/$(get_default_toolchain_binprefix_for_arch $ARCH)
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)

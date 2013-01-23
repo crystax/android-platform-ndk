@@ -37,7 +37,7 @@ PLATFORM=android-3
 ABI=arm
 
 OPTION_HELP=no
-OPTION_BUILD_OUT=
+OPTION_OUT_DIR=
 OPTION_PLATFORM=
 OPTION_PACKAGE=no
 OPTION_ABI=
@@ -57,8 +57,8 @@ for opt do
   --platform=*)
     OPTION_PLATFORM=$optarg
     ;;
-  --build-out=*)
-    OPTION_BUILD_OUT=$optarg
+  --out-dir=*)
+    OPTION_OUT_DIR=$optarg
     ;;
   --package)
     OPTION_PACKAGE=yes
@@ -83,7 +83,7 @@ if [ $OPTION_HELP = "yes" ] ; then
     echo "  --verbose          enable verbose messages"
     echo "  --platform=<name>  generate sysroot for platform <name> (default is $PLATFORM)"
     echo "  --abi=<name>       generate sysroot for abi <name> (default is $ABI)"
-    echo "  --build-out=<path> set Android build out directory"
+    echo "  --out-dir=<path>   set Android build out directory"
     echo "  --package          generate sysroot package tarball"
     echo ""
     exit 0
@@ -113,7 +113,7 @@ NDK_ROOT=`dirname $NDK_ROOT`
 NDK_ROOT=`dirname $NDK_ROOT`
 
 # Get the Android out directory
-if [ -z "$OPTION_BUILD_OUT" ] ; then
+if [ -z "$OPTION_OUT_DIR" ] ; then
     if [ -z "$ANDROID_PRODUCT_OUT" ] ; then
         echo "ANDROID_PRODUCT_OUT is not defined in your environment. Aborting"
         exit 1
@@ -123,9 +123,9 @@ if [ -z "$OPTION_BUILD_OUT" ] ; then
         exit 1
     fi
 else
-    ANDROID_PRODUCT_OUT=$OPTION_BUILD_OUT
+    ANDROID_PRODUCT_OUT=$OPTION_OUT_DIR
     if [ ! -d $ANDROID_PRODUCT_OUT ] ; then
-        echo "The build out path is not a valid directory: $OPTION_BUILD_OUT"
+        echo "The build out path is not a valid directory: $OPTION_OUT_DIR"
         exit 1
     fi
 fi

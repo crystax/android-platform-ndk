@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2012 The Android Open Source Project
 # Copyright (C) 2012 Ray Donnelly <mingw.android at gmail.com>
@@ -46,7 +46,7 @@ following:
 For example, here's how to rebuild Python 2.7.3 on Linux
 for six different systems:
 
-  $PROGNAME --build-dir=/path/to/toolchain/src \
+  $PROGNAME --out-dir=/path/to/toolchain/src \
     --python-version=2.7.3 \
     --systems=linux-x86,linux-x86_64,windows,windows-x86_64,darwin-x86,darwin-x86_64"
 
@@ -62,8 +62,8 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "Select NDK install directory."
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package prebuilt tarballs into directory."
 
-BUILD_DIR=
-register_var_option "--build-dir=<path>" BUILD_DIR "Build Python into directory"
+OUT_DIR=
+register_var_option "--out-dir=<path>" OUT_DIR "Build Python into directory"
 
 bh_register_options
 
@@ -131,11 +131,11 @@ download_package ()
     fi
 }
 
-if [ -z "$BUILD_DIR" ] ; then
-    BUILD_DIR=/tmp/ndk-$USER/buildhost
+if [ -z "$OUT_DIR" ] ; then
+    OUT_DIR=/tmp/ndk-$USER/buildhost
 fi
 
-bh_setup_build_dir $BUILD_DIR
+bh_setup_out_dir $OUT_DIR
 
 if [ "$BH_BUILD_MODE" = "debug" ] ; then
    PYDEBUG="-with-pydebug"
@@ -146,13 +146,13 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
     bh_setup_build_for_host $SYSTEM
 done
 
-TEMP_DIR=$BUILD_DIR/tmp
+TEMP_DIR=$OUT_DIR/tmp
 # Download and unpack source packages from official sites
 ARCHIVE_DIR=$TEMP_DIR/archive
 STAMP_DIR=$TEMP_DIR/timestamps
-BUILD_DIR=$TEMP_DIR/build-$HOST_TAG
+OUT_DIR=$TEMP_DIR/build-$HOST_TAG
 
-mkdir -p $BUILD_DIR
+mkdir -p $OUT_DIR
 
 PROGDIR=`dirname $0`
 PROGDIR=$(cd $PROGDIR && pwd)
@@ -176,7 +176,7 @@ done
 #  python_build_install_dir () in build-host-gdb.sh
 python_build_install_dir ()
 {
-    echo "$BH_BUILD_DIR/install/prebuilt/$1"
+    echo "$BH_OUT_DIR/install/prebuilt/$1"
 }
 
 # $1: host system tag
@@ -211,7 +211,7 @@ arch_to_qemu_arch ()
 build_host_python ()
 {
     local SRCDIR=$TOOLCHAIN_SRC_DIR/python/Python-$2
-    local BUILDDIR=$BH_BUILD_DIR/build-python-$1-$2
+    local BUILDDIR=$BH_OUT_DIR/build-python-$1-$2
     local INSTALLDIR=$(python_build_install_dir $1 $2)
     local ARGS TEXT
 

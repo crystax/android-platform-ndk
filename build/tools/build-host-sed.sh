@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,10 +34,18 @@ register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK install directory"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive to package directory"
 
+OUT_DIR=/tmp/ndk-$USER
+OPTION_OUT_DIR=
+register_option "--out-dir=<path>" do_out_dir "Specify path to build out directory" "$OUT_DIR"
+do_out_dir() { OPTION_OUT_DIR=$1; }
+
 GNUMAKE=make
 register_var_option "--make=<path>" GNUMAKE "Specify GNU Make program"
 
 extract_parameters "$@"
+fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
+setup_default_log_file $OUT_DIR/build.log
+OUT_DIR=$OUT_DIR/host/sed
 
 SUBDIR=$(get_prebuilt_host_exec sed)
 OUT=$NDK_DIR/$(get_prebuilt_host_exec sed)
@@ -53,14 +61,13 @@ log "Using sources from: $SED_SRCDIR"
 
 prepare_host_build
 
-BUILD_DIR=$NDK_TMPDIR
-
 log "Configuring the build"
-mkdir -p $BUILD_DIR && rm -rf $BUILD_DIR/*
-prepare_mingw_toolchain $BUILD_DIR
-cd $BUILD_DIR &&
+mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
+prepare_mingw_toolchain $OUT_DIR
+cd $OUT_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
-export CC CFLAGS &&
+LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&
+export CC CFLAGS LDFLAGS &&
 run $SED_SRCDIR/configure \
     --disable-nls \
     --disable-rpath \
@@ -86,8 +93,17 @@ if [ "$PACKAGE_DIR" ]; then
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
 fi
 
-log "Cleaning up"
-rm -rf $BUILD_DIR
+if [ -z "$OPTION_OUT_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $OUT_DIR
+    dir=`dirname $OUT_DIR`
+    while true; do
+        rmdir $dir >/dev/null 2>&1 || break
+        dir=`dirname $dir`
+    done
+else
+    log "Don't forget to cleanup: $OUT_DIR"
+fi
 
 log "Done."
 
