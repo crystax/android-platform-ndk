@@ -108,11 +108,11 @@ do_skip_build_gcc ()
     SKIP_BUILD_GCC=yes
 }
 
-SKIP_BUILD_LLVM=yes
-register_option "--try-build-llvm" do_try_build_llvm "Try build of llvm-based toolchains"
+SKIP_BUILD_LLVM=no
+register_option "--skip-build-llvm" do_skip_build_llvm "Try build of llvm-based toolchains"
 do_try_build_llvm ()
 {
-    SKIP_BUILD_LLVM=no
+    SKIP_BUILD_LLVM=yes
 }
 
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
