@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2011-2012 Dmitry Moskalchuk <dm@crystax.net>.
+# Copyright (c) 2011-2013 Dmitry Moskalchuk <dm@crystax.net>.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -93,7 +93,7 @@ LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.a
 #LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path, $(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -103,7 +103,7 @@ LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.so
 #LOCAL_STATIC_LIBRARIES  := crystax_empty
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path, $(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(PREBUILT_SHARED_LIBRARY)
 
 else # CRYSTAX_FORCE_REBUILD == true
@@ -125,7 +125,7 @@ LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path, $(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -139,7 +139,7 @@ LOCAL_CPPFLAGS          := $(CRYSTAX_CPPFLAGS)
 LOCAL_LDLIBS            := $(CRYSTAX_LDLIBS)
 LOCAL_EXPORT_CPPFLAGS   := -std=gnu++0x
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
-LOCAL_EXPORT_LDLIBS     := -L$(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path, $(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI) $(CRYSTAX_LDLIBS)
 include $(BUILD_SHARED_LIBRARY)
 
 endif # CRYSTAX_FORCE_REBUILD == true

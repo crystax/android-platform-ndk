@@ -126,7 +126,7 @@ fi
 
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
 if [ "$TRY64" = "yes" ]; then
-    HOST_FLAG=$HOST_FLAGS" --try-64"
+    HOST_FLAGS=$HOST_FLAGS" --try-64"
 fi
 if [ "$DARWIN_SSH" ]; then
     HOST_FLAGS=$HOST_FLAGS" --darwin-ssh=$DARWIN_SSH"
