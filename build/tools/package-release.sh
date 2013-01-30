@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009-2010, 2012 The Android Open Source Project
+# Copyright (C) 2009-2010, 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,6 +45,10 @@ register_var_option "--prebuilt-dir=<path>" PREBUILT_DIR "Specify prebuilt direc
 PREBUILT_NDK=
 register_var_option "--prebuilt-ndk=<file>" PREBUILT_NDK "Specify prebuilt ndk package"
 
+# zuav: this will fix packaging failure on Mac OS X
+if [ "$HOST_OS" == "darwin" ] ; then
+    DEFAULT_SYSTEMS="darwin-x86"
+fi
 # the list of supported host development systems
 SYSTEMS=$DEFAULT_SYSTEMS
 register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
