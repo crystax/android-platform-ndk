@@ -21,12 +21,12 @@ LOCAL_SRC_FILES := main.cpp
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := test_stl_CPP_extension_deps
+LOCAL_MODULE := test_stl_CPP_UPCASE_extension_deps
 LOCAL_SRC_FILES := main.CPP
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := test_stl_C_extension_deps
+LOCAL_MODULE := test_stl_C_UPCASE_extension_deps
 LOCAL_SRC_FILES := main.C
 include $(BUILD_EXECUTABLE)
 
