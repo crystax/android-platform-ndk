@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -146,6 +146,64 @@ CXXFLAGS="$CXXFLAGS -I$TOOLCHAIN_BUILD_PREFIX/include"  # polly doesn't look at 
 LDFLAGS="$LDFLAGS -L$TOOLCHAIN_BUILD_PREFIX/lib"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS REQUIRES_RTTI=1
 
+#
+# $1: soruce
+# $2: target
+#
+create_link ()
+{
+    if [ ! -e "$2" ] ; then
+        ln -s $1 $2
+        fail_panic "failed to create symbolic link: $2"
+    else
+        if [ ! -h "$2" ] ; then
+            panic "must be a symbolic link: $2"
+        fi
+    fi
+}
+
+# create symbolic link to clang in llvm source tree; without it clang
+# doesn't builds correctly with mingw t.i. --with-clang-srcdir=
+# configure's option doesn't work
+CLANG_LINK=$SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/tools/clang
+create_link $SRC_DIR/clang/clang-$TOOLCHAIN_VERSION $CLANG_LINK
+
+#
+# $1: llvm toolchain version (like this: 3.1 or 3.2)
+#
+prepare_polly_sources ()
+{
+    local llvm_version=$1
+    local isl_link=$SRC_DIR/llvm/cloog/isl
+    local cloog_link=$SRC_DIR/llvm/polly/polly-$TOOLCHAIN_VERSION/utils/cloog_src
+    local polly_link=$SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/tools/polly
+    local res=0
+
+    case $llvm_version in
+        "3.1")
+            # there is nothing to do for 3.1 version
+            ;;
+        "3.2")
+            create_link $SRC_DIR/llvm/isl $isl_link
+            create_link $SRC_DIR/llvm/cloog $cloog_link
+            create_link $SRC_DIR/llvm/polly/polly-$TOOLCHAIN_VERSION $polly_link
+            if [ ! -e $cloog_link/Makefile.in ] ; then
+                # run autogen.sh
+                cd $cloog_link
+                ./autogen.sh
+                res=$?
+                cd -
+                if [ $res != "0" ] ; then
+                    panic "failed with rc $res to run autogen.sh in dir: $cloog_link"
+                fi
+            fi
+            ;;
+        *)
+            panic "unsupported LLVM version: $llvm_version"
+            ;;
+    esac
+}
+
 EXTRA_CONFIG_FLAGS=
 if [ "$POLLY" = "yes" ]; then
     # build polly dependencies
@@ -175,6 +233,8 @@ if [ "$POLLY" = "yes" ]; then
     CLOOG_OUT_DIR=$OUT_DIR/cloog
     mkdir -p $CLOOG_OUT_DIR && cd $CLOOG_OUT_DIR
     fail_panic "Couldn't create cloog build path: $CLOOG_OUT_DIR"
+
+    prepare_polly_sources $TOOLCHAIN_VERSION
 
     run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/tools/polly/utils/cloog_src/configure \
         --prefix=$TOOLCHAIN_BUILD_PREFIX \
@@ -207,7 +267,6 @@ run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/configure \
     --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
     --enable-targets=arm,mips,x86 \
     --enable-optimized \
-    --with-clang-srcdir=$SRC_DIR/clang/clang-$TOOLCHAIN_VERSION \
     $EXTRA_CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
 
