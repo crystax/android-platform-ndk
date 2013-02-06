@@ -1,3 +1,28 @@
+extern int test_wcslen_c(void);
+extern int test_wcslen_cpp(void);
+extern int test_btowc(void);
+extern int test_iswctype(void);
+extern int test_mblen(void);
+extern int test_mbrlen(void);
+extern int test_mbrtowc(void);
+extern int test_mbsnrtowcs(void);
+extern int test_mbsrtowcs(void);
+extern int test_mbstowcs(void);
+extern int test_mbtowc(void);
+extern int test_ms_wprintf(void);
+extern int test_towctrans(void);
+extern int test_wcrtomb(void);
+extern int test_wcscasecmp(void);
+extern int test_wcsnlen(void);
+extern int test_wcsnrtombs(void);
+extern int test_wcsrtombs(void);
+extern int test_wcstombs(void);
+extern int test_wctomb(void);
+extern int test_wstring_all(void);
+extern int test_wprintf_all(void);
+extern int test_wscanf_all(void);
+
+
 #ifdef DO_WCHAR_TEST
 #undef DO_WCHAR_TEST
 #endif

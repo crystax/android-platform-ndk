@@ -22,11 +22,11 @@ int test_ms_wprintf()
     wbuflen = wcslen(wbuf);
     printf("len: %d; wbuflen: %d; wbuf: %ls\n", len, wbuflen, wbuf);
     if (len < 0) {
-        printf("FAIL! (GCC \%s) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
+        printf("FAIL! (GCC %%s) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
         return 1;
     }
     if (len != wbuflen) {
-        printf("FAIL! (GCC \%s) len: %d; wbuflen: %d\n", len, wbuflen);
+        printf("FAIL! (GCC %%s) len: %d; wbuflen: %d\n", len, wbuflen);
         return 1;
     }
 
@@ -35,11 +35,11 @@ int test_ms_wprintf()
     wbuflen = wcslen(wbuf);
     printf("len: %d; wbuflen: %d; wbuf: %ls\n", len, wbuflen, wbuf);
     if (len < 0) {
-        printf("FAIL! (GCC \%c) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
+        printf("FAIL! (GCC %%c) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
         return 1;
     }
     if (len != wbuflen) {
-        printf("FAIL! (GCC \%c) len: %d; wbuflen: %d\n", len, wbuflen);
+        printf("FAIL! (GCC %%c) len: %d; wbuflen: %d\n", len, wbuflen);
         return 1;
     }
 
@@ -55,11 +55,11 @@ int test_ms_wprintf()
     wbuflen = wcslen(wbuf);
     printf("len: %d; wbuflen: %d; wbuf: %ls\n", len, wbuflen, wbuf);
     if (len < 0) {
-        printf("FAIL! (MS \%s) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
+        printf("FAIL! (MS %%s) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
         return 1;
     }
     if (len != wbuflen) {
-        printf("FAIL! (GCC \%s) len: %d; wbuflen: %d\n", len, wbuflen);
+        printf("FAIL! (GCC %%s) len: %d; wbuflen: %d\n", len, wbuflen);
         return 1;
     }
 
@@ -68,11 +68,11 @@ int test_ms_wprintf()
     wbuflen = wcslen(wbuf);
     printf("len: %d; wbuflen: %d; wbuf: %ls\n", len, wbuflen, wbuf);
     if (len < 0) {
-        printf("FAIL! (MS \%c) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
+        printf("FAIL! (MS %%c) len: %d; errno: %d; error: %s\n", len, errno, strerror(errno));
         return 1;
     }
     if (len != wbuflen) {
-        printf("FAIL! (MS \%c) len: %d; wbuflen: %d\n", len, wbuflen);
+        printf("FAIL! (MS %%c) len: %d; wbuflen: %d\n", len, wbuflen);
         return 1;
     }
 
