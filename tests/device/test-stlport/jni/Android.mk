@@ -20,7 +20,7 @@ sources := $(filter-out unit/codecvt_test.cpp,$(sources))
 LOCAL_SRC_FILES := $(sources)
 LOCAL_SRC_FILES += unit/cppunit/test_main.cpp
 
-LOCAL_SHARED_LIBRARIES := libstlport_shared
+LOCAL_SHARED_LIBRARIES := libstlport_shared libcrystax_shared
 
 include $(BUILD_EXECUTABLE)
 

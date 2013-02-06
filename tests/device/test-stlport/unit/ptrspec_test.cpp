@@ -46,10 +46,10 @@ protected:
 CPPUNIT_TEST_SUITE_REGISTRATION(PtrSpecTest);
 
 #define TEST_INSTANCIATE_CONTAINER(cont) \
-  template class cont<int*>; \
-  template class cont<int const*>; \
-  template class cont<int volatile*>; \
-  template class cont<int const volatile*>
+  template class std:: cont<int*>; \
+  template class std:: cont<int const*>; \
+  template class std:: cont<int volatile*>; \
+  template class std:: cont<int const volatile*>
 
 #if !defined(_MSC_VER) || (_MSC_VER > 1200)  // excluding MSVC 6.0
 TEST_INSTANCIATE_CONTAINER(vector);
