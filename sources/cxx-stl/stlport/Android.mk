@@ -112,7 +112,9 @@ LOCAL_CPPFLAGS := $(libstlport_cppflags)
 LOCAL_C_INCLUDES := $(libstlport_c_includes)
 LOCAL_EXPORT_C_INCLUDES := $(libstlport_c_includes)
 LOCAL_CPP_FEATURES := rtti exceptions
-LOCAL_LDLIBS := -L$(CRYSTAX_SRCDIR)/libs/$(TARGET_ARCH_ABI)
+# zuav: temporary fix: -lcrystax required here only for clang
+#       should be made default as for gcc
+LOCAL_LDLIBS := -L$(CRYSTAX_SRCDIR)/libs/$(TARGET_ARCH_ABI) -lcrystax
 include $(BUILD_SHARED_LIBRARY)
 
 endif # STLPORT_FORCE_REBUILD == true
