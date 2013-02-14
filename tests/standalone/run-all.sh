@@ -48,51 +48,91 @@
 # official policies, either expressed or implied, of Dmitry Moskalchuk.
 # 
 
+# The code for this test is borrowed from $NDK/test/run-tests-all.sh
+#
+
 # This simple script will create standalone toolchains for all supported
 # GCC versions and for all supported CPU architectures and then it will
 # run all required tests.
 #
 
-MSTS=./build/tools/make-standalone-toolchain.sh
-RS=./tests/standalone/run.sh
-IBD=/tmp/ndk-$USER
-GCC_VERS="4.7 4.6 4.4.3"
-ARM_NM="arm-linux-androideabi"
-MIPS_NM="mipsel-linux-android"
-X86_NM="x86"
-ARM_GCC_NM=$ARM_NM-gcc
-MIPS_GCC_NM=$MIPS_NM-gcc
-X86_GCC_NM=i686-linux-android-gcc
+PROGDIR=`dirname $0`
+NDK=`cd $PROGDIR/../.. && pwd`
+NDK_BUILDTOOLS_PATH=$NDK/build/tools
+. $NDK/build/core/ndk-common.sh
+. $NDK/build/tools/prebuilt-common.sh
 
-for ver in $GCC_VERS
-do
-    echo ===== Creating toolchains for version $ver =====
-    echo "== ARCH: armeabi/armeabi-v7a"
-    $MSTS --toolchain="$ARM_NM-$ver"  --arch=arm  --install-dir=$IBD/$ARM_NM-$ver
-    echo "== ARCH: mips"
-    $MSTS --toolchain="$MIPS_NM-$ver" --arch=mips --install-dir=$IBD/$MIPS_NM-$ver
-    echo "== ARCH: x86"
-    $MSTS --toolchain="$X86_NM-$ver"  --arch=x86  --install-dir=$IBD/$X86_NM-$ver
+TAGS=$HOST_TAG32
+
+#
+# Run standalone tests
+#
+STANDALONE_TMPDIR=$NDK_TMPDIR
+
+# $1: Host tag
+# $2: API level
+# $3: Arch
+# $4: GCC version
+standalone_path ()
+{
+    local TAG=$1
+    local API=$2
+    local ARCH=$3
+    local GCC_VERSION=$4
+
+    echo ${STANDALONE_TMPDIR}/android-ndk-api${API}-${ARCH}-${TAG}-${GCC_VERSION}
+}
+
+# $1: Host tag
+# $2: API level
+# $3: Arch
+# $4: GCC version
+# $5: LLVM version
+make_standalone ()
+{
+    local TAG=$1
+    local API=$2
+    local ARCH=$3
+    local GCC_VERSION=$4
+    local LLVM_VERSION=$5
+
+    (cd $NDK && \
+     ./build/tools/make-standalone-toolchain.sh \
+        --platform=android-$API \
+        --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
+        --llvm-version=$LLVM_VERSION \
+        --toolchain=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION) \
+        --system=$TAG)
+}
+
+API=14
+LLVM_VERSION=$DEFAULT_LLVM_VERSION
+
+echo "DEFAULT_ARCHS            =  $DEFAULT_ARCHS"
+echo "DEFAULT_GCC_VERSION_LIST =  $DEFAULT_GCC_VERSION_LIST"
+echo "LLVM_VERSION             =  $LLVM_VERSION"
+echo "TAGS                     =  $TAGS"
+
+for ARCH in $(commas_to_spaces $DEFAULT_ARCHS); do
+    for GCC_VERSION in $(commas_to_spaces $DEFAULT_GCC_VERSION_LIST); do
+        for TAG in $TAGS; do
+            ####dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION toolchain with --sysroot"
+            ####(cd $NDK && \
+            ####    ./tests/standalone/run.sh --prefix=$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)-gcc)
+            dump "### [$TAG] Making $ARCH gcc-$GCC_VERSION standalone toolchain"
+            make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION
+            dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION standalone toolchain"
+            (cd $NDK && \
+                ./tests/standalone/run.sh --no-sysroot \
+                    --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/$(get_default_toolchain_prefix_for_arch $ARCH)-gcc)
+            dump "### [$TAG] Testing clang in $ARCH gcc-$GCC_VERSION standalone toolchain"
+            (cd $NDK && \
+                ./tests/standalone/run.sh --no-sysroot \
+                    --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/clang)
+	    rm -rf $(standalone_path $TAG $API $ARCH $GCC_VERSION)
+        done
+    done
 done
 
-for ver in $GCC_VERS
-do
-    echo ===== Running tests for toolchains version $ver =====
-    echo "== ARCH: armeabi-v7a"
-    $RS --no-sysroot --abi=armeabi     --prefix=$IBD/$ARM_NM-$ver/bin/$ARM_GCC_NM
-    echo "== ARCH: armeabi-v7a"
-    $RS --no-sysroot --abi=armeabi-v7a --prefix=$IBD/$ARM_NM-$ver/bin/$ARM_GCC_NM
-    echo "== ARCH: mips"
-    $RS --no-sysroot --abi=mips        --prefix=$IBD/$MIPS_NM-$ver/bin/$MIPS_GCC_NM
-    echo "== ARCH: x86"
-    $RS --no-sysroot --abi=x86         --prefix=$IBD/$X86_NM-$ver/bin/$X86_GCC_NM
-done
-
-echo Cleaning up...
-for ver in $GCC_VERS
-do
-    echo Removing toolchains for version $ver
-    rm -rf $IBD/$ARM_NM-$ver
-    rm -rf $IBD/$MIPS_NM-$ver
-    rm -rf $IBD/$X86_NM-$ver
-done
+# clean up
+rm -rf $STANDALONE_TMPDIR
