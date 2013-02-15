@@ -120,11 +120,19 @@ typedef	__wint_t	wint_t;
 #endif
 
 #ifndef	WCHAR_MIN
+#ifdef __WCHAR_MIN__
+#define	WCHAR_MIN	__WCHAR_MIN__
+#else
+#if (__WCHAR_MAX__ == __INT_MAX__)
+#define	WCHAR_MIN	INT_MIN
+#else
 #define	WCHAR_MIN	0
+#endif
+#endif
 #endif
 
 #ifndef WCHAR_MAX
-#define	WCHAR_MAX	UINT_MAX
+#define	WCHAR_MAX	__WCHAR_MAX__
 #endif
 
 #ifndef WEOF
