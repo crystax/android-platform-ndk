@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ register_var_option "--debug" DEBUG "Build debug version"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
 
-register_mingw_option
+register_canadian_option
 register_try64_option
 
 extract_parameters "$@"
@@ -57,7 +57,7 @@ OUT_DIR=$OUT_DIR/host/ndk-stack
 
 prepare_host_build
 
-prepare_mingw_toolchain $OUT_DIR
+prepare_canadian_toolchain $OUT_DIR
 
 OUT=$NDK_DIR/$(get_host_exec_name ndk-stack)
 
@@ -96,6 +96,7 @@ LDFLAGS="$HOST_LDFLAGS"
 
 # Let's roll
 export CFLAGS=$HOST_CFLAGS" -O2 -s"
+export LDFLAGS=$HOST_LDFLAGS
 run $GNUMAKE -C $SRCDIR -f $SRCDIR/GNUMakefile \
     -B -j$NUM_JOBS \
     PROGNAME="$OUT" \

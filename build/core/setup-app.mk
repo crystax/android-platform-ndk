@@ -91,7 +91,7 @@ TARGET_USE_CXX11 := $(NDK_APP_USE_CXX11)
 ifeq ($(NDK_APP.$(_app).cleaned_binaries),)
     NDK_APP.$(_app).cleaned_binaries := true
     clean-installed-binaries::
-	$(hide) $(call host-rm,$(NDK_ALL_ABIS:%=$(NDK_APP_PROJECT_PATH)/libs/%/lib*.so))
+	$(hide) $(call host-rm,$(NDK_ALL_ABIS:%=$(NDK_APP_PROJECT_PATH)/libs/%/lib*$(TARGET_SONAME_EXTENSION)))
 	$(hide) $(call host-rm,$(NDK_ALL_ABIS:%=$(NDK_APP_PROJECT_PATH)/libs/%/gdbserver))
 	$(hide) $(call host-rm,$(NDK_ALL_ABIS:%=$(NDK_APP_PROJECT_PATH)/libs/%/gdb.setup))
 endif

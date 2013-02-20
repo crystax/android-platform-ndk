@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,6 +84,9 @@ do_skip_build_gnuobjc ()
 {
     SKIP_BUILD_GNUOBJC=yes
 }
+
+VISIBLE_LIBGNUSTL_STATIC=
+register_var_option "--visible-libgnustl-static" VISIBLE_LIBGNUSTL_STATIC "Do not use hidden visibility for libgnustl_static.a"
 
 register_jobs_option
 
@@ -177,16 +180,20 @@ if [ "$SKIP_BUILD_STLPORT" != "yes" ]; then
     fail_panic "Could not build stlport!"
 fi
 
-if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
-    dump "Building $ABIS gnustl binaries..."
-    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
-    fail_panic "Could not build gnustl!"
-fi
-
 if [ "$SKIP_BUILD_GNUOBJC" != "yes" ]; then
     dump "Building $ABIS gnuobjc binaries..."
     run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
     fail_panic "Could not build gnuobjc!"
+fi
+
+if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
+    FLAGS=$FLAGS" --visible-libgnustl-static"
+fi
+
+if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
+    dump "Building $ABIS gnustl binaries..."
+    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+    fail_panic "Could not build gnustl!"
 fi
 
 if [ "$PACKAGE_DIR" ]; then

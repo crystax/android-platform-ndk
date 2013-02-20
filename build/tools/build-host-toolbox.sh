@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,8 +88,8 @@ BUILD_WINDOWS_SOURCES=yes
 if [ "$BUILD_WINDOWS_SOURCES" ]; then
     ORIGINAL_HOST_TAG=$HOST_TAG
     MINGW=yes
-    handle_mingw
-    prepare_mingw_toolchain $OUT_DIR
+    handle_canadian_build
+    prepare_canadian_toolchain $OUT_DIR
 
     SUBDIR=$(get_prebuilt_install_prefix $HOST_TAG)/bin
     DSTDIR=$NDK_DIR/$SUBDIR

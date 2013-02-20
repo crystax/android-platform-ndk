@@ -37,6 +37,10 @@ fi
 # with the mingw32 cross-toolchain.
 if [ "$SYSTEMS" = "linux-x86" ]; then
     SYSTEMS=$SYSTEMS",windows"
+    # If darwin toolchain exist, build darwin too
+    if [ -f "${DARWIN_TOOLCHAIN}-gcc" ]; then
+        SYSTEMS=$SYSTEMS",darwin-x86"
+    fi
 fi
 CUSTOM_SYSTEMS=
 register_option "--systems=<names>" do_SYSTEMS "List of host systems to build for"
@@ -274,14 +278,24 @@ do_remote_host_build ()
 
 for SYSTEM in $SYSTEMS; do
 
-    # Add --mingw flag
+    # Add --mingw/--darwin flag
     TOOLCHAIN_FLAGS=$FLAGS
-    if [ "$HOST_TAG32" = "linux-x86" -a "$SYSTEM" = "windows" ]; then
-        TOOLCHAIN_FLAGS=$TOOLCHAIN_FLAGS" --mingw"
+    CANADIAN_BUILD=no
+    if [ "$HOST_TAG32" = "linux-x86" ]; then
+        case "$SYSTEM" in
+            windows)
+                TOOLCHAIN_FLAGS=$TOOLCHAIN_FLAGS" --mingw"
+                CANADIAN_BUILD=yes
+                ;;
+            darwin-x86)
+                TOOLCHAIN_FLAGS=$TOOLCHAIN_FLAGS" --darwin"
+                CANADIAN_BUILD=yes
+                ;;
+        esac
     fi
 
     # Should we do a remote build?
-    if [ "$SYSTEM" != "$HOST_TAG32" ]; then
+    if [ "$SYSTEM" != "$HOST_TAG32" -a "$CANADIAN_BUILD" != "yes" ]; then
         case $SYSTEM in
             darwin-*)
                 if [ "$DARWIN_SSH" ]; then

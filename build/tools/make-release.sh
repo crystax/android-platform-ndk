@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2012 The Android Open Source Project
+# Copyright (C) 2010, 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -90,17 +90,32 @@ fi
 HOST_SYSTEMS="$HOST_TAG32"
 
 MINGW_GCC=
+CANADIAN_DARWIN_BUILD=no
 if [ "$HOST_TAG" == "linux-x86" ] ; then
     find_mingw_toolchain
     if [ -n "$MINGW_GCC" ] ; then
         HOST_SYSTEMS="$HOST_SYSTEMS,windows"
     fi
+    # If darwin toolchain exist, build darwin too
+    if [ -z "$DARWIN_SSH" -a -f "${DARWIN_TOOLCHAIN}-gcc" ]; then
+        HOST_SYSTEMS="$HOST_SYSTEMS,darwin-x86"
+        CANADIAN_DARWIN_BUILD=yes
+    fi
 fi
-if [ -n "$DARWIN_SSH" ] ; then
+if [ -n "$DARWIN_SSH" -a "$HOST_SYSTEMS" = "${HOST_SYSTEMS%darwin-x86*}" ]; then
     HOST_SYSTEMS="$HOST_SYSTEMS,darwin-x86"
 fi
 
 register_var_option "--systems=<list>" HOST_SYSTEMS "List of host systems to build for"
+
+ALSO_64_FLAG=
+register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
+do_ALSO_64 () { ALSO_64_FLAG=--also-64; }
+
+TOOLCHAIN_SRCDIR=
+register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
+
+extract_parameters "$@"
 
 # Check if windows is specified w/o linux-x86
 if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
@@ -120,13 +135,16 @@ fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
 
 HOST_SYSTEMS_FLAGS="--systems=$HOST_SYSTEMS"
-# Filter out darwin-x86 in $HOST_SYSTEMS_FLAGS, because
-# 1) On linux, cross-compiling is done via "--darwin-ssh".  Keeping darwin-x86 in --systems list
-#    actually disable --darwin-ssh later on.
-# 2) On MacOSX, darwin-x86 is the default, no need to be explicit.
-#
-HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
+if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
+    # Filter out darwin-x86 in $HOST_SYSTEMS_FLAGS, because
+    # 1) On linux, cross-compiling is done via "--darwin-ssh".  Keeping darwin-x86 in --systems list
+    #    actually disable --darwin-ssh later on.
+    # 2) On MacOSX, darwin-x86 is the default, no need to be explicit.
+    #
+    HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
+fi
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
+HOST_SYSTEMS_FLAGS=$HOST_SYSTEMS_FLAGS" $ALSO_64_FLAG"
 
 set_parameters ()
 {

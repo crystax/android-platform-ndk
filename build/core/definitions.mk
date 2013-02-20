@@ -18,69 +18,10 @@
 # We use the GNU Make Standard Library
 include $(NDK_ROOT)/build/gmsl/gmsl
 
-# If NDK_TRACE is enabled then calls to the library functions are
-# traced to stdout using warning messages with their arguments
-
-ifdef NDK_TRACE
-__ndk_tr1 = $(warning $0('$1'))
-__ndk_tr2 = $(warning $0('$1','$2'))
-__ndk_tr3 = $(warning $0('$1','$2','$3'))
-else
-__ndk_tr1 :=
-__ndk_tr2 :=
-__ndk_tr3 :=
-endif
-
-# -----------------------------------------------------------------------------
-# Macro    : empty
-# Returns  : an empty macro
-# Usage    : $(empty)
-# -----------------------------------------------------------------------------
-empty :=
-
-# -----------------------------------------------------------------------------
-# Macro    : space
-# Returns  : a single space
-# Usage    : $(space)
-# -----------------------------------------------------------------------------
-space  := $(empty) $(empty)
-
-space4 := $(space)$(space)$(space)$(space)
-
-# -----------------------------------------------------------------------------
-# Function : last2
-# Arguments: a list
-# Returns  : the penultimate (next-to-last) element of a list
-# Usage    : $(call last2, <LIST>)
-# -----------------------------------------------------------------------------
-last2 = $(word $(words $1), x $1)
-
-# -----------------------------------------------------------------------------
-# Function : last3
-# Arguments: a list
-# Returns  : the antepenultimate (second-next-to-last) element of a list
-# Usage    : $(call last3, <LIST>)
-# -----------------------------------------------------------------------------
-last3 = $(word $(words $1), x x $1)
-
-# -----------------------------------------------------------------------------
-# Function : remove-duplicates
-# Arguments: a list
-# Returns  : the list with duplicate items removed, order is preserved.
-# Usage    : $(call remove-duplicates, <LIST>)
-# Note     : This is equivalent to the 'uniq' function provided by GMSL,
-#            however this implementation is non-recursive and *much*
-#            faster. It will also not explode the stack with a lot of
-#            items like 'uniq' does.
-# -----------------------------------------------------------------------------
-remove-duplicates = $(strip \
-  $(eval __uniq_ret :=) \
-  $(foreach __uniq_item,$1,\
-    $(if $(findstring $(__uniq_item),$(__uniq_ret)),,\
-      $(eval __uniq_ret += $(__uniq_item))\
-    )\
-  )\
-  $(__uniq_ret))
+include $(BUILD_SYSTEM)/definitions-tests.mk
+include $(BUILD_SYSTEM)/definitions-utils.mk
+include $(BUILD_SYSTEM)/definitions-host.mk
+include $(BUILD_SYSTEM)/definitions-graph.mk
 
 # -----------------------------------------------------------------------------
 # Macro    : this-makefile
@@ -111,16 +52,6 @@ assert-defined = $(foreach __varname,$(strip $1),\
 )
 
 # -----------------------------------------------------------------------------
-# Function : clear-vars
-# Arguments: 1: list of variable names
-#            2: file where the variable should be defined
-# Returns  : None
-# Usage    : $(call clear-vars, VAR1 VAR2 VAR3...)
-# Rationale: Clears/undefines all variables in argument list
-# -----------------------------------------------------------------------------
-clear-vars = $(foreach __varname,$1,$(eval $(__varname) := $(empty)))
-
-# -----------------------------------------------------------------------------
 # Function : check-required-vars
 # Arguments: 1: list of variable names
 #            2: file where the variable(s) should be defined
@@ -138,122 +69,6 @@ check-required-vars = $(foreach __varname,$1,\
 
 # The list of default C++ extensions supported by GCC.
 default-c++-extensions := .cc .cp .cxx .cpp .CPP .c++ .C
-
-# -----------------------------------------------------------------------------
-# Function : host-path
-# Arguments: 1: file path
-# Returns  : file path, as understood by the host file system
-# Usage    : $(call host-path,<path>)
-# Rationale: This function is used to translate Cygwin paths into
-#            Cygwin-specific ones. On other platforms, it will just
-#            return its argument.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),cygwin)
-host-path = $(if $(strip $1),$(call cygwin-to-host-path,$1))
-else
-host-path = $1
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-rm
-# Arguments: 1: list of files
-# Usage    : $(call host-rm,<files>)
-# Rationale: This function expands to the host-specific shell command used
-#            to remove some files.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-host-rm = \
-    $(eval __host_rm_files := $(foreach __host_rm_file,$1,$(subst /,\,$(wildcard $(__host_rm_file)))))\
-    $(if $(__host_rm_files),del /f/q $(__host_rm_files) >NUL 2>NUL)
-else
-host-rm = rm -f $1
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-rmdir
-# Arguments: 1: list of files or directories
-# Usage    : $(call host-rm,<files>)
-# Rationale: This function expands to the host-specific shell command used
-#            to remove some files _and_ directories.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-host-rmdir = \
-    $(eval __host_rmdir_files := $(foreach __host_rmdir_file,$1,$(subst /,\,$(wildcard $(__host_rmdir_file)))))\
-    $(if $(__host_rmdir_files),del /f/s/q $(__host_rmdir_files) >NUL 2>NUL)
-else
-host-rmdir = rm -rf $1
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-mkdir
-# Arguments: 1: directory path
-# Usage    : $(call host-mkdir,<path>
-# Rationale: This function expands to the host-specific shell command used
-#            to create a path if it doesn't exist.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-host-mkdir = md $(subst /,\,"$1") >NUL 2>NUL || rem
-else
-host-mkdir = mkdir -p $1
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-cp
-# Arguments: 1: source file
-#            2: target file
-# Usage    : $(call host-cp,<src-file>,<dst-file>)
-# Rationale: This function expands to the host-specific shell command used
-#            to copy a single file
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-host-cp = copy /b/y $(subst /,\,"$1" "$2") > NUL
-else
-host-cp = cp -f $1 $2
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-install
-# Arguments: 1: source file
-#            2: target file
-# Usage    : $(call host-install,<src-file>,<dst-file>)
-# Rationale: This function expands to the host-specific shell command used
-#            to install a file or directory, while preserving its timestamps
-#            (if possible).
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-host-install = copy /b/y $(subst /,\,"$1" "$2") > NUL
-else
-host-install = install -p $1 $2
-endif
-
-# -----------------------------------------------------------------------------
-# Function : host-c-includes
-# Arguments: 1: list of file paths (e.g. "foo bar")
-# Returns  : list of include compiler options (e.g. "-Ifoo -Ibar")
-# Usage    : $(call host-c-includes,<paths>)
-# Rationale: This function is used to translate Cygwin paths into
-#            Cygwin-specific ones. On other platforms, it will just
-#            return its argument.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),cygwin)
-host-c-includes = $(patsubst %,-I%,$(call host-path,$1))
-else
-host-c-includes = $(1:%=-I%)
-endif
-
-# -----------------------------------------------------------------------------
-# Function : copy-if-differ
-# Arguments: 1: source file
-#            2: destination file
-# Usage    : $(call copy-if-differ,<src-file>,<dst-file>)
-# Rationale: This function copy source file to destination file if contents are
-#            different.
-# -----------------------------------------------------------------------------
-ifeq ($(HOST_OS),windows)
-copy-if-differ = $(HOST_CMP) -s $1 $2 > NUL || copy /b/y $(subst /,\,"$1" "$2") > NUL
-else
-copy-if-differ = $(HOST_CMP) -s $1 $2 > /dev/null 2>&1 || cp -f $1 $2
-endif
 
 # -----------------------------------------------------------------------------
 # Function : generate-dir
@@ -320,8 +135,26 @@ generate-file-dir = $(eval $(call ev-generate-file-dir,$1))
 index-is-zero = $(filter 0 00 000 0000 00000 000000 0000000,$1)
 bump-0-to-1 = $(if $(call index-is-zero,$1),1,$1)
 
+-test-bump-0-to-1 = \
+  $(call test-expect,$(call bump-0-to-1))\
+  $(call test-expect,1,$(call bump-0-to-1,0))\
+  $(call test-expect,1,$(call bump-0-to-1,1))\
+  $(call test-expect,2,$(call bump-0-to-1,2))\
+  $(call test-expect,1,$(call bump-0-to-1,00))\
+  $(call test-expect,1,$(call bump-0-to-1,000))\
+  $(call test-expect,1,$(call bump-0-to-1,0000))\
+  $(call test-expect,1,$(call bump-0-to-1,00000))\
+  $(call test-expect,1,$(call bump-0-to-1,000000))\
+  $(call test-expect,10,$(call bump-0-to-1,10))\
+  $(call test-expect,100,$(call bump-0-to-1,100))
+
 # Same as $(wordlist ...) except the start index, if 0, is bumped to 1
 index-word-list = $(wordlist $(call bump-0-to-1,$1),$2,$3)
+
+-test-index-word-list = \
+  $(call test-expect,,$(call index-word-list,1,1))\
+  $(call test-expect,a b,$(call index-word-list,0,2,a b c d))\
+  $(call test-expect,b c,$(call index-word-list,2,3,a b c d))\
 
 # NOTE: With GNU Make $1 and $(1) are equivalent, which means
 #       that $10 is equivalent to $(1)0, and *not* $(10).
@@ -466,7 +299,7 @@ $(call list-file-maybe-gen-1000,4,$1)
 $(call list-file-maybe-gen-1000,5,$1)
 
 $$(__list_file): $$(__list_file).tmp
-	$$(hide) $$(call copy-if-differ,$$@.tmp,$$@)
+	$$(hide) $$(call host-copy-if-differ,$$@.tmp,$$@)
 	$$(hide) $$(call host-rm,$$@.tmp)
 
 endef
@@ -486,6 +319,13 @@ generate-list-file = $(eval $(call generate-list-file-ev,$1,$2))
 # -----------------------------------------------------------------------------
 link-whole-archives = $(if $(strip $1),$(call link-whole-archive-flags,$1))
 link-whole-archive-flags = -Wl,--whole-archive $(call host-path,$1) -Wl,--no-whole-archive
+
+-test-link-whole-archive = \
+  $(call test-expect,,$(call link-whole-archives))\
+  $(eval _start := -Wl,--whole-archive)\
+  $(eval _end := -Wl,--no-whole-archive)\
+  $(call test-expect,$(_start) foo $(_end),$(call link-whole-archives,foo))\
+  $(call test-expect,$(_start) foo bar $(_end),$(call link-whole-archives,foo bar))
 
 # =============================================================================
 #
@@ -641,6 +481,8 @@ module-add = \
   $(if $(call module-class-is-installable,$(LOCAL_MODULE_CLASS)),\
     $(eval LOCAL_INSTALLED := $(NDK_APP_DST_DIR)/$(notdir $(LOCAL_BUILT_MODULE)))\
   )\
+  $(foreach __field,STATIC_LIBRARIES WHOLE_STATIC_LIBRARIES SHARED_LIBRARIES,\
+    $(eval LOCAL_$(__field) := $(call strip-lib-prefix,$(LOCAL_$(__field)))))\
   $(foreach __local,$(modules-LOCALS),\
     $(eval __ndk_modules.$1.$(__local) := $(LOCAL_$(__local)))\
   )\
@@ -704,7 +546,7 @@ module-restore-locals = \
 
 # Dump all module information. Only use this for debugging
 modules-dump-database = \
-    $(info Modules: $(__ndk_modules)) \
+    $(info Modules [$(TARGET_ARCH_ABI)]: $(__ndk_modules)) \
     $(foreach __mod,$(__ndk_modules),\
         $(info $(space4)$(__mod):)\
         $(foreach __field,$(modules-fields),\
@@ -751,7 +593,146 @@ module-add-shared-depends = \
 # NOTE: this function must not modify the existing dependency order when new depends are added.
 #
 module-add-depends-any = \
-    $(eval __ndk_modules.$1.$3 += $(filter-out $(__ndk_modules.$1.$3),$(call strip-lib-prefix,$2)))
+    $(eval __ndk_modules.$1.$3 += $(filter-out $(__ndk_modules.$1.$3),$2))
+
+
+# -----------------------------------------------------------------------------
+# Returns non-empty if a module is a static library
+# Arguments: 1: module name
+# Returns     : non-empty iff the module is a static library.
+# Usage       : $(if $(call module-is-static-library,<name>),...)
+# -----------------------------------------------------------------------------
+module-is-static-library = $(strip \
+  $(filter STATIC_LIBRARY PREBUILT_STATIC_LIBRARY,\
+    $(call module-get-class,$1)))
+
+# -----------------------------------------------------------------------------
+# Returns non-empty if a module is a shared library
+# Arguments: 1: module name
+# Returns     : non-empty iff the module is a shared library.
+# Usage       : $(if $(call module-is-shared-library,<name>),...)
+# -----------------------------------------------------------------------------
+module-is-shared-library = $(strip \
+  $(filter SHARED_LIBRARY PREBUILT_SHARED_LIBRARY,\
+    $(call module-get-class,$1)))
+
+# -----------------------------------------------------------------------------
+# Filter a list of module names to retain only the static libraries.
+# Arguments: 1: module name list
+# Returns     : input list modules which are static libraries.
+# -----------------------------------------------------------------------------
+module-filter-static-libraries = $(call filter-by,$1,module-is-static-library)
+
+# -----------------------------------------------------------------------------
+# Filter a list of module names to retain only the shared libraries.
+# Arguments: 1: module name list
+# Returns     : input list modules which are shared libraries.
+# -----------------------------------------------------------------------------
+module-filter-shared-libraries = $(call filter-by,$1,module-is-shared-library)
+
+# -----------------------------------------------------------------------------
+# Return the LOCAL_STATIC_LIBRARIES for a given module.
+# Arguments: 1: module name
+# Returns     : List of static library modules.
+# -----------------------------------------------------------------------------
+module-get-static-libs = $(__ndk_modules.$1.STATIC_LIBRARIES)
+
+# -----------------------------------------------------------------------------
+# Return the LOCAL_WHOLE_STATIC_LIBRARIES for a given module.
+# Arguments: 1: module name
+# Returns     : List of whole static library modules.
+# -----------------------------------------------------------------------------
+module-get-whole-static-libs = $(__ndk_modules.$1.WHOLE_STATIC_LIBRARIES)
+
+# -----------------------------------------------------------------------------
+# Return all static libraries for a given module.
+# Arguments: 1: module name
+# Returns     : List of static library modules (whole or not).
+# -----------------------------------------------------------------------------
+module-get-all-static-libs = $(strip \
+  $(__ndk_modules.$1.STATIC_LIBRARIES) \
+  $(__ndk_modules.$1.WHOLE_STATIC_LIBRARIES))
+
+# -----------------------------------------------------------------------------
+# Return the list of LOCAL_SHARED_LIBRARIES for a given module.
+# Arguments: 1: module name
+# Returns     : List of shared library modules.
+# -----------------------------------------------------------------------------
+module-get-shared-libs = $(__ndk_modules.$1.SHARED_LIBRARIES)
+
+# -----------------------------------------------------------------------------
+# Return the list of all libraries a modules depends directly on.
+# This is the concatenation of its LOCAL_STATIC_LIBRARIES,
+# LOCAL_WHOLE_STATIC_LIBRARIES, and LOCAL_SHARED_LIBRARIES variables.
+# Arguments: 1: module name
+# Returns     : List of library modules (static or shared).
+# -----------------------------------------------------------------------------
+module-get-direct-libs = $(strip \
+  $(__ndk_modules.$1.STATIC_LIBRARIES) \
+  $(__ndk_modules.$1.WHOLE_STATIC_LIBRARIES) \
+  $(__ndk_modules.$1.SHARED_LIBRARIES))
+
+
+# -----------------------------------------------------------------------------
+# Computes the full closure of a module and its dependencies. Order is
+# defined by a breadth-first walk of the graph.
+# $1 will be the first item in the result.
+#
+# Arguments: 1: module name
+# Returns     : List of all modules $1 depends on.
+#
+# Note: Do not use this to determine build dependencies. The returned list
+#       is much too large for this. For example consider the following
+#       dependency graph:
+#
+#   main.exe -> libA.a -> libfoo.so -> libB.a
+#
+#       This function will return all four modules in the result, while
+#       at link time building main.exe only requires the first three.
+#
+# -----------------------------------------------------------------------------
+module-get-all-dependencies = $(call -ndk-mod-get-closure,$1,module-get-depends)
+
+# -----------------------------------------------------------------------------
+# Compute the list of all static and shared libraries required to link a
+# given module.
+#
+# Note that the result is topologically ordered, i.e. if library A depends
+# on library B, then A will always appear after B in the result.
+#
+# Arguments: 1: module name
+# Returns     : List of all library $1 depends at link time.
+#
+# Note: This doesn't differentiate between regular and whole static
+#       libraries. Use module-extract-whole-static-libs to filter the
+#       result returned by this function.
+# -----------------------------------------------------------------------------
+module-get-link-libs = $(strip \
+  $(eval _ndk_mod_link_module := $1) \
+  $(call -ndk-mod-get-topological-depends,$1,-ndk-mod-link-deps))
+
+# Special dependency function used by nodule-get-link-libs.
+# The rules to follow are the following:
+#  - if $1 is the link module, or if it is a static library, then all
+#    direct dependencies.
+#  - otherwise, the module is a shared library, don't add build deps.
+-ndk-mod-link-deps = \
+  $(if $(call seq,$1,$(_ndk_mod_link_module))$(call module-is-static-library,$1),\
+    $(call module-get-direct-libs,$1))
+
+# -----------------------------------------------------------------------------
+# This function is used to extract the list of static libraries that need
+# to be linked as whole, i.e. placed in a special section on the final
+# link command.
+# Arguments: $1: module name.
+#            $2: list of all static link-time libraries (regular or whole).
+# Returns  : list of static libraries from '$2' that need to be linked
+#            as whole.
+# -----------------------------------------------------------------------------
+module-extract-whole-static-libs = $(strip \
+  $(eval _ndk_mod_whole_all := $(call map,module-get-whole-static-libs,$1 $2))\
+  $(eval _ndk_mod_whole_result := $(filter $(_ndk_mod_whole_all),$2))\
+  $(_ndk_mod_whole_result))
 
 # Used to recompute all dependencies once all module information has been recorded.
 #
@@ -767,47 +748,7 @@ module-compute-depends = \
 
 module-get-installed = $(__ndk_modules.$1.INSTALLED)
 
-# -----------------------------------------------------------------------------
-# Function : modules-get-all-dependencies
-# Arguments: 1: list of module names
-# Returns  : List of all the modules $1 depends on transitively.
-# Usage    : $(call modules-all-get-dependencies,<list of module names>)
-# Rationale: This computes the closure of all module dependencies starting from $1
-# -----------------------------------------------------------------------------
-module-get-all-dependencies = $(strip \
-    $(call modules-get-closure,$1,depends))
-
-modules-get-closure = \
-    $(eval __closure_deps  := $(strip $(call strip-lib-prefix,$1))) \
-    $(eval __closure_wq    := $(__closure_deps)) \
-    $(eval __closure_field := $(strip $2)) \
-    $(call modules-closure)\
-    $(__closure_deps)
-
-# Used internally by modules-get-all-dependencies
-# Note the tricky use of conditional recursion to work around the fact that
-# the GNU Make language does not have any conditional looping construct
-# like 'while'.
-#
-modules-closure = \
-    $(eval __closure_mod := $(call first,$(__closure_wq))) \
-    $(eval __closure_wq  := $(call rest,$(__closure_wq))) \
-    $(eval __closure_val := $(call strip-lib-prefix,$(__ndk_modules.$(__closure_mod).$(__closure_field)))) \
-    $(eval __closure_new := $(filter-out $(__closure_deps),$(__closure_val)))\
-    $(eval __closure_deps += $(__closure_new)) \
-    $(eval __closure_wq   := $(strip $(__closure_wq) $(__closure_new)))\
-    $(if $(__closure_wq),$(call modules-closure)) \
-
-# -----------------------------------------------------------------------------
-# Function : module-get-depends
-# Arguments: 1: list of module names
-#            2: local module type (e.g. SHARED_LIBRARIES)
-# Returns  : List all the <local-type> modules $1 depends on transitively.
-# Usage    : $(call module-get-depends,<list of module names>,<local-type>)
-# Rationale: This computes the closure of all local module dependencies starting from $1
-# -----------------------------------------------------------------------------
-module-get-depends = $(strip $(call modules-get-closure,$1,$2))
-
+module-get-depends = $(__ndk_modules.$1.depends)
 
 # -----------------------------------------------------------------------------
 # Function : modules-get-all-installable
@@ -818,7 +759,7 @@ module-get-depends = $(strip $(call modules-get-closure,$1,$2))
 # -----------------------------------------------------------------------------
 # For now, only the closure of LOCAL_SHARED_LIBRARIES is enough
 modules-get-all-installable = $(strip \
-    $(foreach __alldep,$(call module-get-depends,$1,depends),\
+    $(foreach __alldep,$(call module-get-all-dependencies,$1),\
         $(if $(call module-is-installable,$(__alldep)),$(__alldep))\
     ))
 
@@ -983,14 +924,6 @@ module-add-deps = \
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Function : parent-dir
-# Arguments: 1: path
-# Returns  : Parent dir or path of $1, with final separator removed.
-# -----------------------------------------------------------------------------
-parent-dir = $(patsubst %/,%,$(dir $1))
-
-
-# -----------------------------------------------------------------------------
 # Function : pretty-dir
 # Arguments: 1: path
 # Returns  : Remove NDK_PROJECT_PATH prefix from a given path. This can be
@@ -998,6 +931,15 @@ parent-dir = $(patsubst %/,%,$(dir $1))
 # -----------------------------------------------------------------------------
 pretty-dir = $(patsubst $(NDK_ROOT)/%,<NDK>/%,\
                  $(patsubst $(NDK_PROJECT_PATH)/%,%,$1))
+
+# Note: NDK_PROJECT_PATH is typically defined after this test is run.
+-test-pretty-dir = \
+  $(eval NDK_PROJECT_PATH ?= .)\
+  $(call test-expect,foo,$(call pretty-dir,foo))\
+  $(call test-expect,foo,$(call pretty-dir,$(NDK_PROJECT_PATH)/foo))\
+  $(call test-expect,foo/bar,$(call pretty-dir,$(NDK_PROJECT_PATH)/foo/bar))\
+  $(call test-expect,<NDK>/foo,$(call pretty-dir,$(NDK_ROOT)/foo))\
+  $(call test-expect,<NDK>/foo/bar,$(call pretty-dir,$(NDK_ROOT)/foo/bar))
 
 # -----------------------------------------------------------------------------
 # Function : check-user-define
@@ -1040,7 +982,7 @@ check-LOCAL_MODULE_FILENAME = \
         $(call __ndk_info,$(LOCAL_MAKEFILE):$(LOCAL_MODULE): LOCAL_MODULE_FILENAME must not contain spaces)\
         $(call __ndk_error,Plase correct error. Aborting)\
     )\
-    $(if $(filter %.a %.so,$(LOCAL_MODULE_FILENAME)),\
+    $(if $(filter %$(TARGET_LIB_EXTENSION) %$(TARGET_SONAME_EXTENSION),$(LOCAL_MODULE_FILENAME)),\
         $(call __ndk_info,$(LOCAL_MAKEFILE):$(LOCAL_MODULE): LOCAL_MODULE_FILENAME should not include file extensions)\
     )\
   )
@@ -1067,7 +1009,7 @@ ifneq (1,$$(words $$(LOCAL_MODULE_FILENAME)))
     $$(call __ndk_info,$$(LOCAL_MAKEFILE):$$(LOCAL_MODULE): LOCAL_MODULE_FILENAME must not contain any space)
     $$(call __ndk_error,Aborting)
 endif
-ifneq (,$$(filter %.a %.so,$$(LOCAL_MODULE_FILENAME)))
+ifneq (,$$(filter %$$(TARGET_LIB_EXTENSION) %$$(TARGET_SONAME_EXTENSION),$$(LOCAL_MODULE_FILENAME)))
     $$(call __ndk_info,$$(LOCAL_MAKEFILE):$$(LOCAL_MODULE): LOCAL_MODULE_FILENAME must not contain a file extension)
     $$(call __ndk_error,Aborting)
 endif
@@ -1105,8 +1047,8 @@ define ev-handle-prebuilt-module-filename
 LOCAL_MODULE_FILENAME := $$(strip $$(LOCAL_MODULE_FILENAME))
 ifndef LOCAL_MODULE_FILENAME
     LOCAL_MODULE_FILENAME := $$(notdir $(LOCAL_SRC_FILES))
-    LOCAL_MODULE_FILENAME := $$(LOCAL_MODULE_FILENAME:%.a=%)
-    LOCAL_MODULE_FILENAME := $$(LOCAL_MODULE_FILENAME:%.so=%)
+    LOCAL_MODULE_FILENAME := $$(LOCAL_MODULE_FILENAME:%$$(TARGET_LIB_EXTENSION)=%)
+    LOCAL_MODULE_FILENAME := $$(LOCAL_MODULE_FILENAME:%$$(TARGET_SONAME_EXTENSION)=%)
 endif
 LOCAL_MODULE_FILENAME := $$(LOCAL_MODULE_FILENAME)$1
 $$(eval $$(call ev-check-module-filename))
@@ -1123,16 +1065,6 @@ endef
 handle-module-built = \
     $(eval LOCAL_BUILT_MODULE := $(TARGET_OUT)/$(LOCAL_MODULE_FILENAME))\
     $(eval LOCAL_OBJS_DIR     := $(TARGET_OBJS)/$(LOCAL_MODULE))
-
-# -----------------------------------------------------------------------------
-# Strip any 'lib' prefix in front of a given string.
-#
-# Function : strip-lib-prefix
-# Arguments: 1: module name
-# Returns  : module name, without any 'lib' prefix if any
-# Usage    : $(call strip-lib-prefix,$(LOCAL_MODULE))
-# -----------------------------------------------------------------------------
-strip-lib-prefix = $(1:lib%=%)
 
 # -----------------------------------------------------------------------------
 # Compute the real path of a prebuilt file.
@@ -1371,10 +1303,18 @@ get-object-name = $(strip \
     $(subst ../,__/,\
         $(eval __obj := $1)\
         $(foreach __ext,.c .s .S $(LOCAL_CPP_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION),\
-            $(eval __obj := $(__obj:%$(__ext)=%.o))\
+            $(eval __obj := $(__obj:%$(__ext)=%$(TARGET_OBJ_EXTENSION)))\
         )\
         $(__obj)\
     ))
+
+-test-get-object-name = \
+  $(eval TARGET_OBJ_EXTENSION=.o)\
+  $(eval LOCAL_CPP_EXTENSION ?= .cpp)\
+  $(call test-expect,foo.o,$(call get-object-name,foo.c))\
+  $(call test-expect,bar.o,$(call get-object-name,bar.s))\
+  $(call test-expect,zoo.o,$(call get-object-name,zoo.S))\
+  $(call test-expect,tot.o,$(call get-object-name,tot.cpp))
 
 # -----------------------------------------------------------------------------
 # Macro    : hide
@@ -1483,8 +1423,8 @@ else
   _ORG_FLAGS := $$(_FLAGS)
   _ORG_TEXT  := $$(_TEXT)
 
-  _OBJ_ASM_ORIGINAL := $$(patsubst %.o,%.s,$$(_ORG_OBJ))
-  _OBJ_ASM_FILTERED := $$(patsubst %.o,%.filtered.s,$$(_ORG_OBJ))
+  _OBJ_ASM_ORIGINAL := $$(patsubst %$$(TARGET_OBJ_EXTENSION),%.s,$$(_ORG_OBJ))
+  _OBJ_ASM_FILTERED := $$(patsubst %$$(TARGET_OBJ_EXTENSION),%.filtered.s,$$(_ORG_OBJ))
 
   # If the source file is a plain assembler file, we're going to
   # use it directly in our filter.
@@ -1838,12 +1778,12 @@ module-class-is-copyable = $(if $(call seq,$1,PREBUILT_SHARED_LIBRARY),$(true),$
 
 # static libraries:
 # <foo> -> lib<foo>.a by default
-$(call module-class-register,STATIC_LIBRARY,lib,.a)
+$(call module-class-register,STATIC_LIBRARY,lib,$(TARGET_LIB_EXTENSION))
 
 # shared libraries:
 # <foo> -> lib<foo>.so
 # a shared library is installable.
-$(call module-class-register-installable,SHARED_LIBRARY,lib,.so)
+$(call module-class-register-installable,SHARED_LIBRARY,lib,$(TARGET_SONAME_EXTENSION))
 
 # executable
 # <foo> -> <foo>
@@ -1944,8 +1884,8 @@ ndk-stl-register = \
     $(eval __ndk_stl := $(strip $1)) \
     $(eval NDK_STL_LIST += $(__ndk_stl)) \
     $(eval NDK_STL.$(__ndk_stl).IMPORT_MODULE := $(strip $2)) \
-    $(eval NDK_STL.$(__ndk_stl).STATIC_LIBS := $(strip $3)) \
-    $(eval NDK_STL.$(__ndk_stl).SHARED_LIBS := $(strip $4))
+    $(eval NDK_STL.$(__ndk_stl).STATIC_LIBS := $(strip $(call strip-lib-prefix,$3))) \
+    $(eval NDK_STL.$(__ndk_stl).SHARED_LIBS := $(strip $(call strip-lib-prefix,$4)))
 
 # Called to check that the value of APP_STL is a valid one.
 # $1: STL name as it apperas in APP_STL (e.g. 'system')
@@ -2083,3 +2023,7 @@ $(call ndk-crystax-register,\
     ,\
     crystax_shared\
     )
+
+ifneq (,$(NDK_UNIT_TESTS))
+$(call ndk-run-all-tests)
+endif

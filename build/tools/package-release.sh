@@ -89,6 +89,19 @@ register_var_option "--development-root=<path>" DEVELOPMENT_ROOT "Specify platfo
 LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
 register_var_option "--llvm=<versions>" LLVM_VERSION_LIST "List of LLVM release versions"
 
+register_try64_option
+
+SEPARATE_64=no
+register_option "--separate-64" do_SEPARATE_64 "Separate 64-bit host toolchain to its own package"
+do_SEPARATE_64 ()
+{
+    if [ "$TRY64" = "yes" ]; then
+        echo "ERROR: You cannot use both --try-64 and --separate-64 at the same time."
+        exit 1
+    fi
+    SEPARATE_64=yes;
+}
+
 PROGRAM_PARAMETERS=
 PROGRAM_DESCRIPTION=\
 "Package a new set of release packages for the Android NDK.
@@ -257,26 +270,52 @@ RELEASE_PREFIX=$PREFIX-$RELEASE
 # ensure that the generated files are ug+rx
 umask 0022
 
-# Unpack a prebuilt into the default destination directory $DSTDIR
-# Also unpack 64-bit version if exists
+# Translate name to 64-bit's counterpart
+# $1: prebuilt name
+name64 ()
+{
+    local NAME=$1
+    case $NAME in
+        *windows)
+            NAME=${NAME}-x86_64
+            ;;
+        *linux-x86|*darwin-x86)
+            NAME=${NAME}_64
+            ;;
+    esac
+    echo $NAME
+}
+
+# Unpack a prebuilt into specified destination directory
 # $1: prebuilt name, relative to $PREBUILT_DIR
-# $2: optional, destination directory
+# $2: destination directory
+# $3: optional destination directory for 64-bit toolchain
+# $4: optional flag to use 32-bit prebuilt in place of 64-bit
 unpack_prebuilt ()
 {
-    local PREBUILT=${1}.tar.bz2
-    local PREBUILT64=${1}_64.tar.bz2
-    local PREBUILT64_ALT=${1}-x86_64.tar.bz2
-    local DDIR="${2:-$DSTDIR}"
+    local PREBUILT=
+    local PREBUILT64=null
+    local DDIR="$2"
+    local DDIR64="${3:-$DDIR}"
+    local USE32="${4:-no}"
+
+    if [ "$TRY64" = "yes" -a "$USE32" = "no" ]; then
+        PREBUILT=`name64 $1`
+    else
+        PREBUILT=$1
+        PREBUILT64=`name64 $1`
+    fi
+
+    PREBUILT=${PREBUILT}.tar.bz2
+    PREBUILT64=${PREBUILT64}.tar.bz2
+
     echo "Unpacking $PREBUILT"
     if [ -f "$PREBUILT_DIR/$PREBUILT" ] ; then
         unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
         fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
-        if [ ! -f "$PREBUILT_DIR/$PREBUILT64" ] ; then
-            PREBUILT64=$PREBUILT64_ALT
-        fi
         if [ -f "$PREBUILT_DIR/$PREBUILT64" ] ; then
             echo "Unpacking $PREBUILT64"
-            unpack_archive "$PREBUILT_DIR/$PREBUILT64" "$DDIR"
+            unpack_archive "$PREBUILT_DIR/$PREBUILT64" "$DDIR64"
             fail_panic "Could not unpack prebuilt $PREBUILT64. Aborting."
         fi
     else
@@ -349,6 +388,10 @@ rm -rf $REFERENCE/samples/*/{obj,libs,build.xml,local.properties,Android.mk} &&
 rm -rf $REFERENCE/tests/build/*/{obj,libs} &&
 rm -rf $REFERENCE/tests/device/*/{obj,libs}
 
+# Remove the libc++ sources, they're not ready for release.
+# http://b.android.com/36496
+rm -rf $REFERENCE/sources/cxx-stl/llvm-libc++
+
 # copy sources files
 if [ -d $DEVELOPMENT_ROOT/sources ] ; then
     echo "Copying NDK sources files"
@@ -383,18 +426,28 @@ fi
 # invoking the NDK from a release package or from the development
 # tree.
 #
-echo "$RELEASE" > $REFERENCE/RELEASE.TXT
+if [ "$TRY64" = "yes" ]; then
+    echo "$RELEASE (64-bit)" > $REFERENCE/RELEASE.TXT
+else
+    echo "$RELEASE" > $REFERENCE/RELEASE.TXT
+fi
 
 # Remove un-needed files
 rm -f $REFERENCE/CleanSpec.mk
 
 # now, for each system, create a package
 #
+DSTDIR=$TMPDIR/$RELEASE_PREFIX
+DSTDIR64=${DSTDIR}
+if [ "$SEPARATE_64" = "yes" ] ; then
+    DSTDIR64=$TMPDIR/64/${RELEASE_PREFIX}
+fi
+
 for SYSTEM in $SYSTEMS; do
     echo "Preparing package for system $SYSTEM."
     BIN_RELEASE=$RELEASE_PREFIX-$SYSTEM
-    DSTDIR=$TMPDIR/$RELEASE_PREFIX
-    rm -rf $DSTDIR &&
+    rm -rf "$DSTDIR" "$DSTDIR64" &&
+    mkdir -p "$DSTDIR" "$DSTDIR64" &&
     copy_directory "$REFERENCE" "$DSTDIR"
     fail_panic "Could not copy reference. Aborting."
 
@@ -445,49 +498,60 @@ for SYSTEM in $SYSTEMS; do
     else
         # Unpack toolchains
         for TC in $TOOLCHAINS; do
-            unpack_prebuilt $TC-$SYSTEM
+            unpack_prebuilt $TC-$SYSTEM "$DSTDIR" "$DSTDIR64"
             echo "Removing sysroot for $TC"
             rm -rf $DSTDIR/toolchains/$TC/prebuilt/$SYSTEM/sysroot
-            rm -rf $DSTDIR/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
+            rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
+            rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}-x86_64/sysroot
         done
 
         # Unpack llvm and clang
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
-            unpack_prebuilt llvm-$LLVM_VERSION-$SYSTEM
+            unpack_prebuilt llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
         done
 
         # Unpack prebuilt ndk-stack and other host tools
-        unpack_prebuilt ndk-stack-$SYSTEM
-        unpack_prebuilt ndk-make-$SYSTEM
-        unpack_prebuilt ndk-sed-$SYSTEM
-        unpack_prebuilt ndk-awk-$SYSTEM
+        unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
+        unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-sed-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-perl-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
         if [ "$SYSTEM" = "windows" ]; then
-            unpack_prebuilt toolbox-$SYSTEM
+            unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
         fi
     fi
 
     # Unpack other host tools
-    unpack_prebuilt scan-build
+    unpack_prebuilt scan-build-view "$DSTDIR" "$DSTDIR64"
 
     # Create an archive for the final package. Extension depends on the
     # host system.
+    ARCHIVE=$BIN_RELEASE
+    if [ "$TRY64" = "yes" ]; then
+        ARCHIVE=`name64 $ARCHIVE`
+    fi
     case "$SYSTEM" in
         windows)
-            ARCHIVE="$BIN_RELEASE.zip"
+            ARCHIVE64="$ARCHIVE-64bit-tools.zip"
+            ARCHIVE="$ARCHIVE.zip"
             ;;
         *)
-            ARCHIVE="$BIN_RELEASE.tar.bz2"
+            ARCHIVE64="$ARCHIVE-64bit-tools.tar.bz2"
+            ARCHIVE="$ARCHIVE.tar.bz2"
             ;;
     esac
     echo "Creating $ARCHIVE"
     # make all file universally readable, and all executable (including directory)
     # universally executable, punt intended
-    find $DSTDIR -exec chmod a+r {} \;
-    find $DSTDIR -executable -exec chmod a+x {} \;
+    find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
+    find $DSTDIR $DSTDIR64 -executable -exec chmod a+x {} \;
     pack_archive "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_PREFIX"
     fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
-#    chmod a+r $TMPDIR/$ARCHIVE
+    if [ "$SEPARATE_64" = "yes" ] ; then
+        pack_archive "$OUT_DIR/$ARCHIVE64" "$TMPDIR/64" "${RELEASE_PREFIX}"
+        fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
+    fi
 done
 
 echo "Cleaning up."

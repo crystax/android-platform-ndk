@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Install to specific NDK directory"
 
 register_try64_option
-register_mingw_option
+register_canadian_option
 register_jobs_option
 
 OUT=
@@ -83,12 +83,17 @@ fail_panic "Could not copy GNU Make sources to: $TMP_SRCDIR"
 
 CONFIGURE_FLAGS="--disable-nls --disable-rpath"
 if [ "$MINGW" = "yes" ]; then
-    # Required for a proper mingw compile
+    # Required for a proper mingw cross compile
     CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --host=i586-pc-mingw32"
 fi
 
+if [ "$DARWIN" = "yes" ]; then
+    # Required for a proper darwin cross compile
+    CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --host=$ABI_CONFIGURE_HOST"
+fi
+
 log "Configuring the build"
-prepare_mingw_toolchain $OUT_DIR
+prepare_canadian_toolchain $OUT_DIR
 cd $OUT_DIR &&
 CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 LDFLAGS=$HOST_LDFLAGS" -O2 -s" &&

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -127,6 +127,9 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRC_DIR "Select toolc
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Select NDK install directory"
 
+OUT_DIR=
+register_var_option "--out-dir=<path>" OUT_DIR "Build GCC into directory"
+
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package prebuilt tarballs into directory"
 
@@ -172,6 +175,10 @@ fi
 
 if [ -z "$TOOLCHAIN_SRC_DIR" ]; then
     panic "Please use --toolchain-src-dir=<path> to select toolchain source directory."
+fi
+
+if [ -z "$OUT_DIR" ]; then
+    OUT_DIR=/tmp/ndk-$USER/build/host-gcc
 fi
 
 case $DEFAULT_LD in
@@ -451,7 +458,6 @@ run_on_setup ()
 
 setup_build ()
 {
-    OUT_DIR=/tmp/ndk-$USER/build/host-gcc
     run_on_setup mkdir -p "$OUT_DIR"
     if [ -n "$FORCE" ]; then
         rm -rf "$OUT_DIR"/*
@@ -487,17 +493,6 @@ stamps_do ()
         fail_panic
         mkdir -p "$STAMPS_DIR" && touch "$STAMPS_DIR/$NAME"
     fi
-}
-
-get_default_binutils_version_for_gcc ()
-{
-    local RET
-    case $1 in
-        arm-*-4.4.3|x86-*-4.4.3|x86-4.4.3) RET=2.19;;
-        *-4.6) RET=2.21;;
-        *) RET=2.22;;
-    esac
-    echo "$RET"
 }
 
 # Check that a given compiler generates code correctly
@@ -1262,16 +1257,11 @@ build_host_binutils ()
 
     LD_NAME=$DEFAULT_LD
 
-    # Enable Gold, for specific builds. The version before binutils 2.21
-    # is buggy so don't use it
-    case $HOST_OS in
-        windows) BUILD_GOLD=;; # Gold doesn't compile on Windows!
-        darwin) BUILD_GOLD=;;  # Building Gold fails with an internal compiler error on Darwin!
-        *) BUILD_GOLD=true;;
-    esac
+    # Enable Gold globally. It can be built for all hosts.
+    BUILD_GOLD=true
 
-    # Special case, gold in binutil-2.21 doesn't build when targetting mips
-    if [ "$BINUTILS_VERSION" = "2.21" -a "$TARGET" = "mipsel-linux-android" ]; then
+    # Special case, gold is not ready for mips yet.
+    if [ "$TARGET" = "mipsel-linux-android" ]; then
         BUILD_GOLD=
     fi
 
@@ -1280,6 +1270,12 @@ build_host_binutils ()
     #
     if [ "$BINUTILS_VERSION" = "2.21" -a "$TARGET" = "i686-linux-android" ]; then
         USE_LD_DEFAULT=true
+        BUILD_GOLD=
+    fi
+
+    # Another special case. Not or 2.19, it wasn't ready
+    if [ "$BINUTILS_VERSION" = "2.19" ]; then
+        BUILD_GOLD=
     fi
 
     if [ "$DEFAULT_LD" = "gold" -a -z "$BUILD_GOLD" ]; then
@@ -1299,6 +1295,7 @@ build_host_binutils ()
     # The BFD linker is always built, but to build Gold, we need a specific
     # option for the binutils configure script. Note that its format has
     # changed during development.
+    export host_configargs=
     if [ "$BUILD_GOLD" ]; then
         # The syntax of the --enable-gold option has changed.
         if version_is_greater_than $BINUTILS_VERSION 2.20; then
@@ -1314,11 +1311,19 @@ build_host_binutils ()
                 ARGS=$ARGS" --enable-gold=both/gold"
             fi
         fi
+	# This ARG needs quoting when passed to run2.
+	GOLD_LDFLAGS_ARG=
         if [ "$HOST_OS" = 'windows' ]; then
             # gold may have runtime dependency on libgcc_sjlj_1.dll and
             # libstdc++-6.dll when built by newer versions of mingw.
             # Link them statically to avoid that.
-            ARGS=$ARGS" --with-gold-ldflags='-static-libgcc -static-libstdc++'"
+            if version_is_greater_than $BINUTILS_VERSION 2.22; then
+                export host_configargs="--with-gold-ldflags='-static-libgcc -static-libstdc++'"
+            elif version_is_greater_than $BINUTILS_VERSION 2.21; then
+                GOLD_LDFLAGS_ARG="--with-gold-ldflags=-static-libgcc -static-libstdc++"
+            else
+                export LDFLAGS=$LDFLAGS" -static-libgcc -static-libstdc++"
+            fi
         fi
     fi
 
@@ -1329,7 +1334,7 @@ build_host_binutils ()
     # like build-host-libbfd.sh in the future.
     ARGS=$ARGS" --enable-install-libbfd"
 
-    # Enable plugins support for binutils-2.21+
+    # Enable plugins support for > binutils-2.19
     # This is common feature for binutils and gcc
     case "$BINUTILS_VERSION" in
       2.19)
@@ -1400,15 +1405,24 @@ build_host_gcc_core ()
 
     ARGS=$HOST_PREREQS_ARGS
 
+    # Plugins are not supported well before 4.7. On 4.7 it's required to have
+    # -flto working. Flag --enable-plugins (note 's') is actually for binutils,
+    # this is compiler requirement to have binutils configured this way. Flag
+    # --disable-plugin is for gcc -
+    # In fact, enable-plugins is broken all Canadian Cross GCC.
+    #  see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=50229
     case "$GCC_VERSION" in
-      4.4.3|4.6)
-        ARGS=$ARGS" --disable-plugin"
-        ;;
+     4.4.3|4.6|4.7)
+       ARGS=$ARGS" --disable-plugins --disable-plugin"
+       ;;
+    # Doesn't even work on 4.8
+     *)
+       ARGS=$ARGS" --enable-plugins  --enable-plugin"
+       ;;
     esac
 
     ARGS=$ARGS" --with-gnu-as --with-gnu-ld"
     ARGS=$ARGS" --enable-threads --disable-libssp --disable-libmudflap"
-    ARGS=$ARGS" --disable-libgomp"  # TODO: Add option to enable this
     ARGS=$ARGS" --disable-libstdc__-v3 --disable-sjlj-exceptions"
     ARGS=$ARGS" --disable-tls"
     ARGS=$ARGS" --disable-libquadmath --disable-libitm --disable-bootstrap"
@@ -1418,6 +1432,19 @@ build_host_gcc_core ()
     ARGS=$ARGS" --disable-werror"
     ARGS=$ARGS" --enable-target-optspace"
 
+    case "$GCC_VERSION" in
+     4.4.3)
+       ARGS=$ARGS" --disable-libgomp"
+       ;;
+     *)
+       case $TARGET_ARCH in
+	     arm) ARGS=$ARGS" --enable-libgomp";;
+	     x86) ARGS=$ARGS" --disable-libgomp";;
+	     mips|mipsel) ARGS=$ARGS" --disable-libgomp";;
+	 esac
+	 ;;
+    esac
+
     # Place constructors/destructors in .init_array/.fini_array, not in
     # .ctors/.dtors on Android. Note that upstream Linux GLibc is now doing
     # the same.
@@ -1426,6 +1453,9 @@ build_host_gcc_core ()
     case $TARGET_ARCH in
         arm)
             ARGS=$ARGS" --with-arch=armv5te --with-float=soft --with-fpu=vfpv3-d16"
+            ;;
+        x86)
+            ARGS=$ARGS" --with-arch=i686 --with-tune=atom --with-fpmath=sse"
             ;;
         mips)
             # Add --disable-fixed-point to disable fixed-point support

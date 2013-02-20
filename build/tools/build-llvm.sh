@@ -28,7 +28,7 @@ PROGRAM_DESCRIPTION=\
 
 Where <src-dir> is the location of toolchain sources, <ndk-dir> is
 the top-level NDK installation path and <toolchain> is the name of
-the toolchain to use (e.g. llvm-3.1)."
+the toolchain to use (e.g. llvm-3.2)."
 
 RELEASE=`date +%Y%m%d`
 OUT_DIR=/tmp/ndk-$USER
@@ -55,7 +55,7 @@ do_check_option () { CHECK=yes; }
 register_option "--check" do_check_option "Check LLVM"
 
 register_jobs_option
-register_mingw_option
+register_canadian_option
 register_try64_option
 
 extract_parameters "$@"
@@ -63,8 +63,7 @@ extract_parameters "$@"
 fix_option OUT_DIR "$OPTION_OUT_DIR" "build directory"
 setup_default_log_file $OUT_DIR/build.log
 OUT_DIR=$OUT_DIR/host/toolchain
-
-prepare_mingw_toolchain $OUT_DIR
+prepare_canadian_toolchain $OUT_DIR
 
 set_parameters ()
 {
@@ -133,18 +132,43 @@ fi
 
 set_toolchain_ndk $NDK_DIR $TOOLCHAIN
 
-dump "Using C compiler: $CC"
-dump "Using C++ compiler: $CXX"
+if [ "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
+    dump "Using C compiler: $CC"
+    dump "Using C++ compiler: $CXX"
+fi
 
 rm -rf $OUT_DIR
 mkdir -p $OUT_DIR
 
-TOOLCHAIN_BUILD_PREFIX=$OUT_DIR/prefix
+MAKE_FLAGS=
+if [ "$VERBOSE" = "yes" ]; then
+    MAKE_FLAGS="VERBOSE=1"
+fi
 
-CFLAGS="$HOST_CFLAGS $CFLAGS -I$TOOLCHAIN_BUILD_PREFIX/include"
-CXXFLAGS="$CXXFLAGS -I$TOOLCHAIN_BUILD_PREFIX/include"  # polly doesn't look at CFLAGS !
-LDFLAGS="$LDFLAGS -L$TOOLCHAIN_BUILD_PREFIX/lib"
-export CC CXX CFLAGS CXXFLAGS LDFLAGS REQUIRES_RTTI=1
+TOOLCHAIN_BUILD_PREFIX=$OUT_OUT/prefix
+
+ARCH=$HOST_ARCH
+
+# Note that the following 2 flags only apply for BUILD_CC in canadian cross build
+CFLAGS_FOR_BUILD="-O2 -I$TOOLCHAIN_BUILD_PREFIX/include"
+LDFLAGS_FOR_BUILD="-L$TOOLCHAIN_BUILD_PREFIX/lib"
+
+CFLAGS="$CFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"
+CXXFLAGS="$CXXFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"  # polly doesn't look at CFLAGS !
+LDFLAGS="$LDFLAGS $LDFLAGS_FOR_BUILD $HOST_LDFLAGS"
+export CC CXX CFLAGS CXXFLAGS LDFLAGS CFLAGS_FOR_BUILD LDFLAGS_FOR_BUILD REQUIRES_RTTI=1 ARCH
+
+if [ "$DARWIN" = "yes" ]; then
+    # To stop /usr/bin/install -s calls strip on darwin binary
+    export KEEP_SYMBOLS=1
+    # Disable polly for now
+    POLLY=no
+fi
+
+if [ "$POLLY" = "yes" -a ! -d "$SRC_DIR/$TOOLCHAIN/polly" ] ; then
+    dump "Disable polly because $SRC_DIR/$TOOLCHAIN/polly doesn't exist"
+    POLLY=no
+fi
 
 #
 # $1: soruce
@@ -234,7 +258,8 @@ if [ "$POLLY" = "yes" ]; then
     mkdir -p $CLOOG_OUT_DIR && cd $CLOOG_OUT_DIR
     fail_panic "Couldn't create cloog build path: $CLOOG_OUT_DIR"
 
-    prepare_polly_sources $TOOLCHAIN_VERSION
+    # zuav: todo: remove?
+    #prepare_polly_sources $TOOLCHAIN_VERSION
 
     run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/tools/polly/utils/cloog_src/configure \
         --prefix=$TOOLCHAIN_BUILD_PREFIX \
@@ -249,10 +274,20 @@ if [ "$POLLY" = "yes" ]; then
     run make install
     fail_panic "Couldn't install cloog to $TOOLCHAIN_BUILD_PREFIX"
 
-    EXTRA_CONFIG_FLAGS="--enable-polly --with-cloog=$TOOLCHAIN_BUILD_PREFIX --with-isl=$TOOLCHAIN_BUILD_PREFIX"
+    EXTRA_CONFIG_FLAGS="--with-cloog=$TOOLCHAIN_BUILD_PREFIX --with-isl=$TOOLCHAIN_BUILD_PREFIX"
+
+    # Allow text relocs when linking LLVMPolly.dylib against statically linked libgmp.a
+    if [ "$HOST_TAG32" = "darwin-x86" -o "$DARWIN" = "yes" ]; then   # -a "$HOST_ARCH" = "x86"
+        LDFLAGS="$LDFLAGS -read_only_relocs suppress"
+        export LDFLAGS
+    fi
+fi # POLLY = yes
+
+if [ "$POLLY" = "yes" ]; then
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-polly"
 else
-    EXTRA_CONFIG_FLAGS="--disable-polly"
-fi
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-polly"
+fi # POLLY = yes 2
 
 # configure the toolchain
 dump "Configure: $TOOLCHAIN toolchain build"
@@ -274,10 +309,10 @@ fail_panic "Couldn't configure llvm toolchain"
 # build the toolchain
 dump "Building : llvm toolchain [this can take a long time]."
 cd $LLVM_OUT_DIR
-run make -j$NUM_JOBS
+run make -j$NUM_JOBS $MAKE_FLAGS
 fail_panic "Couldn't compile llvm toolchain"
 
-if [ "$CHECK" = "yes" -a "$MINGW" != "yes" ] ; then
+if [ "$CHECK" = "yes" -a "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
     # run the regression test
     dump "Running  : llvm toolchain regression test"
     cd $LLVM_OUT_DIR
@@ -293,7 +328,7 @@ fi
 
 # install the toolchain to its final location
 dump "Install  : llvm toolchain binaries."
-cd $LLVM_OUT_DIR && run make install
+cd $LLVM_OUT_DIR && run make install $MAKE_FLAGS
 fail_panic "Couldn't install llvm toolchain to $TOOLCHAIN_BUILD_PREFIX"
 
 # clean static or shared libraries
@@ -311,15 +346,21 @@ rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/LLVMH*.dylib
 rm -rf $TOOLCHAIN_BUILD_PREFIX/share
 
 UNUSED_LLVM_EXECUTABLES="
-bugpoint c-index-test clang-tblgen lli llvm-ar llvm-as llvm-bcanalyzer
-llvm-config llvm-cov llvm-diff llvm-dwarfdump llvm-extract llvm-ld llvm-mc
-llvm-nm llvm-objdump llvm-prof llvm-ranlib llvm-readobj llvm-rtdyld llvm-size
-llvm-stress llvm-stub llvm-tblgen macho-dump cloog"
+bugpoint c-index-test clang-check clang-tblgen lli llvm-as llvm-bcanalyzer
+llvm-config llvm-config-host llvm-cov llvm-diff llvm-dwarfdump llvm-extract llvm-ld
+llvm-mc llvm-nm llvm-mcmarkup llvm-objdump llvm-prof llvm-ranlib llvm-readobj llvm-rtdyld
+llvm-size llvm-stress llvm-stub llvm-tblgen macho-dump cloog"
 
 for i in $UNUSED_LLVM_EXECUTABLES; do
     rm -f $TOOLCHAIN_BUILD_PREFIX/bin/$i
     rm -f $TOOLCHAIN_BUILD_PREFIX/bin/$i.exe
 done
+
+if [ -n "$KEEP_SYMBOLS" ]; then
+    # strip because /usr/bin/install wasn't called with -s
+    test -z "$STRIP" && STRIP=strip
+    $STRIP $TOOLCHAIN_BUILD_PREFIX/bin/*
+fi
 
 # copy to toolchain path
 run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"

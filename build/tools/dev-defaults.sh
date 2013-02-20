@@ -68,6 +68,8 @@ DEFAULT_PPL_VERSION=1.0
 
 DEFAULT_PYTHON_VERSION=2.7.3
 
+DEFAULT_PERL_VERSION=5.16.2
+
 # The list of default CPU architectures we support
 DEFAULT_ARCHS="arm x86 mips"
 
@@ -85,7 +87,7 @@ DEFAULT_ARCH_TOOLCHAIN_NAME_mips=mipsel-linux-android
 DEFAULT_ARCH_TOOLCHAIN_PREFIX_mips=mipsel-linux-android
 
 # The space-separated list of all LLVM versions we support in NDK
-DEFAULT_LLVM_VERSION_LIST="3.1"
+DEFAULT_LLVM_VERSION_LIST="3.2 3.1"
 
 # The default LLVM version (first item in the list)
 DEFAULT_LLVM_VERSION=$(echo "$DEFAULT_LLVM_VERSION_LIST" | tr ' ' '\n' | head -n 1)
