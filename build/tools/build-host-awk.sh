@@ -87,13 +87,13 @@ export HOST_CC="$CC" &&
 export CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 export LDFLAGS=$HOST_LDFLAGS &&
 export NATIVE_CC="gcc" &&
-export NATIVE_CFLAGS=" -O2 -s -I$OUT_DIR -I." &&
-export NATIVE_LDFLAGS= &&
+export NATIVE_CFLAGS=" $CFLAGS -I$OUT_DIR -I." &&
+export NATIVE_LDFLAGS=$LDFLAGS &&
 run $GNUMAKE \
     -C "$AWK_SRCDIR" \
     -j $NUM_JOBS \
-    CFLAGS="$CFLAGS" \
-    LDFLAGS="$LDFLAGS" \
+    CFLAGS="$NATIVE_CFLAGS" \
+    LDFLAGS="$NATIVE_LDFLAGS" \
     OUT_DIR="$OUT_DIR" \
     MINGW="$BUILD_MINGW" \
     TRY64="$BUILD_TRY64" \

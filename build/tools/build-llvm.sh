@@ -145,7 +145,7 @@ if [ "$VERBOSE" = "yes" ]; then
     MAKE_FLAGS="VERBOSE=1"
 fi
 
-TOOLCHAIN_BUILD_PREFIX=$OUT_OUT/prefix
+TOOLCHAIN_BUILD_PREFIX=$OUT_DIR/prefix
 
 ARCH=$HOST_ARCH
 
@@ -165,8 +165,8 @@ if [ "$DARWIN" = "yes" ]; then
     POLLY=no
 fi
 
-if [ "$POLLY" = "yes" -a ! -d "$SRC_DIR/$TOOLCHAIN/polly" ] ; then
-    dump "Disable polly because $SRC_DIR/$TOOLCHAIN/polly doesn't exist"
+if [ "$POLLY" = "yes" -a ! -d "$SRC_DIR/llvm/$TOOLCHAIN/tools/polly" ] ; then
+    dump "Disable polly because $SRC_DIR/llvm/$TOOLCHAIN/tools/polly doesn't exist"
     POLLY=no
 fi
 
