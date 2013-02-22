@@ -1,7 +1,5 @@
 #include <common.h>
 #include <string>
-#include <iostream>
-#include <iomanip>
 
 static int test_wstring_base()
 {
