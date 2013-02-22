@@ -617,10 +617,6 @@ probe_darwin_sdk ()
             echo "darwin sysroot $DARWIN_SYSROOT is not valid"
             exit 1
         fi
-    elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.4.sdku 10.4; then
-        log "Generating Tiger-compatible binaries!"
-    elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.5.sdk 10.5; then
-        log "Generating Leopard-compatible binaries!"
     elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.6.sdk 10.6; then
         log "Generating Snow Leopard-compatible binaries!"
     elif check_darwin_sdk $XCODE_PATH/SDKs/MacOSX10.7.sdk 10.7; then
