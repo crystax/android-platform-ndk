@@ -1,4 +1,5 @@
-#include <iostream>
+#include <stdio.h>
+// #include <iostream>
 #include <chrono>
 #include <ratio>
 
@@ -18,33 +19,40 @@ void printClockData (bool &is_high_res, bool &is_steady)
 {
     using namespace std;
 
-    cout << "- precision: ";
+    printf("- precision: ");
+    // cout << "- precision: ";
     // if time unit is less or equal one millisecond
     typedef typename C::period P;// type of time unit
     if (ratio_less_equal<P,milli>::value) {
        // convert to and print as milliseconds
        typedef typename ratio_multiply<P,kilo>::type TT;
-       cout << fixed << double(TT::num)/TT::den
-            << " milliseconds" << endl;
+       printf("%f  milliseconds\n", double(TT::num)/TT::den);
+       // cout << fixed << double(TT::num)/TT::den
+       //      << " milliseconds" << endl;
        is_high_res = true;
     }
     else {
         // print as seconds
-        cout << fixed << double(P::num)/P::den << " seconds" << endl;
-       is_high_res = false;
+        printf("%f seconds\n", double(P::num)/P::den);
+        // cout << fixed << double(P::num)/P::den << " seconds" << endl;
+        is_high_res = false;
     }
-    cout << "- is_steady: " << boolalpha << C::is_steady << endl;
+    printf("- is_steady: %s\n", (C::is_steady ? "true" : "false"));
+    // cout << "- is_steady: " << boolalpha << C::is_steady << endal;
     is_steady = C::is_steady;
 }
 
 int main()
 {
     bool is_high_res1, is_high_res2, is_high_res3, is_steady;
-    std::cout << "system_clock: " << std::endl;
+    printf("system_clock: \n");
+    // std::cout << "system_clock: " << std::endl;
     printClockData<std::chrono::system_clock>(is_high_res1, is_steady);
-    std::cout << "\nhigh_resolution_clock: " << std::endl;
+    printf("\nhigh_resolution_clock: \n");
+    // std::cout << "\nhigh_resolution_clock: " << std::endl;
     printClockData<std::chrono::high_resolution_clock>(is_high_res2, is_steady);
-    std::cout << "\nsteady_clock: " << std::endl;
+    printf("\nsteady_clock: \n");
+    // std::cout << "\nsteady_clock: " << std::endl;
     printClockData<std::chrono::steady_clock>(is_high_res3, is_steady);
 
     return (is_high_res1 && is_high_res2 && is_high_res3 && is_steady)? 0 : 1;
