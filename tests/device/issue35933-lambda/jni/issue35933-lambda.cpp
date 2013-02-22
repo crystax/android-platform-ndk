@@ -1,32 +1,38 @@
+#include <stdio.h>
 #include <utility> // for std::forward
-#include <iostream>
+// #include <iostream>
 
 
 static int total = 0;
 static void add(int n)
 {
-	std::cout << "Adding " << n << std::endl;
+	printf("Adding %d\n", n);
+	// std::cout << "Adding " << n << std::endl;
 	total += n;
 }
 
 static void display(const char message[])
 {
-	std::cout << message << ": " << total << std::endl;
+	printf(": \n");
+	// std::cout << message << ": " << total << std::endl;
 }
 
 template <class Callable, typename... ArgTypes>
 void* Call(Callable native_func, ArgTypes&&... args) noexcept
 {
-	std::clog << "in Call" << std::endl;
+	printf("in Call\n");
+	// std::clog << "in Call" << std::endl;
 	return native_func(std::forward<ArgTypes>(args)...);
 }
 
 static void* test_lambda(int delta)
 {
-	std::clog << "in test_lambda" << std::endl;
+	printf("in test_lambda\n");
+	// std::clog << "in test_lambda" << std::endl;
 	return Call([=](int delta)
 	{
-		std::clog << "in lambda" << std::endl;
+		printf("in lambda\n");
+		// std::clog << "in lambda" << std::endl;
 		add(delta);
 		display("total");
 		return nullptr;
@@ -35,12 +41,12 @@ static void* test_lambda(int delta)
 
 int main(int argc, char* argv[])
 {
-	std::clog << "start" << std::endl;
+	printf("start\n");
 	test_lambda(5);
-	std::clog << "after first call" << std::endl;
+	printf("after first call\n");
 	test_lambda(20);
-	std::clog << "after second call" << std::endl;
+	printf("after second call\n");
 	test_lambda(-256);
-	std::clog << "after third call" << std::endl;
-        return total != -231;
+	printf("after third call\n");
+    return total != -231;
 }
