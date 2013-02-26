@@ -117,19 +117,13 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain
 
 extract_parameters "$@"
 
-# Check if windows is specified w/o linux-x86
+# Check if windows is specified than mingw must be present
 if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
     if [ -z "$MINGW_GCC" ]; then
-        echo "ERROR: Can't find mingw tool with --systems=windows"
-        exit 1
-    fi
-    if [ "$HOST_SYSTEMS" = "${HOST_SYSTEMS%linux-x86*}" ] ; then
-        echo "ERROR: Can't specify --systems=windows w/o also specifying linux-x86"
+        echo "ERROR: Can't find mingw tool with --systems=$HOST_SYSTEMS"
         exit 1
     fi
 fi
-
-extract_parameters "$@"
 
 fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
