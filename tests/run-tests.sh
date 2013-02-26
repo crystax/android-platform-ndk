@@ -51,7 +51,8 @@ FULL_TESTS=no
 RUN_TESTS=
 NDK_PACKAGE=
 WINE=
-CONTINUE_ON_BUILD_FAIL=
+CONTINUE_ON_BUILD_FAIL="no"
+RUN_TIMEOUT=60
 
 while [ -n "$1" ]; do
     opt="$1"
@@ -113,6 +114,13 @@ while [ -n "$1" ]; do
         --wine)
             WINE=yes
             ;;
+        --test-run-timeout=*)
+            RUN_TIMEOUT="$optarg"
+            if ! [[ $RUN_TIMEOUT =~ ^[0-9]+$ ]] ; then
+                echo "ERROR: non numberic timeout value: $RUN_TIMEOUT"
+                exit 1
+            fi
+            ;;
         --continue-on-build-fail)
             CONTINUE_ON_BUILD_FAIL=yes
             ;;
@@ -153,6 +161,11 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    --only-awk        Only run awk tests."
     echo "    --full            Run all device tests, even very long ones."
     echo "    --wine            Build all tests with wine on Linux"
+    echo "    --test-run-timeout=<SECS>"
+    echo "                      If test runs on device more than specified time"
+    echo "                      it will be killed [$RUN_TIMEOUT]"
+    echo "    --continue-on-build-fail"
+    echo "                      Do not stop if building of some test fails [$CONTINUE_ON_BUILD_FAIL]"
     echo ""
     echo "NOTE: You cannot use --ndk and --package at the same time."
     echo ""
@@ -173,23 +186,31 @@ adb_var_shell_cmd ()
     local ADB_SHELL_CMD_LOG RET OUT
     local DEVICE=$1
     local VARNAME=$2
+    local RET
     shift; shift;
     ADB_SHELL_CMD_LOG=$(mktemp -t XXXXXXXX)
     # Run the command, while storing the standard output to ADB_SHELL_CMD_LOG
     # and appending the exit code as the last line.
     if [ $VERBOSE = "yes" ] ; then
         echo "$ADB_CMD -s \"$DEVICE\" shell \"$@\""
-        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG
+        timeout $RUN_TIMEOUT $ADB_CMD -s "$DEVICE" shell "$@" ";" echo "test-return-code:"\$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG
     else
-        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' > $ADB_SHELL_CMD_LOG
+        timeout $RUN_TIMEOUT $ADB_CMD -s "$DEVICE" shell "$@" ";" echo "test-return-code:"\$? | sed -e 's![[:cntrl:]]!!g' > $ADB_SHELL_CMD_LOG
     fi
-    # Get last line in log, which contains the exit code from the command
     RET=`sed -e '$!d' $ADB_SHELL_CMD_LOG`
-    # Get output, which corresponds to everything except the last line
-    OUT=`sed -e '$d' $ADB_SHELL_CMD_LOG`
-    rm -f $ADB_SHELL_CMD_LOG
-    if [ "$VARNAME" != "" ]; then
-        eval $VARNAME=\"\$OUT\"
+    #echo !!!!!!!! RET=$RET
+    if [ -z "$RET" ] ; then
+        RET=124
+    elif ! [[ "$RET" =~ ^test-return-code:[0-9]+$ ]] ; then
+        RET=124
+    else
+        RET=${RET#"test-return-code:"}
+        # Get output, which corresponds to everything except the last line
+        OUT=`sed -e '$d' $ADB_SHELL_CMD_LOG`
+        rm -f $ADB_SHELL_CMD_LOG
+        if [ "$VARNAME" != "" ]; then
+            eval $VARNAME=\"\$OUT\"
+        fi
     fi
     return $RET
 }
@@ -692,6 +713,7 @@ if is_testable device; then
         local DSTFILE
         local PROGRAMS=
         local PROGRAM
+        local RETVAL
         # Do not run the test if BROKEN_RUN is defined
         if [ -z "$RUN_TESTS" ]; then
             if is_broken_build $TEST "NDK device test not built"; then
@@ -704,12 +726,8 @@ if is_testable device; then
                     return 0
                 else
                     # skip all tests built by toolchain
-                    if [ "$TOOLCHAIN_VERSION" != "" ]; then
-                        TARGET_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION
-                    else
-                        TARGET_TOOLCHAIN=`get_build_var $PROJECT TARGET_TOOLCHAIN`
-                        TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
-                    fi
+                    TARGET_TOOLCHAIN=`get_build_var $TEST TARGET_TOOLCHAIN`
+                    TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
                     grep -q -w -e "$TARGET_TOOLCHAIN_VERSION" "$TEST/BROKEN_RUN"
                     if [ $? = 0 ] ; then
                         dump "Skipping NDK device test run: $TEST_NAME (no run for binary built by $TARGET_TOOLCHAIN_VERSION)"
@@ -769,7 +787,10 @@ if is_testable device; then
         for PROGRAM in $PROGRAMS; do
             dump "Running device test [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
             adb_var_shell_cmd "$DEVICE" "" "cd $DSTDIR && LD_LIBRARY_PATH=$DSTDIR ./$PROGRAM"
-            if [ $? != 0 ] ; then
+            RETVAL=$?
+            if [ $RETVAL = 124 ] ; then
+                dump "   ---> TEST TIMED OUT!!"
+            elif [ $RETVAL != 0 ] ; then
                 dump "   ---> TEST FAILED!!"
             fi
         done
