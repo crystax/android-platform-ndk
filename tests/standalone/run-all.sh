@@ -52,8 +52,8 @@
 #
 
 # This simple script will create standalone toolchains for all supported
-# GCC versions and for all supported CPU architectures and then it will
-# run all required tests.
+# GCC and LLVM versions and for all supported CPU architectures and then
+# it will run all standalone tests.
 #
 
 PROGDIR=`dirname $0`
@@ -96,6 +96,13 @@ make_standalone ()
     local GCC_VERSION=$4
     local LLVM_VERSION=$5
 
+    echo "(cd $NDK && \
+     ./build/tools/make-standalone-toolchain.sh \
+        --platform=android-$API \
+        --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
+        --llvm-version=$LLVM_VERSION \
+        --toolchain=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION) \
+        --system=$TAG)"
     (cd $NDK && \
      ./build/tools/make-standalone-toolchain.sh \
         --platform=android-$API \
@@ -106,30 +113,33 @@ make_standalone ()
 }
 
 API=14
-LLVM_VERSION=$DEFAULT_LLVM_VERSION
 
-echo "DEFAULT_ARCHS            =  $DEFAULT_ARCHS"
-echo "DEFAULT_GCC_VERSION_LIST =  $DEFAULT_GCC_VERSION_LIST"
-echo "LLVM_VERSION             =  $LLVM_VERSION"
-echo "TAGS                     =  $TAGS"
+echo "DEFAULT_ARCHS             =  $DEFAULT_ARCHS"
+echo "DEFAULT_GCC_VERSION_LIST  =  $DEFAULT_GCC_VERSION_LIST"
+echo "DEFAULT_LLVM_VERSION_LIST =  $DEFAULT_LLVM_VERSION_LIST"
+echo "TAGS                      =  $TAGS"
 
 for ARCH in $(commas_to_spaces $DEFAULT_ARCHS); do
+    dump "#############################################"
+    dump "### [$ARCH]"
+    dump "#############################################"
+    dump ""
     for GCC_VERSION in $(commas_to_spaces $DEFAULT_GCC_VERSION_LIST); do
-        for TAG in $TAGS; do
-            ####dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION toolchain with --sysroot"
-            ####(cd $NDK && \
-            ####    ./tests/standalone/run.sh --prefix=$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)-gcc)
-            dump "### [$TAG] Making $ARCH gcc-$GCC_VERSION standalone toolchain"
-            make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION
-            dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION standalone toolchain"
-            (cd $NDK && \
-                ./tests/standalone/run.sh --no-sysroot \
+        for LLVM_VERSION in $(commas_to_spaces $DEFAULT_LLVM_VERSION_LIST); do
+            for TAG in $TAGS; do
+                dump "### [$TAG] Making $ARCH gcc-$GCC_VERSION/clang-$LLVM_VERSION standalone toolchain"
+                #echo "make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION"
+                make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION
+                dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION standalone toolchain"
+                (cd $NDK && \
+                    ./tests/standalone/run.sh --no-sysroot \
                     --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/$(get_default_toolchain_prefix_for_arch $ARCH)-gcc)
-            dump "### [$TAG] Testing clang in $ARCH gcc-$GCC_VERSION standalone toolchain"
-            (cd $NDK && \
-                ./tests/standalone/run.sh --no-sysroot \
+                dump "### [$TAG] Testing $ARCH clang-$LLVM_VERSION with gcc-$GCC_VERSION standalone toolchain"
+                (cd $NDK && \
+                    ./tests/standalone/run.sh --no-sysroot \
                     --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/clang)
-	    rm -rf $(standalone_path $TAG $API $ARCH $GCC_VERSION)
+	        rm -rf $(standalone_path $TAG $API $ARCH $GCC_VERSION)
+            done
         done
     done
 done
