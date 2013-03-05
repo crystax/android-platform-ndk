@@ -282,6 +282,9 @@ if [ "$NDK_ANALYZE" = 1 ]; then
     }
 
     APP_ABIS=`get_build_var APP_ABI`
+    if [ "x$APP_ABIS" = "xall" ] ; then
+        APP_ABIS="armeabi armeabi-v7a mips x86"
+    fi
     for ABI in $APP_ABIS; do
         TOOLCHAIN_PREFIX=`get_build_var_for_abi TOOLCHAIN_PREFIX $ABI`
         $PROGDIR/prebuilt/common/scan-build/scan-build \
