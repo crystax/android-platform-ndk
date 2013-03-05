@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,19 +50,19 @@ set_parameters ()
         exit 1
     fi
 
-    SCAN_BUILD_SRC_DIR=$SRC_DIR/$TOOLCHAIN/clang/tools/scan-build
+    SCAN_BUILD_SRC_DIR=$SRC_DIR/llvm/$TOOLCHAIN/tools/clang/tools/scan-build
     if [ ! -d "$SCAN_BUILD_SRC_DIR" ] ; then
         echo "ERROR: Source directory does not contain scan-build: $SCAN_BUILD_SRC_DIR"
         exit 1
     fi
 
-    SCAN_VIEW_SRC_DIR=$SRC_DIR/$TOOLCHAIN/clang/tools/scan-view
+    SCAN_VIEW_SRC_DIR=$SRC_DIR/llvm/$TOOLCHAIN/tools/clang/tools/scan-view
     if [ ! -d "$SCAN_VIEW_SRC_DIR" ] ; then
         echo "ERROR: Source directory does not contain scan-view: $SCAN_VIEW_SRC_DIR"
         exit 1
     fi
 
-    LICENSE_FILE=$SRC_DIR/$TOOLCHAIN/clang/LICENSE.TXT
+    LICENSE_FILE=$SRC_DIR/llvm/$TOOLCHAIN/tools/clang/LICENSE.TXT
     if [ ! -f "$LICENSE_FILE" ] ; then
         echo "ERROR: Source directory does not contain clang license file: $LICENSE_FILE"
         exit 1
