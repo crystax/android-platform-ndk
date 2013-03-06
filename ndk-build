@@ -285,10 +285,17 @@ if [ "$NDK_ANALYZE" = 1 ]; then
     if [ "x$APP_ABIS" = "xall" ] ; then
         APP_ABIS="armeabi armeabi-v7a mips x86"
     fi
+
+    if [ "x$HOST_TAG" = "xcygwin-x86" ] ; then
+        HOST_ANALIZER_TAG=windows
+    else
+        HOST_ANALIZER_TAG=$HOST_TAG
+    fi
+
     for ABI in $APP_ABIS; do
         TOOLCHAIN_PREFIX=`get_build_var_for_abi TOOLCHAIN_PREFIX $ABI`
         $PROGDIR/prebuilt/common/scan-build/scan-build \
-            --use-analyzer $PROGDIR/toolchains/llvm-${DEFAULT_LLVM_VERSION}/prebuilt/$HOST_TAG/bin/${ABI}/analyzer \
+            --use-analyzer $PROGDIR/toolchains/llvm-${DEFAULT_LLVM_VERSION}/prebuilt/$HOST_ANALIZER_TAG/bin/${ABI}/analyzer \
             --use-cc ${TOOLCHAIN_PREFIX}gcc \
             --use-c++ ${TOOLCHAIN_PREFIX}g++ \
             --status-bugs -v -v \
