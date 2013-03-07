@@ -834,6 +834,7 @@ copy_file_list ()
 {
     local SRCDIR="$1"
     local DSTDIR="$2"
+    local LIST_FILE=/tmp/ndk-package-`uuidgen`.txt
     shift; shift;
     if [ ! -d "$SRCDIR" ] ; then
         panic "Cant' copy from non-directory: $SRCDIR"
@@ -841,8 +842,12 @@ copy_file_list ()
     log "Copying file: $@"
     log "  from $SRCDIR"
     log "  to $DSTDIR"
-    mkdir -p "$DSTDIR" && (cd "$SRCDIR" && tar cf - "$@") | (tar xf - -C "$DSTDIR")
+    for i in "$@" ; do
+        echo $i >> $LIST_FILE
+    done
+    mkdir -p "$DSTDIR" && (cd "$SRCDIR" && tar cf - --files-from="$LIST_FILE") | (tar xf - -C "$DSTDIR")
     fail_panic "Cannot copy files to directory: $DSTDIR"
+    rm $LIST_FILE
 }
 
 # Rotate a log file
