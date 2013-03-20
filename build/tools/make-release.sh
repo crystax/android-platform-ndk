@@ -117,6 +117,32 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain
 
 extract_parameters "$@"
 
+# check if HOST_SYSTEMS contains only permitted values
+check_host_systems ()
+{
+    #echo "HOST_SYSTEMS    = $HOST_SYSTEMS"
+    #echo "DEFAULT_SYSTEMS = $DEFAULT_SYSTEMS"
+    local hs=$(commas_to_spaces $HOST_SYSTEMS)
+    local sys=""
+    local good=""
+    local defsys=""
+    for sys in $hs ; do 
+        good=""
+        for defsys in $DEFAULT_SYSTEMS ; do
+            if [ $sys = $defsys ] ; then
+                good="yes"
+                break
+            fi
+        done
+        if [ "$good" != "yes" ] ; then
+            echo "ERROR: Unsupported host system: $sys"
+            exit 1
+        fi
+    done
+}
+
+check_host_systems
+
 # Check if windows is specified than mingw must be present
 if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
     if [ -z "$MINGW_GCC" ]; then
