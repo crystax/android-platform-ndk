@@ -35,7 +35,6 @@ fi
 # Remove generated directories
 rm -rf $DIR/platforms
 rm -rf $DIR/toolchains/*/prebuilt
-rm -rf $DIR/toolchains/llvm*
 rm -rf $DIR/samples
 rm -rf $DIR/prebuilt
 
@@ -47,6 +46,7 @@ for VERSION in $DEFAULT_GCC_VERSION_LIST; do
     rm -rf $DIR/$GNUSTL_SUBDIR/$VERSION
     rm -rf $DIR/$GNUOBJC_SUBDIR/$VERSION
 done
+rm -rf $DIR/$LIBPORTABLE/libs
 
 rm -f $DIR/ndk-stack*
 

@@ -131,8 +131,8 @@ prepare_canadian_toolchain $OUT_DIR
 
 set_parameters ()
 {
-    SRC_DIR="$1"
-    NDK_DIR="$2"
+    SRC_DIR=`cd $1; pwd`
+    NDK_DIR=`cd $2; pwd`
     TOOLCHAIN="$3"
 
     # Check source directory
@@ -546,7 +546,10 @@ if [ "$PACKAGE_DIR" ]; then
     ARCHIVE="$TOOLCHAIN-$HOST_TAG.tar.bz2"
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
-    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+  # exlude ld.mcld
+    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR" \
+        --exclude=$SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE} \
+        --exclude=$SUBDIR/$ABI_CONFIGURE_TARGET/bin/ld.mcld${HOST_EXE}
     fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
 fi
 

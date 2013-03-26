@@ -418,6 +418,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
+        unpack_prebuilt libportable-libs-$ABI "$REFERENCE"
     done
 fi
 
@@ -495,6 +496,15 @@ for SYSTEM in $SYSTEMS; do
                 copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
         done
+
+        if [ -d "$DSTDIR/$LIBPORTABLE_SUBDIR" ]; then
+            LIBPORTABLE_ABIS=$PREBUILT_ABIS
+            for LIBPORTABLE_ABI in $LIBPORTABLE_ABIS; do
+                copy_prebuilt "$LIBPORTABLE_SUBDIR/libs/$LIBPORTABLE_ABI" "$LIBPORTABLE_SUBDIR/libs"
+            done
+        else
+            echo "WARNING: Could not find libportable source tree!"
+        fi
     else
         # Unpack toolchains
         for TC in $TOOLCHAINS; do
@@ -504,11 +514,18 @@ for SYSTEM in $SYSTEMS; do
             rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
             rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}-x86_64/sysroot
         done
+        echo "Remove ld.mcld deployed/packaged earlier by accident "
+        find $DSTDIR/toolchains $DSTDIR64/toolchains  -name "*ld.mcld*" -exec rm -f {} \;
 
         # Unpack llvm and clang
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
             unpack_prebuilt llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
         done
+
+        if [ "$SYSTEM" != "windows" ]; then
+            # Unpack ld.mcld. Todo: windows
+            unpack_prebuilt ld.mcld-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        fi
 
         # Unpack prebuilt ndk-stack and other host tools
         unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
@@ -530,6 +547,8 @@ for SYSTEM in $SYSTEMS; do
     ARCHIVE=$BIN_RELEASE
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=`name64 $ARCHIVE`
+    elif [ "$SYSTEM" = "windows" ]; then
+        ARCHIVE=$ARCHIVE-x86
     fi
     case "$SYSTEM" in
         windows)

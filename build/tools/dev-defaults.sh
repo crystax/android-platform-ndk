@@ -29,6 +29,9 @@ GNUSTL_SUBDIR=sources/cxx-stl/gnu-libstdc++
 # root directory.
 GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 
+# Location of the libportable sources, relative to the NDK root directory
+LIBPORTABLE_SUBDIR=sources/android/libportable
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=now

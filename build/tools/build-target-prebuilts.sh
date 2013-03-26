@@ -196,6 +196,10 @@ if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
     fail_panic "Could not build gnustl!"
 fi
 
+dump "Building $ABIS libportable binaries..."
+run $BUILDTOOLS/build-libportable.sh $FLAGS
+fail_panic "Could not build libportable!"
+
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"
 else

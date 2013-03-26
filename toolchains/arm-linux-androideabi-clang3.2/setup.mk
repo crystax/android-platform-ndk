@@ -54,14 +54,14 @@ TARGET_CFLAGS := \
     -fstack-protector \
     -no-canonical-prefixes
 
-TARGET_LDFLAGS := \
+TARGET_LDFLAGS += \
     -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
     -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
-    $(SYSROOT)/usr/include
+    $(SYSROOT_INC)/usr/include
 
-ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+ifneq ($(filter %armeabi-v7a,$(TARGET_ARCH_ABI)),)
     LLVM_TRIPLE := armv7-none-linux-androideabi
 
     TARGET_CFLAGS += -target $(LLVM_TRIPLE) \

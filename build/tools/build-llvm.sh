@@ -46,6 +46,9 @@ register_var_option "--gmp-version=<version>" GMP_VERSION "Specify gmp version"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
+WINE=wine
+register_var_option "--wine=<path>" WINE "WINE needed to run llvm-config.exe for building mclinker with --mingw"
+
 POLLY=no
 do_polly_option () { POLLY=yes; }
 register_option "--with-polly" do_polly_option "Enable Polyhedral optimizations for LLVM"
@@ -67,8 +70,8 @@ prepare_canadian_toolchain $OUT_DIR
 
 set_parameters ()
 {
-    SRC_DIR="$1"
-    NDK_DIR="$2"
+    SRC_DIR=`cd $1; pwd`
+    NDK_DIR=`cd $2; pwd`
     TOOLCHAIN="$3"
 
     if [ -z "$TOOLCHAIN" ]; then
@@ -152,6 +155,11 @@ ARCH=$HOST_ARCH
 # Note that the following 2 flags only apply for BUILD_CC in canadian cross build
 CFLAGS_FOR_BUILD="-O2 -I$TOOLCHAIN_BUILD_PREFIX/include"
 LDFLAGS_FOR_BUILD="-L$TOOLCHAIN_BUILD_PREFIX/lib"
+
+# Eliminate dependency on libgcc_s_sjlj-1.dll and libstdc++-6.dll on cross builds
+if [ "$DARWIN" = "yes" -o "$MINGW" = "yes" ]; then
+    LDFLAGS_FOR_BUILD=$LDFLAGS_FOR_BUILD" -static-libgcc -static-libstdc++"
+fi
 
 CFLAGS="$CFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"
 CXXFLAGS="$CXXFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"  # polly doesn't look at CFLAGS !
@@ -302,11 +310,11 @@ run $SRC_DIR/llvm/llvm-$TOOLCHAIN_VERSION/configure \
     --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
     --enable-targets=arm,mips,x86 \
     --enable-optimized \
+    --with-binutils-include=$SRC_DIR/binutils/binutils-$DEFAULT_BINUTILS_VERSION/include \
     $EXTRA_CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
 
-
-# build the toolchain
+# build llvm/clang
 dump "Building : llvm toolchain [this can take a long time]."
 cd $LLVM_OUT_DIR
 run make -j$NUM_JOBS $MAKE_FLAGS
@@ -331,18 +339,75 @@ dump "Install  : llvm toolchain binaries."
 cd $LLVM_OUT_DIR && run make install $MAKE_FLAGS
 fail_panic "Couldn't install llvm toolchain to $TOOLCHAIN_BUILD_PREFIX"
 
-# clean static or shared libraries
+# create llvm-config wrapper if needed.
+# llvm-config is invoked by other llvm projects (eg. mclinker/configure)
+# to figure out flags and libs dependencies.  Unfortunately in canadian-build
+# llvm-config[.exe] may not run directly.  Create a wrapper.
+LLVM_CONFIG=llvm-config
+if [ "$MINGW" = "yes" ] ; then
+    LLVM_CONFIG=llvm-config.sh
+    cat > $TOOLCHAIN_BUILD_PREFIX/bin/$LLVM_CONFIG <<EOF
+$WINE \`dirname \$0\`/llvm-config.exe "\$@"
+EOF
+    chmod 0755 $TOOLCHAIN_BUILD_PREFIX/bin/$LLVM_CONFIG
+fi
+
+# build mclinker only against default the LLVM version, once
+if [ "$TOOLCHAIN" = "llvm-$DEFAULT_LLVM_VERSION" -a "$DARWIN" != "yes" ] ; then
+    dump "Copy     : mclinker source"
+    MCLINKER_SRC_DIR=$BUILD_OUT/mclinker
+    mkdir -p $MCLINKER_SRC_DIR
+    fail_panic "Couldn't create mclinker source directory: $MCLINKER_SRC_DIR"
+
+    run copy_directory "$SRC_DIR/mclinker" "$MCLINKER_SRC_DIR"
+    fail_panic "Couldn't copy mclinker source: $MCLINKER_SRC_DIR"
+
+    cd $MCLINKER_SRC_DIR && run ./autogen.sh
+    fail_panic "Couldn't run autogen.sh in $MCLINKER_SRC_DIR"
+
+    dump "Configure: mclinker against $TOOLCHAIN"
+    MCLINKER_BUILD_OUT=$MCLINKER_SRC_DIR/build
+    mkdir -p $MCLINKER_BUILD_OUT && cd $MCLINKER_BUILD_OUT
+    fail_panic "Couldn't cd into mclinker build path: $MCLINKER_BUILD_OUT"
+
+    run $MCLINKER_SRC_DIR/configure \
+        --prefix=$TOOLCHAIN_BUILD_PREFIX \
+        --with-llvm-config=$TOOLCHAIN_BUILD_PREFIX/bin/$LLVM_CONFIG \
+        --host=$ABI_CONFIGURE_HOST \
+        --build=$ABI_CONFIGURE_BUILD
+    fail_panic "Couldn't configure mclinker"
+
+    dump "Building : mclinker"
+    cd $MCLINKER_BUILD_OUT
+    run make -j$NUM_JOBS $MAKE_FLAGS
+    fail_panic "Couldn't compile mclinker"
+
+    dump "Install  : mclinker"
+    cd $MCLINKER_BUILD_OUT && run make install $MAKE_FLAGS
+    fail_panic "Couldn't install mclinker to $TOOLCHAIN_BUILD_PREFIX"
+
+    if [ "$CHECK" = "yes" -a "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
+        # run the regression test
+        dump "Running  : mclinker regression test"
+        cd $MCLINKER_BUILD_OUT
+        run make check
+        fail_warning "Couldn't pass all mclinker regression test"  # change to fail_panic later
+    fi
+fi
+
+# remove redundant bits
 rm -rf $TOOLCHAIN_BUILD_PREFIX/docs
 rm -rf $TOOLCHAIN_BUILD_PREFIX/include
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/*.a
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/*.la
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/pkgconfig
-rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/lib*.so
-rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/lib*.dylib
+rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/lib[cp]*.so
+rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/lib[cp]*.dylib
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/B*.so
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/B*.dylib
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/LLVMH*.so
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/LLVMH*.dylib
+rm -rf $TOOLCHAIN_BUILD_PREFIX/bin/ld.bcc*
 rm -rf $TOOLCHAIN_BUILD_PREFIX/share
 
 UNUSED_LLVM_EXECUTABLES="
@@ -356,11 +421,11 @@ for i in $UNUSED_LLVM_EXECUTABLES; do
     rm -f $TOOLCHAIN_BUILD_PREFIX/bin/$i.exe
 done
 
-if [ -n "$KEEP_SYMBOLS" ]; then
-    # strip because /usr/bin/install wasn't called with -s
-    test -z "$STRIP" && STRIP=strip
-    $STRIP $TOOLCHAIN_BUILD_PREFIX/bin/*
-fi
+test -z "$STRIP" && STRIP=strip
+find $TOOLCHAIN_BUILD_PREFIX/bin -maxdepth 1 -type f -exec $STRIP {} \;
+# Note that MacOSX strip generate the follow error on .dylib:
+# "symbols referenced by indirect symbol table entries that can't be stripped "
+find $TOOLCHAIN_BUILD_PREFIX/lib -maxdepth 1 -type f \( -name "*.dll" -o -name "*.so" \) -exec $STRIP {} \;
 
 # copy to toolchain path
 run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,9 @@ toolchain binaries for all target architectures.
 By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
+If you want use clang to rebuild the binaries, please
+use --llvm-version=<ver> option.
+
 The output will be placed in appropriate sub-directories of
 <ndk>/$GABIXX_SUBDIR, but you can override this with the --out-dir=<path>
 option.
@@ -57,6 +60,12 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
 NO_MAKEFILE=
 register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
+
+VISIBLE_LIBGABIXX_STATIC=
+register_var_option "--visible-libgabixx-static" VISIBLE_LIBGABIXX_STATIC "Do not use hidden visibility for libgabi++_static.a"
+
+LLVM_VERSION=
+register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
 
 register_jobs_option
 
@@ -87,7 +96,7 @@ fail_panic "Could not create build directory: $OUT_DIR"
 GABIXX_SRCDIR=$ANDROID_NDK_ROOT/$GABIXX_SUBDIR
 
 # Compiler flags we want to use
-GABIXX_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__"
+GABIXX_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__ -ffunction-sections"
 GABIXX_CFLAGS=$GABIXX_CFLAGS" -I$GABIXX_SRCDIR/include"
 GABIXX_CXXFLAGS="-fuse-cxa-atexit -fexceptions -frtti"
 GABIXX_LDFLAGS="-ldl"
@@ -105,12 +114,18 @@ else
     MAKEFILE=
 fi
 
+# build_gabixx_libs_for_abi
+# $1: ABI
+# $2: build directory
+# $3: build type: "static" or "shared"
+# $4: (optional) installation directory
 build_gabixx_libs_for_abi ()
 {
     local ARCH BINPREFIX
     local ABI=$1
     local BUILDDIR="$2"
-    local DSTDIR="$3"
+    local TYPE="$3"
+    local DSTDIR="$4"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
     mkdir -p "$BUILDDIR"
@@ -130,25 +145,32 @@ build_gabixx_libs_for_abi ()
     CXXFLAGS=$GABIXX_CXXFLAGS
     LDFLAGS=$GABIXX_LDFLAGS" -L$CRYSTAX_LIBDIR -lcrystax"
 
-    builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
+    builder_begin_android $ABI "$BUILDDIR" "$LLVM_VERSION" "$MAKEFILE"
     builder_set_srcdir "$GABIXX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
     builder_cflags "$CFLAGS"
-    builder_cxxflags "$CXXFLAGS"
+    if [ "$TYPE" = "static" -a -z "$VISIBLE_LIBGABIXX_STATIC" ]; then
+        builder_cxxflags "$CXXFLAGS -fvisibility=hidden -fvisibility-inlines-hidden"
+    else
+        builder_cxxflags "$CXXFLAGS"
+    fi
     builder_ldflags "$LDFLAGS"
     builder_sources $GABIXX_SOURCES
 
-    log "Building $DSTDIR/libgabi++_static.a"
-    builder_static_library libgabi++_static
-
-    log "Building $DSTDIR/libgabi++_shared.so"
-    builder_shared_library libgabi++_shared
+    if [ "$TYPE" = "static" ]; then
+        log "Building $DSTDIR/libgabi++_static.a"
+        builder_static_library libgabi++_static
+    else
+        log "Building $DSTDIR/libgabi++_shared.so"
+        builder_shared_library libgabi++_shared
+    fi
     builder_end
 }
 
 for ABI in $ABIS; do
-    build_gabixx_libs_for_abi $ABI "$OUT_DIR/$ABI"
+    build_gabixx_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared"
+    build_gabixx_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static"
 done
 
 # If needed, package files into tarballs

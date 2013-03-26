@@ -170,6 +170,7 @@ build_gnustl_for_abi ()
     fi
     export CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     export CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
+    export CPPFLAGS="$CPPFLAGS --sysroot=$SYSROOT"
 
     # zuav: todo: check how $HOST_OS-$HOST_ARCH will work on MacOS 
     GTHREADS_INC_DIR=$NDK_DIR/toolchains/$BUILD_HOST-$GCC_VERSION/prebuilt/$HOST_OS-$HOST_ARCH/lib/gcc/$BUILD_HOST/$GCC_VERSION/include

@@ -137,12 +137,12 @@ if [ "$DARWIN_SSH" ]; then
 fi
 
 if [ "$SKIP_HOST_PREBUILTS" != "yes" ]; then
-    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
-    fail_panic "Could not build host prebuilts!"
     if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
         $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
         fail_panic "Could not build host prebuilts in 64-bit!"
     fi
+    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
+    fail_panic "Could not build host prebuilts!"
 fi
 
 TARGET_FLAGS=$FLAGS

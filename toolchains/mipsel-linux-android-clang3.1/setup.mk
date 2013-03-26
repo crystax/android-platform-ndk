@@ -59,13 +59,13 @@ TARGET_CFLAGS := \
         -fmessage-length=0 \
         -no-canonical-prefixes
 
-TARGET_LDFLAGS := \
+TARGET_LDFLAGS += \
         -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
         -target $(LLVM_TRIPLE) \
         -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
-    $(SYSROOT)/usr/include
+    $(SYSROOT_INC)/usr/include
 
 TARGET_mips_release_CFLAGS := -O2 \
                               -g \

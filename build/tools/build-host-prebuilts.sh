@@ -98,6 +98,13 @@ do_skip_build_sed ()
     SKIP_BUILD_SED=yes
 }
 
+SKIP_BUILD_PERL=no
+register_option "--skip-build-perl" do_skip_build_perl "Skip build of perl utility"
+do_skip_build_perl ()
+{
+    SKIP_BUILD_PERL=yes
+}
+
 SKIP_BUILD_TOOLBOX=no
 register_option "--skip-build-toolbox" do_skip_build_toolbox "Skip build of toolbox utility (Windows only)"
 do_skip_build_toolbox ()
@@ -313,7 +320,7 @@ for SYSTEM in $SYSTEMS; do
     if [ "$TRY64" = "yes" ]; then
         case $SYSTEM in
             darwin-x86|linux-x86)
-                SYSNAME=${SYSTEM%%x86}x86-64
+                SYSNAME=${SYSTEM%%x86}x86_64
                 ;;
             windows)
                 SYSNAME=windows-x86_64
@@ -349,6 +356,13 @@ for SYSTEM in $SYSTEMS; do
         fail_panic "sed build failure!"
     fi
 
+    # ToDo: perl in windows
+    if [ "$SYSTEM" != "windows" -a "$SKIP_BUILD_PERL" != "yes" ]; then
+        echo "Building $SYSNAME ndk-perl"
+        run $BUILDTOOLS/build-host-perl.sh $TOOLCHAIN_FLAGS "$SRC_DIR"
+        fail_panic "perl build failure!"
+    fi
+
     if [ "$SYSNAME" = "windows" -a "$SKIP_BUILD_TOOLBOX" != "yes" ]; then
         echo "Building $SYSNAME toolbox"
         run $BUILDTOOLS/build-host-toolbox.sh $FLAGS
@@ -374,16 +388,21 @@ for SYSTEM in $SYSTEMS; do
 
     if [ "$SKIP_BUILD_LLVM" != "yes" ]; then
         # Build llvm and clang
-        POLLY_FLAGS=
-        if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
-            POLLY_FLAGS="--with-polly"
-        fi
+        # zuav todo: remove if builds ok
+        # POLLY_FLAGS=
+        # if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
+        #     POLLY_FLAGS="--with-polly"
+        # fi
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
             echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
             run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
             fail_panic "Could not build llvm for $SYSNAME"
         done
     fi
+
+    # Deploy ld.mcld
+    $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
+    fail_panic "Could not deploy ld.mcld for $SYSNAME"
 
     # We're done for this system
 done
