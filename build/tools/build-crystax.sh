@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -123,6 +123,7 @@ build_crystax_libs_for_abi ()
     local BUILDDIR="$2"
     local DSTDIR="$3"
     local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local LLVM_VERSION
 
     local CFLAGS CXXFLAGS LDFLAGS
 
@@ -150,7 +151,7 @@ build_crystax_libs_for_abi ()
 
     mkdir -p "$DSTDIR"
 
-    builder_begin_android $ABI "$BUILDDIR" "$MAKEFILE"
+    builder_begin_android $ABI "$BUILDDIR" "$LLVM_VERSION" "$MAKEFILE"
     builder_set_srcdir "$CRYSTAX_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
