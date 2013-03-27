@@ -355,7 +355,7 @@ fi
 # build mclinker only against default the LLVM version, once
 if [ "$TOOLCHAIN" = "llvm-$DEFAULT_LLVM_VERSION" -a "$DARWIN" != "yes" ] ; then
     dump "Copy     : mclinker source"
-    MCLINKER_SRC_DIR=$BUILD_OUT/mclinker
+    MCLINKER_SRC_DIR=$OUT_DIR/mclinker
     mkdir -p $MCLINKER_SRC_DIR
     fail_panic "Couldn't create mclinker source directory: $MCLINKER_SRC_DIR"
 
