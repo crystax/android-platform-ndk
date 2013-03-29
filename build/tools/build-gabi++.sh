@@ -169,8 +169,8 @@ build_gabixx_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
-    build_gabixx_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared"
-    build_gabixx_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static"
+    build_gabixx_libs_for_abi $ABI "$OUT_DIR/$ABI/shared" "shared"
+    build_gabixx_libs_for_abi $ABI "$OUT_DIR/$ABI/static" "static"
 done
 
 # If needed, package files into tarballs
