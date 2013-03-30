@@ -533,8 +533,8 @@ build_mingw_tools ()
     echo "$STAMP_DIR/$PKGNAME"
     if [ ! -f "$STAMP_DIR/$PKGNAME" ]; then
         (
-            mkdir -p $BUILD_DIR/$PKGNAME &&
-            cd $BUILD_DIR/$PKGNAME &&
+            mkdir -p $OUT_DIR/$PKGNAME &&
+            cd $OUT_DIR/$PKGNAME &&
             log "$PKGNAME: Configuring" &&
             run $MINGW_W64_SRC/mingw-w64-tools/widl/configure --prefix=$INSTALL_DIR --target=$TARGET_TAG
             fail_panic "Can't configure mingw-64-tools"
