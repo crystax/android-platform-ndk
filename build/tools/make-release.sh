@@ -110,7 +110,7 @@ register_var_option "--systems=<list>" HOST_SYSTEMS "List of host systems to bui
 
 ALSO_64_FLAG=
 register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
-do_ALSO_64 () { ALSO_64_FLAG=--also-64; }
+do_ALSO_64 () { ALSO_64_FLAG="--also-64"; }
 
 TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
@@ -164,7 +164,8 @@ if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
     HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
 fi
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
-HOST_SYSTEMS_FLAGS=$HOST_SYSTEMS_FLAGS" $ALSO_64_FLAG"
+# zuav: this just doesn't work; --also-64 flag can not be set in sucn a way
+#HOST_SYSTEMS_FLAGS=$HOST_SYSTEMS_FLAGS" $ALSO_64_FLAG"
 
 set_parameters ()
 {
@@ -278,7 +279,7 @@ if timestamp_check build-prebuilts; then
     fi
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" "$TOOLCHAIN_SRCDIR" "$HOST_SYSTEMS_FLAGS"
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $FLAGS --package-dir="$PREBUILT_DIR" $ALSO_64_FLAG "$HOST_SYSTEMS_FLAGS" "$TOOLCHAIN_SRCDIR"
         fail_panic "Can't build $HOST_SYSTEMS binaries."
         timestamp_set build-host-prebuilts
     fi
@@ -297,7 +298,7 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" $ALSO_64_FLAG "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT"
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1
