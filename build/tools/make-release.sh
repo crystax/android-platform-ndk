@@ -164,8 +164,6 @@ if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
     HOST_SYSTEMS_FLAGS=$(echo "$HOST_SYSTEMS_FLAGS" | sed -e 's/darwin-x86//')
 fi
 [ "$HOST_SYSTEMS_FLAGS" = "--systems=" ] && HOST_SYSTEMS_FLAGS=""
-# zuav: this just doesn't work; --also-64 flag can not be set in sucn a way
-#HOST_SYSTEMS_FLAGS=$HOST_SYSTEMS_FLAGS" $ALSO_64_FLAG"
 
 set_parameters ()
 {
@@ -297,8 +295,12 @@ fi
 
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
+    SEPARATE_64=
+    if [ -n "$ALSO_64_FLAG" ] ; then
+        SEPARATE_64="--separate-64"
+    fi
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" $ALSO_64_FLAG "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" "$HOST_SYSTEMS_FLAGS" --development-root="$DEVELOPMENT_ROOT" $SEPARATE_64
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1
