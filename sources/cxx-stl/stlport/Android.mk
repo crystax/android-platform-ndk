@@ -1,6 +1,5 @@
 LOCAL_PATH := $(call my-dir)
-#CRYSTAX_SRCDIR = $ANDROID_NDK_ROOT/$CRYSTAX_SUBDIR
-CRYSTAX_SRCDIR := $(dir $(LOCAL_PATH))/../crystax
+CRYSTAX_SRCDIR := $(call host-path, $(dir $(LOCAL_PATH))/../crystax)
 
 # Normally, we distribute the NDK with prebuilt binaries of STLport
 # in $LOCAL_PATH/<abi>/. However,
