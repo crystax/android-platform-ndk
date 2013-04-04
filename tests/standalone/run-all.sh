@@ -62,7 +62,37 @@ NDK_BUILDTOOLS_PATH=$NDK/build/tools
 . $NDK/build/core/ndk-common.sh
 . $NDK/build/tools/prebuilt-common.sh
 
-TAGS=$HOST_TAG32
+TAGS=$HOST_TAG
+
+while [ -n "$1" ]; do
+    opt="$1"
+    optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+    case "$opt" in
+        --help|-h|-\?)
+            OPTION_HELP=yes
+            ;;
+        --32)
+            TAGS=$HOST_TAG32
+            ;;
+        *)
+            echo "Unrecognized option: " "$opt"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ "$OPTION_HELP" = "yes" ] ; then
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Valid options:"
+    echo ""
+    echo "    --help|-h|-?      Print this help"
+    echo "    --32              Use 32-bit tools"
+    echo ""
+    exit 1
+fi
+
 
 #
 # Run standalone tests
@@ -96,13 +126,13 @@ make_standalone ()
     local GCC_VERSION=$4
     local LLVM_VERSION=$5
 
-    echo "(cd $NDK && \
-     ./build/tools/make-standalone-toolchain.sh \
-        --platform=android-$API \
-        --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
-        --llvm-version=$LLVM_VERSION \
-        --toolchain=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION) \
-        --system=$TAG)"
+    #echo "(cd $NDK && \
+    # ./build/tools/make-standalone-toolchain.sh \
+    #    --platform=android-$API \
+    #    --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
+    #    --llvm-version=$LLVM_VERSION \
+    #    --toolchain=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION) \
+    #    --system=$TAG)"
     (cd $NDK && \
      ./build/tools/make-standalone-toolchain.sh \
         --platform=android-$API \
