@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -711,7 +711,7 @@ unpack_archive ()
         ZIPFLAGS=""
     else
         TARFLAGS="xpf"
-        ZIPFLAGS="q"
+        ZIPFLAGS="-q"
     fi
     case "$ARCHIVE" in
         *.zip)
