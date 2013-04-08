@@ -74,6 +74,9 @@ while [ -n "$1" ]; do
         --32)
             TAGS=$HOST_TAG32
             ;;
+        --win-64)
+            TAGS="windows-x86_64"
+            ;;
         *)
             echo "Unrecognized option: " "$opt"
             exit 1
@@ -89,6 +92,7 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo ""
     echo "    --help|-h|-?      Print this help"
     echo "    --32              Use 32-bit tools"
+    echo "    --win-64          Run on win 64 machine"
     echo ""
     exit 1
 fi
