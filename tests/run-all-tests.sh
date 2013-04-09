@@ -56,7 +56,15 @@
 #   2) script must be run from $NDK/platform/ndk dir.
 #
 
+PROGDIR=`dirname $0`
+NDK=`cd $PROGDIR/.. && pwd`
+NDK_BUILDTOOLS_PATH=$NDK/build/tools
+. $NDK/build/core/ndk-common.sh
+. $NDK/build/tools/prebuilt-common.sh
+
 FULL=""
+BITS_DIR=
+BITS_FLAG=
 
 while [ -n "$1" ]; do
     opt="$1"
@@ -67,6 +75,14 @@ while [ -n "$1" ]; do
             ;;
         --full)
             FULL="--full"
+            ;;
+        --32)
+            BITS_DIR="32"
+            BITS_FLAG="--32"
+            ;;
+        --64)
+            BITS_DIR="64"
+            BITS_FLAG="--64"
             ;;
         *)
             echo "Unrecognized option: " "$opt"
@@ -83,21 +99,24 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo ""
     echo "    --help|-h|-?      Print this help"
     echo "    --full            Run long tests too"
+    echo "    --32              32 bit version"
+    echo "    --64              64 bit version"
+    echo "    --full            Run long tests too"
     echo ""
     exit 1
 fi
 
-
+if [ -z "$BITS_FLAG" ] ; then
+    echo "Either --32 or --64 must be specified!"
+    exit 1
+fi
 
 TESTS_BUILD_DIR=/tmp/ndk-$USER/tests
 
 RESULTS_BASE_DIR=/var/tmp/ndk.tests.results/
-#RESULTS_DIR=/var/tmp/ndk.tests.results/2013.01.22-21:12:40
-RESULTS_DIR=/var/tmp/ndk.tests.results/`date +%Y.%m.%d-%H:%M:%S`
+RESULTS_DIR="/var/tmp/ndk.tests.results/$HOST_OS/$BITS_DIR/`date +%Y.%m.%d-%H.%M.%S`"
 GCC_TOOLCHAINS="4.7 4.6 4.4.3"
 CLANG_TOOLCHAINS="clang3.1 clang3.2"
-ARCHS=""
-
 
 # just exit on error
 function error_exit ()
@@ -106,8 +125,7 @@ function error_exit ()
     exit 1
 }
 
-mkdir -p $RESULTS_BASE_DIR || error_exit
-mkdir    $RESULTS_DIR      || error_exit
+mkdir -p $RESULTS_DIR || error_exit
 
 # Find all devices
 DEVICE_armeabi=
@@ -168,33 +186,23 @@ if [ -z "$DEVICE_mips" ] ; then
     exit 1
 fi
 
-EMULATORS="armeabi:$DEVICE_armeabi armeabi-v7a:$DEVICE_armeabi_v7a x86:$DEVICE_x86 mips:$DEVICE_mips"
-
-for EMU in $EMULATORS
+# GCC toolchains
+for tc in $GCC_TOOLCHAINS
 do
-    ARCH=${EMU%:*}
-    DEVICE=${EMU#*:}
-    echo "Starting tests for $ARCH using device $DEVICE"
-    # GCC toolchains
-    for toolchain in $GCC_TOOLCHAINS
-    do
-        echo "Running tests for toolchain GCC-$toolchain"
-        LOG_BASE=$ARCH-gcc-$toolchain
-        LOG_FILE=$RESULTS_DIR/$LOG_BASE.txt
-        ANDROID_SERIAL=$DEVICE ./tests/run-tests.sh $FULL --continue-on-build-fail --abi=$ARCH --toolchain-version=$toolchain > $LOG_FILE
-        cp $TESTS_BUILD_DIR/build-tests.log $RESULTS_DIR/$LOG_BASE.build-tests.log
-    done
-    # Clang toolchains
-    for toolchain in $CLANG_TOOLCHAINS
-    do
-        echo "Running tests for toolchain $toolchain"
-        LOG_BASE=$ARCH-$toolchain
-        LOG_FILE=$RESULTS_DIR/$LOG_BASE.txt
-        ANDROID_SERIAL=$DEVICE ./tests/run-tests.sh $FULL --continue-on-build-fail --abi=$ARCH --toolchain-version=$toolchain > $LOG_FILE
-        cp $TESTS_BUILD_DIR/build-tests.log $RESULTS_DIR/$LOG_BASE.build-tests.log
-    done
+    echo "Running tests for toolchain GCC-$tc"
+    LOG_FILE=$RESULTS_DIR/gcc-$tc.txt
+    ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
 done
 
+# Clang toolchains
+for tc in $CLANG_TOOLCHAINS
+do
+    echo "Running tests for toolchain $tc"
+    LOG_FILE=$RESULTS_DIR/$tc.txt
+    ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
+done
+
+# todo: analize logs
 
 echo Done.
 exit 0
