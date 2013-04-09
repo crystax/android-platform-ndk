@@ -65,6 +65,7 @@ NDK_BUILDTOOLS_PATH=$NDK/build/tools
 FULL=""
 BITS_DIR=
 BITS_FLAG=
+NDK_TYPE="crystax"
 
 while [ -n "$1" ]; do
     opt="$1"
@@ -73,9 +74,6 @@ while [ -n "$1" ]; do
         --help|-h|-\?)
             OPTION_HELP=yes
             ;;
-        --full)
-            FULL="--full"
-            ;;
         --32)
             BITS_DIR="32"
             BITS_FLAG="--32"
@@ -83,6 +81,15 @@ while [ -n "$1" ]; do
         --64)
             BITS_DIR="64"
             BITS_FLAG="--64"
+            ;;
+        --google)
+            NDK_TYPE="google"
+            ;;
+        --crystax)
+            NDK_TYPE="crystax"
+            ;;
+        --full)
+            FULL="--full"
             ;;
         *)
             echo "Unrecognized option: " "$opt"
@@ -101,6 +108,8 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    --full            Run long tests too"
     echo "    --32              32 bit version"
     echo "    --64              64 bit version"
+    echo "    --google          tests will be run in Google's NDK dir"
+    echo "    --crystax         tests will be run in Crystax's NDK dir, default"
     echo "    --full            Run long tests too"
     echo ""
     exit 1
@@ -113,8 +122,7 @@ fi
 
 TESTS_BUILD_DIR=/tmp/ndk-$USER/tests
 
-RESULTS_BASE_DIR=/var/tmp/ndk.tests.results/
-RESULTS_DIR="/var/tmp/ndk.tests.results/$HOST_OS/$BITS_DIR/`date +%Y.%m.%d-%H.%M.%S`"
+RESULTS_DIR="/var/tmp/ndk.tests.results/$NDK_TYPE/$HOST_OS/$BITS_DIR/`date +%Y.%m.%d-%H.%M.%S`"
 GCC_TOOLCHAINS="4.7 4.6 4.4.3"
 CLANG_TOOLCHAINS="clang3.1 clang3.2"
 
@@ -191,7 +199,11 @@ for tc in $GCC_TOOLCHAINS
 do
     echo "Running tests for toolchain GCC-$tc"
     LOG_FILE=$RESULTS_DIR/gcc-$tc.txt
-    ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
+    if [ "$NDK_TYPE" = "crystax" ] ; then
+        ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
+    else
+        NDK_TOOLCHAIN_VERSION=$tc ./tests/run-tests.sh $FULL --continue-on-build-fail > $LOG_FILE
+    fi
 done
 
 # Clang toolchains
