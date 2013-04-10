@@ -53,6 +53,20 @@ LIB_OUT="$SUBDIR/lib/perl5"
 
 fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-perl-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 PERL_VERSION=$DEFAULT_PERL_VERSION
 
 set_parameters ()
@@ -127,11 +141,12 @@ run copy_directory "$BUILD_OUT/prefix/lib" "$NDK_DIR/$LIB_OUT"
 fail_panic "Could not copy library to: $NDK_DIR/$LIB_OUT"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-perl-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$BIN_OUT" "$LIB_OUT"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 log "Cleaning up"

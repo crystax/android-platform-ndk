@@ -176,6 +176,20 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 prepare_target_build
 
 parse_toolchain_name $TOOLCHAIN
@@ -543,7 +557,7 @@ if [ -f "$SRC_DIR/SOURCES" ]; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="$TOOLCHAIN-$HOST_TAG.tar.bz2"
+    assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
   # exlude ld.mcld
@@ -551,6 +565,7 @@ if [ "$PACKAGE_DIR" ]; then
         --exclude=$SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE} \
         --exclude=$SUBDIR/$ABI_CONFIGURE_TARGET/bin/ld.mcld${HOST_EXE}
     fail_panic "Could not package $ABI-$GCC_VERSION toolchain binaries"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ -z "$OPTION_OUT_DIR" ] ; then

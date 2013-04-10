@@ -320,9 +320,9 @@ if timestamp_check build-prebuilts; then
     if [ "$DRY_RUN" = "yes" ] ; then
         FLAGS=$FLAGS" --dry-run"
     fi
-	if [ -n "$XCODE_PATH" ]; then
-		FLAGS=$FLAGS" --xcode=$XCODE_PATH"
-	fi
+    if [ -n "$XCODE_PATH" ]; then
+        FLAGS=$FLAGS" --xcode=$XCODE_PATH"
+    fi
     if [ -n "$OPTION_OUT_DIR" ]; then
         FLAGS=$FLAGS" --out-dir=$OUT_DIR"
     fi

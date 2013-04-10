@@ -53,6 +53,20 @@ fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
 OUT_DIR=$OUT_DIR/host/make
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-make-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
 
 if [ -z "$CUSTOM_OUT" ]; then
@@ -74,21 +88,21 @@ prepare_host_build
 
 TMP_SRCDIR=$OUT_DIR/src
 
-# We need to copy the sources to a temporary directory because
-# the build system will modify some documentation files in the
-# source directory. Sigh...
+    # We need to copy the sources to a temporary directory because
+    # the build system will modify some documentation files in the
+    # source directory. Sigh...
 log "Copying sources to temporary directory: $TMP_SRCDIR"
 mkdir -p "$TMP_SRCDIR" && copy_directory "$GNUMAKE_SRCDIR" "$TMP_SRCDIR"
 fail_panic "Could not copy GNU Make sources to: $TMP_SRCDIR"
 
 CONFIGURE_FLAGS="--disable-nls --disable-rpath"
 if [ "$MINGW" = "yes" ]; then
-    # Required for a proper mingw cross compile
+        # Required for a proper mingw cross compile
     CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --host=i586-pc-mingw32"
 fi
 
 if [ "$DARWIN" = "yes" ]; then
-    # Required for a proper darwin cross compile
+        # Required for a proper darwin cross compile
     CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --host=$ABI_CONFIGURE_HOST"
 fi
 
@@ -110,11 +124,12 @@ run mkdir -p $(dirname "$OUT") && cp $(get_host_exec_name make) $OUT
 fail_panic "Could not copy executable to: $OUT"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-make-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ -z "$OPTION_OUT_DIR" ]; then

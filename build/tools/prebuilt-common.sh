@@ -616,14 +616,14 @@ check_darwin_sdk ()
     fi
     if [ -d "$MACSDK" ] ; then
         if [ -z $HOST_CFLAGS ] ; then
-            HOST_CFLAGS="-isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
+            HOST_CFLAGS="-I/usr/x86_64-apple-darwin10/usr/include/c++/4.2.1/i686-apple-darwin10/bits -I$MACSDK/usr/include/c++/4.2.1 -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
         else
-            HOST_CFLAGS=$HOST_CFLAGS" -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
+            HOST_CFLAGS=$HOST_CFLAGS" -I/usr/x86_64-apple-darwin10/usr/include/c++/4.2.1/i686-apple-darwin10/bits -I$MACSDK/usr/include/c++/4.2.1 -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
         fi
         if [ -z $HOST_LDFLAGS ] ; then
-            HOST_LDFLAGS="-Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
+            HOST_LDFLAGS="-L$MACSDK/usr/lib/i686-apple-darwin10/4.2.1 -Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
         else
-            HOST_LDFLAGS=$HOST_LDFLAGS" -Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
+            HOST_LDFLAGS=$HOST_LDFLAGS" -L$MACSDK/usr/lib/i686-apple-darwin10/4.2.1 -Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
         fi
         DARWIN_MINVER=$MINVER
         return 0  # success
@@ -1499,3 +1499,33 @@ case $HOST_TAG32 in
         HOST_TAG32=${HOST_TAG%%_64}
         ;;
 esac
+
+# this function should be called after all options are extracted
+CACHE_HOST_TAG=linux-x86
+set_cache_host_tag ()
+{
+    if [ "$MINGW" = "yes" ] ; then
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=windows-x86_64
+        else
+            CACHE_HOST_TAG=windows
+        fi
+    elif [ "$DARWIN" = "yes" ] ; then
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=darwin-x86_64
+        else
+            CACHE_HOST_TAG=darwin-x86
+        fi
+    else
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=linux-x86_64
+        fi        
+    fi
+}
+
+assert_cache_host_tag ()
+{
+    if [ "$CACHE_HOST_TAG" != "$HOST_TAG" ]; then
+        fail_panic "ASSERT in $PROGNAME: $CACHE_HOST_TAG != $HOST_TAG"
+    fi
+}

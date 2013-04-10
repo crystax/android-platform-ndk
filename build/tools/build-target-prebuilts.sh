@@ -36,55 +36,6 @@ register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC ve
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
 
-SKIP_GEN_PLATFORMS=no
-register_option "--skip-gen-platforms" do_skip_gen_platforms "Skip generation of platforms"
-do_skip_gen_platforms ()
-{
-    SKIP_GEN_PLATFORMS=yes
-}
-
-SKIP_BUILD_GDBSERVER=no
-register_option "--skip-build-gdbserver" do_skip_build_gdbserver "Skip build of gdbserver binaries"
-do_skip_build_gdbserver ()
-{
-    SKIP_BUILD_GDBSERVER=yes
-}
-
-SKIP_BUILD_GABIXX=no
-register_option "--skip-build-gabi" do_skip_build_gabixx "Skip build of gabi++ binaries"
-do_skip_build_gabixx ()
-{
-    SKIP_BUILD_GABIXX=yes
-}
-
-SKIP_BUILD_CRYSTAX=no
-register_option "--skip-build-crystax" do_skip_build_crystax "Skip build of crystax binaries"
-do_skip_build_crystax ()
-{
-    SKIP_BUILD_CRYSTAX=yes
-}
-
-SKIP_BUILD_STLPORT=no
-register_option "--skip-build-stlport" do_skip_build_stlport "Skip build of stlport binaries"
-do_skip_build_stlport ()
-{
-    SKIP_BUILD_STLPORT=yes
-}
-
-SKIP_BUILD_GNUSTL=no
-register_option "--skip-build-gnustl" do_skip_build_gnustl "Skip build of GNU libstdc++"
-do_skip_build_gnustl ()
-{
-    SKIP_BUILD_GNUSTL=yes
-}
-
-SKIP_BUILD_GNUOBJC=no
-register_option "--skip-build-gnuobjc" do_skip_build_gnuobjc "Skip build of GNU libobjc"
-do_skip_build_gnuobjc ()
-{
-    SKIP_BUILD_GNUOBJC=yes
-}
-
 VISIBLE_LIBGNUSTL_STATIC=
 register_var_option "--visible-libgnustl-static" VISIBLE_LIBGNUSTL_STATIC "Do not use hidden visibility for libgnustl_static.a"
 
@@ -114,11 +65,9 @@ if [ "$PACKAGE_DIR" ]; then
     PACKAGE_FLAGS="--package-dir=$PACKAGE_DIR"
 fi
 
-if [ "$SKIP_GEN_PLATFORMS" != "yes" ]; then
-    dump "Generating platforms..."
-    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS
-    fail_panic "Could not generate platforms and samples directores!"
-fi
+dump "Generating platforms..."
+run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS
+fail_panic "Could not generate platforms and samples directores!"
 
 ARCHS=$(commas_to_spaces $ARCHS)
 
@@ -145,56 +94,44 @@ if [ -n "$OPTION_OUT_DIR" ]; then
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 
-if [ "$SKIP_BUILD_GDBSERVER" != "yes" ]; then
-    # First, gdbserver
-    for ARCH in $ARCHS; do
-        GDB_TOOLCHAINS=$(get_default_toolchain_name_for_arch $ARCH)
-        for GDB_TOOLCHAIN in $GDB_TOOLCHAINS; do
-            dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
-            run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
-            fail_panic "Could not build $GDB_TOOLCHAIN gdb-server!"
-        done
+# First, gdbserver
+for ARCH in $ARCHS; do
+    GDB_TOOLCHAINS=$(get_default_toolchain_name_for_arch $ARCH)
+    for GDB_TOOLCHAIN in $GDB_TOOLCHAINS; do
+        dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
+        run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" $FLAGS
+        fail_panic "Could not build $GDB_TOOLCHAIN gdb-server!"
     done
-fi
+done
 
 FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 
 FLAGS=$FLAGS" --abis=$ABIS"
 
-if [ "$SKIP_BUILD_CRYSTAX" != "yes" ]; then
-    dump "Building $ABIS crystax binaries..."
-    run $BUILDTOOLS/build-crystax.sh $FLAGS
-    fail_panic "Could not build crystax binaries!"
-fi
+dump "Building $ABIS crystax binaries..."
+run $BUILDTOOLS/build-crystax.sh $FLAGS
+fail_panic "Could not build crystax binaries!"
 
-if [ "$SKIP_BUILD_GABIXX" != "yes" ]; then
-    dump "Building $ABIS gabi++ binaries..."
-    run $BUILDTOOLS/build-gabi++.sh $FLAGS
-    fail_panic "Could not build gabi++!"
-fi
+dump "Building $ABIS gabi++ binaries..."
+run $BUILDTOOLS/build-gabi++.sh $FLAGS
+fail_panic "Could not build gabi++!"
 
-if [ "$SKIP_BUILD_STLPORT" != "yes" ]; then
-    dump "Building $ABIS stlport binaries..."
-    run $BUILDTOOLS/build-stlport.sh $FLAGS
-    fail_panic "Could not build stlport!"
-fi
+dump "Building $ABIS stlport binaries..."
+run $BUILDTOOLS/build-stlport.sh $FLAGS
+fail_panic "Could not build stlport!"
 
-if [ "$SKIP_BUILD_GNUOBJC" != "yes" ]; then
-    dump "Building $ABIS gnuobjc binaries..."
-    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
-    fail_panic "Could not build gnuobjc!"
-fi
+dump "Building $ABIS gnuobjc binaries..."
+run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+fail_panic "Could not build gnuobjc!"
 
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
     FLAGS=$FLAGS" --visible-libgnustl-static"
 fi
 
-if [ "$SKIP_BUILD_GNUSTL" != "yes" ]; then
-    dump "Building $ABIS gnustl binaries..."
-    run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
-    fail_panic "Could not build gnustl!"
-fi
+dump "Building $ABIS gnustl binaries..."
+run $BUILDTOOLS/build-gnu-libstdc++.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+fail_panic "Could not build gnustl!"
 
 dump "Building $ABIS libportable binaries..."
 run $BUILDTOOLS/build-libportable.sh $FLAGS

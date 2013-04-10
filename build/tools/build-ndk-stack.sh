@@ -55,6 +55,20 @@ fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
 OUT_DIR=$OUT_DIR/host/ndk-stack
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-stack-$HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 prepare_host_build
 
 prepare_canadian_toolchain $OUT_DIR
@@ -113,11 +127,12 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-stack-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     SUBDIR=$(get_host_exec_name ndk-stack $HOST_TAG)
     dump "Packaging: $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not create package: $PACKAGE_DIR/$ARCHIVE from $OUT"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ -z "$OPTION_OUT_DIR" ]; then

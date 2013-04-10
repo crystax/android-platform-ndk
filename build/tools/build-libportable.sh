@@ -156,24 +156,30 @@ build_libportable_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
+    # try cache
+    ARCHIVE="libportable-libs-$ABI.tar.bz2"
+    if [ -n "$PACKAGE_DIR" ]; then
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        if [ $? = 0 ]; then
+            continue
+        fi
+    fi
     # List of sources to compile
     ARCH=$(convert_abi_to_arch $ABI)
     LIBPORTABLE_SRCDIR=$LIBPORTABLE_SRCDIR_BASE/arch-$ARCH
     LIBPORTABLE_SOURCES=$(cd $LIBPORTABLE_SRCDIR && ls *.[cS])
     build_libportable_libs_for_abi $ABI "$BUILD_DIR/$ABI"
-done
-
-# If needed, package files into tarballs
-if [ -n "$PACKAGE_DIR" ] ; then
-    for ABI in $ABIS; do
+    # If needed, package files into tarballs
+    if [ -n "$PACKAGE_DIR" ] ; then
         FILES="$LIBPORTABLE_SUBDIR/libs/$ABI/libportable.*"
-        PACKAGE="$PACKAGE_DIR/libportable-libs-$ABI.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$ARCHIVE"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
         fail_panic "Could not package $ABI libportable binaries!"
-        dump "Packaging: $PACKAGE"
-    done
-fi
+        dump "Packaged: $PACKAGE"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
+    fi
+done
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
     log "Cleaning up..."

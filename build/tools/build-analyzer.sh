@@ -94,9 +94,12 @@ set_parameters ()
 
 set_parameters $PARAMETERS
 
+ARCHIVE="scan-build-view.tar.bz2"
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 # copy scan_build and scan_view
@@ -110,9 +113,9 @@ run copy_directory "$SCAN_VIEW_SRC_DIR" "$NDK_DIR/$SCAN_VIEW_SUBDIR"
 cp -p "$LICENSE_FILE" "$NDK_DIR/$SCAN_VIEW_SUBDIR"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="scan-build-view.tar.bz2"
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SCAN_BUILD_SUBDIR" "$SCAN_VIEW_SUBDIR"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 dump "Done."

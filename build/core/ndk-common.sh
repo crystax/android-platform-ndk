@@ -22,6 +22,16 @@
 # Get current script name into PROGNAME
 PROGNAME=`basename $0`
 
+# Set package cache directory
+NDK_CACHE_DIR="/var/tmp/ndk-cache-$USER" 
+if [ ! -d "$NDK_CACHE_DIR" ]; then
+    mkdir -p "$NDK_CACHE_DIR"
+    if [ $? != 0 ]; then
+        echo "Failed to create cache dir $NDK_CACHE_DIR"
+        exit 1
+    fi
+fi
+
 # Find the Android NDK root, assuming we are invoked from a script
 # within its directory structure.
 #
@@ -895,4 +905,45 @@ rotate_log ()
 
         ver=$prev
     done
+}
+
+# Copy a given package to the cache directory
+#
+# $1: package dir
+# $2: archive file name
+cache_package ()
+{
+    local package_dir=$1
+    local archive=$2
+    log "Copying $package_dir/$archive to cache dir $NDK_CACHE_DIR."
+    cp "$package_dir/$archive" "$NDK_CACHE_DIR"
+    fail_panic "Could not cache package: $archive"
+}
+
+# Copy a given cached package if found to the given package directory
+# NB
+#    This function will exit a script on succes!
+#
+# $1: package dir
+# $2: archive file name
+# $3: optional, can be anything, prevents exit
+try_cached_package()
+{
+    local package_dir=$1
+    local archive=$2
+
+    if [ "$package_dir" -a -e "$NDK_CACHE_DIR/$archive" ]; then
+        dump "Found cached package: $NDK_CACHE_DIR/$archive"
+        mkdir -p "$package_dir"
+        cp "$NDK_CACHE_DIR/$archive" "$package_dir"
+        fail_panic "Could not copy $archive from cache directory."
+        if [ -n "$3" ]; then
+            return 0
+        else
+            log "Done"
+            exit 0
+        fi
+    fi
+
+    return 1
 }

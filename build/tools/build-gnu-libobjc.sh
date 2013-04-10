@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2012 The Android Open Source Project
+# Copyright (C) 2011, 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -252,35 +252,58 @@ copy_gnuobjc_libs ()
 }
 
 for VERSION in $GCC_VERSION_LIST; do
-    for ABI in $ABIS; do
-        build_gnuobjc_for_abi $ABI "$OUT_DIR" $VERSION
-        copy_gnuobjc_libs $ABI "$OUT_DIR" $VERSION
-    done
-done
-
-# If needed, package files into tarballs
-if [ -n "$PACKAGE_DIR" ] ; then
-    for VERSION in $GCC_VERSION_LIST; do
-        # First, the headers as a single package for a given gcc version
-        PACKAGE="$PACKAGE_DIR/gnu-libobjc-headers-$VERSION.tar.bz2"
-        dump "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SUBDIR/$VERSION/include"
-        fail_panic "Could not package $VERSION GNU libobjc headers!"
-
-        # Then, one package per version/ABI for libraries
-        # readd armeabi-v7a to build specific package
-        for ABI in $ABIS armeabi-v7a; do
+    # try cache for headers
+    ARCHIVE="gnu-libobjc-headers-$VERSION.tar.bz2"
+    HEADERS_CACHED="no"
+    if [ -n "$PACKAGE_DIR" ]; then
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        if [ $? = 0 ]; then
+            HEADERS_CACHED="yes"
+        fi
+    fi
+    #
+    for ABI in $ABIS armeabi-v7a; do
+        # try cache for libs
+        ARCHIVE="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+        if [ -n "$PACKAGE_DIR" -a "$HEADERS_CACHED" = "yes" ]; then
+            try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+            if [ $? = 0 ]; then
+                continue
+            fi
+        fi
+        # if we came here better repackage headers
+        HEADERS_CACHED="no"
+        # skip build for armeabi-v7a, package for it will be made from
+        # armeabi binaries
+        if [ "$ABI" != "armeabi-v7a" ] ; then
+            build_gnuobjc_for_abi $ABI "$OUT_DIR" $VERSION
+            copy_gnuobjc_libs $ABI "$OUT_DIR" $VERSION
+        fi
+        # If needed, package files into tarballs
+        # First, one package per version/ABI for libraries
+        if [ -n "$PACKAGE_DIR" ]; then
             FILES=""
             for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
                 FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
             done
-            PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+            ARCHIVE="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$ARCHIVE"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI GNU libobjc binaries!"
-        done
+            cache_package "$PACKAGE_DIR" "$ARCHIVE"
+        fi
     done
-fi
+    # Then, the headers as a single package for a given gcc version
+    if [ -n "$PACKAGE_DIR" -a "$HEADERS_CACHED" != "yes" ]; then
+        ARCHIVE="gnu-libobjc-headers-$VERSION.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$ARCHIVE"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SUBDIR/$VERSION/include"
+        fail_panic "Could not package $VERSION GNU libobjc headers!"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
+    fi
+done
 
 if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."

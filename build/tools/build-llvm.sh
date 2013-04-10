@@ -140,6 +140,20 @@ if [ "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
     dump "Using C++ compiler: $CXX"
 fi
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 rm -rf $OUT_DIR
 mkdir -p $OUT_DIR
 
@@ -500,10 +514,11 @@ EOF
 done
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="$TOOLCHAIN-$HOST_TAG.tar.bz2"
+    assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ -z "$OPTION_OUT_DIR" ] ; then

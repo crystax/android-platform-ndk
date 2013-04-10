@@ -48,6 +48,20 @@ fix_option OUT_DIR "$OPTION_OUT_DIR" "out directory"
 setup_default_log_file $OUT_DIR/build.log
 OUT_DIR=$OUT_DIR/host/awk
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-awk-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 SUBDIR=$(get_prebuilt_host_exec awk)
 OUT=$NDK_DIR/$SUBDIR
 
@@ -79,6 +93,10 @@ CFLAGS=$CFLAGS" -O2 -s -I$OUT_DIR -I$AWK_SRCDIR"
 LDFLAGS="$HOST_LDFLAGS"
 LDFLAGS=$LDFLAGS" -Wl,-s"
 
+#
+#export NATIVE_CC="gcc" &&
+#
+
 log "Configuring the build"
 mkdir -p $OUT_DIR && rm -rf $OUT_DIR/*
 prepare_canadian_toolchain $OUT_DIR
@@ -86,7 +104,6 @@ log "Building $HOST_TAG awk"
 export HOST_CC="$CC" &&
 export CFLAGS=$HOST_CFLAGS" -O2 -s" &&
 export LDFLAGS=$HOST_LDFLAGS &&
-export NATIVE_CC="gcc" &&
 export NATIVE_CFLAGS=" $CFLAGS -I$OUT_DIR -I." &&
 export NATIVE_LDFLAGS=$LDFLAGS &&
 run $GNUMAKE \
@@ -105,11 +122,12 @@ run mkdir -p $(dirname "$OUT") && cp "$OUT_DIR/$(get_host_exec_name ndk-awk)" "$
 fail_panic "Could not copy executable to: $OUT"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-awk-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ -z "$OPTION_OUT_DIR" ]; then

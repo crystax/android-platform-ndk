@@ -81,6 +81,13 @@ if [ -z "$SYSTEMS" ]; then
 fi
 
 for SYSTEM in $SYSTEMS; do
+    ARCHIVE="ld.mcld-$SYSTEM.tar.bz2"
+    # try cached packages
+    if [ "$PACKAGE_DIR" ]; then
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        continue
+    fi
+
     HOST_EXE=
     if [ "$SYSTEM" != "${SYSTEM%%windows*}" ] ; then
         HOST_EXE=.exe
@@ -103,10 +110,10 @@ for SYSTEM in $SYSTEMS; do
 
     # package
     if [ "$PACKAGE_DIR" ]; then
-        ARCHIVE="ld.mcld-$SYSTEM.tar.bz2"
         #echo $ARCHIVE
         echo  "Packaging $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" $ALL_LD_MCLDS
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
     fi
 done
 

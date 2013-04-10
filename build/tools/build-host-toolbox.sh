@@ -54,6 +54,18 @@ register_try64_option
 
 extract_parameters "$@"
 
+# toolbox exists only for windows
+# no need to set CACHE_HOST_TAG
+ARCHIVE=toolbox-windows.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
     NDK_DIR=$ANDROID_NDK_ROOT
@@ -115,9 +127,9 @@ if [ "$BUILD_WINDOWS_SOURCES" ]; then
     builder_end
 
     if [ "$PACKAGE_DIR" ]; then
-        ARCHIVE=toolbox-$HOST_TAG.tar.bz2
         dump "Packaging : $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR/echo.exe" "$SUBDIR/cmp.exe"
         fail_panic "Could not package toolbox binaires"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
     fi
 fi

@@ -288,7 +288,27 @@ copy_gnustl_libs ()
 }
 
 for VERSION in $GCC_VERSION_LIST; do
+    # try cache for headers
+    ARCHIVE="gnu-libstdc++-headers-$VERSION.tar.bz2"
+    HEADERS_CACHED="no"
+    if [ -n "$PACKAGE_DIR" ]; then
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        if [ $? = 0 ]; then
+            HEADERS_CACHED="yes"
+        fi
+    fi
+    #
     for ABI in $ABIS; do
+        # try cache for libs
+        ARCHIVE="gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
+        if [ -n "$PACKAGE_DIR" -a "$HEADERS_CACHED" = "yes" ]; then
+            try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+            if [ $? = 0 ]; then
+                continue
+            fi
+        fi
+        # if we came here better repackage headers
+        HEADERS_CACHED="no"
         build_gnustl_for_abi $ABI "$OUT_DIR" static $VERSION
         build_gnustl_for_abi $ABI "$OUT_DIR" shared $VERSION
         if [ "$ABI" != "${ABI%%arm*}" ] ; then
@@ -296,19 +316,9 @@ for VERSION in $GCC_VERSION_LIST; do
             build_gnustl_for_abi $ABI "$OUT_DIR" shared $VERSION thumb
         fi
         copy_gnustl_libs $ABI "$OUT_DIR" $VERSION
-    done
-done
-
-# If needed, package files into tarballs
-if [ -n "$PACKAGE_DIR" ] ; then
-    for VERSION in $GCC_VERSION_LIST; do
-        # First, the headers as a single package for a given gcc version
-        PACKAGE="$PACKAGE_DIR/gnu-libstdc++-headers-$VERSION.tar.bz2"
-        dump "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$GNUSTL_SUBDIR/$VERSION/include"
-
-        # Then, one package per version/ABI for libraries
-        for ABI in $ABIS; do
+        # If needed, package files into tarballs
+        # First, one package per version/ABI for libraries
+        if [ -n "$PACKAGE_DIR" ] ; then
             FILES=""
             for LIB in include/bits libsupc++.a libgnustl_static.a libgnustl_shared.so; do
                 FILES="$FILES $GNUSTL_SUBDIR/$VERSION/libs/$ABI/$LIB"
@@ -317,13 +327,23 @@ if [ -n "$PACKAGE_DIR" ] ; then
                     FILES="$FILES $THUMB_FILE"
                 fi
             done
-            PACKAGE="$PACKAGE_DIR/gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
+            ARCHIVE="gnu-libstdc++-libs-$VERSION-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$ARCHIVE"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI GNU libstdc++ binaries!"
-        done
+            cache_package "$PACKAGE_DIR" "$ARCHIVE"
+        fi
     done
-fi
+    # Then, the headers as a single package for a given gcc version
+    if [ -n "$PACKAGE_DIR" -a "$HEADERS_CACHED" != "yes" ]; then
+        ARCHIVE="gnu-libstdc++-headers-$VERSION.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$ARCHIVE"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$GNUSTL_SUBDIR/$VERSION/include"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
+    fi
+done
 
 if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."

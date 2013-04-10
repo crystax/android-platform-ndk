@@ -70,62 +70,6 @@ register_option "--check" do_check_option "Check host prebuilts"
 
 register_try64_option
 
-SKIP_BUILD_NDK_STACK=no
-register_option "--skip-build-ndk-stack" do_skip_build_ndk_stack "Skip build of ndk-stack utility"
-do_skip_build_ndk_stack ()
-{
-    SKIP_BUILD_NDK_STACK=yes
-}
-
-SKIP_BUILD_MAKE=no
-register_option "--skip-build-make" do_skip_build_make "Skip build of make utility"
-do_skip_build_make ()
-{
-    SKIP_BUILD_MAKE=yes
-}
-
-SKIP_BUILD_AWK=no
-register_option "--skip-build-awk" do_skip_build_awk "Skip build of awk utility"
-do_skip_build_awk ()
-{
-    SKIP_BUILD_AWK=yes
-}
-
-SKIP_BUILD_SED=no
-register_option "--skip-build-sed" do_skip_build_sed "Skip build of sed utility"
-do_skip_build_sed ()
-{
-    SKIP_BUILD_SED=yes
-}
-
-SKIP_BUILD_PERL=no
-register_option "--skip-build-perl" do_skip_build_perl "Skip build of perl utility"
-do_skip_build_perl ()
-{
-    SKIP_BUILD_PERL=yes
-}
-
-SKIP_BUILD_TOOLBOX=no
-register_option "--skip-build-toolbox" do_skip_build_toolbox "Skip build of toolbox utility (Windows only)"
-do_skip_build_toolbox ()
-{
-    SKIP_BUILD_TOOLBOX=yes
-}
-
-SKIP_BUILD_GCC=no
-register_option "--skip-build-gcc" do_skip_build_gcc "Skip build of gcc-based toolchains"
-do_skip_build_gcc ()
-{
-    SKIP_BUILD_GCC=yes
-}
-
-SKIP_BUILD_LLVM=no
-register_option "--skip-build-llvm" do_skip_build_llvm "Skip build of llvm-based toolchains"
-do_skip_build_llvm ()
-{
-    SKIP_BUILD_LLVM=yes
-}
-
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
 PROGRAM_DESCRIPTION=\
 "This script can be used to rebuild all the host NDK toolchains at once.
@@ -329,7 +273,7 @@ for SYSTEM in $SYSTEMS; do
     fi
 
     # First, ndk-stack
-    if [ "$TRY64" != "yes" -a "$SKIP_BUILD_NDK_STACK" != "yes" ]; then
+    if [ "$TRY64" != "yes" ]; then
         # Don't build ndk-stack in 64-bit because unlike other host toolchains
         # ndk-stack doesn't have separate directories for 32-bit and 64-bit.
         # 64-bit one will overwrite the 32-bit one
@@ -338,70 +282,61 @@ for SYSTEM in $SYSTEMS; do
         fail_panic "ndk-stack build failure!"
     fi
 
-    if [ "$SKIP_BUILD_MAKE" != "yes" ]; then
-        echo "Building $SYSNAME ndk-make"
-        run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
-        fail_panic "make build failure!"
-    fi
+    echo "Building $SYSNAME ndk-make"
+    run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
+    fail_panic "make build failure!"
 
-    if [ "$SKIP_BUILD_AWK" != "yes" ]; then
-        echo "Building $SYSNAME ndk-awk"
-        run $BUILDTOOLS/build-host-awk.sh $TOOLCHAIN_FLAGS
-        fail_panic "awk build failure!"
-    fi
+    echo "Building $SYSNAME ndk-awk"
+    run $BUILDTOOLS/build-host-awk.sh $TOOLCHAIN_FLAGS
+    fail_panic "awk build failure!"
 
-    if [ "$SKIP_BUILD_SED" != "yes" ]; then
-        echo "Building $SYSNAME ndk-sed"
-        run $BUILDTOOLS/build-host-sed.sh $TOOLCHAIN_FLAGS
-        fail_panic "sed build failure!"
-    fi
+    echo "Building $SYSNAME ndk-sed"
+    run $BUILDTOOLS/build-host-sed.sh $TOOLCHAIN_FLAGS
+    fail_panic "sed build failure!"
 
     # ToDo: perl in windows
-    if [ "$SYSTEM" != "windows" -a "$SKIP_BUILD_PERL" != "yes" ]; then
+    if [ "$SYSTEM" != "windows" ]; then
         echo "Building $SYSNAME ndk-perl"
         run $BUILDTOOLS/build-host-perl.sh $TOOLCHAIN_FLAGS "$SRC_DIR"
         fail_panic "perl build failure!"
     fi
 
-    if [ "$SYSNAME" = "windows" -a "$SKIP_BUILD_TOOLBOX" != "yes" ]; then
+    if [ "$SYSNAME" = "windows" ]; then
         echo "Building $SYSNAME toolbox"
         run $BUILDTOOLS/build-host-toolbox.sh $FLAGS
         fail_panic "Windows toolbox build failure!"
     fi
 
-    if [ "$SKIP_BUILD_GCC" != "yes" ]; then
-        # Then the toolchains
-        for ARCH in $ARCHS; do
-            TOOLCHAIN_NAMES=$(get_toolchain_name_list_for_arch $ARCH $(spaces_to_commas $GCC_VERSION_LIST))
-            if [ -z "$TOOLCHAIN_NAMES" ]; then
-                echo "ERROR: Invalid architecture name: $ARCH"
-                exit 1
-            fi
+    # Then the toolchains
+    for ARCH in $ARCHS; do
+        TOOLCHAIN_NAMES=$(get_toolchain_name_list_for_arch $ARCH $(spaces_to_commas $GCC_VERSION_LIST))
+        if [ -z "$TOOLCHAIN_NAMES" ]; then
+            echo "ERROR: Invalid architecture name: $ARCH"
+            exit 1
+        fi
 
-            for TOOLCHAIN_NAME in $TOOLCHAIN_NAMES; do
-                echo "Building $SYSNAME toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
-                run $BUILDTOOLS/build-gcc.sh "$SRC_DIR" "$NDK_DIR" $TOOLCHAIN_NAME $TOOLCHAIN_FLAGS
-                fail_panic "Could not build $TOOLCHAIN_NAME-$SYSNAME!"
-            done
+        for TOOLCHAIN_NAME in $TOOLCHAIN_NAMES; do
+            echo "Building $SYSNAME toolchain for $ARCH architecture: $TOOLCHAIN_NAME"
+            run $BUILDTOOLS/build-gcc.sh "$SRC_DIR" "$NDK_DIR" $TOOLCHAIN_NAME $TOOLCHAIN_FLAGS
+            fail_panic "Could not build $TOOLCHAIN_NAME-$SYSNAME!"
         done
-    fi
+    done
 
-    if [ "$SKIP_BUILD_LLVM" != "yes" ]; then
-        # Build llvm and clang
-        # zuav todo: remove if builds ok
-        # POLLY_FLAGS=
-        # if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
-        #     POLLY_FLAGS="--with-polly"
-        # fi
-        for LLVM_VERSION in $LLVM_VERSION_LIST; do
-            echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
-            run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
-            fail_panic "Could not build llvm for $SYSNAME"
-        done
-    fi
+    # Build llvm and clang
+    # zuav todo: remove if builds ok
+    # POLLY_FLAGS=
+    # if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
+    #     POLLY_FLAGS="--with-polly"
+    # fi
+    POLLY_FLAGS="--with-polly"
+    for LLVM_VERSION in $LLVM_VERSION_LIST; do
+        echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
+        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG
+        fail_panic "Could not build llvm for $SYSNAME"
+    done
 
     # Deploy ld.mcld
-    $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
+    run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
     fail_panic "Could not deploy ld.mcld for $SYSNAME"
 
     # We're done for this system

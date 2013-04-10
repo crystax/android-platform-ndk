@@ -229,24 +229,31 @@ build_stlport_libs_for_abi ()
 }
 
 for ABI in $ABIS; do
+    # try cache
+    ARCHIVE="stlport-libs-$ABI.tar.bz2"
+    if [ -n "$PACKAGE_DIR" ]; then
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        if [ $? = 0 ]; then
+            continue
+        fi
+    fi
+    # build from scratch
     build_stlport_libs_for_abi $ABI "$OUT_DIR/$ABI/shared" "shared"
     build_stlport_libs_for_abi $ABI "$OUT_DIR/$ABI/static" "static"
-done
-
-# If needed, package files into tarballs
-if [ -n "$PACKAGE_DIR" ] ; then
-    for ABI in $ABIS; do
+    # If needed, package files into tarballs
+    if [ -n "$PACKAGE_DIR" ] ; then
         FILES=""
         for LIB in libstlport_static.a libstlport_shared.so; do
             FILES="$FILES $STLPORT_SUBDIR/libs/$ABI/$LIB"
         done
-        PACKAGE="$PACKAGE_DIR/stlport-libs-$ABI.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$ARCHIVE"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
         fail_panic "Could not package $ABI STLport binaries!"
         dump "Packaging: $PACKAGE"
-    done
-fi
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
+    fi
+done
 
 if [ -z "$OPTION_OUT_DIR" ]; then
     log "Cleaning up..."
