@@ -47,6 +47,15 @@ endif
 EXE     := .exe
 endif
 
+ifdef DARWIN
+ifdef TRY64
+CC      := i686-apple-darwin-gcc
+else
+CC      := i586-pc-mingw32msvc-gcc
+endif
+EXE     :=
+endif
+
 PROGRAM := $(OUT_DIR)/ndk-awk$(EXE)
 
 all: $(PROGRAM)
