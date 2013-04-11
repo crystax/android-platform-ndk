@@ -85,7 +85,9 @@ for SYSTEM in $SYSTEMS; do
     # try cached packages
     if [ "$PACKAGE_DIR" ]; then
         try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
-        continue
+        if [ $? = 0 ]; then
+            continue
+        fi
     fi
 
     HOST_EXE=
