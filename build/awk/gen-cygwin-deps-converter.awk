@@ -1,4 +1,4 @@
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -145,7 +145,7 @@ END {
         #       If the file exists, it is processed with our sed script,
         #       the output is written to $1, and we remove the original $1.org
         #
-        print "#!/bin/sh"
+        print "#!/bin/bash"
         print "# AUTO-GENERATED FILE, DO NOT EDIT!"
         print "if [ -f $1.org ]; then"
         print "  sed -e '" RESULT "' $1.org > $1 && rm -f $1.org"
@@ -184,7 +184,7 @@ function add_drive_rule (hostpath,cygpath)
 {
     hostpath = sed_quote_path(hostpath)
 	cygpath = sed_quote_path(cygpath)
-	
+
     # The root directory is a special case, because we need
 	# to add a slash at the end of the corresponding host path
 	# otherwise c:/cygwin/foo will be translated into //foo

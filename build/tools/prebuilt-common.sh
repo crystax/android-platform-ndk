@@ -784,7 +784,7 @@ prepare_canadian_toolchain ()
 
     if [ "$DARWIN" = "yes" ] ; then
         cat > "$CROSS_WRAP_DIR/sw_vers" <<EOF
-#!/bin/sh
+#!/bin/bash
 # Tiny utility for the real sw_vers some Makefiles need
 case \$1 in
     -productVersion)

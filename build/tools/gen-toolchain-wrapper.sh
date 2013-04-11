@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2013 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ gen_wrapper_program ()
     fi
 
     cat > "$DST_FILE" << EOF
-#!/bin/sh
+#!/bin/bash
 # Auto-generated, do not edit
 ${DST_PREFIX}$PROG $FLAGS "\$@"
 EOF

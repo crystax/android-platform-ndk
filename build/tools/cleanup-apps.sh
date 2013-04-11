@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This is used to cleanup the project directories before making a commit or
 # a clean release. This will get rid of auto-generated files in the
