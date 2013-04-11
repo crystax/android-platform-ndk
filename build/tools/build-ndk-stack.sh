@@ -59,7 +59,7 @@ OUT_DIR=$OUT_DIR/host/ndk-stack
 # Try cached package
 #
 set_cache_host_tag
-ARCHIVE=ndk-stack-$HOST_TAG.tar.bz2
+ARCHIVE=ndk-stack-$CACHE_HOST_TAG.tar.bz2
 if [ "$PACKAGE_DIR" ]; then
     # will exit if cached package found
     try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
