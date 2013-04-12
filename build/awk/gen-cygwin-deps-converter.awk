@@ -145,7 +145,7 @@ END {
         #       If the file exists, it is processed with our sed script,
         #       the output is written to $1, and we remove the original $1.org
         #
-        print "#!/bin/bash"
+        print "#!/bin/sh"
         print "# AUTO-GENERATED FILE, DO NOT EDIT!"
         print "if [ -f $1.org ]; then"
         print "  sed -e '" RESULT "' $1.org > $1 && rm -f $1.org"
