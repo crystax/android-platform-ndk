@@ -1510,7 +1510,7 @@ set_cache_host_tag ()
         else
             CACHE_HOST_TAG=windows
         fi
-    elif [ "$DARWIN" = "yes" ] ; then
+    elif [ "$DARWIN" = "yes" -o "$HOST_OS" = "darwin" ] ; then
         if [ "$TRY64" = "yes" ]; then
             CACHE_HOST_TAG=darwin-x86_64
         else
