@@ -122,7 +122,15 @@ fi
 
 TESTS_BUILD_DIR=/tmp/ndk-$USER/tests
 
-RESULTS_DIR="/var/tmp/ndk.tests.results/$NDK_TYPE/$HOST_OS/$BITS_DIR/`date +%Y.%m.%d-%H.%M.%S`"
+NDK_DIR_BASENAME=`basename $ANDROID_NDK_ROOT`
+NDK_RELEASE_ID=`echo $NDK_DIR_BASENAME | awk '{ n=split($0, a, "-"); printf "%s", a[n]; }'`
+RESULTS_DIR="/var/tmp/ndk.tests.results/$NDK_TYPE/$NDK_RELEASE_ID/$HOST_OS/$BITS_DIR"
+
+#echo $NDK_DIR_BASENAME
+#echo $NDK_RELEASE_ID
+#echo $RESULTS_DIR
+#exit 1
+
 GCC_TOOLCHAINS="4.7 4.6 4.4.3"
 CLANG_TOOLCHAINS="clang3.1 clang3.2"
 
@@ -211,7 +219,11 @@ for tc in $CLANG_TOOLCHAINS
 do
     echo "Running tests for toolchain $tc"
     LOG_FILE=$RESULTS_DIR/$tc.txt
-    ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
+    if [ "$NDK_TYPE" = "crystax" ] ; then
+        ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
+    else
+        NDK_TOOLCHAIN_VERSION=$tc ./tests/run-tests.sh $FULL --continue-on-build-fail > $LOG_FILE
+    fi
 done
 
 # todo: analize logs
