@@ -205,7 +205,7 @@ fi
 for tc in $GCC_TOOLCHAINS
 do
     echo "Running tests for toolchain GCC-$tc"
-    LOG_FILE=$RESULTS_DIR/gcc-$tc.txt
+    LOG_FILE=$RESULTS_DIR/gcc-$tc.log
     if [ "$NDK_TYPE" = "crystax" ] ; then
         ./tests/run-tests.sh $FULL --continue-on-build-fail --toolchain-version=$tc > $LOG_FILE
     else
