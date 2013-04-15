@@ -105,7 +105,6 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "Valid options:"
     echo ""
     echo "    --help|-h|-?      Print this help"
-    echo "    --full            Run long tests too"
     echo "    --32              32 bit version"
     echo "    --64              64 bit version"
     echo "    --google          tests will be run in Google's NDK dir"
@@ -123,8 +122,8 @@ fi
 TESTS_BUILD_DIR=/tmp/ndk-$USER/tests
 
 NDK_DIR_BASENAME=`basename $ANDROID_NDK_ROOT`
-NDK_RELEASE_ID=`echo $NDK_DIR_BASENAME | awk '{ n=split($0, a, "-"); printf "%s", a[n]; }'`
-RESULTS_DIR="/var/tmp/ndk.tests.results/$NDK_TYPE/$NDK_RELEASE_ID/$HOST_OS/$BITS_DIR"
+NDK_RELEASE_ID=`echo $NDK_DIR_BASENAME | awk '{ sub("android-ndk-", "", $0); printf "%s", $0; }'`
+RESULTS_DIR="/var/tmp/ndk-tests-$USER/$NDK_TYPE/$NDK_RELEASE_ID/$HOST_OS/$BITS_DIR"
 
 #echo $NDK_DIR_BASENAME
 #echo $NDK_RELEASE_ID
