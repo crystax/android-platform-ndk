@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,8 +80,13 @@ fi
 register_var_option "--systems=<list>" HOST_SYSTEMS "List of host systems to build for"
 
 ALSO_64_FLAG=
+SEPARATE_64_FLAG=
 register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
-do_ALSO_64 () { ALSO_64_FLAG=--also-64; }
+do_ALSO_64 () { ALSO_64_FLAG=--also-64; SEPARATE_64_FLAG=--separate-64; }
+
+ARCHS=$(find_ndk_unknown_archs)
+ARCHS="$DEFAULT_ARCHS $ARCHS"
+register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
 
 TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
@@ -199,6 +204,8 @@ timestamp_check ()
     fi
 }
 
+dump "Building for target architectures: $ARCHS"
+
 # Step 1, If needed, download toolchain sources into a temporary directory
 if [ -n "$TOOLCHAIN_SRCDIR" ] ; then
     dump "Using toolchain source directory: $TOOLCHAIN_SRCDIR"
@@ -226,14 +233,14 @@ if timestamp_check build-prebuilts; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" $HOST_FLAGS
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" $HOST_FLAGS
         fail_panic "Can't build $HOST_SYSTEM binaries."
         timestamp_set build-host-prebuilts
     fi
     if [ -n "$DARWIN_SSH" ] ; then
         if timestamp_check build-darwin-prebuilts; then
             dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
+            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS"  --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
             fail_panic "Can't build Darwin binaries!"
             timestamp_set build-darwin-prebuilts
         fi
@@ -245,7 +252,7 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1

@@ -206,6 +206,8 @@ esac
 
 cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
+export AR="$TOOLCHAIN_PREFIX-ar" &&
+export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
 export CFLAGS="-O2 $GDBSERVER_CFLAGS"  &&
 export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined" &&
 run $SRC_DIR/configure \

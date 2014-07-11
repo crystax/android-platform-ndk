@@ -90,7 +90,8 @@ if [ "$HOST_OS" != "darwin" -a "$DARWIN" != "yes" ]; then
     LDFLAGS=$LDFLAGS" -Wl,-gc-sections"
 else
     # In darwin libbfd has to be built with some *linux* target or it won't understand ELF
-    EXTRA_CONFIG="-target=arm-linux-androideabi"
+    # zuav:  --enable-werror=no
+    EXTRA_CONFIG="-target=arm-linux-androideabi --enable-werror=no"
 fi
 
 BINUTILS_BUILD_DIR=$BUILD_DIR/binutils
