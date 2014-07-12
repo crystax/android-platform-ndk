@@ -697,6 +697,9 @@ find_mingw_toolchain ()
         find_program MINGW_GCC ${i}gcc
         if [ -n "$MINGW_GCC" ]; then
             dump "Found mingw toolchain: $MINGW_GCC"
+            MINGW32_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32"
+            MINGW64_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32"
+            export PATH=$MINGW64_PREBUILT_PATH:$MINGW32_PREBUILT_PATH:$PATH
             break
         fi
     done
