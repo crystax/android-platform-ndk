@@ -99,10 +99,6 @@ if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
         echo "ERROR: Can't find mingw tool with --systems=windows"
         exit 1
     fi
-    if [ "$HOST_SYSTEMS" = "${HOST_SYSTEMS%linux-x86*}" ] ; then
-        echo "ERROR: Can't specify --systems=windows w/o also specifying linux-x86"
-        exit 1
-    fi
 fi
 HOST_FLAGS="--systems=$HOST_SYSTEMS $ALSO_64_FLAG"
 if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
