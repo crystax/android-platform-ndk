@@ -684,7 +684,7 @@ find_mingw_toolchain ()
         #BINPREFIXLST="x86_64-w64-mingw32- x86_64-pc-mingw32msvc- amd64-mingw32msvc-"
         MINGW_GCC=x86_64-w64-mingw32-gcc
         DEBIAN_NAME=mingw64
-        export PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32/bin:$PATH"
+        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32/bin"
     else
         # we are trying 32 bit anyway, so forcing it to avoid build issues
         force_32bit_binaries
@@ -692,8 +692,12 @@ find_mingw_toolchain ()
         #BINPREFIXLST="i686-w64-mingw32- i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc-"
         MINGW_GCC=i686-w64-mingw32-gcc
         DEBIAN_NAME=mingw32
-        export PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32/bin:$PATH"
+        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32/bin"
     fi
+
+    export PATH="$MINGW_PATH:$PATH"
+    dump "Will use mingw toolchain in: $MINGW_PATH"
+
 
     # Scan $BINPREFIXLST list to find installed mingw toolchain. It will be
     # wrapped later with $BINPREFIX.
