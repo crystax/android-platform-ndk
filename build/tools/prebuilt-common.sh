@@ -679,15 +679,20 @@ find_mingw_toolchain ()
     # Fedora note: On Fedora it's x86_64-w64-mingw32- or i686-w64-mingw32-
     # On older Fedora it's 32-bit only and called i686-pc-mingw32-
     # so we just add more prefixes to the list to check.
+
+    MINGW32_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32"
+    MINGW64_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32"
+    export PATH=$MINGW64_PREBUILT_PATH:$MINGW32_PREBUILT_PATH:$PATH
+
     if [ "$HOST_ARCH" = "x86_64" -a "$TRY64" = "yes" ]; then
         BINPREFIX=x86_64-pc-mingw32msvc-
-        BINPREFIXLST="x86_64-pc-mingw32msvc- x86_64-w64-mingw32- amd64-mingw32msvc-"
+        BINPREFIXLST="x86_64-w64-mingw32- x86_64-pc-mingw32msvc- amd64-mingw32msvc-"
         DEBIAN_NAME=mingw64
     else
         # we are trying 32 bit anyway, so forcing it to avoid build issues
         force_32bit_binaries
         BINPREFIX=i586-pc-mingw32msvc-
-        BINPREFIXLST="i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc- i686-w64-mingw32-"
+        BINPREFIXLST="i686-w64-mingw32- i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc-"
         DEBIAN_NAME=mingw32
     fi
 
@@ -697,9 +702,6 @@ find_mingw_toolchain ()
         find_program MINGW_GCC ${i}gcc
         if [ -n "$MINGW_GCC" ]; then
             dump "Found mingw toolchain: $MINGW_GCC"
-            MINGW32_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32"
-            MINGW64_PREBUILT_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32"
-            export PATH=$MINGW64_PREBUILT_PATH:$MINGW32_PREBUILT_PATH:$PATH
             break
         fi
     done
