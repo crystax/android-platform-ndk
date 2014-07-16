@@ -82,7 +82,11 @@ register_var_option "--systems=<list>" HOST_SYSTEMS "List of host systems to bui
 ALSO_64_FLAG=
 SEPARATE_64_FLAG=
 register_option "--also-64" do_ALSO_64 "Also build 64-bit host toolchain"
-do_ALSO_64 () { ALSO_64_FLAG=--also-64; SEPARATE_64_FLAG=--separate-64; }
+do_ALSO_64 () { ALSO_64_FLAG="--also-64"; SEPARATE_64_FLAG="--separate-64"; }
+
+ONLY_64_FLAG=
+register_option "--only-64" do_ONLY_64 "Build only 64-bit host toolchain"
+do_ONLY_64 () { ONLY_64_FLAG="--try-64"; SEPARATE_64_FLAG="--try-64"; }
 
 ARCHS=$(find_ndk_unknown_archs)
 ARCHS="$DEFAULT_ARCHS $ARCHS"
@@ -92,6 +96,12 @@ TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
 
 extract_parameters "$@"
+
+# check that only one of --also-64 and --only-64 was specified
+if [ -n "$ALSO_64_FLAG" -a -n "$ONLY_64_FLAG" ] ; then
+    echo "ERROR: Can't use both --also-64 and --only-64 at the same time"
+    exit 1
+fi
 
 # Check if windows is specified w/o linux-x86
 if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
@@ -103,7 +113,7 @@ if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
         dump "Warning: for windows only builds only host toolchains will be built"
     fi
 fi
-HOST_FLAGS="--systems=$HOST_SYSTEMS $ALSO_64_FLAG"
+HOST_FLAGS="--systems=$HOST_SYSTEMS $ALSO_64_FLAG $ONLY_64_FLAG"
 if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
     # Filter out darwin-x86 in $HOST_FLAGS, because
     # 1) On linux when cross-compiling is done via "--darwin-ssh", keeping darwin-x86 in --systems list
