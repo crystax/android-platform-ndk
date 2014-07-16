@@ -692,7 +692,7 @@ find_mingw_toolchain ()
         #BINPREFIXLST="i686-w64-mingw32- i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc-"
         MINGW_GCC=i686-w64-mingw32-gcc
         DEBIAN_NAME=mingw32
-        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32/bin"
+        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin"
     fi
 
     export PATH="$MINGW_PATH:$PATH"
