@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,10 +130,14 @@ fail_panic "Could not build host prebuilts!"
 
 TARGET_FLAGS=$FLAGS
 
-$PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
-fail_panic "Could not build target prebuilts!"
+if [ "$SYSTEMS" = "windows" ] ; then
+    dump "Done, host toolchains were built for windows only build."
+else
+    $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
+    fail_panic "Could not build target prebuilts!"
 
-echo "Done, see $PACKAGE_DIR:"
-ls -l $PACKAGE_DIR
+    echo "Done, see $PACKAGE_DIR:"
+    ls -l $PACKAGE_DIR
+fi
 
 exit 0

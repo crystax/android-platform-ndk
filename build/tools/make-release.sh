@@ -99,6 +99,9 @@ if [ "$HOST_SYSTEMS" != "${HOST_SYSTEMS%windows*}" ] ; then
         echo "ERROR: Can't find mingw tool with --systems=windows"
         exit 1
     fi
+    if [ "$HOST_SYSTEMS" = "windows" ] ; then
+        dump "Warning: for windows only builds only host toolchains will be built"
+    fi
 fi
 HOST_FLAGS="--systems=$HOST_SYSTEMS $ALSO_64_FLAG"
 if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
