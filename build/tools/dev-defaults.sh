@@ -278,7 +278,7 @@ get_default_binutils_version_for_llvm ()
 get_default_gdb_version_for_gcc ()
 {
     case $1 in
-        mips*) echo "7.7";;
+        mips*) echo "7.6";;
         x86*|aarch64-*|*-4.8|*-4.8l|*-4.9|*-4.9l) echo "7.6";;
         *) echo "$DEFAULT_GDB_VERSION";;
     esac
@@ -292,7 +292,7 @@ get_default_gdb_version_for_gcc ()
 get_default_gdbserver_version_for_gcc ()
 {
     case $1 in
-        mips*) echo "7.7";;
+        mips*) echo "7.6";;
         *) echo "7.6";;
     esac
 }
