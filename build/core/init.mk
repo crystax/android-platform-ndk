@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2010 The Android Open Source Project
+# Copyright (C) 2009-2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -435,6 +435,9 @@ endif # HOST_OS == cygwin
 # The location of the build system files
 BUILD_SYSTEM := $(NDK_ROOT)/build/core
 
+# Include default values
+include $(BUILD_SYSTEM)/defaults.mk
+
 # Include common definitions
 include $(BUILD_SYSTEM)/definitions.mk
 
@@ -617,4 +620,3 @@ $(call ndk_log, This NDK supports the following toolchains and target ABIs:)
 $(foreach tc,$(NDK_ALL_TOOLCHAINS),\
     $(call ndk_log, $(space)$(space)$(tc):  $(NDK_TOOLCHAIN.$(tc).abis))\
 )
-

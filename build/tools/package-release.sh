@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009-2010 The Android Open Source Project
+# Copyright (C) 2009-2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -479,6 +479,13 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
+            done
+        done
+
+        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+            copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
+            for OBJC_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
         done
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -533,6 +533,39 @@ fi
 if [ "$ARCH_LIB" != "$ARCH" ]; then
     cp -a $NDK_DIR/platforms/$PLATFORM/arch-$ARCH/usr/lib/crt* $TMPDIR/sysroot/usr/lib
 fi
+
+dump "Copying libobjc headers and libraries..."
+
+GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
+
+copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$ABI_TARGET/include"
+case "$ARCH" in
+    arm)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/thumb/libobjc.a"
+
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/armv7-a/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/libobjc.a"
+        ;;
+    mips)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/mips" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
+    x86)
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_static.a"
+        copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/x86" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
+        mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
+        ;;
+    *)
+        dump "ERROR: Unsupported NDK architecture!"
+esac
 
 GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION
 GNUSTL_LIBS=$GNUSTL_DIR/libs

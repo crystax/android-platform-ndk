@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ rm -rf $DIR/$STLPORT_SUBDIR/libs
 rm -rf $DIR/$GABIXX_SUBDIR/libs
 for VERSION in $DEFAULT_GCC_VERSION_LIST; do
     rm -rf $DIR/$GNUSTL_SUBDIR/$VERSION
+    rm -rf $DIR/$GNUOBJC_SUBDIR/$VERSION
 done
 rm -rf $DIR/$LIBPORTABLE_SUBDIR
 rm -rf $DIR/$COMPILER_RT_SUBDIR/libs

@@ -1,4 +1,4 @@
-# Copyright (C) 2008 The Android Open Source Project
+# Copyright (C) 2008, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -171,6 +171,32 @@ endif
 LOCAL_RS_EXTENSION := $(default-rs-extensions)
 
 #
+# Check LOCAL_OBJC_EXTENSION, use '.m' by default
+#
+bad_objc_extensions := $(strip $(filter-out .%,$(LOCAL_OBJC_EXTENSION)))
+ifdef bad_objc_extensions
+    $(call __ndk_info,WARNING: Invalid LOCAL_OBJC_EXTENSION values: $(bad_objc_extensions))
+    LOCAL_OBJC_EXTENSION := $(filter $(bad_objc_extensions),$(LOCAL_OBJC_EXTENSION))
+endif
+LOCAL_OBJC_EXTENSION := $(strip $(LOCAL_OBJC_EXTENSION))
+ifeq ($(LOCAL_OBJC_EXTENSION),)
+    LOCAL_OBJC_EXTENSION = .m
+endif
+
+#
+# Check LOCAL_OBJCPP_EXTENSION, use '.mm' by default
+#
+bad_objcpp_extensions := $(strip $(filter-out .%,$(LOCAL_OBJCPP_EXTENSION)))
+ifdef bad_objcpp_extensions
+    $(call __ndk_info,WARNING: Invalid LOCAL_OBJCPP_EXTENSION values: $(bad_objcpp_extensions))
+    LOCAL_OBJCPP_EXTENSION := $(filter $(bad_objcpp_extensions),$(LOCAL_OBJCPP_EXTENSION))
+endif
+LOCAL_OBJCPP_EXTENSION := $(strip $(LOCAL_OBJCPP_EXTENSION))
+ifeq ($(LOCAL_OBJCPP_EXTENSION),)
+    LOCAL_OBJCPP_EXTENSION = .mm
+endif
+
+#
 # If LOCAL_ALLOW_UNDEFINED_SYMBOLS is not true, the linker will allow the generation
 # of a binary that uses undefined symbols.
 #
@@ -340,9 +366,9 @@ LOCAL_DEPENDENCY_DIRS :=
 # all_source_patterns contains the list of filename patterns that correspond
 # to source files recognized by our build system
 ifeq ($(TARGET_ARCH_ABI),x86)
-all_source_extensions := .c .s .S .asm $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION)
+all_source_extensions := .c .s .S .asm $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION)
 else
-all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION)
+all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION)
 endif
 all_source_patterns   := $(foreach _ext,$(all_source_extensions),%$(_ext))
 all_cpp_patterns      := $(foreach _ext,$(LOCAL_CPP_EXTENSION),%$(_ext))

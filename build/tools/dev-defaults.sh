@@ -30,6 +30,10 @@ LIBCXX_SUBDIR=sources/cxx-stl/llvm-libc++
 # Location of the LLVM libc++abi headers, relative to the NDK # root directory.
 LIBCXXABI_SUBDIR=sources/cxx-stl/llvm-libc++abi/libcxxabi
 
+# Location of the GNU libobjc headers and libraries, relative to the NDK
+# root directory.
+GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
+
 # Location of the libportable sources, relative to the NDK root directory
 LIBPORTABLE_SUBDIR=sources/android/libportable
 
@@ -64,6 +68,7 @@ DEFAULT_ISL_VERSION=0.11.1
 DEFAULT_PPL_VERSION=1.0
 DEFAULT_PYTHON_VERSION=2.7.5
 DEFAULT_PERL_VERSION=5.16.2
+DEFAULT_EXPAT_VERSION=2.0.1
 
 RECENT_BINUTILS_VERSION=2.24
 

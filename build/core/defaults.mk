@@ -1,0 +1,3 @@
+DEFAULT_USE_CXX11 := true
+DEFAULT_LIBSTDCXX := gnustl
+DEFAULT_LIBOBJC   := gnuobjc

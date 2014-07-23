@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -274,6 +274,20 @@ APP_CXXFLAGS := $(strip $(APP_CXXFLAGS))
 APP_RENDERSCRIPT_FLAGS := $(strip $(APP_RENDERSCRIPT_FLAGS))
 APP_ASMFLAGS := $(strip $(APP_ASMFLAGS))
 APP_LDFLAGS  := $(strip $(APP_LDFLAGS))
+
+APP_OBJC := $(strip $(APP_OBJC))
+ifdef APP_OBJC
+    $(call ndk-objc-check,$(APP_OBJC))
+endif
+
+ifndef APP_OBJC
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_STL),$(findstring shared,$(lib)))),)
+        APP_OBJC := $(DEFAULT_LIBOBJC)_shared
+    else
+        APP_OBJC := $(DEFAULT_LIBOBJC)_static
+    endif
+endif
+$(call ndk_log,Using APP_OBJC: $(APP_OBJC))
 
 # Check that APP_STL is defined. If not, use the default value (system)
 # otherwise, check that the name is correct.
