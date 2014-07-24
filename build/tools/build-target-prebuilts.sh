@@ -179,9 +179,9 @@ for abi in $ABIS; do
   esac
 done
 
-dump "Building $ABIS gnuobjc binaries..."
-run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
-fail_panic "Could not build gnuobjc!"
+#dump "Building $ABIS gnuobjc binaries..."
+#run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+#fail_panic "Could not build gnuobjc!"
 
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
     GNUSTL_STATIC_VIS_FLAG=--visible-libgnustl-static
