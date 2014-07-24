@@ -213,7 +213,12 @@ build_gnuobjc_for_abi ()
 
     # Now, prepare final static/shared libraries
     echo "$PROJECT: preparing static/shared binaries"
-    local LIBDIR=$INSTALLDIR/$ABI_CONFIGURE_TARGET/lib
+    local LDIR=lib
+    if [ "$ARCH" != "${ARCH%%64*}" ]; then
+        # todo zuav: Can't call $(get_default_libdir_for_arch $ARCH) which contain hack for arm64 and mips64
+        LDIR=lib64
+    fi
+    local LIBDIR=$INSTALLDIR/$ABI_CONFIGURE_TARGET/$LDIR
     for dir in $LIBDIR $LIBDIR/armv7-a; do
         [ -d $dir ] || continue
 
@@ -254,18 +259,26 @@ copy_gnuobjc_libs ()
 
     rm -rf "$DDIR/libs/$ABI"
 
+    local LDIR=lib
+    if [ "$ARCH" != "${ARCH%%64*}" ]; then
+        # todo zuav: Can't call $(get_default_libdir_for_arch $ARCH) which contain hack for arm64 and mips64
+        LDIR=lib64
+    fi
     # Copy the ABI-specific libraries
-    copy_file_list "$SDIR/$PREFIX/lib" "$DDIR/libs/$ABI" libgnuobjc_static.a libgnuobjc_shared.so
+    copy_file_list "$SDIR/$PREFIX/$LDIR" "$DDIR/libs/$ABI" libgnuobjc_static.a libgnuobjc_shared.so
     if [ -d $SDIR/$PREFIX/lib/armv7-a ]; then
-        copy_file_list "$SDIR/$PREFIX/lib/armv7-a" "$DDIR/libs/armeabi-v7a" libgnuobjc_static.a libgnuobjc_shared.so
+        copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a" "$DDIR/libs/armeabi-v7a" libgnuobjc_static.a libgnuobjc_shared.so
     fi
 }
 
 GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
-dump "Building for gcc versions: $GCC_VERSION_LIST"
+dump "Building for abis: $ABIS; gcc versions: $GCC_VERSION_LIST"
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
-        if [ "$ABI" = "arm64-v8a" ]; then
+        if [ "$ABI" != "arm64-v8a" ]; then
+            build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
+            copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
+        else
             if [ "$VERSION" != "4.9" ]; then
                 dump "Skipping $ABI and $VERSION"
             else
@@ -300,11 +313,11 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-if [ -z "$OPTION_BUILD_DIR" ]; then
-    log "Cleaning up..."
-    rm -rf $BUILD_DIR
-else
-    log "Don't forget to cleanup: $BUILD_DIR"
-fi
+#if [ -z "$OPTION_BUILD_DIR" ]; then
+#    log "Cleaning up..."
+#    rm -rf $BUILD_DIR
+#else
+#    log "Don't forget to cleanup: $BUILD_DIR"
+#fi
 
 log "Done!"
