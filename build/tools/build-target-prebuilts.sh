@@ -30,38 +30,6 @@ register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
 NO_GEN_PLATFORMS=
 register_var_option "--no-gen-platforms" NO_GEN_PLATFORMS "Don't generate platforms/ directory, use existing one"
 
-#!/bin/bash
-#
-# Copyright (C) 2011, 2013 The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Rebuild all target-specific prebuilts
-#
-
-PROGDIR=$(dirname $0)
-. $PROGDIR/prebuilt-common.sh
-
-OUT_DIR=/tmp/ndk-$USER
-OPTION_OUT_DIR=
-register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Set temporary build directory"
-
-NDK_DIR=$ANDROID_NDK_ROOT
-register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
-
-ARCHS=$DEFAULT_ARCHS
-register_var_option "--arch=<list>" ARCHS "List of target archs to build for"
-
 GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
 register_var_option "--gcc-version-list=<list>" GCC_VERSION_LIST "List of GCC versions to use for build"
 
@@ -180,7 +148,7 @@ for abi in $ABIS; do
 done
 
 #dump "Building $ABIS gnuobjc binaries..."
-#run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
+#run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
 #fail_panic "Could not build gnuobjc!"
 
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
