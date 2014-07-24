@@ -1423,10 +1423,12 @@ get_default_platform_sysroot_for_arch ()
 
 # Return the default libs dir corresponding to a given architecture
 # $1: Architecture name
+# $2: Optional llvm version
 get_default_libdir_for_arch ()
 {
     case $1 in
-      x86_64|mips64) echo "lib64" ;;
+      x86_64) echo "lib64" ;;
+      mips64) test "x$2" = "x" && echo "lib64" || echo "lib64r2" ;; # LLVM doesn't support mips64r6 yet
       arm64) echo "lib" ;; # return "lib" until aarch64 is built to look for sysroot/usr/lib64
       *) echo "lib" ;;
     esac
