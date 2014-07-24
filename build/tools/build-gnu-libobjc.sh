@@ -116,8 +116,6 @@ build_gnuobjc_for_abi ()
     local GCC_VERSION="$3"
     local SRC OBJ OBJECTS CFLAGS OLD_ABI
 
-    dump "build_gnuobjc_for_abi: ABI: $ABI; BUILDDIR: $BUILDDIR; GCC_VERSION: $GCC_VERSION"
-
     ARCH=$(convert_abi_to_arch $ABI)
 
     OLD_ABI=$ABI
@@ -126,11 +124,9 @@ build_gnuobjc_for_abi ()
     fail_panic "Could not setup target build."
 
     TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
-    dump "build_gnuobjc_for_abi: TOOLCHAIN: $TOOLCHAIN; ABI: $ABI; BUILDDIR: $BUILDDIR; GCC_VERSION: $GCC_VERSION"
     ABI_CONFIGURE_EXTRA_FLAGS=
     parse_toolchain_name $TOOLCHAIN
     ABI=$OLD_ABI
-    dump "build_gnuobjc_for_abi: TOOLCHAIN: $TOOLCHAIN; ABI: $ABI; BUILDDIR: $BUILDDIR; GCC_VERSION: $GCC_VERSION"
 
     set_toolchain_ndk $NDK_DIR $TOOLCHAIN
 
@@ -313,11 +309,11 @@ if [ -n "$PACKAGE_DIR" ] ; then
     done
 fi
 
-#if [ -z "$OPTION_BUILD_DIR" ]; then
-#    log "Cleaning up..."
-#    rm -rf $BUILD_DIR
-#else
-#    log "Don't forget to cleanup: $BUILD_DIR"
-#fi
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $BUILD_DIR
+else
+    log "Don't forget to cleanup: $BUILD_DIR"
+fi
 
 log "Done!"
