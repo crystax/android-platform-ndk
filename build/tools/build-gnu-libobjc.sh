@@ -73,7 +73,7 @@ SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
-# since we do not build armeabi-v7a specific version,
+# since we do not build armeabi-v7a, armeabi-v7a-hard specific version,
 # exclude it from the list
 if [ $(echo $ABIS | tr ' ' '\n' | grep armeabi | wc -l) -gt 1 ]; then
     ABIS="armeabi "$(echo $ABIS | tr ' ' '\n' | grep -v armeabi | tr '\n' ' ')
@@ -263,7 +263,8 @@ copy_gnuobjc_libs ()
     # Copy the ABI-specific libraries
     copy_file_list "$SDIR/$PREFIX/$LDIR" "$DDIR/libs/$ABI" libgnuobjc_static.a libgnuobjc_shared.so
     if [ -d $SDIR/$PREFIX/lib/armv7-a ]; then
-        copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a" "$DDIR/libs/armeabi-v7a" libgnuobjc_static.a libgnuobjc_shared.so
+        copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a" "$DDIR/libs/armeabi-v7a"      libgnuobjc_static.a libgnuobjc_shared.so
+        copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a" "$DDIR/libs/armeabi-v7a-hard" libgnuobjc_static.a libgnuobjc_shared.so
     fi
 }
 
@@ -271,16 +272,11 @@ GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 dump "Building for abis: $ABIS; gcc versions: $GCC_VERSION_LIST"
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
-        if [ "$ABI" != "arm64-v8a" ]; then
+        if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
+            dump "Skipping building $ABI and $VERSION"
+        else
             build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
             copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
-        else
-            if [ "$VERSION" != "4.9" ]; then
-                dump "Skipping $ABI and $VERSION"
-            else
-                build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
-                copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
-            fi
         fi
     done
 done
@@ -295,16 +291,20 @@ if [ -n "$PACKAGE_DIR" ] ; then
         fail_panic "Could not package $VERSION GNU libobjc headers!"
 
         # Then, one package per version/ABI for libraries
-        # readd armeabi-v7a to build specific package
-        for ABI in $ABIS armeabi-v7a; do
-            FILES=""
-            for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
-                FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
-            done
-            PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
-            dump "Packaging: $PACKAGE"
-            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI GNU libobjc binaries!"
+        # readd armeabi-v7a, armeabi-v7a-hard to build specific package
+        for ABI in $ABIS armeabi-v7a armeabi-v7a-hard; do
+            if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
+                dump "Skipping packaging $ABI and $VERSION"
+            else
+                FILES=""
+                for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
+                    FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
+                done
+                PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+                dump "Packaging: $PACKAGE"
+                pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+                fail_panic "Could not package $ABI GNU libobjc binaries!"
+            fi
         done
     done
 fi
