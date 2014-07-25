@@ -53,6 +53,15 @@ if [ "$HOST_OS" = "linux" ] ; then
 register_var_option "--darwin-ssh=<hostname>" DARWIN_SSH "Specify Darwin hostname to ssh to for the build."
 fi
 
+SKIP_HOST_PREBUILTS=no
+register_var_option "--skip-host-prebuilts" SKIP_HOST_PREBUILTS "Skip build of host prebuilts (toolchains etc)"
+
+SKIP_TARGET_PREBUILTS=no
+register_var_option "--skip-target-prebuilts" SKIP_TARGET_PREBUILTS "Skip build of target prebuilts (libraries etc)"
+
+SKIP_PACKAGING=no
+register_var_option "--skip-packaging" SKIP_PACKAGING "Skip packaging of just built release"
+
 # Determine the host platforms we can build for.
 # This is the current host platform, and eventually windows if
 # we are on Linux and have the mingw32 compiler installed and
@@ -126,6 +135,14 @@ if [ -z "$CANADIAN_DARWIN_BUILD" ]; then
     # 2) On MacOSX, darwin-x86 is the default, no need to be explicit.
     #
     HOST_FLAGS=$(echo "$HOST_FLAGS" | sed -e 's/darwin-x86//')
+fi
+
+if [ "$SKIP_HOST_PREBUILTS" != "no" ]; then
+    HOST_FLAGS="$HOST_FLAGS --skip-host-prebuilts"
+fi
+
+if [ "$SKIP_TARGET_PREBUILTS" != "no" ]; then
+    HOST_FLAGS="$HOST_FLAGS --skip-target-prebuilts"
 fi
 
 # Print a warning and ask the user if he really wants to do that !
@@ -319,6 +336,7 @@ fi
 
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
+    if [ "$SKIP_PACKAGING" = "no" ]; then
     dump "Generating NDK release packages"
     run $ANDROID_NDK_ROOT/build/tools/package-release.sh $VERBOSE_FLAG --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
     if [ $? != 0 ] ; then
@@ -328,6 +346,7 @@ if timestamp_check make-packages; then
     if [ -n "$ALSO_64_FLAG" ] ; then
         repack_64bit_packages "$HOST_SYSTEMS"
     fi
+    fi # SKIP_PACKAGING
     timestamp_set make-packages
 fi
 

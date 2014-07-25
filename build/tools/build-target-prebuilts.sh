@@ -112,9 +112,13 @@ for ARCH in $ARCHS; do
     done
 done
 
-FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 UNKNOWN_ABIS=$(convert_archs_to_abis $UNKNOWN_ARCH)
+FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
+
+dump "Building $ABIS libcrystax binaries..."
+run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" $FLAGS
+fail_panic "Could not build libcrystax!"
 
 dump "Building $ABIS compiler-rt binaries..."
 run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$DEFAULT_LLVM_VERSION/compiler-rt" \
@@ -169,6 +173,10 @@ fail_panic "Could not build gnustl with debug info!"
 dump "Building $ABIS libportable binaries..."
 run $BUILDTOOLS/build-libportable.sh --abis="$ABIS" $FLAGS
 fail_panic "Could not build libportable!"
+
+dump "Cleanup sysroot folders..."
+run find $NDK_DIR/platforms -name libcrystax.a -delete
+run find $NDK_DIR/platforms -name libcrystax.so -delete
 
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"

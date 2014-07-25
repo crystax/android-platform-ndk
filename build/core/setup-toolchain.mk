@@ -18,7 +18,7 @@
 #
 
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
-$(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_OBJC)
+$(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_CRYSTAX NDK_APP_OBJC)
 
 LLVM_VERSION_LIST := 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4
 NDK_64BIT_TOOLCHAIN_LIST := clang3.4 4.9
@@ -213,6 +213,7 @@ endif
 # free the dictionary of LOCAL_MODULE definitions
 $(call modules-clear)
 
+$(call ndk-crystax-select,$(NDK_APP_CRYSTAX))
 $(call ndk-objc-select,$(NDK_APP_OBJC))
 $(call ndk-stl-select,$(NDK_APP_STL))
 
@@ -224,10 +225,10 @@ include $(NDK_APP_BUILD_SCRIPT)
 # This way we get include libcrystax before and after libstdc++/libobjc
 # in linker parameters. This is needed to override some functions
 # from libstdc++ and libobjc
-#$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
+$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 $(call ndk-stl-add-dependencies,$(NDK_APP_STL))
 $(call ndk-objc-add-dependencies,$(NDK_APP_OBJC))
-#$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
+$(call ndk-crystax-add-dependencies,$(NDK_APP_CRYSTAX))
 
 # recompute all dependencies between modules
 $(call modules-compute-dependencies)

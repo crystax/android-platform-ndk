@@ -1311,7 +1311,8 @@ NDK_APP_VARS_REQUIRED :=
 NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CONLY_FLAGS APP_CXXFLAGS \
                          APP_LDFLAGS APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
                          APP_PROJECT_PATH APP_STL APP_SHORT_COMMANDS \
-                         APP_PIE APP_OBJC APP_THIN_ARCHIVE
+                         APP_PIE APP_THIN_ARCHIVE \
+                         APP_CRYSTAX APP_OBJC
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
@@ -2274,6 +2275,45 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     none,\
     cxx-stl/system,\
+    )
+
+NDK_CRYSTAX_LIST :=
+
+ndk-crystax-check = \
+    $(if $(call set_is_member,$(NDK_CRYSTAX_LIST),$1),,\
+        $(call __ndk_info,Invalid APP_CRYSTAX value: $1)\
+        $(call __ndk_info,Please use one of the following instead: $(NDK_CRYSTAX_LIST))\
+        $(call __ndk_error,Aborting))
+
+ndk-crystax-register = \
+    $(eval __ndk_crystax := $(strip $1)) \
+    $(eval NDK_CRYSTAX_LIST += $(__ndk_crystax)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).IMPORT_MODULE := $(strip $2)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).STATIC_LIBS := $(strip $3)) \
+    $(eval NDK_CRYSTAX.$(__ndk_crystax).SHARED_LIBS := $(strip $4))
+
+ndk-crystax-select = \
+    $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
+
+ndk-crystax-add-dependencies = \
+    $(foreach __module,$(__ndk_modules),\
+        $(if $(call module-is-system-prebuilt,$(__module)),,\
+            $(call module-add-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
+        )\
+    )
+
+$(call ndk-crystax-register,\
+    static,\
+    crystax,\
+    crystax_static,\
+    \
+    )
+
+$(call ndk-crystax-register,\
+    shared,\
+    crystax,\
+    ,\
+    crystax_shared\
     )
 
 ifneq (,$(NDK_UNIT_TESTS))

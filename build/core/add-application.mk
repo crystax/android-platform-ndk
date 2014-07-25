@@ -275,10 +275,17 @@ APP_RENDERSCRIPT_FLAGS := $(strip $(APP_RENDERSCRIPT_FLAGS))
 APP_ASMFLAGS := $(strip $(APP_ASMFLAGS))
 APP_LDFLAGS  := $(strip $(APP_LDFLAGS))
 
-APP_OBJC := $(strip $(APP_OBJC))
-ifdef APP_OBJC
-    $(call ndk-objc-check,$(APP_OBJC))
+ifndef APP_CRYSTAX
+    ifneq ($(strip $(foreach lib,$(APP_OBJC) $(APP_STL),$(findstring shared,$(lib)))),)
+        APP_CRYSTAX := shared
+    else
+        APP_CRYSTAX := static
+    endif
+else
+    APP_CRYSTAX := $(strip $(APP_CRYSTAX))
+    $(call ndk-crystax-check,$(APP_CRYSTAX))
 endif
+$(call ndk-log,Using APP_CRYSTAX: $(APP_CRYSTAX))
 
 ifndef APP_OBJC
     ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_STL),$(findstring shared,$(lib)))),)
@@ -286,15 +293,22 @@ ifndef APP_OBJC
     else
         APP_OBJC := $(DEFAULT_LIBOBJC)_static
     endif
+else
+    APP_OBJC := $(strip $(APP_OBJC))
+    $(call ndk-objc-check,$(APP_OBJC))
 endif
 $(call ndk_log,Using APP_OBJC: $(APP_OBJC))
 
-# Check that APP_STL is defined. If not, use the default value (system)
+# Check that APP_STL is defined. If not, use the default value
 # otherwise, check that the name is correct.
-APP_STL := $(strip $(APP_STL))
 ifndef APP_STL
-    APP_STL := system
+    ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_OBJC),$(findstring shared,$(lib)))),)
+        APP_STL := $(DEFAULT_LIBSTDCXX)_shared
+    else
+        APP_STL := $(DEFAULT_LIBSTDCXX)_static
+    endif
 else
+    APP_STL := $(strip $(APP_STL))
     $(call ndk-stl-check,$(APP_STL))
 endif
 $(call ndk_log,Using APP_STL: $(APP_STL))

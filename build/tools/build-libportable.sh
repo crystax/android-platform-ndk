@@ -125,7 +125,7 @@ build_libportable_libs_for_abi ()
     local ABI=$1
     local BUILDDIR="$2"
     local DSTDIR="$3"
-    local SRC OBJ OBJECTS CFLAGS CXXFLAGS
+    local SRC OBJ OBJECTS CFLAGS CXXFLAGS LDFLAGS
 
     mkdir -p "$BUILDDIR"
 
@@ -142,6 +142,15 @@ build_libportable_libs_for_abi ()
         GCCVER=$(get_default_gcc_version_for_arch $ARCH)
     fi
 
+    CFLAGS="$LIBPORTABLE_CFLAGS"
+    CXXFLAGS="$LIBPORTABLE_CXXFLAGS"
+    LDFLAGS="$LIBPORTABLE_LDFLAGS"
+
+    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    CFLAGS="$CFLAGS -I$CRYSTAX_SRCDIR/include"
+    CXXFLAGS="$CXXFLAGS -I$CRYSTAX_SRCDIR/include"
+    LDFLAGS="$LDFLAGS -L$CRYSTAX_SRCDIR/libs/$ABI -lcrystax"
+
     builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE"
     builder_set_srcdir "$LIBPORTABLE_SRCDIR"
     builder_set_dstdir "$DSTDIR"
@@ -149,11 +158,11 @@ build_libportable_libs_for_abi ()
     if [ -z "$VISIBLE_LIBLIBPORTABLE_STATIC" ]; then
         # No -fvisibility-inlines-hidden because it is for C++, and there is
         # no C++ code in libportable
-        builder_cflags "$LIBPORTABLE_CFLAGS" # ToDo: -fvisibility=hidden
+        builder_cflags "$CFLAGS" # ToDo: -fvisibility=hidden
     else
-        builder_cflags "$LIBPORTABLE_CFLAGS"
+        builder_cflags "$CFLAGS"
     fi
-    builder_ldflags "$LIBPORTABLE_LDFLAGS"
+    builder_ldflags "$LDFLAGS"
     builder_sources $LIBPORTABLE_SOURCES
 
     builder_set_srcdir "$CPUFEATURE_SRCDIR"

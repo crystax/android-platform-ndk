@@ -13,6 +13,9 @@ FIRST_API64_LEVEL=L
 # Default ABIs for the target prebuilt binaries.
 PREBUILT_ABIS="armeabi armeabi-v7a x86 mips armeabi-v7a-hard arm64-v8a x86_64 mips64"
 
+# Location of the libcrystax sources, relative to the NDK root directory
+CRYSTAX_SUBDIR=sources/crystax
+
 # Location of the STLport sources, relative to the NDK root directory
 STLPORT_SUBDIR=sources/cxx-stl/stlport
 

@@ -65,6 +65,12 @@ if [ "$HOST_OS" = "linux" ] ; then
 register_var_option "--darwin-ssh=<hostname>" DARWIN_SSH "Specify Darwin hostname for remote build."
 fi
 
+SKIP_HOST_PREBUILTS=no
+register_var_option "--skip-host-prebuilts" SKIP_HOST_PREBUILTS "Skip build of host prebuilts (toolchains etc)"
+
+SKIP_TARGET_PREBUILTS=no
+register_var_option "--skip-target-prebuilts" SKIP_TARGET_PREBUILTS "Skip build of target prebuilts (libraries etc)"
+
 register_try64_option
 
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
@@ -122,6 +128,7 @@ if [ "$DARWIN_SSH" ]; then
     HOST_FLAGS=$HOST_FLAGS" --darwin-ssh=$DARWIN_SSH"
 fi
 
+if [ "$SKIP_HOST_PREBUILTS" = "no" ]; then
 if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
     dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR --try-64"
     $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
@@ -130,9 +137,11 @@ fi
 dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR"
 $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
 fail_panic "Could not build host prebuilts!"
+fi # SKIP_HOST_PREBUILTS
 
 TARGET_FLAGS=$FLAGS
 
+if [ "$SKIP_TARGET_PREBUILTS" = "no" ]; then
 if [ "$SYSTEMS" = "windows" ] ; then
     dump "Done, host toolchains were built for windows only build."
 else
@@ -143,5 +152,6 @@ else
     echo "Done, see $PACKAGE_DIR:"
     ls -l $PACKAGE_DIR
 fi
+fi # SKIP_TARGET_PREBUILTS
 
 exit 0

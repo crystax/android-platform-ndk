@@ -472,6 +472,10 @@ gen_shared_libraries ()
     local FLAGS="$4"
     local CC funcs vars numfuncs numvars
 
+    if [ ! -d "$SYMDIR" -a -d "$2" ]; then
+        SYMDIR="$2"
+    fi
+
     # Let's locate the toolchain we're going to use
     CC=$(get_default_compiler_for_arch $ARCH)" $FLAGS"
 
@@ -712,6 +716,28 @@ for ARCH in $ARCHS; do
         copy_src_directory $PLATFORM_SRC/include $SYSROOT_DST/include "common system headers"
         copy_src_directory $PLATFORM_SRC/arch-$ARCH/include $SYSROOT_DST/include "$ARCH system headers"
 
+        CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
+        (
+            GOOGLEDIR=$DSTDIR/$SYSROOT_DST/include/crystax/google &&
+            cd $CRYSTAX_SRCDIR/include && \
+            for f in $(find . -print | sort | grep -v "^\.$" | grep -v "^\.\/crystax" | sed 's,^\./,,'); do
+                dstf=$DSTDIR/$SYSROOT_DST/include/$f
+                test -f $dstf || continue
+                MYSUM=$(shasum $f | awk '{print $1}')
+                DSTSUM=$(shasum $dstf | awk '{print $1}')
+                test "x$MYSUM" != "x$DSTSUM" || continue
+                d=$(dirname $f)
+                test "$d" = "." && d=""
+                mkdir -p $GOOGLEDIR
+                fail_panic "Couldn't create $GOOGLEDIR/$d to backup Google's header $f"
+                mv -f $dstf $GOOGLEDIR/$d
+                fail_panic "Couldn't move Google's header $f to $GOOGLEDIR/$d"
+            done
+        )
+
+        log "Copying libcrystax headers to \$DST/$SYSROOT_DST"
+        (cd $CRYSTAX_SRCDIR/include && tar chf - *) | (cd $DSTDIR/$SYSROOT_DST/include && tar xf -)
+
         generate_api_level "$PLATFORM" "$ARCH" "$DSTDIR"
 
         # If --minimal is not used, copy or generate binary files.
@@ -722,6 +748,9 @@ for ARCH in $ARCHS; do
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "x86 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64 $SYSROOT_DST/lib64 "x86_64 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libx32 $SYSROOT_DST/libx32 "x32 sysroot libs"
+                    for l in lib lib64 libx32; do
+                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
+                    done
                     ;;
                 mips64)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "mips -mabi=32 -mips32 sysroot libs"
@@ -729,14 +758,23 @@ for ARCH in $ARCHS; do
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr6 $SYSROOT_DST/libr6 "mips -mabi=32 -mips32r6 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64r2 $SYSROOT_DST/lib64r2 "mips -mabi=64 -mips64r2 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64 $SYSROOT_DST/lib64 "mips -mabi=64 -mips64r6 sysroot libs"
+                    for l in lib libr2 libr6 lib64 lib64r2; do
+                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
+                    done
                     ;;
                 mips)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "mips -mabi=32 -mips32 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr2 $SYSROOT_DST/libr2 "mips -mabi=32 -mips32r2 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr6 $SYSROOT_DST/libr6 "mips -mabi=32 -mips32r6 sysroot libs"
+                    for l in lib libr2 libr6; do
+                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
+                    done
                     ;;
                 *)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/$LIBDIR $SYSROOT_DST/$LIBDIR "$ARCH sysroot libs"
+                    for l in lib; do
+                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
+                    done
                     ;;
             esac
 
@@ -779,26 +817,36 @@ for ARCH in $ARCHS; do
                 gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-target le32-none-ndk"
                 gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-target le64-none-ndk"
             else
+                GEN_SHLIB_SRCS="$PLATFORM_SRC/arch-$ARCH/symbols"
+                GEN_SHLIB_SRCS="$GEN_SHLIB_SRCS $CRYSTAX_SRCDIR/symbols"
                 case "$ARCH" in
                     x86_64)
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-m32"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-m64"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libx32 "-mx32"
+                        for src in $GEN_SHLIB_SRCS; do
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-m32"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64 "-m64"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libx32 "-mx32"
+                        done
                         ;;
                     mips64)
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-mabi=32 -mips32"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64r2 "-mabi=64 -mips64r2"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-mabi=64 -mips64r6"
+                        for src in $GEN_SHLIB_SRCS; do
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-mabi=32 -mips32"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64r2 "-mabi=64 -mips64r2"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64 "-mabi=64 -mips64r6"
+                        done
                         ;;
                     mips)
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-mabi=32 -mips32"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
+                        for src in $GEN_SHLIB_SRCS; do
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-mabi=32 -mips32"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
+                        done
                         ;;
                     *)
-                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/$LIBDIR
+                        for src in $GEN_SHLIB_SRCS; do
+                            gen_shared_libraries $ARCH $src $SYSROOT_DST/$LIBDIR
+                        done
                         ;;
                 esac
             fi

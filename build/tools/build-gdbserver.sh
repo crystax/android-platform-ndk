@@ -168,6 +168,12 @@ BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
 
+ABI=$(echo $(commas_to_spaces $(convert_arch_to_abi $ARCH)) | tr -s ' ' '\n' | head -n 1)
+run mkdir -p "$BUILD_SYSROOT/usr/lib"
+run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/libcrystax.a "$BUILD_SYSROOT/usr/lib"
+
+(cd $BUILD_SYSROOT/usr/include/crystax/google && tar chf - *) | (cd $BUILD_SYSROOT/usr/include && tar xf -)
+
 LIBDIR=$(get_default_libdir_for_arch $ARCH)
 
 # Remove libthread_db to ensure we use exactly the one we want.
@@ -226,7 +232,7 @@ export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export AR="$TOOLCHAIN_PREFIX-ar" &&
 export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
 export CFLAGS="-O2 $GDBSERVER_CFLAGS"  &&
-export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined" &&
+export LDFLAGS="-lcrystax -lm -lc -static -Wl,-z,muldefs -Wl,-z,nocopyreloc -Wl,--no-undefined" &&
 run $SRC_DIR/configure \
 --host=$GDBSERVER_HOST \
 $CONFIGURE_FLAGS

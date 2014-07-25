@@ -139,11 +139,6 @@ build_gnuobjc_for_abi ()
     mkdir -p $SYSROOT && (cd $SRC_SYSROOT && tar ch *) | (cd $SYSROOT && tar x)
     fail_panic "Error while copying sysroot files. See $TMPLOG"
 
-    # todo zuav:
-    #CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-    #run copy_directory "$CRYSTAX_SRCDIR/include" "$SYSROOT/usr/include"
-    #run copy_directory "$CRYSTAX_SRCDIR/libs/$ABI" "$SYSROOT/usr/lib"
-
     # Sanity check
     if [ ! -f "$SYSROOT/usr/lib/libc.a" ]; then
         echo "ERROR: Empty sysroot! you probably need to run gen-platforms.sh before this script."

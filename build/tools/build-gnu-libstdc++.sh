@@ -205,7 +205,9 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    export LDFLAGS="-lc $EXTRA_FLAGS"
+    CRYSTAX_LDFLAGS="-lcrystax"
+
+    export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
 
     if [ "$ABI" = "armeabi-v7a" -o "$ABI" = "armeabi-v7a-hard" ]; then
         CXXFLAGS=$CXXFLAGS" -march=armv7-a -mfpu=vfpv3-d16"
