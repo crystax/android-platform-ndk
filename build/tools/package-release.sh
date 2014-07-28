@@ -385,15 +385,16 @@ if [ -d $DEVELOPMENT_ROOT/sources ] ; then
     fail_panic "Could not copy sources. Aborting."
 fi
 
-# Unpack prebuilt C++ runtimes headers and libraries
+# Unpack prebuilt Objective-C, C++ runtimes headers and libraries
 if [ -z "$PREBUILT_NDK" ]; then
     # Unpack gdbserver
     for ARCH in $ARCHS; do
         unpack_prebuilt $ARCH-gdbserver "$REFERENCE"
     done
-    # Unpack C++ runtimes
+    # Unpack Objective-C, C++ runtimes
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
+        unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     for ABI in $ABIS; do
         unpack_prebuilt gabixx-libs-$ABI "$REFERENCE"
@@ -401,6 +402,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt libcxx-libs-$ABI "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI "$REFERENCE"
+            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
         unpack_prebuilt libportable-libs-$ABI "$REFERENCE"
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
