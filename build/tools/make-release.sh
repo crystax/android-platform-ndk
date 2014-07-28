@@ -97,6 +97,11 @@ register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain
 
 extract_parameters "$@"
 
+VERBOSE_FLAG=
+if [ "$VERBOSE" = "yes" ]; then
+    VERBOSE_FLAG="--verbose"
+fi
+
 # check that only one of --also-64 and --only-64 was specified
 if [ -n "$ALSO_64_FLAG" -a -n "$ONLY_64_FLAG" ] ; then
     echo "ERROR: Can't use both --also-64 and --only-64 at the same time"
@@ -242,14 +247,14 @@ if timestamp_check build-prebuilts; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" $HOST_FLAGS
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $VERBOSE_FLAG --package-dir="$PREBUILT_DIR" --arch="$ARCHS" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" $HOST_FLAGS
         fail_panic "Can't build $HOST_SYSTEM binaries."
         timestamp_set build-host-prebuilts
     fi
     if [ -n "$DARWIN_SSH" ] ; then
         if timestamp_check build-darwin-prebuilts; then
             dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS"  --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
+            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh $VERBOSE_FLAG --package-dir="$PREBUILT_DIR" --arch="$ARCHS"  --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
             fail_panic "Can't build Darwin binaries!"
             timestamp_set build-darwin-prebuilts
         fi
@@ -261,7 +266,7 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
+    run $ANDROID_NDK_ROOT/build/tools/package-release.sh $VERBOSE_FLAG --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate proper release packages."
         exit 1
