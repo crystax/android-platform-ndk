@@ -1,0 +1,13 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := gnuobjc_static
+LOCAL_SRC_FILES := $(TOOLCHAIN_VERSION)/libs/$(TARGET_ARCH_ABI)/libgnuobjc_static.a
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/$(TOOLCHAIN_VERSION)/include
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := gnuobjc_shared
+LOCAL_SRC_FILES := $(TOOLCHAIN_VERSION)/libs/$(TARGET_ARCH_ABI)/libgnuobjc_shared.so
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/$(TOOLCHAIN_VERSION)/include
+include $(PREBUILT_SHARED_LIBRARY)

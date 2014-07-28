@@ -297,6 +297,7 @@ ifndef APP_STL
 else
     $(call ndk-stl-check,$(APP_STL))
 endif
+$(call ndk_log,Using APP_STL: $(APP_STL))
 
 $(if $(call get,$(_map),defined),\
   $(call __ndk_info,Weird, the application $(_app) is already defined by $(call get,$(_map),defined))\

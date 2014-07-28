@@ -180,7 +180,7 @@ ifdef bad_objc_extensions
 endif
 LOCAL_OBJC_EXTENSION := $(strip $(LOCAL_OBJC_EXTENSION))
 ifeq ($(LOCAL_OBJC_EXTENSION),)
-    LOCAL_OBJC_EXTENSION = .m
+    LOCAL_OBJC_EXTENSION := .m
 endif
 
 #
@@ -193,7 +193,7 @@ ifdef bad_objcpp_extensions
 endif
 LOCAL_OBJCPP_EXTENSION := $(strip $(LOCAL_OBJCPP_EXTENSION))
 ifeq ($(LOCAL_OBJCPP_EXTENSION),)
-    LOCAL_OBJCPP_EXTENSION = .mm
+    LOCAL_OBJCPP_EXTENSION := .mm
 endif
 
 #
@@ -373,6 +373,8 @@ endif
 all_source_patterns   := $(foreach _ext,$(all_source_extensions),%$(_ext))
 all_cpp_patterns      := $(foreach _ext,$(LOCAL_CPP_EXTENSION),%$(_ext))
 all_rs_patterns       := $(foreach _ext,$(LOCAL_RS_EXTENSION),%$(_ext))
+all_objc_patterns     := $(foreach _ext,$(LOCAL_OBJC_EXTENSION),%$(_ext))
+all_objcpp_patterns   := $(foreach _ext,$(LOCAL_OBJCPP_EXTENSION),%$(_ext))
 
 unknown_sources := $(strip $(filter-out $(all_source_patterns),$(LOCAL_SRC_FILES)))
 ifdef unknown_sources
@@ -400,6 +402,10 @@ LOCAL_RS_OBJECTS := $(filter %$(TARGET_OBJ_EXTENSION),$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(subst ../,__/,$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(subst :,_,$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(foreach _obj,$(LOCAL_RS_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
+
+ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
+    LOCAL_OBJCFLAGS += -fobjc-exceptions
+endif
 
 # If the module has any kind of C++ features, enable them in LOCAL_CPPFLAGS
 #
@@ -472,6 +478,12 @@ endif
 
 $(foreach src,$(filter %.c,$(LOCAL_SRC_FILES)), $(call compile-c-source,$(src),$(call get-object-name,$(src))))
 $(foreach src,$(filter %.S %.s,$(LOCAL_SRC_FILES)), $(call compile-s-source,$(src),$(call get-object-name,$(src))))
+$(foreach src,$(filter $(all_objc_patterns),$(LOCAL_SRC_FILES)),\
+    $(call compile-objc-source,$(src),$(call get-object-name,$(src)))\
+)
+$(foreach src,$(filter $(all_objcpp_patterns),$(LOCAL_SRC_FILES)),\
+    $(call compile-objc++-source,$(src),$(call get-object-name,$(src)))\
+)
 $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\
     $(call compile-cpp-source,$(src),$(call get-object-name,$(src)))\
 )

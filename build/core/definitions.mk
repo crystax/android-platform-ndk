@@ -379,6 +379,8 @@ modules-LOCALS := \
     PATH \
     SRC_FILES \
     CPP_EXTENSION \
+    OBJC_EXTENSION \
+    OBJCPP_EXTENSION \
     C_INCLUDES \
     CFLAGS \
     CONLYFLAGS \

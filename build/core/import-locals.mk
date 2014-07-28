@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 $(call assert-defined,LOCAL_MODULE)
 
-# For LOCAL_CFLAGS, LOCAL_CONLYFLAGS, LOCAL_CPPFLAGS and LOCAL_C_INCLUDES, etc,
+# For LOCAL_CFLAGS, LOCAL_CONLYFLAGS, LOCAL_OBJCFLAGS, LOCAL_CPPFLAGS and LOCAL_C_INCLUDES, etc,
 # we need to use the exported definitions of the closure of all modules
 # we depend on.
 #
@@ -31,6 +31,7 @@ all_depends := $(filter-out $(LOCAL_MODULE),$(all_depends))
 
 imported_CFLAGS     := $(call module-get-listed-export,$(all_depends),CFLAGS)
 imported_CONLYFLAGS := $(call module-get-listed-export,$(all_depends),CONLYFLAGS)
+imported_OBJCFLAGS  := $(call module-get-listed-export,$(all_depends),OBJCFLAGS)
 imported_CPPFLAGS   := $(call module-get-listed-export,$(all_depends),CPPFLAGS)
 imported_RENDERSCRIPT_FLAGS := $(call module-get-listed-export,$(all_depends),RENDERSCRIPT_FLAGS)
 imported_ASMFLAGS   := $(call module-get-listed-export,$(all_depends),ASMFLAGS)
@@ -41,6 +42,7 @@ ifdef NDK_DEBUG_IMPORTS
     $(info Imports for module $(LOCAL_MODULE):)
     $(info   CFLAGS='$(imported_CFLAGS)')
     $(info   CONLYFLAGS='$(imported_CONLYFLAGS)')
+    $(info   OBJCFLAGS='$(imported_OBJCFLAGS)')
     $(info   CPPFLAGS='$(imported_CPPFLAGS)')
     $(info   RENDERSCRIPT_FLAGS='$(imported_RENDERSCRIPT_FLAGS)')
     $(info   ASMFLAGS='$(imported_ASMFLAGS)')
@@ -55,6 +57,7 @@ endif
 #
 LOCAL_CFLAGS     := $(strip $(imported_CFLAGS) $(LOCAL_CFLAGS))
 LOCAL_CONLYFLAGS := $(strip $(imported_CONLYFLAGS) $(LOCAL_CONLYFLAGS))
+LOCAL_OBJCFLAGS  := $(strip $(imported_OBJCFLAGS) $(LOCAL_OBJCFLAGS))
 LOCAL_CPPFLAGS   := $(strip $(imported_CPPFLAGS) $(LOCAL_CPPFLAGS))
 LOCAL_RENDERSCRIPT_FLAGS := $(strip $(imported_RENDERSCRIPT_FLAGS) $(LOCAL_RENDERSCRIPT_FLAGS))
 LOCAL_ASMFLAGS := $(strip $(imported_ASMFLAGS) $(LOCAL_ASMFLAGS))
