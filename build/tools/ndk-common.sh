@@ -156,13 +156,8 @@ log2 ()
 run ()
 {
     if [ "$VERBOSE" = "yes" ] ; then
-        if [ -n "$TMPLOG" ] ; then
-            echo "## COMMAND: $@" | tee -a $TMPLOG
-            ( "$@" 2>&1 ) | tee -a $TMPLOG
-        else
-            echo "## COMMAND: $@"
-            "$@" 2>&1
-        fi
+        echo "## COMMAND: $@"
+        "$@" 2>&1
     else
         if [ -n "$TMPLOG" ] ; then
             echo "## COMMAND: $@" >> $TMPLOG
