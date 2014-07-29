@@ -158,7 +158,7 @@ run ()
     if [ "$VERBOSE" = "yes" ] ; then
         if [ -n "$TMPLOG" ] ; then
             echo "## COMMAND: $@" | tee -a $TMPLOG
-            { "$@" 2>&1 } | tee -a $TMPLOG
+            ( "$@" 2>&1 ) | tee -a $TMPLOG
         else
             echo "## COMMAND: $@"
             "$@" 2>&1
