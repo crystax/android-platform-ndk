@@ -861,7 +861,7 @@ modules-add-c++-dependencies = \
         $(if $(or $(call module-has-c++-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
             $(if $(call module-is-system-prebuilt,$(__module)),,\
                 $(call ndk_log,Module '$(__module)' has C++ sources)\
-                $(call module-add-deps,$(__module),$1,$2),\
+                $(call module-add-deps,$(__module),$1,$2)\
             )\
         )\
     )
