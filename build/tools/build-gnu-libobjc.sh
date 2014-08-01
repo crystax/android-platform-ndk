@@ -249,7 +249,8 @@ copy_gnuobjc_libs ()
     local GCC_VERSION_NO_DOT=$(echo $GCC_VERSION|sed 's/\./_/g')
     # Copy the common headers only once per gcc version
     if [ -z `var_value HAS_COMMON_HEADERS_$GCC_VERSION_NO_DOT` ]; then
-        copy_directory "$SDIR/lib/gcc/$PREFIX/$GCC_VERSION/include" "$DDIR/include"
+        local GCC_BASE_VERSION=`cat $SRCDIR/gcc/gcc-$GCC_VERSION/gcc/BASE-VER`
+        copy_directory "$SDIR/lib/gcc/$PREFIX/$GCC_BASE_VERSION/include" "$DDIR/include"
         eval HAS_COMMON_HEADERS_$GCC_VERSION_NO_DOT=true
     fi
 
