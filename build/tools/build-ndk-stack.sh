@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,6 +65,21 @@ if [ "$WITH_LIBBFD" ]; then
         exit 1
     fi
 fi
+
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=$PROGNAME-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 
 prepare_abi_configure_build
 prepare_host_build
@@ -177,11 +192,12 @@ if [ $? != 0 ]; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=$PROGNAME-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     SUBDIR=$(get_host_exec_name $PROGNAME $HOST_TAG)
     dump "Packaging: $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not create package: $PACKAGE_DIR/$ARCHIVE from $OUT"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 if [ "$OPTION_BUILD_DIR" != "yes" ]; then

@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,16 @@
 
 # Get current script name into PROGNAME
 PROGNAME=`basename $0`
+
+# Set package cache directory
+NDK_CACHE_DIR="/var/tmp/ndk-cache-$USER" 
+if [ ! -d "$NDK_CACHE_DIR" ]; then
+    mkdir -p "$NDK_CACHE_DIR"
+    if [ $? != 0 ]; then
+        echo "Failed to create cache dir $NDK_CACHE_DIR"
+        exit 1
+    fi
+fi
 
 # Find the Android NDK root, assuming we are invoked from a script
 # within its directory structure.
@@ -936,5 +946,84 @@ rotate_log ()
         fi
 
         ver=$prev
+    done
+}
+
+# Copy a given package to the cache directory
+#
+# $1: package dir
+# $2: archive file name
+cache_package ()
+{
+    local package_dir=$1
+    local archive=$2
+    log "Copying $package_dir/$archive to cache dir $NDK_CACHE_DIR."
+    cp "$package_dir/$archive" "$NDK_CACHE_DIR"
+    fail_panic "Could not cache package: $archive"
+}
+
+# Copy a given cached package if found to the given package directory
+# NB
+#    This function will exit a script on succes!
+#
+# $1: package dir
+# $2: archive file name
+# $3: optional, can be anything, prevents exit
+try_cached_package ()
+{
+    local package_dir=$1
+    local archive=$2
+
+    if [ "$package_dir" -a -e "$NDK_CACHE_DIR/$archive" ]; then
+        dump "Found cached package: $NDK_CACHE_DIR/$archive"
+        mkdir -p "$package_dir"
+        cp "$NDK_CACHE_DIR/$archive" "$package_dir"
+        fail_panic "Could not copy $archive from cache directory."
+        if [ -n "$3" ]; then
+            return 0
+        else
+            log "Done"
+            exit 0
+        fi
+    fi
+
+    return 1
+}
+
+# check that every member of the specified list is a member
+# of the second list
+#
+# $1: list of strings separated by blanks
+# $2: list of standard (permitted) values separated by blanks
+# $3: error message, optional
+check_list_values ()
+{
+    #echo "1: $1"
+    #echo "2: $2"
+    #echo "3: $3"
+
+    local list=$1
+    local standard_list=$2
+    local err_msg="bad value"
+
+    if [ -n "$3" ]; then
+        err_msg=$3
+    fi
+
+    local val=
+    local defval=
+    local good=
+    local defsys=
+    for val in $list ; do 
+        good=""
+        for defval in $standard_list ; do
+            if [ "$val" = "$defval" ] ; then
+                good="yes"
+                break
+            fi
+        done
+        if [ "$good" != "yes" ] ; then
+            panic "$err_msg: $val"
+        fi
     done
 }

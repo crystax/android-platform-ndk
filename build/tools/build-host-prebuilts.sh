@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -267,6 +267,10 @@ for SYSTEM in $SYSTEMS; do
     run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS --with-libbfd --src-dir=$SRC_DIR
     fail_panic "ndk-stack build failure!"
 
+##
+exit 1
+##
+
     echo "Building $SYSNAME ndk-depends"
     run $BUILDTOOLS/build-ndk-depends.sh $TOOLCHAIN_FLAGS
     fail_panic "ndk-depends build failure!"
@@ -357,7 +361,7 @@ for SYSTEM in $SYSTEMS; do
     done
 
     # Deploy ld.mcld
-    $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
+    run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
     fail_panic "Could not deploy ld.mcld for $SYSNAME"
 
     # We're done for this system

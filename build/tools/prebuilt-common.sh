@@ -1587,3 +1587,33 @@ case $HOST_TAG32 in
         HOST_TAG32=${HOST_TAG%%_64}
         ;;
 esac
+
+# this function should be called after all options are extracted
+CACHE_HOST_TAG=linux-x86
+set_cache_host_tag ()
+{
+    if [ "$MINGW" = "yes" ] ; then
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=windows-x86_64
+        else
+            CACHE_HOST_TAG=windows
+        fi
+    elif [ "$DARWIN" = "yes" -o "$HOST_OS" = "darwin" ] ; then
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=darwin-x86_64
+        else
+            CACHE_HOST_TAG=darwin-x86
+        fi
+    else
+        if [ "$TRY64" = "yes" ]; then
+            CACHE_HOST_TAG=linux-x86_64
+        fi        
+    fi
+}
+
+assert_cache_host_tag ()
+{
+    if [ "$CACHE_HOST_TAG" != "$HOST_TAG" ]; then
+        fail_panic "ASSERT in $PROGNAME: $CACHE_HOST_TAG != $HOST_TAG"
+    fi
+}

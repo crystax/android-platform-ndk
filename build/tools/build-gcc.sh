@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -147,6 +147,19 @@ case "$TOOLCHAIN" in
     ;;
 esac
 
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 prepare_target_build
 
 parse_toolchain_name $TOOLCHAIN
