@@ -122,10 +122,12 @@ if [ "$DARWIN_SSH" ]; then
 fi
 
 if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
-    run $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
+    dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR --try-64"
+    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
     fail_panic "Could not build host prebuilts in 64-bit!"
 fi
-run $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
+dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR"
+$PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
 fail_panic "Could not build host prebuilts!"
 
 TARGET_FLAGS=$FLAGS
@@ -133,7 +135,8 @@ TARGET_FLAGS=$FLAGS
 if [ "$SYSTEMS" = "windows" ] ; then
     dump "Done, host toolchains were built for windows only build."
 else
-    run $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
+    dump "## COMMAND: $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS $SRC_DIR"
+    $PROGDIR/build-target-prebuilts.sh $TARGET_FLAGS "$SRC_DIR"
     fail_panic "Could not build target prebuilts!"
 
     echo "Done, see $PACKAGE_DIR:"
