@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -143,6 +143,20 @@ if [ "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
     dump "Using C++ compiler: $CXX"
 fi
 
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 rm -rf $BUILD_OUT
 mkdir -p $BUILD_OUT
 
@@ -527,10 +541,11 @@ if [ -f "$SRC_DIR/SOURCES" ]; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="$TOOLCHAIN-$HOST_TAG.tar.bz2"
+    assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 dump "Done."

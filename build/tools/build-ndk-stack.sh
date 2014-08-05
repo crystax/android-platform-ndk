@@ -66,7 +66,6 @@ if [ "$WITH_LIBBFD" ]; then
     fi
 fi
 
-
 #
 # Try cached package
 #

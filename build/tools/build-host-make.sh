@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,6 +49,20 @@ if [ -z "$CUSTOM_OUT" ]; then
     OUT=$NDK_DIR/$SUBDIR
     log "Auto-config: --out=$OUT"
 fi
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-make-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 
 GNUMAKE_VERSION=3.81
 GNUMAKE_SRCDIR=$ANDROID_NDK_ROOT/sources/host-tools/make-$GNUMAKE_VERSION
@@ -102,11 +116,12 @@ run mkdir -p $(dirname "$OUT") && cp $(get_host_exec_name make) $OUT
 fail_panic "Could not copy executable to: $OUT"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-make-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 log "Cleaning up"

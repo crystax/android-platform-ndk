@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2013, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,6 +46,20 @@ do_check_option () { CHECK=yes; }
 register_option "--check" do_check_option "Check Perl"
 
 extract_parameters "$@"
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-perl-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 
 SUBDIR=$(get_prebuilt_install_prefix)
 BIN_OUT="$SUBDIR/bin/perl${HOST_EXE}"
@@ -127,11 +141,12 @@ run copy_directory "$BUILD_OUT/prefix/lib" "$NDK_DIR/$LIB_OUT"
 fail_panic "Could not copy library to: $NDK_DIR/$LIB_OUT"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-perl-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$BIN_OUT" "$LIB_OUT"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 log "Cleaning up"

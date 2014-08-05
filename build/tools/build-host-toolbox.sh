@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,6 +53,20 @@ register_jobs_option
 register_try64_option
 
 extract_parameters "$@"
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=toolbox-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 
 # Handle NDK_DIR
 if [ -z "$NDK_DIR" ] ; then
@@ -115,9 +129,10 @@ if [ "$BUILD_WINDOWS_SOURCES" ]; then
     builder_end
 
     if [ "$PACKAGE_DIR" ]; then
-        ARCHIVE=toolbox-$HOST_TAG.tar.bz2
+        assert_cache_host_tag
         dump "Packaging : $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR/echo.exe" "$SUBDIR/cmp.exe"
         fail_panic "Could not package toolbox binaires"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
     fi
 fi

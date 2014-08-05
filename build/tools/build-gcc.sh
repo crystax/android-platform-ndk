@@ -661,7 +661,7 @@ if [ -f "$SRC_DIR/SOURCES" ]; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="$TOOLCHAIN-$HOST_TAG.tar.bz2"
+    assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
   # exlude ld.mcld
@@ -673,16 +673,19 @@ if [ "$PACKAGE_DIR" ]; then
         EXCLUSIONS=$EXCLUSIONS" --exclude=$SUBDIR/$ABI_CONFIGURE_TARGET/bin/ld.mcld${HOST_EXE}"
     fi
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR" $EXCLUSIONS
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
     # package libgccunwind.a
     if [ "$HOST_OS" = "linux" -a "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
         ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
         for ABI in $ABIS; do
             FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
-            PACKAGE="$PACKAGE_DIR/libgccunwind-libs-$ABI.tar.bz2"
+            PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
             log "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI libgccunwind binaries!"
             dump "Packaging: $PACKAGE"
+            cache_package "$PACKAGE_DIR" "$PACKAGE_FILE_NAME"
         done
     fi
 fi

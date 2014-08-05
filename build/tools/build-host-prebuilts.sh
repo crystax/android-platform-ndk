@@ -265,15 +265,11 @@ for SYSTEM in $SYSTEMS; do
     # First, ndk-stack
     echo "Building $SYSNAME ndk-stack"
     run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS --with-libbfd --src-dir=$SRC_DIR
-    fail_panic "ndk-stack build failure!"
-
-##
-exit 1
-##
 
     echo "Building $SYSNAME ndk-depends"
     run $BUILDTOOLS/build-ndk-depends.sh $TOOLCHAIN_FLAGS
     fail_panic "ndk-depends build failure!"
+    fail_panic "ndk-stack build failure!"
 
     echo "Building $SYSNAME ndk-make"
     run $BUILDTOOLS/build-host-make.sh $TOOLCHAIN_FLAGS
@@ -375,5 +371,9 @@ if [ "$PACKAGE_DIR" ]; then
 else
     echo "Done"
 fi
+
+##
+exit 1
+##
 
 exit 0

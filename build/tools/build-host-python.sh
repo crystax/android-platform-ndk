@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2014 The Android Open Source Project
 # Copyright (C) 2012 Ray Donnelly <mingw.android at gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -444,6 +444,8 @@ package_host_python ()
 
     dump "$(bh_host_text) $PACKAGENAME: Packaging"
     run pack_archive "$PACKAGE" "$BLDDIR" "$SRCDIR"
+    dump "$(bh_host_text) $PACKAGENAME: Caching"
+    run cache_package "$PACKAGE_DIR" "$PACKAGENAME"
 }
 
 need_package_host_python ()
@@ -453,6 +455,36 @@ need_package_host_python ()
 
 PYTHON_VERSION=$(commas_to_spaces $PYTHON_VERSION)
 ARCHS=$(commas_to_spaces $ARCHS)
+
+# Check for cached packages
+NOT_CACHED_SYSTEMS=
+if [ "$PACKAGE_DIR" ]; then
+    for SYSTEM in $BH_HOST_SYSTEMS; do
+        for VERSION in $PYTHON_VERSION; do
+            PACKAGENAME=ndk-python-$(install_dir_from_host_tag $SYSTEM).tar.bz2
+            echo "Look for: $PACKAGENAME"
+            try_cached_package "$PACKAGE_DIR" "$PACKAGENAME" no_exit
+            if [ $? != 0 ]; then
+                if [ -z $NOT_CACHED_SYSTEMS ] ; then
+                    NOT_CACHED_SYSTEMS=$SYSTEM
+                else
+                    NOT_CACHED_SYSTEMS="$NOT_CACHED_SYSTEMS $SYSTEM"
+                fi
+            fi
+        done
+    done
+fi
+
+if [ -z "$NOT_CACHED_SYSTEMS" ] ; then
+    dump "For all systems were found cached packages."
+    exit 0;
+elif [ "$NOT_CACHED_SYSTEMS" == $BH_BUILD_TAG -a $AUTO_BUILD == "yes" ] ; then
+    dump "Skip build python for build machine only: $BH_BUILD_TAG"
+    exit 0;
+else
+    dump "Not cached systems: $NOT_CACHED_SYSTEMS"
+    BH_HOST_SYSTEMS=$NOT_CACHED_SYSTEMS
+fi
 
 # Let's build this
 for SYSTEM in $BH_HOST_SYSTEMS; do

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2013, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,20 @@ PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binaries into package directory"
 
 extract_parameters "$@"
+
+#
+# Try cached package
+#
+set_cache_host_tag
+ARCHIVE=ndk-yasm-$CACHE_HOST_TAG.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    # will exit if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
 
 set_parameters ()
 {
@@ -137,11 +151,12 @@ run mkdir -p $(dirname "$OUT") && cp $BUILD_OUT/prefix/bin/$(get_host_exec_name 
 fail_panic "Could not copy yasm"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=ndk-yasm-$HOST_TAG.tar.bz2
+    assert_cache_host_tag
     dump "Packaging: $ARCHIVE"
     mkdir -p "$PACKAGE_DIR" &&
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 log "Cleaning up"
