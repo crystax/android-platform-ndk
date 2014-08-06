@@ -372,8 +372,4 @@ else
     echo "Done"
 fi
 
-##
-exit 1
-##
-
 exit 0

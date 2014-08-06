@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2013, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -666,19 +666,48 @@ build_stl_libs_for_abi ()
     builder_end
 }
 
+# get_libstdcxx_package_name_for_abi
+# $1: ABI
+get_libstdcxx_package_name_for_abi ()
+{
+    local package_name
+    
+    package_name="${CXX_STL_PACKAGE}-libs-$1"
+    if [ "$WITH_DEBUG_INFO" ]; then
+        package_name="${package_name}-g"
+    fi
+    package_name="${package_name}.tar.bz2"
+
+    echo "$package_name"
+}
+
+BUILT_ABIS=""
 for ABI in $ABIS; do
-    build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR"
-    build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR"
-    # build thumb version of libraries for 32-bit arm
-    if [ "$ABI" != "${ABI%%arm*}" -a "$ABI" = "${ABI%%64*}" ] ; then
-        build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR" thumb
-        build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR" thumb
+    DO_BUILD_PACKAGE="yes"
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_NAME=$(get_libstdcxx_package_name_for_abi $ABI)
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+        if [ $? = 0 ]; then
+            DO_BUILD_PACKAGE="no"
+        else
+            BUILT_ABIS="$BUILT_ABIS $ABI"
+        fi
+    fi
+    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+        build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR"
+        build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR"
+        # build thumb version of libraries for 32-bit arm
+        if [ "$ABI" != "${ABI%%arm*}" -a "$ABI" = "${ABI%%64*}" ] ; then
+            build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR" thumb
+            build_stl_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR" thumb
+        fi
     fi
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    for ABI in $ABIS; do
+    for ABI in $BUILT_ABIS; do
         FILES=""
         LIB_SUFFIX="$(get_lib_suffix_for_abi $ABI)"
         for LIB in ${CXX_STL_LIB}_static.a ${CXX_STL_LIB}_shared${LIB_SUFFIX}; do
@@ -687,15 +716,13 @@ if [ -n "$PACKAGE_DIR" ] ; then
             fi
             FILES="$FILES $CXX_STL_SUBDIR/libs/$ABI/$LIB"
         done
-        PACKAGE="$PACKAGE_DIR/${CXX_STL_PACKAGE}-libs-$ABI"
-        if [ "$WITH_DEBUG_INFO" ]; then
-            PACKAGE="${PACKAGE}-g"
-        fi
-        PACKAGE="${PACKAGE}.tar.bz2"
+        PACKAGE_NAME=$(get_libstdcxx_package_name_for_abi $ABI)
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$OUT_DIR" "$FILES"
         fail_panic "Could not package $ABI $CXX_STL binaries!"
         dump "Packaging: $PACKAGE"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done
 fi
 

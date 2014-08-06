@@ -271,29 +271,51 @@ copy_gnuobjc_libs ()
 
 GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 dump "Building for abis: $ABIS; gcc versions: $GCC_VERSION_LIST"
+BUILT_GCC_VERSION_LIST=""
+BUILT_ABIS=""
 for VERSION in $GCC_VERSION_LIST; do
     for ABI in $ABIS; do
         if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
             dump "Skipping building $ABI and $VERSION"
         else
-            build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
-            copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
+            DO_BUILD_PACKAGE="yes"
+            if [ -n "$PACKAGE_DIR" ]; then
+                PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+                echo "Look for: $PACKAGE_NAME"
+                try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+                if [ $? = 0 ]; then
+                    DO_BUILD_PACKAGE="no"
+                else
+                    BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
+                    BUILT_ABIS="$BUILT_ABIS $ABI"
+                    if [ "$ABI" != "${ABI%%armeabi*}" ]; then
+                        BUILT_ABIS="$BUILT_ABIS armeabi-v7a armeabi-v7a-hard"
+                    fi
+                fi
+            fi
+            if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+                build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
+                copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
+            fi
         fi
     done
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    for VERSION in $GCC_VERSION_LIST; do
+    for VERSION in $BUILT_GCC_VERSION_LIST; do
         # First, the headers as a single package for a given gcc version
-        PACKAGE="$PACKAGE_DIR/gnu-libobjc-headers-$VERSION.tar.bz2"
+        PACKAGE_NAME="gnu-libobjc-headers-$VERSION.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$GNUOBJC_SUBDIR/$VERSION/include"
         fail_panic "Could not package $VERSION GNU libobjc headers!"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
 
         # Then, one package per version/ABI for libraries
         # readd armeabi-v7a, armeabi-v7a-hard to build specific package
-        for ABI in $ABIS armeabi-v7a armeabi-v7a-hard; do
+        PACKAGE_NAME=""
+        for ABI in $BUILT_ABIS; do
             if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
                 dump "Skipping packaging $ABI and $VERSION"
             else
@@ -301,10 +323,12 @@ if [ -n "$PACKAGE_DIR" ] ; then
                 for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
                     FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
                 done
-                PACKAGE="$PACKAGE_DIR/gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+                PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+                PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
                 dump "Packaging: $PACKAGE"
                 pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
                 fail_panic "Could not package $ABI GNU libobjc binaries!"
+                cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
             fi
         done
     done

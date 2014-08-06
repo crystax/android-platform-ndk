@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2013, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -248,23 +248,39 @@ build_compiler_rt_libs_for_abi ()
     builder_end
 }
 
+BUILT_ABIS=""
 for ABI in $ABIS; do
-    build_compiler_rt_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR"
-    build_compiler_rt_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR"
+    DO_BUILD_PACKAGE="yes"
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_NAME="compiler-rt-libs-$ABI.tar.bz2"
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+        if [ $? = 0 ]; then
+            DO_BUILD_PACKAGE="no"
+        else
+            BUILT_ABIS="$BUILT_ABIS $ABI"
+        fi
+    fi
+    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+        build_compiler_rt_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR"
+        build_compiler_rt_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR"
+    fi
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    for ABI in $ABIS; do
+    for ABI in $BUILT_ABIS; do
         FILES=""
         for LIB in libcompiler_rt_static.a libcompiler_rt_shared.so; do
             FILES="$FILES $COMPILER_RT_SUBDIR/libs/$ABI/$LIB"
         done
-        PACKAGE="$PACKAGE_DIR/compiler-rt-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="compiler-rt-libs-$ABI.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
         fail_panic "Could not package $ABI compiler-rt binaries!"
         dump "Packaging: $PACKAGE"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done
 fi
 

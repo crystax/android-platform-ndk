@@ -165,6 +165,11 @@ dump "Building $ABIS libportable binaries..."
 run $BUILDTOOLS/build-libportable.sh --abis="$ABIS" $FLAGS
 fail_panic "Could not build libportable!"
 
+###
+dump "!!!!!!!!!!!!!!!!!!"
+exit 1
+###
+
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"
 else

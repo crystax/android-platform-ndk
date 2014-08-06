@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,6 +130,21 @@ prepare_target_build
 parse_toolchain_name $TOOLCHAIN
 check_toolchain_install $NDK_DIR $TOOLCHAIN
 
+#
+# Try cached package
+#
+ARCHIVE=$ARCH-gdbserver.tar.bz2
+if [ "$PACKAGE_DIR" ]; then
+    mkdir -p "$PACKAGE_DIR"
+    fail_panic "Could not create package directory: $PACKAGE_DIR"
+    # will exit 0 if cached package found
+    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
+fi
+
+#
+# Rebuild from scratch
+#
+
 if [ -z "$PLATFORM" ]; then
    PLATFORM="android-"$(get_default_api_level_for_arch $ARCH)
 fi
@@ -247,9 +262,9 @@ if [ $? != 0 ] ; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE=$ARCH-gdbserver.tar.bz2
     dump "Packaging: $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$ANDROID_NDK_ROOT" "prebuilt/android-$ARCH/gdbserver/$DSTFILE"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
 
 log "Cleaning up."

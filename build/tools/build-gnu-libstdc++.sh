@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -372,7 +372,25 @@ copy_gnustl_libs ()
     fi
 }
 
+# get_libstdcpp_package_name_for_abi
+# $1: GCC version
+# $2: ABI
+get_libstdcpp_package_name_for_abi ()
+{
+    local package_name
+    
+    package_name="gnu-libstdc++-libs-$1-$2"
+    if [ "$WITH_DEBUG_INFO" ]; then
+        package_name="${package_name}-g"
+    fi
+    package_name="${package_name}.tar.bz2"
+
+    echo "$package_name"
+}
+
 GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
+BUILT_GCC_VERSION_LIST=""
+BUILT_ABIS=""
 for ABI in $ABIS; do
     ARCH=$(convert_abi_to_arch $ABI)
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
@@ -382,27 +400,44 @@ for ABI in $ABIS; do
             continue
         fi
 
-        build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION
-        build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION
-        # build thumb version of libraries for 32-bit arm
-        if [ "$ABI" != "${ABI%%arm*}" -a "$ABI" = "${ABI%%64*}" ] ; then
-            build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION thumb
-            build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION thumb
+        DO_BUILD_PACKAGE="yes"
+        if [ -n "$PACKAGE_DIR" ]; then
+            PACKAGE_NAME=$(get_libstdcpp_package_name_for_abi $VERSION $ABI)
+            echo "Look for: $PACKAGE_NAME"
+            try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+            if [ $? = 0 ]; then
+                DO_BUILD_PACKAGE="no"
+            else
+                BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+            fi
         fi
-        copy_gnustl_libs $ABI "$BUILD_DIR" $VERSION
+        if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+            build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION
+            build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION
+            # build thumb version of libraries for 32-bit arm
+            if [ "$ABI" != "${ABI%%arm*}" -a "$ABI" = "${ABI%%64*}" ] ; then
+                build_gnustl_for_abi $ABI "$BUILD_DIR" static $VERSION thumb
+                build_gnustl_for_abi $ABI "$BUILD_DIR" shared $VERSION thumb
+            fi
+            copy_gnustl_libs $ABI "$BUILD_DIR" $VERSION
+        fi
     done
 done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    for VERSION in $GCC_VERSION_LIST; do
+    for VERSION in $BUILT_GCC_VERSION_LIST; do
         # First, the headers as a single package for a given gcc version
-        PACKAGE="$PACKAGE_DIR/gnu-libstdc++-headers-$VERSION.tar.bz2"
+        PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$GNUSTL_SUBDIR/$VERSION/include"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
 
         # Then, one package per version/ABI for libraries
-        for ABI in $ABIS; do
+        PACKAGE_NAME=""
+        for ABI in $BUILT_ABIS; do
             if [ ! -d "$NDK_DIR/$GNUSTL_SUBDIR/$VERSION/libs/$ABI" ]; then
                 continue
             fi
@@ -443,14 +478,12 @@ if [ -n "$PACKAGE_DIR" ] ; then
                     FILES="$FILES $THUMB_FILE"
                 fi
             done
-            PACKAGE="$PACKAGE_DIR/gnu-libstdc++-libs-$VERSION-$ABI"
-            if [ "$WITH_DEBUG_INFO" ]; then
-                PACKAGE="${PACKAGE}-g"
-            fi
-            PACKAGE="${PACKAGE}.tar.bz2"
+            PACKAGE_NAME=$(get_libstdcpp_package_name_for_abi $VERSION $ABI)
+            PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI GNU libstdc++ binaries!"
+            cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
         done
     done
 fi
