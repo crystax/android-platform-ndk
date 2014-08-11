@@ -7,7 +7,7 @@
 }
 
 @property (assign) BOOL boolProperty;
-@property (copy) id stringProperty;
+@property (assign) id stringProperty;
 
 -(id) init;
 -(void) bar;
