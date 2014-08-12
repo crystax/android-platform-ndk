@@ -41,6 +41,8 @@ register_var_option "--visible-libgnustl-static" VISIBLE_LIBGNUSTL_STATIC "Do no
 
 register_jobs_option
 
+register_try64_option
+
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
 PROGRAM_DESCRIPTION=\
 "This script can be used to rebuild all the target NDK prebuilts at once.
@@ -93,6 +95,9 @@ if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
     FLAGS=$FLAGS" --package-dir=\"$PACKAGE_DIR\""
+fi
+if [ "$TRY64" = "yes" ]; then
+    FLAGS=$FLAGS" --try-64"
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 

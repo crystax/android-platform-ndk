@@ -72,6 +72,8 @@ register_var_option "--with-debug-info" WITH_DEBUG_INFO "Build with -g.  STL is 
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 SRCDIR=$(echo $PARAMETERS | sed 1q)

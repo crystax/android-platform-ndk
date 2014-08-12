@@ -98,6 +98,8 @@ do_llvm_version() {
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 if [ -n "${LLVM_VERSION}" -a -n "${GCC_VERSION}" ]; then

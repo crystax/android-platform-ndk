@@ -67,6 +67,8 @@ register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 SRCDIR=$(echo $PARAMETERS | sed 1q)

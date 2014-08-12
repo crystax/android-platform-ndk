@@ -108,15 +108,16 @@ if [ ! -z "$NO_GEN_PLATFORMS" ]; then
     FLAGS=$FLAGS" --no-gen-platforms"
 fi
 
+if [ "$TRY64" = "yes" ]; then
+    FLAGS=$FLAGS" --try-64"
+fi
+
 HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
 if [ "$GCC_VERSION_LIST" != "default" ]; then
     HOST_FLAGS=$HOST_FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 fi
 HOST_FLAGS=$HOST_FLAGS" --llvm-version-list=$(spaces_to_commas $LLVM_VERSION_LIST)"
 
-if [ "$TRY64" = "yes" ]; then
-    HOST_FLAGS=$HOST_FLAGS" --try-64"
-fi
 if [ "$DARWIN_SSH" ]; then
     HOST_FLAGS=$HOST_FLAGS" --darwin-ssh=$DARWIN_SSH"
 fi
