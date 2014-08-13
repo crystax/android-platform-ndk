@@ -323,7 +323,7 @@ if timestamp_check make-packages; then
         exit 1
     fi
     if [ -n "$ALSO_64_FLAG" ] ; then
-        repack_64_packages "$HOST_SYSTEMS_FLAGS"
+        repack_64_packages "$HOST_SYSTEMS"
     fi
     timestamp_set make-packages
 fi
