@@ -746,7 +746,7 @@ unpack_archive ()
         ZIPFLAGS=""
     else
         TARFLAGS="xpf"
-        ZIPFLAGS="q"
+        ZIPFLAGS="-q"
     fi
     case "$ARCHIVE" in
         *.zip)
