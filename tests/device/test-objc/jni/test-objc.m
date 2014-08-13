@@ -34,6 +34,8 @@
     printf("%s (3): %d\n", __PRETTY_FUNCTION__, (int)self.boolProperty);
     self.stringProperty = @"";
     printf("%s (4)\n", __PRETTY_FUNCTION__);
+    self.boolProperty = YES;
+    printf("%s (5): %d\n", __PRETTY_FUNCTION__, (int)self.boolProperty);
 }
 
 @end
