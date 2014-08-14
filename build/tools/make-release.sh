@@ -325,7 +325,7 @@ if timestamp_check make-packages; then
         dump "ERROR: Can't generate proper release packages."
         exit 1
     fi
-    if [ -n "$ALSO_64_FLAG" -o ] ; then
+    if [ -n "$ALSO_64_FLAG" ] ; then
         repack_64bit_packages "$HOST_SYSTEMS"
     fi
     timestamp_set make-packages
