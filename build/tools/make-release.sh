@@ -219,7 +219,7 @@ timestamp_check ()
 }
 
 # $1 - list of systems names
-repack_64_packages ()
+repack_64bit_packages ()
 {
     local systems=$(commas_to_spaces ${1#"--systems="})
     local repack_dir="$OUT_DIR/repack"
@@ -267,6 +267,9 @@ repack_64_packages ()
         pack_archive "$OUT_DIR/$pkg64_name" "$repack_dir"
         run rm -rf "$repack_dir"
     done
+
+    echo "Done, please see packages in $OUT_DIR:"
+    ls -l $OUT_DIR
 }
 
 dump "Building for target architectures: $ARCHS"
@@ -322,8 +325,8 @@ if timestamp_check make-packages; then
         dump "ERROR: Can't generate proper release packages."
         exit 1
     fi
-    if [ -n "$ALSO_64_FLAG" ] ; then
-        repack_64_packages "$HOST_SYSTEMS"
+    if [ -n "$ALSO_64_FLAG" -o ] ; then
+        repack_64bit_packages "$HOST_SYSTEMS"
     fi
     timestamp_set make-packages
 fi
