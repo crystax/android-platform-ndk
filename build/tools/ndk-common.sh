@@ -895,14 +895,12 @@ copy_file_list ()
     if [ ! -d "$SRCDIR" ] ; then
         panic "Cant' copy from non-directory: $SRCDIR"
     fi
+    # todo zuav: check for number of arguments?
     #log "Copying file: $@"
     log "Copying file: $1 $2 $3 ..."
     log "  from $SRCDIR"
     log "  to $DSTDIR"
-    #mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | tr ' ' '\n' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
-    #mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | sed -e 's/Additional library docs/Additional_library_docs/' | tr ' ' '\n'| sed -e 's/Additional_library_docs/Additional\\ library\\ docs/' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
     mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | sed -e 's/Additional library docs/Additional_library_docs/g' | tr ' ' '\n' | sed -e 's/Additional_library_docs/Additional\ library\ docs/g' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
-    #mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | sed -e 's/Additional library docs/Additional_library_docs/g' | tr ' ' '\n' | sed -e 's/Additional_library_docs/Additional\\ library\\ docs/g' )) > /tmp/list.txt
     fail_panic "Cannot copy files to directory: $DSTDIR"
 }
 
