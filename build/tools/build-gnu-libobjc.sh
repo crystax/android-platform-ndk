@@ -279,6 +279,9 @@ dump "Building for abis: $ABIS; gcc versions: $GCC_VERSION_LIST"
 BUILT_GCC_VERSION_LIST=""
 BUILT_ABIS=""
 for VERSION in $GCC_VERSION_LIST; do
+    PACKAGE_NAME="gnu-libobjc-headers-$VERSION.tar.bz2"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     for ABI in $ABIS; do
         if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
             dump "Skipping building $ABI and $VERSION"

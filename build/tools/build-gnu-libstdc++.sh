@@ -393,6 +393,11 @@ get_libstdcpp_package_name_for_abi ()
 GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 BUILT_GCC_VERSION_LIST=""
 BUILT_ABIS=""
+for VERSION in $GCC_VERSION_LIST; do
+    PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.bz2"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+done
 for ABI in $ABIS; do
     ARCH=$(convert_abi_to_arch $ABI)
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
