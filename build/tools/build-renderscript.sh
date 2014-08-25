@@ -58,7 +58,7 @@ else
             esac
         fi
         cp "$SRCDIR/renderscript-$SYSNAME.tar.bz2" "$PACKAGE_DIR/"
-        fail_panic "Failed to copy $SRCDIR/renderscript-$SYSTEM.tar.bz2 to $PACKAGE_DIR/"
+        fail_panic "Failed to copy $SRCDIR/renderscript-$SYSNAME.tar.bz2 to $PACKAGE_DIR/"
     done
 fi
 
