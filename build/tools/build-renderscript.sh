@@ -34,6 +34,8 @@ register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Archive binary into specific directory"
 
+register_try64_option
+
 extract_parameters "$@"
 
 SRCDIR=$ANDROID_NDK_ROOT/../../platform/prebuilts/rs
@@ -44,8 +46,19 @@ else
     cp "$SRCDIR/renderscript.tar.bz2" "$PACKAGE_DIR/"
     fail_panic "Failed to copy $SRCDIR/renderscript.tar.bz2 to $PACKAGE_DIR/"
     for SYSTEM in $SYSTEMS; do
-        cp "$SRCDIR/renderscript-$SYSTEM.tar.bz2" "$PACKAGE_DIR/"
-        fail_panic "Failed to copy $SRCDIR/renderscript.tar.bz2 to $PACKAGE_DIR/"
+        SYSNAME=$SYSTEM
+        if [ "$TRY64" = "yes" ]; then
+            case $SYSTEM in
+                darwin-x86|linux-x86)
+                    SYSNAME=${SYSTEM%%x86}x86_64
+                    ;;
+                windows)
+                    SYSNAME=windows-x86_64
+                    ;;
+            esac
+        fi
+        cp "$SRCDIR/renderscript-$SYSNAME.tar.bz2" "$PACKAGE_DIR/"
+        fail_panic "Failed to copy $SRCDIR/renderscript-$SYSTEM.tar.bz2 to $PACKAGE_DIR/"
     done
 fi
 

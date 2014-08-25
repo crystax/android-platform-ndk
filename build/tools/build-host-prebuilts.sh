@@ -363,7 +363,7 @@ for SYSTEM in $SYSTEMS; do
     # We're done for this system
 done
 
-run $BUILDTOOLS/build-renderscript.sh --systems=$SYSTEMS --package-dir="$PACKAGE_DIR"
+run $BUILDTOOLS/build-renderscript.sh --systems=$SYSTEMS $FLAGS
 fail_panic "Could not build RenderScript binaries!"
 
 # Build tools common to all system
