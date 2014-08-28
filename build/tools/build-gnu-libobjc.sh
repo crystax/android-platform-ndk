@@ -211,14 +211,14 @@ build_gnuobjc_for_abi ()
         LDIR=lib64
     fi
     local LIBDIR=$INSTALLDIR/$ABI_CONFIGURE_TARGET/$LDIR
-    # todo: zuav:
-    #for dir in $LIBDIR $LIBDIR/armv7-a $LIBDIR/armv7-a/hard; do
-    for dir in $LIBDIR $LIBDIR/armv7-a; do
+    for dir in $LIBDIR $LIBDIR/armv7-a $LIBDIR/armv7-a/hard; do
         [ -d $dir ] || continue
         
         local hardopts=
+        local hardoptsld=
         if [ "$dir" = "$LIBDIR/armv7-a/hard" ]; then
             hardopts="-mhard-float -mfloat-abi=hard"
+            hardoptsld=",-lm_hard,--no-warn-mismatch"
         fi
 
         run mv $dir/libobjc.a $dir/libgnuobjc_static.a
@@ -227,7 +227,7 @@ build_gnuobjc_for_abi ()
         run cd $BUILDDIR/shared &&
         run $TOOLCHAIN_PREFIX-ar x $dir/libgnuobjc_static.a &&
         run $TOOLCHAIN_PREFIX-gcc $hardopts -o $dir/libgnuobjc_shared.so \
-            -shared -Wl,-soname,libgnuobjc_shared.so --sysroot=$SYSROOT *.o
+            -shared -Wl,-soname,libgnuobjc_shared.so$hardoptsld --sysroot=$SYSROOT *.o
         fail_panic "Could not prepare final static/shared binaries for $PROJECT"
         run rm -rf $BUILDDIR/shared
     done
@@ -269,8 +269,7 @@ copy_gnuobjc_libs ()
     copy_file_list "$SDIR/$PREFIX/$LDIR" "$DDIR/libs/$ABI" libgnuobjc_static.a libgnuobjc_shared.so
     if [ -d $SDIR/$PREFIX/$LDIR/armv7-a ]; then
         copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a"      "$DDIR/libs/armeabi-v7a"      libgnuobjc_static.a libgnuobjc_shared.so
-        # todo: zuav
-        #copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a/hard" "$DDIR/libs/armeabi-v7a-hard" libgnuobjc_static.a libgnuobjc_shared.so
+        copy_file_list "$SDIR/$PREFIX/$LDIR/armv7-a/hard" "$DDIR/libs/armeabi-v7a-hard" libgnuobjc_static.a libgnuobjc_shared.so
     fi
 }
 
@@ -297,9 +296,7 @@ for VERSION in $GCC_VERSION_LIST; do
                     BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
                     BUILT_ABIS="$BUILT_ABIS $ABI"
                     if [ "$ABI" != "${ABI%%armeabi*}" ]; then
-                        # todo: zuav:
-                        #BUILT_ABIS="$BUILT_ABIS armeabi-v7a armeabi-v7a-hard"
-                        BUILT_ABIS="$BUILT_ABIS armeabi-v7a"
+                        BUILT_ABIS="$BUILT_ABIS armeabi-v7a armeabi-v7a-hard"
                     fi
                 fi
             fi
