@@ -292,6 +292,12 @@ for VERSION in $GCC_VERSION_LIST; do
                 try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
                 if [ $? = 0 ]; then
                     DO_BUILD_PACKAGE="no"
+                    if [ "$ABI" == "armeabi" ]; then
+                        # todo zuav: check for absent packages and
+                        # rebuild all armeabi if v7a or v7a-hard packages not found
+                        try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a.tar.bz2" no_exit
+                        try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a-hard.tar.bz2" no_exit
+                    fi
                 else
                     BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
                     BUILT_ABIS="$BUILT_ABIS $ABI"
