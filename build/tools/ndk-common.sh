@@ -383,10 +383,18 @@ case "$HOST_OS" in
         ;;
     windows|cygwin)
         HOST_NUM_CPUS=$NUMBER_OF_PROCESSORS
+        if [ -z "$HOST_NUM_CPUS" ]; then
+            # In case we're running shell from Cygwin SSH, we have no $NUMBER_OF_PROCESSORS
+            # In such case detect it in another way
+            HOST_NUM_CPUS=`cmd /c "echo %NUMBER_OF_PROCESSORS%" 2>/dev/null | tr -d '\r'`
+        fi
         ;;
     *)  # let's play safe here
         HOST_NUM_CPUS=1
 esac
+
+test -z "$HOST_NUM_CPUS" && HOST_NUM_CPUS=1
+test $HOST_NUM_CPUS -lt 1 && HOST_NUM_CPUS=1
 
 log2 "HOST_NUM_CPUS=$HOST_NUM_CPUS"
 
