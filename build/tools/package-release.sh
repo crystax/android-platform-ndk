@@ -374,7 +374,7 @@ rm -rf $REFERENCE/tests/build/*/{obj,libs} &&
 rm -rf $REFERENCE/tests/device/*/{obj,libs}
 
 # Regenerate HTML documentation, place the files under .../docs/
-$NDK_ROOT_DIR/build/tools/build-docs.sh \
+run $NDK_ROOT_DIR/build/tools/build-docs.sh \
     --in-dir=$NDK_ROOT_DIR/docs/text \
     --out-dir=$REFERENCE/docs
 
