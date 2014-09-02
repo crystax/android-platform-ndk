@@ -91,10 +91,6 @@ while [ -n "$1" ]; do
         --platform=*)
             PLATFORM="$optarg"
 	    ;;
-        --toolchain-version=*)
-            # zuav todo: check toolchain version
-            export NDK_TOOLCHAIN_VERSION="$optarg"
-            ;;
         --test-dir=*)
             TEST_DIR="$optarg"
             ;;
@@ -171,10 +167,6 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    -j<N> --jobs=<N>  Launch parallel builds [$JOBS]"
     echo "    --abi=<name>      Only run tests for the specific ABI [$ABI]"
     echo "    --platform=<name> Force API level for testing; platform=<android-x>"
-# zuav todo: output possible toolchain versions
-    echo "    --toolchain-version=<version>"
-    echo "                      Force toolchain version for testing;"
-    echo "                      variants: 4.6, 4.8, 4.9, clang3.3, clang3.4"
     echo "    --adb=<file>      Specify adb executable for device tests"
     echo "    --only-samples    Only rebuild samples"
     echo "    --only-build      Only rebuild build tests"
