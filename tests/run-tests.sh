@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright (C) 2010, 2014 The Android Open Source Project
 #
@@ -18,6 +18,10 @@
 #  "Build tests" are tests that check the building features of the NDK
 #  but do not run anything on target devices/emulators.
 #
+
+# theses global variables are required to correctly set exit code
+NUM_FAILED_BUILDS=0
+NUM_FAILED_DEVICE_TESTS=0
 
 #  You need to define the NDK
 
@@ -616,7 +620,7 @@ compile_on_the_fly()
       sleep 3
       sleep_seconds="`echo $sleep_seconds + 3 | bc`"
     done
-    ret="`$ADB_CMD -s "$DEVICE" shell cat $DSTDIR/compile_result`"
+    local ret="`$ADB_CMD -s "$DEVICE" shell cat $DSTDIR/compile_result`"
     ret=`echo $ret | tr -d "\r\n"`
     if [ $sleep_seconds -gt $threshold ] || [ "$ret" != "0" ]; then
       dump "ERROR: Could not compile bitcodes for $TEST_NAME on device"
@@ -650,18 +654,21 @@ build_project ()
     rm -rf "$DIR" && cp -r "$1" "$DIR"
     # build it
     (run cd "$DIR" && run_ndk_build $NDK_BUILD_FLAGS)
-    RET=$?
+    local RET=$?
     if [ -f "$1/BUILD_SHOULD_FAIL" ]; then
         if [ $RET = 0 ]; then
             echo "!!! FAILURE: BUILD SHOULD HAVE FAILED [$1]"
             if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
                 exit 1
             fi
+            RET=1
+        else
+            log "!!! SUCCESS: BUILD FAILED AS EXPECTED [$(basename $1)]"
+            RET=0
         fi
-        log "!!! SUCCESS: BUILD FAILED AS EXPECTED [$(basename $1)]"
-        RET=0
     fi
     if [ $RET != 0 ] ; then
+        (( NUM_FAILED_BUILDS += 1 ))
         echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
         if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
             exit 1
@@ -743,6 +750,7 @@ if is_testable build; then
             export NDK
             (cd "$DIR" && run ./build.sh -j$JOBS $NDK_BUILD_FLAGS)
             if [ $? != 0 ]; then
+                (( NUM_FAILED_BUILDS += 1 ))
                 echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
                 if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
                     exit 1
@@ -837,6 +845,7 @@ if is_testable device; then
             done
             compile_on_the_fly $DSTDIR/abcc_tmp
             if [ $? -ne 0 ]; then
+                (( NUM_FAILED_BUILDS += 1 ))
                 test "$CONTINUE_ON_BUILD_FAIL" != "yes" && exit 1
                 return 1
             fi
@@ -909,6 +918,7 @@ if is_testable device; then
             dump "Running device test [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
             adb_var_shell_cmd "$DEVICE" "" "cd $DSTDIR && LD_LIBRARY_PATH=$DSTDIR ./$PROGRAM"
             if [ $? != 0 ] ; then
+                (( NUM_FAILED_DEVICE_TESTS += 1 ))
                 dump "   ---> TEST FAILED!!"
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm -f $DSTPATH"
@@ -1009,4 +1019,9 @@ if [ "$ABI" = "$(find_ndk_unknown_archs)" ]; then
   run rm -rf $NDK/$LIBPORTABLE_SUBDIR/libs/$ABI
 fi
 rm -rf $BUILD_DIR
+
+dump "Number of failed builds:       $NUM_FAILED_BUILDS"
+dump "Number of failed device tests: $NUM_FAILED_DEVICE_TESTS"
 dump "Done."
+
+exit $(( NUM_FAILED_BUILDS + NUM_FAILED_DEVICE_TESTS ))
