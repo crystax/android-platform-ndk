@@ -248,7 +248,7 @@ repack_64bit_packages ()
         esac
         #
         echo "Repacking $sys packages"
-        pkg32_name=`ls $OUT_DIR/android-ndk-*-$sys.$pkg_ext`
+        pkg32_name=`ls $OUT_DIR/$PREFIX-*-$sys.$pkg_ext`
         pkg32_name=${pkg32_name#"$OUT_DIR/"}
         pkg64_name=${pkg32_name/"-x86"/"-x86_64"}
         tools64_name=${pkg32_name/"-x86"/"-x86-64bit-tools"}
