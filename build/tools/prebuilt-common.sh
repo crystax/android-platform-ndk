@@ -608,16 +608,16 @@ probe_darwin_sdk ()
 {
     if [ -n "$DARWIN_SYSROOT" ]; then
         if check_darwin_sdk "$DARWIN_SYSROOT"; then
-            dump "Use darwin sysroot $DARWIN_SYSROOT"
+            log "Use darwin sysroot $DARWIN_SYSROOT"
         else
             echo "darwin sysroot $DARWIN_SYSROOT is not valid"
             exit 1
         fi
     elif check_darwin_sdk /Developer/SDKs/MacOSX10.6.sdk 10.6; then
-        dump "Generating Snow Leopard-compatible binaries!"
+        log "Generating Snow Leopard-compatible binaries!"
     else
         local version=`sw_vers -productVersion`
-        dump "Generating $version-compatible binaries!"
+        log "Generating $version-compatible binaries!"
     fi
 }
 
