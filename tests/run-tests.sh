@@ -203,12 +203,8 @@ adb_var_shell_cmd ()
     ADB_SHELL_CMD_LOG=$(mktemp -t XXXXXXXX)
     # Run the command, while storing the standard output to ADB_SHELL_CMD_LOG
     # and appending the exit code as the last line.
-    if [ $VERBOSE = "yes" ] ; then
-        echo "$ADB_CMD -s \"$DEVICE\" shell \"$@\""
-        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG
-    else
-        $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' > $ADB_SHELL_CMD_LOG
-    fi
+    log "$ADB_CMD -s \"$DEVICE\" shell \"$@\""
+    $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG | catlog
     # Get last line in log, which contains the exit code from the command
     RET=`sed -e '$!d' $ADB_SHELL_CMD_LOG`
     # Get output, which corresponds to everything except the last line
@@ -369,7 +365,7 @@ run_awk_test ()
     fi
     cmp -s "$OUTPUT" "$EXPECTED"
     if [ $? = 0 ] ; then
-        echo "Awk script: $SCRIPT_NAME: passed $INPUT_NAME"
+        dump "Awk script: $SCRIPT_NAME: passed $INPUT_NAME"
         if [ "$VERBOSE2" = "yes" ]; then
             cat "$OUTPUT"
         fi
@@ -377,7 +373,7 @@ run_awk_test ()
         if [ "$VERBOSE" = "yes" ]; then
             run diff -burN "$EXPECTED" "$OUTPUT"
         fi
-        echo "Awk script: $SCRIPT_NAME: $INPUT_NAME FAILED!!"
+        dump "Awk script: $SCRIPT_NAME: $INPUT_NAME FAILED!!"
         rm -f "$OUTPUT"
         exit 1
     fi
@@ -390,13 +386,13 @@ run_awk_test_dir ()
     local INPUT
     local OUTPUT
     if [ ! -f "$SCRIPT" ]; then
-        echo "Awk script: $SCRIPT_NAME: Missing script: $SCRIPT"
+        dump "Awk script: $SCRIPT_NAME: Missing script: $SCRIPT"
         continue
     fi
     for INPUT in `ls "$PROGDIR"/awk/$SCRIPT_NAME/*.in`; do
         OUTPUT=`echo $INPUT | sed 's/\.in$/.out/g'`
         if [ ! -f "$OUTPUT" ]; then
-            echo "Awk script: $SCRIPT_NAME: Missing awk output file: $OUTPUT"
+            dump "Awk script: $SCRIPT_NAME: Missing awk output file: $OUTPUT"
             continue
         fi
         run_awk_test "$SCRIPT" "$INPUT" "$OUTPUT"
@@ -528,9 +524,9 @@ is_broken_build ()
             if [ ! -s "$PROJECT/BROKEN_BUILD" ] ; then
                 # skip all
                 if [ -z "$ERRMSG" ] ; then
-                    echo "Skipping `basename $PROJECT`: (build)"
+                    dump "Skipping `basename $PROJECT`: (build)"
                 else
-                    echo "Skipping $ERRMSG: `basename $PROJECT`"
+                    dump "Skipping $ERRMSG: `basename $PROJECT`"
                 fi
                 return 0
             else
@@ -540,9 +536,9 @@ is_broken_build ()
                 grep -q -e "$TARGET_TOOLCHAIN_VERSION" "$PROJECT/BROKEN_BUILD"
                 if [ $? = 0 ] ; then
                     if [ -z "$ERRMSG" ] ; then
-                        echo "Skipping `basename $PROJECT`: (no build for $TARGET_TOOLCHAIN_VERSION)"
+                        dump "Skipping `basename $PROJECT`: (no build for $TARGET_TOOLCHAIN_VERSION)"
                     else
-                        echo "Skipping $ERRMSG: `basename $PROJECT` (no build for $TARGET_TOOLCHAIN_VERSION)"
+                        dump "Skipping $ERRMSG: `basename $PROJECT` (no build for $TARGET_TOOLCHAIN_VERSION)"
                     fi
                     return 0
                 fi
@@ -551,9 +547,9 @@ is_broken_build ()
                     grep -q -e "$PLATFORM" "$PROJECT/BROKEN_BUILD" || grep -q -e "android-forced" "$PROJECT/BROKEN_BUILD"
                     if [ $? = 0 ] ; then
                         if [ -z "$ERRMSG" ] ; then
-                            echo "Skipping `basename $PROJECT`: (no build for $PLATFORM)"
+                            dump "Skipping `basename $PROJECT`: (no build for $PLATFORM)"
                         else
-                            echo "Skipping $ERRMSG: `basename $PROJECT` (no build for $PLATFORM)"
+                            dump "Skipping $ERRMSG: `basename $PROJECT` (no build for $PLATFORM)"
                         fi
                         return 0
                     fi
@@ -582,7 +578,7 @@ is_incompatible_abi ()
           APP_ABIS="${APP_ABIS_FRONT}${ALL_ABIS}${APP_ABIS_BACK}"
         fi
         if [ "$APP_ABIS" = "${APP_ABIS%$ABI *}" ] ; then
-            echo "Skipping `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
+            dump "Skipping `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
             return 0
         fi
     fi
@@ -657,7 +653,7 @@ build_project ()
     local RET=$?
     if [ -f "$1/BUILD_SHOULD_FAIL" ]; then
         if [ $RET = 0 ]; then
-            echo "!!! FAILURE: BUILD SHOULD HAVE FAILED [$1]"
+            dump "!!! FAILURE: BUILD SHOULD HAVE FAILED [$1]"
             if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
                 exit 1
             fi
@@ -669,7 +665,7 @@ build_project ()
     fi
     if [ $RET != 0 ] ; then
         (( NUM_FAILED_BUILDS += 1 ))
-        echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
+        dump "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
         if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
             exit 1
         fi
@@ -713,7 +709,7 @@ if is_testable samples; then
 
     build_sample ()
     {
-        echo "Building NDK sample: `basename $1`"
+        dump "Building NDK sample: `basename $1`"
         build_project $1 "no"
     }
 
@@ -734,7 +730,7 @@ if is_testable build; then
     build_build_test ()
     {
         local NAME="$(basename $1)"
-        echo "Building NDK build test: `basename $1`"
+        dump "Building NDK build test: `basename $1`"
         if [ -f $1/build.sh ]; then
             local DIR="$BUILD_DIR/$NAME"
             if [ -f "$1/jni/Android.mk" -a -f "$1/jni/Application.mk" ] ; then
@@ -751,7 +747,7 @@ if is_testable build; then
             (cd "$DIR" && run ./build.sh -j$JOBS $NDK_BUILD_FLAGS)
             if [ $? != 0 ]; then
                 (( NUM_FAILED_BUILDS += 1 ))
-                echo "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
+                dump "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
                 if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
                     exit 1
                 fi
@@ -779,7 +775,7 @@ if is_testable device; then
         if is_broken_build $1 "broken device test build"; then
             return 0;
         fi
-        echo "Building NDK device test: `basename $1`"
+        dump "Building NDK device test: `basename $1`"
         build_project $1 "yes"
     }
 

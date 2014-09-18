@@ -163,6 +163,16 @@ log2 ()
     fi
 }
 
+catlog ()
+{
+    if [ "$VERBOSE" = "yes" ] ; then
+        cat
+    fi
+    if [ -n "$TMPLOG" ] ; then
+        cat >> $TMPLOG
+    fi
+}
+
 run ()
 {
     if [ "$VERBOSE" = "yes" ] ; then
