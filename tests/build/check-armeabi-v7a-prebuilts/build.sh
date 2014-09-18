@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # The purpose of this dummy build test is to ensure that all the
 # armeabi-v7a prebuilt binaries distributed with the NDK were
@@ -7,13 +7,22 @@
 # For a related bug, see http://code.google.com/p/android/issues/detail?id=26199
 #
 
+if which greadelf >/dev/null 2>&1; then
+    READELF=greadelf
+elif which readelf >/dev/null 2>&1; then
+    READELF=readelf
+else
+    echo "ERROR: readelf not found" 1>&2
+    exit 1
+fi
+
 #
 # $1: ELF binary
 # $2: Tag name (e.g. Tag_CPU_name)
 #
 extract_arch_tag ()
 {
-    echo $(readelf -A "$1" | awk '$1 == "'$2':" { print $2; }' | sort -u | tr '\n' ' ')
+    echo $($READELF -A "$1" | awk '$1 == "'$2':" { print $2; }' | sort -u | tr '\n' ' ')
 }
 
 # Returns success only if a file is a static object or library.

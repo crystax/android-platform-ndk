@@ -1,3 +1,14 @@
+#!/bin/bash
+
+if which greadelf >/dev/null 2>&1; then
+    READELF=greadelf
+elif which readelf >/dev/null 2>&1; then
+    READELF=readelf
+else
+    echo "ERROR: readelf not found" 1>&2
+    exit 1
+fi
+
 # Check that the libc.so for all platforms, and all architectures
 # Does not export 'atexit' and '__dso_handle' symbols.
 #
@@ -18,12 +29,12 @@ COUNT=0
 for LIB in $LIBRARIES; do
   COUNT=$(( $COUNT + 1 ))
   echo "Checking: $LIB"
-  readelf -s $LIB | grep -q -F " atexit"
+  $READELF -s $LIB | grep -q -F " atexit"
   if [ $? = 0 ]; then
     echo "ERROR: $NDK/$LIB exposes 'atexit'!" >&2
     FAILURE=true
   fi
-  readelf -s $LIB | grep -q -F " __dso_handle"
+  $READELF -s $LIB | grep -q -F " __dso_handle"
   if [ $? = 0 ]; then
     echo "ERROR: $NDK/$LIB exposes '__dso_handle'!" >&2
     FAILURE=true
