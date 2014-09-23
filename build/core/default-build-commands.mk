@@ -110,7 +110,7 @@ cmd-strip = $(PRIVATE_STRIP) --strip-unneeded $(call host-path,$1)
 cmd-add-gnu-debuglink = $(PRIVATE_OBJCOPY) --add-gnu-debuglink=$(strip $(call host-path,$2)) $(call host-path,$1)
 
 TARGET_LIBGCC = -lgcc
-TARGET_LDLIBS := -lc -lm
+TARGET_LDLIBS := -lcrystax -lc -lm
 
 #
 # IMPORTANT: The following definitions must use lazy assignment because
