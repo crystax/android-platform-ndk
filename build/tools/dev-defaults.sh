@@ -254,7 +254,8 @@ get_toolchain_name_list_for_arch ()
 get_default_binutils_version_for_gcc ()
 {
     case $1 in
-        mipsel-*-4.4.3|*-4.6) echo "$DEFAULT_BINUTILS_VERSION";;
+        mips*) echo "2.24";;
+        *-4.6) echo "$DEFAULT_BINUTILS_VERSION";;
         *-4.4.3) echo "2.19";;
         x86*-4.7) echo "2.23";;  # Use 2.23 to get x32 support in ld.gold
         *-4.7) echo "2.22";;
