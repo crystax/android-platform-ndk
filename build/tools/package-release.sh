@@ -365,6 +365,9 @@ else
     fail_panic "Could not copy platform files. Aborting."
 fi
 
+# Remove auto-generated libcrystax.* stubs from platforms
+find $REFERENCE/platforms -name 'libcrystax.*' -delete
+
 # Remove the source for host tools to make the final package smaller
 rm -rf $REFERENCE/sources/host-tools
 
