@@ -112,9 +112,9 @@ for ARCH in $ARCHS; do
     done
 done
 
+FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 UNKNOWN_ABIS=$(convert_archs_to_abis $UNKNOWN_ARCH)
-FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 
 dump "Building $ABIS libcrystax binaries..."
 run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" $FLAGS
