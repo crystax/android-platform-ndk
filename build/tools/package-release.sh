@@ -400,6 +400,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     for ABI in $ABIS; do
+        unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
         unpack_prebuilt gabixx-libs-$ABI "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI "$REFERENCE"
         unpack_prebuilt libcxx-libs-$ABI "$REFERENCE"
@@ -452,6 +453,15 @@ for SYSTEM in $SYSTEMS; do
     if [ "$PREBUILT_NDK" ]; then
         cd $UNZIP_DIR/android-ndk-* && cp -rP toolchains/* $DSTDIR/toolchains/
         fail_panic "Could not copy toolchain files from $PREBUILT_NDK"
+
+        if [ -d "$DSTDIR/$CRYSTAX_SUBDIR" ]; then
+            CRYSTAX_ABIS=$PREBUILT_ABIS $UNKNOWN_ABIS
+            for CRYSTAX_ABI in $CRYSTAX_ABIS; do
+                copy_prebuilt "$CRYSTAX_SUBDIR/libs/$CRYSTAX_ABI" "$CRYSTAX_SUBDIR/libs"
+            done
+        else
+            echo "WARNING: Could not find CrystaX source tree!"
+        fi
 
         if [ -d "$DSTDIR/$GABIXX_SUBDIR" ]; then
             GABIXX_ABIS=$PREBUILT_ABIS
