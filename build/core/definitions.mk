@@ -789,8 +789,8 @@ modules-get-all-installable = $(strip \
         $(if $(call module-is-installable,$(__alldep)),$(__alldep))\
     ))
 
-module-is-system-prebuilt = \
-    $(strip $(filter crystax_static crystax_shared $(NDK_OBJC_LIST) $(NDK_STL_LIST),$1))
+module-is-not-libcrystax = \
+    $(strip $(filter-out crystax%,$1))
 
 # Return the Obj-C extension of a given module
 # $1: module name
@@ -859,10 +859,8 @@ module-has-c++-sources = $(strip $(call module-get-c++-sources,$1))
 modules-add-c++-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(if $(or $(call module-has-c++-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
-            $(if $(call module-is-system-prebuilt,$(__module)),,\
-                $(call ndk_log,Module '$(__module)' has C++ sources)\
-                $(call module-add-deps,$(__module),$1,$2)\
-            )\
+            $(call ndk_log,Module '$(__module)' has C++ sources)\
+            $(call module-add-deps,$(__module),$1,$2)\
         )\
     )
 
@@ -945,10 +943,12 @@ module-has-c++-features = $(strip \
 # $3: list of runtime shared libraries (if any)
 #
 module-add-deps = \
+    $(if $(call module-is-not-libcrystax,$1),\
     $(if $(call strip,$2),$(call ndk_log,Add dependency '$(call strip,$2)' to module '$1'))\
     $(eval __ndk_modules.$1.STATIC_LIBRARIES += $(2))\
     $(if $(call strip,$3),$(call ndk_log,Add dependency '$(call strip,$3)' to module '$1'))\
-    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))
+    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))\
+    )
 
 
 # =============================================================================
@@ -2116,10 +2116,8 @@ ndk-objc-select = \
 ndk-objc-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(if $(or $(call module-has-objc-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
-            $(if $(call module-is-system-prebuilt,$(__module)),,\
-                $(call ndk_log,Module '$(__module)' has Objective-C sources)\
-                $(call module-add-deps,$(__module),$(NDK_OBJC.$1.STATIC_LIBS),$(NDK_OBJC.$1.SHARED_LIBS))\
-            )\
+            $(call ndk_log,Module '$(__module)' has Objective-C sources)\
+            $(call module-add-deps,$(__module),$(NDK_OBJC.$1.STATIC_LIBS),$(NDK_OBJC.$1.SHARED_LIBS))\
         )\
     )
 
@@ -2297,9 +2295,7 @@ ndk-crystax-select = \
 
 ndk-crystax-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
-        $(if $(call module-is-system-prebuilt,$(__module)),,\
-            $(call module-add-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
-        )\
+        $(call module-add-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
     )
 
 $(call ndk-crystax-register,\

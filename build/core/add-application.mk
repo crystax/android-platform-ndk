@@ -285,7 +285,7 @@ else
     APP_CRYSTAX := $(strip $(APP_CRYSTAX))
     $(call ndk-crystax-check,$(APP_CRYSTAX))
 endif
-$(call ndk-log,Using APP_CRYSTAX: $(APP_CRYSTAX))
+$(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
 
 ifndef APP_OBJC
     ifneq ($(strip $(foreach lib,$(APP_CRYSTAX) $(APP_STL),$(findstring shared,$(lib)))),)
