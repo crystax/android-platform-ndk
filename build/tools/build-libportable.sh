@@ -68,6 +68,9 @@ register_var_option "--gcc-version=<ver>" GCC_VERSION "Specify GCC version"
 LLVM_VERSION=
 register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
 
+PLATFORM=
+register_var_option "--platform=<name>"  PLATFORM "Specify platform name"
+
 register_jobs_option
 
 register_try64_option
@@ -151,7 +154,10 @@ build_libportable_libs_for_abi ()
     CXXFLAGS="$CXXFLAGS -I$CRYSTAX_SRCDIR/include"
     LDFLAGS="$LDFLAGS -L$CRYSTAX_SRCDIR/libs/$ABI -lcrystax"
 
-    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE"
+    if [ -z "$PLATFORM" ]; then
+        PLATFORM="android-$FIRST_API64_LEVEL"
+    fi
+    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "$PLATFORM"
     builder_set_srcdir "$LIBPORTABLE_SRCDIR"
     builder_set_dstdir "$DSTDIR"
 
