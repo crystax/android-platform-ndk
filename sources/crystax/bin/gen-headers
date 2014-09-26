@@ -1,0 +1,58 @@
+#!/bin/bash
+
+APILEVEL=$1
+ARCH=$2
+
+cd $(dirname $0)/.. || exit 1
+
+CRYSTAX_DIR=$(pwd)
+NDK_DIR=$(cd $CRYSTAX_DIR/../../ && pwd)
+
+if [ "x$APILEVEL" = "x" ]; then
+    APILEVELS=$({ for p in $(ls -d $NDK_DIR/platforms/android-* 2>/dev/null); do expr "$(basename $p)" : "^android-\(.*\)$"; done; } | sort -n)
+else
+    APILEVELS="$APILEVEL"
+fi
+
+log()
+{
+    echo "$@"
+}
+
+panic()
+{
+    echo "*** FATAL: $@" 1>&2
+    exit 1
+}
+
+fail_panic()
+{
+    if [ $? -ne 0 ]; then
+        panic "$@"
+    fi
+}
+
+for apilevel in $APILEVELS; do
+    if [ "x$ARCH" = "x" ]; then
+        ARCHS=$({ for a in $(ls -d $NDK_DIR/platforms/android-${apilevel}/arch-* 2>/dev/null); do expr "$(basename $a)" : "^arch-\(.*\)$"; done; } | sort)
+    else
+        ARCHS=$ARCH
+    fi
+    for arch in $ARCHS; do
+        adir=$NDK_DIR/platforms/android-${apilevel}/arch-${arch}/usr/include
+        for f in $(find $CRYSTAX_DIR/include -type f -print | sort); do
+            f=${f#$CRYSTAX_DIR/include/}
+            log "Processing $f [android-${apilevel}]"
+            echo "$f" | grep -q "\<crystax\>"
+            if [ $? -ne 0 -a ! -f $adir/crystax/google/$f ]; then
+                mkdir -p $adir/crystax/google
+                fail_panic "Couldn't create Google's headers backup directory"
+                mv $adir/$f $adir/crystax/google/$f
+                fail_panic "Couldn't move Google's header $f into backup directory"
+            fi
+
+            cp -f $CRYSTAX_DIR/include/$f $adir/
+            fail_panic "Couldn't copy CrystaX header $f to platforms/android-$apilevel/arch-$arch"
+        done
+    done
+done

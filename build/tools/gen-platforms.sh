@@ -717,26 +717,9 @@ for ARCH in $ARCHS; do
         copy_src_directory $PLATFORM_SRC/arch-$ARCH/include $SYSROOT_DST/include "$ARCH system headers"
 
         CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-        (
-            GOOGLEDIR=$DSTDIR/$SYSROOT_DST/include/crystax/google &&
-            cd $CRYSTAX_SRCDIR/include && \
-            for f in $(find . -print | sort | grep -v "^\.$" | grep -v "^\.\/crystax" | sed 's,^\./,,'); do
-                dstf=$DSTDIR/$SYSROOT_DST/include/$f
-                test -f $dstf || continue
-                MYSUM=$(shasum $f | awk '{print $1}')
-                DSTSUM=$(shasum $dstf | awk '{print $1}')
-                test "x$MYSUM" != "x$DSTSUM" || continue
-                d=$(dirname $f)
-                test "$d" = "." && d=""
-                mkdir -p $GOOGLEDIR
-                fail_panic "Couldn't create $GOOGLEDIR/$d to backup Google's header $f"
-                mv -f $dstf $GOOGLEDIR/$d
-                fail_panic "Couldn't move Google's header $f to $GOOGLEDIR/$d"
-            done
-        )
-
-        log "Copying libcrystax headers to \$DST/$SYSROOT_DST"
-        (cd $CRYSTAX_SRCDIR/include && tar chf - *) | (cd $DSTDIR/$SYSROOT_DST/include && tar xf -)
+        log "Copying CrystaX headers to \$DST/$SYSROOT_DST"
+        $CRYSTAX_SRCDIR/bin/gen-headers $PLATFORM $ARCH
+        fail_panic "Couldn't copy libcrystax headers"
 
         generate_api_level "$PLATFORM" "$ARCH" "$DSTDIR"
 

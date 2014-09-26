@@ -60,6 +60,7 @@
 
 // __LP64__
 
+#include <xlocale.h>
 #include <nl_types.h>
 
 #define _NL_ITEM(category,index)  (((category) << 10) | (index))
