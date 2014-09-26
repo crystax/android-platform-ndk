@@ -717,8 +717,8 @@ for ARCH in $ARCHS; do
         copy_src_directory $PLATFORM_SRC/arch-$ARCH/include $SYSROOT_DST/include "$ARCH system headers"
 
         CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-        log "Copying CrystaX headers to \$DST/$SYSROOT_DST"
-        $CRYSTAX_SRCDIR/bin/gen-headers $PLATFORM $ARCH
+        log "Copying CrystaX headers to \$DST/$SYSROOT_DST/include"
+        $CRYSTAX_SRCDIR/bin/gen-headers --apilevel=$PLATFORM --arch=$ARCH
         fail_panic "Couldn't copy libcrystax headers"
 
         generate_api_level "$PLATFORM" "$ARCH" "$DSTDIR"

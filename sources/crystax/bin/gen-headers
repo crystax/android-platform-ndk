@@ -1,7 +1,28 @@
 #!/bin/bash
 
-APILEVEL=$1
-ARCH=$2
+VERBOSE=no
+APILEVEL=
+ARCH=
+
+while [ "x$1" != "x" ]; do
+    arg=$1
+    shift
+    case $arg in
+        --verbose)
+            VERBOSE=yes
+            ;;
+        --apilevel=*)
+            APILEVEL=$(expr "x$arg" : "x--apilevel=\(.*\)$")
+            ;;
+        --arch=*)
+            ARCH=$(expr "x$arg" : "x--arch=\(.*\)$")
+            ;;
+        *)
+            echo "Usage: $0 [options]" 1>&2;
+            exit 1
+            ;;
+    esac
+done
 
 cd $(dirname $0)/.. || exit 1
 
@@ -16,7 +37,9 @@ fi
 
 log()
 {
-    echo "$@"
+    if [ "x$VERBOSE" = "xyes" ]; then
+        echo "$@"
+    fi
 }
 
 panic()
@@ -44,7 +67,7 @@ for apilevel in $APILEVELS; do
             f=${f#$CRYSTAX_DIR/include/}
             log "Processing $f [android-${apilevel}]"
             echo "$f" | grep -q "\<crystax\>"
-            if [ $? -ne 0 -a ! -f $adir/crystax/google/$f ]; then
+            if [ $? -ne 0 -a -f $adir/$f -a ! -f $adir/crystax/google/$f ]; then
                 mkdir -p $adir/crystax/google
                 fail_panic "Couldn't create Google's headers backup directory"
                 mv $adir/$f $adir/crystax/google/$f
