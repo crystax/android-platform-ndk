@@ -78,6 +78,8 @@ long long            strtoll_l(const char *nptr, char **endptr, int base, locale
 unsigned long long   strtoull_l(const char *nptr, char **endptr, int base, locale_t loc);
 long double          strtold_l(const char *nptr, char **endptr, locale_t loc);
 
+int clearenv(void);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
