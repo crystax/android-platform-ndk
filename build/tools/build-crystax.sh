@@ -119,8 +119,8 @@ CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
 CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -ldl"
 
 # List of sources to compile
-CRYSTAX_C_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.c' -print)
-CRYSTAX_CPP_SOURCES=$(cd $CRYSTAX_SRCDIR && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_C_SOURCES=$($CRYSTAX_SRCDIR/bin/list-sources --lang c)
+CRYSTAX_CPP_SOURCES=$($CRYSTAX_SRCDIR/bin/list-sources --lang c++)
 CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 
 # If the --no-makefile flag is not used, we're going to put all build

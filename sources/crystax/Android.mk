@@ -110,8 +110,8 @@ else # CRYSTAX_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax libraries from sources)
 
-CRYSTAX_C_SRC_FILES   := $(shell cd $(LOCAL_PATH) && find src -name '*.c' -print)
-CRYSTAX_CPP_SRC_FILES := $(shell cd $(LOCAL_PATH) && find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print)
+CRYSTAX_C_SRC_FILES   := $(shell $(LOCAL_PATH)/bin/list-sources --lang c)
+CRYSTAX_CPP_SRC_FILES := $(shell $(LOCAL_PATH)/bin/list-sources --lang c++)
 CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
 
 include $(CLEAR_VARS)

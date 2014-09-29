@@ -1,0 +1,57 @@
+#!/bin/bash
+
+cd $(dirname $0)/.. || exit 1
+
+lang=
+
+all_languages="c cxx"
+
+usage()
+{
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Options:"
+    echo "  --lang=LANG           Language of source files (c,c++) [all]"
+}
+
+while [ "x$1" != "x" ]; do
+    arg=$1
+    shift
+    case $arg in
+        --lang)
+            lang=$1
+            shift
+            if [ "x$lang" = "x" ]; then
+                usage 1>&2
+                exit 1
+            fi
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+if [ "x$lang" != "x" -a "x$lang" != "xc" -a "x$lang" != "xc++" ]; then
+    usage 1>&2
+    exit 1
+fi
+
+lang=$(echo $lang | tr '+' 'x')
+test "x$lang" = "x" || all_languages=$lang
+
+list_c_sources()
+{
+    find src -name '*.c' -print
+    echo "../android/support/src/libdl_support.c"
+}
+
+list_cxx_sources()
+{
+    find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print
+}
+
+for l in $all_languages; do
+    list_${l}_sources
+done
