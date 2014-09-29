@@ -8,7 +8,7 @@ while [ "x$1" != "x" ]; do
     arg=$1
     shift
     case $arg in
-        --verbose)
+        -v|--verbose)
             VERBOSE=yes
             ;;
         --apilevel=*)
@@ -66,15 +66,20 @@ for apilevel in $APILEVELS; do
         for f in $(find $CRYSTAX_DIR/include -type f -print | sort); do
             f=${f#$CRYSTAX_DIR/include/}
             log "Processing $f [android-${apilevel}]"
-            echo "$f" | grep -q "\<crystax\>"
-            if [ $? -ne 0 -a -f $adir/$f -a ! -f $adir/crystax/google/$f ]; then
-                mkdir -p $adir/crystax/google
+
+            first=$(echo "$f" | awk -F/ '{print $1}')
+
+            if [ "x$first" != "xcrystax" -a -f $adir/$f -a ! -f $adir/crystax/google/$f ]; then
+                mkdir -p $(dirname $adir/crystax/google/$f)
                 fail_panic "Couldn't create Google's headers backup directory"
                 mv $adir/$f $adir/crystax/google/$f
                 fail_panic "Couldn't move Google's header $f into backup directory"
             fi
 
-            cp -f $CRYSTAX_DIR/include/$f $adir/
+            mkdir -p $(dirname $adir/$f)
+            fail_panic "Couldn't create target directory for CrystaX header"
+
+            cp -f $CRYSTAX_DIR/include/$f $(dirname $adir/$f)
             fail_panic "Couldn't copy CrystaX header $f to platforms/android-$apilevel/arch-$arch"
         done
     done
