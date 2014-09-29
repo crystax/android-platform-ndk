@@ -142,8 +142,6 @@ ifneq ($(__libcxx_force_rebuild),true)
 
 $(call ndk_log,Using prebuilt libc++ libraries)
 
-android_support_c_includes := $(LOCAL_PATH)/../../android/support/include
-
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_static
 LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE)$(TARGET_LIB_EXTENSION)
@@ -155,7 +153,7 @@ LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_LIB_
 endif
 endif
 endif
-LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes) $(android_support_c_includes)
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 include $(PREBUILT_STATIC_LIBRARY)
 
@@ -170,7 +168,7 @@ LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_SONA
 endif
 endif
 endif
-LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes) $(android_support_c_includes)
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 include $(PREBUILT_SHARED_LIBRARY)
 
@@ -182,23 +180,21 @@ $(call ndk_log,Rebuilding libc++ libraries from sources)
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_static
 LOCAL_SRC_FILES := $(llvm_libc++_sources)
-LOCAL_C_INCLUDES := $(android_support_c_includes) $(llvm_libc++_includes)
+LOCAL_C_INCLUDES := $(llvm_libc++_includes)
 LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
-LOCAL_STATIC_LIBRARIES := android_support
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_shared
 LOCAL_SRC_FILES := $(llvm_libc++_sources)
-LOCAL_C_INCLUDES := $(android_support_c_includes) $(llvm_libc++_includes)
+LOCAL_C_INCLUDES := $(llvm_libc++_includes)
 LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
-LOCAL_STATIC_LIBRARIES := android_support
 # For armeabi's shared version of libc++ compiled by clang, we need compiler-rt or libatomic
 # for __atomic_fetch_add_4.  Note that "clang -gcc-toolchain" uses gcc4.8's as/ld/libs, including
 # libatomic (which is not available in gcc4.6)
@@ -218,5 +214,4 @@ include $(BUILD_SHARED_LIBRARY)
 
 endif # __libcxx_force_rebuild == true
 
-$(call import-module, android/support)
 $(call import-module, android/compiler-rt)

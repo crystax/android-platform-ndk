@@ -57,6 +57,12 @@ list_c_sources()
         src/musl-multibyte/mblen.c \
         "
 
+    asl_64bit="\
+        src/musl-locale/catclose.c \
+        src/musl-locale/catgets.c \
+        src/musl-locale/catopen.c \
+        "
+
     for f in $asl_all; do
         echo "../android/support/$f"
     done
@@ -81,6 +87,10 @@ EOF
                 break
             done
             test "x$found_in_asl_all" = "xyes" && continue
+            echo "../android/support/$f"
+        done
+    else
+        for f in $asl_64bit; do
             echo "../android/support/$f"
         done
     fi
