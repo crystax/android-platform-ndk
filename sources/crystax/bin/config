@@ -1,0 +1,109 @@
+#!/bin/bash
+
+cd $(dirname $0)/.. || exit 1
+
+target=
+action=
+
+usage()
+{
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Required options (one of them):"
+    echo "  --sources             Print out all source files"
+    echo "  --cflags              Print out flags for compiler"
+    echo ""
+    echo "Optional:"
+    echo "  --target=ABI          Target ABI (armeabi, armeabi-v7a etc)"
+}
+
+check_action()
+{
+    if [ "x$action" != "x" ]; then
+        echo "ERROR: You already specified $action option" 1>&2
+        usage 1>&2
+        exit 1
+    fi
+}
+
+while [ "x$1" != "x" ]; do
+    arg=$1
+    shift
+    case $arg in
+        --target=*)
+            target=$(expr "x$arg" : "^x--target=\(.*\)$")
+            if [ "x$target" = "x" ]; then
+                usage 1>&2
+                exit 1
+            fi
+            ;;
+        --sources|--cflags)
+            check_action
+            action=$arg
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+list_c_sources()
+{
+    find src -name '*.c' -print
+
+    # Use android-support library sources for 32-bit targets only
+    echo $target | grep -q 64
+    if [ $? -ne 0 ]; then
+        tmpf=/tmp/ndk-$USER-list-sources-$$
+        trap "rm -f $tmpf" EXIT INT QUIT ABRT TERM
+        cat >$tmpf <<EOF
+include $(pwd)/../android/support/Android.mk
+
+print-sources:
+	@echo \$(android_support_sources)
+EOF
+
+        for f in $(make -f $tmpf print-sources); do
+            echo "../android/support/$f"
+        done
+    fi
+}
+
+list_cxx_sources()
+{
+    find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print
+}
+
+print_cflags()
+{
+    local cflags
+    cflags="-fPIC -g -O2"
+    cflags="$cflags -DANDROID -D__ANDROID__ -DNDEBUG"
+    cflags="$cflags -Drestrict=__restrict__"
+    cflags="$cflags -ffunction-sections -fdata-sections"
+    cflags="$cflags -I../cxx-stl/system"
+    cflags="$cflags -Iinclude"
+    cflags="$cflags -I../android/support/src/locale"
+    cflags="$cflags -I../android/support/src/musl-locale"
+    echo $cflags
+}
+
+if [ "x$action" = "x" ]; then
+    usage 1>&2
+    exit 1
+fi
+
+case $action in
+    --sources)
+        list_c_sources
+        list_cxx_sources
+        ;;
+    --cflags)
+        print_cflags
+        ;;
+    *)
+        echo "ERROR: Unsupported action: $action"
+        exit 1
+        ;;
+esac

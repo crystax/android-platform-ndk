@@ -110,9 +110,7 @@ else # CRYSTAX_FORCE_REBUILD == true
 
 $(call ndk_log,Rebuilding crystax libraries from sources)
 
-CRYSTAX_C_SRC_FILES   := $(shell $(LOCAL_PATH)/bin/list-sources --lang c)
-CRYSTAX_CPP_SRC_FILES := $(shell $(LOCAL_PATH)/bin/list-sources --lang c++)
-CRYSTAX_SRC_FILES     := $(CRYSTAX_C_SRC_FILES) $(CRYSTAX_CPP_SRC_FILES)
+CRYSTAX_SRC_FILES     := $(shell $(LOCAL_PATH)/bin/config --sources --target=$(TARGET_ARCH_ABI))
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static

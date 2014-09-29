@@ -105,14 +105,14 @@ STDCXX_SRCDIR=$NDK_DIR/sources/cxx-stl/system
 CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
-CRYSTAX_CFLAGS="-fPIC -g -O2 -DANDROID -D__ANDROID__ -DNDEBUG"
-CRYSTAX_CFLAGS="$CRYSTAX_CFLAGS -Drestrict=__restrict__ -ffunction-sections -fdata-sections"
+#CRYSTAX_CFLAGS="-fPIC -g -O2 -DANDROID -D__ANDROID__ -DNDEBUG"
 #CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
 #CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/locale"
-CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/locale"
+#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
+CRYSTAX_CFLAGS=$($CRYSTAX_SRCDIR/bin/config --cflags)
 for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
     CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$p"
 done
@@ -184,7 +184,7 @@ build_crystax_libs_for_abi ()
         builder_cflags "-Wl,--no-warn-mismatch -lm_hard"
     fi
 
-    builder_sources $($CRYSTAX_SRCDIR/bin/list-sources --target=$ABI)
+    builder_sources $($CRYSTAX_SRCDIR/bin/config --sources --target=$ABI)
 
     if [ "$TYPE" = "static" ]; then
         log "Building $DSTDIR/libcrystax.a"
