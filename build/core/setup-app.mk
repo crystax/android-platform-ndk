@@ -115,6 +115,21 @@ endif
 endif
 endif
 
+ifndef NDK_APP_USE_CXX11
+    NDK_APP_USE_CXX11 := $(DEFAULT_USE_CXX11)
+else
+    NDK_APP_USE_CXX11 := $(strip $(NDK_APP_USE_CXX11))
+    ifneq (,$(filter-out true false strict,$(NDK_APP_USE_CXX11)))
+        $(call __ndk_info,Wrong value of APP_USE_CXX11: $(NDK_APP_USE_CXX11))
+        $(call __ndk_info,The only allowed values are 'true', 'false' and 'strict')
+        $(call __ndk_info,  'true'   - use C++ 11 with GNU extensions)
+        $(call __ndk_info,  'strict' - use C++ 11 without GNU extensions)
+        $(call __ndk_info,  'false'  - don\'t use C++ 11)
+        $(call __ndk_error,Aborting)
+    endif
+endif
+TARGET_USE_CXX11 := $(NDK_APP_USE_CXX11)
+
 # Clear all installed binaries for this application
 # This ensures that if the build fails, you're not going to mistakenly
 # package an obsolete version of it. Or if you change the ABIs you're targetting,

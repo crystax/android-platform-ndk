@@ -416,6 +416,14 @@ ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),exceptions))
     LOCAL_CPPFLAGS += -fexceptions
 endif
 
+ifeq ($(TARGET_USE_CXX11),true)
+    LOCAL_CPPFLAGS += -std=gnu++11
+else
+ifeq ($(TARGET_USE_CXX11),strict)
+    LOCAL_CPPFLAGS += -std=c++11
+endif
+endif
+
 # If we're using the 'system' STL and use rtti or exceptions, then
 # automatically link against the GNU libsupc++ for now.
 #

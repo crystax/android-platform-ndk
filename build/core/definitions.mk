@@ -790,7 +790,7 @@ modules-get-all-installable = $(strip \
     ))
 
 module-is-not-libcrystax = \
-    $(strip $(filter-out crystax%,$1))
+    $(strip $(filter-out crystax_static crystax_shared,$1))
 
 # Return the Obj-C extension of a given module
 # $1: module name
