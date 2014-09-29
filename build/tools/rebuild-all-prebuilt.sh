@@ -100,6 +100,9 @@ if [ "$DARWIN_SSH" -a -z "$CUSTOM_SYSTEMS" ]; then
 fi
 
 FLAGS=
+if [ "$DRYRUN" = "yes" ]; then
+    FLAGS=$FLAGS" --dryrun"
+fi
 if [ "$VERBOSE" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
