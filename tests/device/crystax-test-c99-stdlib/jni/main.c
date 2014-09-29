@@ -14,12 +14,12 @@ int main()
     /* printf("ld = %lf\n", ld); */
 
     if (d != ld) {
-        printf("error: strtold produces unexptected result: %lf\n", ld);
+        printf("error: strtold produces unexptected result: %Lf\n", ld);
         return 1;
     }
 
     _Exit(0);
 
-    printf("error: _Exit() function does not work~n");
+    printf("error: _Exit() function does not work\n");
     return 1;
 }

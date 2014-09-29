@@ -106,10 +106,13 @@ CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
 
 # Compiler flags we want to use
 CRYSTAX_CFLAGS="-fPIC -g -O2 -DANDROID -D__ANDROID__ -DNDEBUG"
+CRYSTAX_CFLAGS="$CRYSTAX_CFLAGS -Drestrict=__restrict__ -ffunction-sections -fdata-sections"
 #CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
 #CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
 CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/locale"
+CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
 for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
     CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$p"
 done
@@ -117,11 +120,6 @@ CRYSTAX_ARM_CFLAGS="-marm -mno-unaligned-access"
 CRYSTAX_CXXFLAGS="-std=gnu++11 -fuse-cxa-atexit -fno-exceptions -fno-rtti"
 CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
 CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -ldl"
-
-# List of sources to compile
-CRYSTAX_C_SOURCES=$($CRYSTAX_SRCDIR/bin/list-sources --lang c)
-CRYSTAX_CPP_SOURCES=$($CRYSTAX_SRCDIR/bin/list-sources --lang c++)
-CRYSTAX_SOURCES="$CRYSTAX_C_SOURCES $CRYSTAX_CPP_SOURCES"
 
 # If the --no-makefile flag is not used, we're going to put all build
 # commands in a temporary Makefile that we will be able to invoke with
@@ -186,7 +184,7 @@ build_crystax_libs_for_abi ()
         builder_cflags "-Wl,--no-warn-mismatch -lm_hard"
     fi
 
-    builder_sources $CRYSTAX_SOURCES
+    builder_sources $($CRYSTAX_SRCDIR/bin/list-sources --target=$ABI)
 
     if [ "$TYPE" = "static" ]; then
         log "Building $DSTDIR/libcrystax.a"

@@ -3,6 +3,7 @@
 cd $(dirname $0)/.. || exit 1
 
 lang=
+target=
 
 all_languages="c cxx"
 
@@ -18,10 +19,16 @@ while [ "x$1" != "x" ]; do
     arg=$1
     shift
     case $arg in
-        --lang)
-            lang=$1
-            shift
+        --lang=*)
+            lang=$(expr "x$arg" : "^x--lang=\(.*\)$")
             if [ "x$lang" = "x" ]; then
+                usage 1>&2
+                exit 1
+            fi
+            ;;
+        --target=*)
+            target=$(expr "x$arg" : "^x--target=\(.*\)$")
+            if [ "x$target" = "x" ]; then
                 usage 1>&2
                 exit 1
             fi
@@ -44,7 +51,23 @@ test "x$lang" = "x" || all_languages=$lang
 list_c_sources()
 {
     find src -name '*.c' -print
-    echo "../android/support/src/libdl_support.c"
+
+    # Use android-support library sources for 32-bit targets only
+    echo $target | grep -q 64
+    if [ $? -ne 0 ]; then
+        tmpf=/tmp/ndk-crystax-list-sources-$$
+        trap "rm -f $tmpf" EXIT INT QUIT ABRT TERM
+        cat >$tmpf <<EOF
+include $(pwd)/../android/support/Android.mk
+
+print-sources:
+	@echo \$(android_support_sources)
+EOF
+
+        for f in $(make -f $tmpf print-sources); do
+            echo "../android/support/$f"
+        done
+    fi
 }
 
 list_cxx_sources()

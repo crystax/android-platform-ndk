@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <wctype.h>
+#include <stdarg.h>
 
 // Contains an implementation of all locale-specific functions (those
 // ending in _l, like strcoll_l()), as simple wrapper to the non-locale
@@ -109,11 +110,11 @@ unsigned long strtoul_l(const char *nptr, char **endptr, int base, locale_t loc)
     return strtoul(nptr, endptr, base);
 }
 
-long long strtoll_l(const char *nptr, char **endptr, size_t base, locale_t loc) {
+long long strtoll_l(const char *nptr, char **endptr, int base, locale_t loc) {
     return strtoll(nptr, endptr, base);
 }
 
-unsigned long long strtoull_l(const char *nptr, char **endptr, size_t base, locale_t loc) {
+unsigned long long strtoull_l(const char *nptr, char **endptr, int base, locale_t loc) {
     return strtoull(nptr, endptr, base);
 }
 
