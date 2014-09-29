@@ -52,6 +52,15 @@ list_c_sources()
 {
     find src -name '*.c' -print
 
+    asl_all="\
+        src/musl-ctype/wctrans.c \
+        src/musl-multibyte/mblen.c \
+        "
+
+    for f in $asl_all; do
+        echo "../android/support/$f"
+    done
+
     # Use android-support library sources for 32-bit targets only
     echo $target | grep -q 64
     if [ $? -ne 0 ]; then
@@ -65,6 +74,13 @@ print-sources:
 EOF
 
         for f in $(make -f $tmpf print-sources); do
+            found_in_asl_all=no
+            for a in $asl_all; do
+                test "x$f" = "x$a" || continue
+                found_in_asl_all=yes
+                break
+            done
+            test "x$found_in_asl_all" = "xyes" && continue
             echo "../android/support/$f"
         done
     fi
