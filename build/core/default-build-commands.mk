@@ -109,14 +109,8 @@ cmd-strip = $(PRIVATE_STRIP) --strip-unneeded $(call host-path,$1)
 # The command objcopy --add-gnu-debuglink= will be needed for Valgrind
 cmd-add-gnu-debuglink = $(PRIVATE_OBJCOPY) --add-gnu-debuglink=$(strip $(call host-path,$2)) $(call host-path,$1)
 
-ifeq ($(strip $(NDK_APP_CRYSTAX)),static)
-TARGET_LIBCRYSTAX := -Wl,-z,muldefs -Wl,-Bstatic,-lcrystax,-Bdynamic
-else
-TARGET_LIBCRYSTAX := -lcrystax
-endif
-
 TARGET_LIBGCC = -lgcc
-TARGET_LDLIBS := $(TARGET_LIBCRYSTAX) -lc -lm
+TARGET_LDLIBS := -lc -lm
 
 #
 # IMPORTANT: The following definitions must use lazy assignment because
