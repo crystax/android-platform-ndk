@@ -27,10 +27,21 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
-#define __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
+#ifndef __CRYSTAX_PTHREAD_H_B412991DCC3E4A32848A78E819D37B6E
+#define __CRYSTAX_PTHREAD_H_B412991DCC3E4A32848A78E819D37B6E
 
-#include <crystax/google/stdio.h>
-#include <stdarg.h>
+#include <crystax/google/pthread.h>
 
-#endif /* __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93 */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if !defined(__LP64__) || !__LP64__
+int pthread_mutex_timedlock(pthread_mutex_t*, const struct timespec*);
+#endif /* !defined(__LP64__) || !__LP64__ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __CRYSTAX_PTHREAD_H_B412991DCC3E4A32848A78E819D37B6E */

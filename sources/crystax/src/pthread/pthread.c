@@ -33,17 +33,20 @@
 
 #if !defined(__LP64__) || !__LP64__
 
-/* 32-bit Android libc don't provide pthread_mutex_timed_lock so we implement it on our own
- * There is no need to do that for 64-bit target since pthread_mutex_timed_lock is implemented there
+/* 32-bit Android libc don't provide pthread_mutex_timedlock so we implement it on our own
+ * There is no need to do that for 64-bit target since pthread_mutex_timedlock is implemented there
  */
 
-int pthread_mutex_lock_timeout_np(pthread_mutex_t *mutex, unsigned msecs);
-
 /* return difference in milliseconds */
-static long long diff(const struct timespec *start, const struct timespec *end);
+static long long diff(const struct timespec *s, const struct timespec *e)
+{
+    long long start = ((long long) s->tv_sec * 1000LL) + ((long long) s->tv_nsec / 1000000);
+    long long end   = ((long long) e->tv_sec * 1000LL) + ((long long) e->tv_nsec / 1000000);
 
+    return end - start;
+}
 
-int pthread_mutex_timed_lock(pthread_mutex_t *mutex, struct timespec *abstime)
+int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
 {
     int rc = 0;
     long long msecs = 0;
@@ -73,14 +76,6 @@ int pthread_mutex_timed_lock(pthread_mutex_t *mutex, struct timespec *abstime)
         rc = ETIMEDOUT;
 
     return rc;
-}
-
-long long diff(const struct timespec *s, const struct timespec *e)
-{
-    long long start = ((long long) s->tv_sec * 1000LL) + ((long long) s->tv_nsec / 1000000);
-    long long end   = ((long long) e->tv_sec * 1000LL) + ((long long) e->tv_nsec / 1000000);
-
-    return end - start;
 }
 
 #endif /* !defined(__LP64__) || !__LP64__ */
