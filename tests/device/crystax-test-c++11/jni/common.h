@@ -20,6 +20,7 @@
     (__GNUC__ > (major) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
 
 
+int test_language();
 int test_chrono_duration_ctor();
 int test_chrono_duration_operators();
 int test_chrono_duration_count();

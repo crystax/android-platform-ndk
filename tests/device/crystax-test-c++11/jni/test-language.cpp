@@ -1,8 +1,3 @@
-#define GCC_ATLEAST(major, minor) \
-    (__GNUC__ > (major) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
-
-#if GCC_ATLEAST(4, 6)
-
 #include <cerrno>
 #include <cstddef>
 #include <memory>
@@ -72,7 +67,7 @@ void fooprintf(const char* s, T value, Args... args)
 }
 
 // New function declaration syntax
-auto main() -> int
+auto test_language() -> int
 {
     // nullptr
     char *np = nullptr;
@@ -133,9 +128,3 @@ auto main() -> int
 
     return 0;
 }
-#else // __GNUC__ >= 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-int main()
-{
-    return 0;
-}
-#endif // __GNUC__ >= 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)

@@ -2,6 +2,7 @@
 
 int main()
 {
+    DO_TEST(language);
     DO_TEST(chrono_duration_ctor);
     DO_TEST(chrono_duration_operators);
     DO_TEST(chrono_duration_count);
