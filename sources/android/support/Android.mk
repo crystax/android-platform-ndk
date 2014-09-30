@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-android_support_c_includes := $(LOCAL_PATH)/include
+#android_support_c_includes := $(LOCAL_PATH)/include
 
 ifneq ($(filter $(NDK_KNOWN_DEVICE_ABI64S),$(TARGET_ARCH_ABI)),)
 # 64-bit ABIs
@@ -149,7 +149,7 @@ endif  # 64-/32-bit ABIs
 include $(CLEAR_VARS)
 LOCAL_MODULE := android_support
 LOCAL_SRC_FILES := $(android_support_sources)
-LOCAL_C_INCLUDES := $(android_support_c_includes)
+#LOCAL_C_INCLUDES := $(android_support_c_includes)
 LOCAL_CFLAGS += -Drestrict=__restrict__ -ffunction-sections -fdata-sections
 
 # These Clang warnings are triggered by the Musl sources. The code is fine,
@@ -166,6 +166,6 @@ endif
 
 LOCAL_CFLAGS += $(android_support_cflags)
 LOCAL_EXPORT_CFLAGS := $(android_support_cflags)
-LOCAL_EXPORT_C_INCLUDES := $(android_support_c_includes)
+#LOCAL_EXPORT_C_INCLUDES := $(android_support_c_includes)
 include $(BUILD_STATIC_LIBRARY)
 
