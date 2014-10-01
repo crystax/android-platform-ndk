@@ -2,6 +2,8 @@
 
 cd $(dirname $0)/.. || exit 1
 
+CRYSTAX_SRCDIR=$(pwd)
+
 target=
 action=
 
@@ -205,10 +207,10 @@ print_cflags()
     cflags="$cflags -DANDROID -D__ANDROID__ -DNDEBUG"
     cflags="$cflags -Drestrict=__restrict__"
     cflags="$cflags -ffunction-sections -fdata-sections"
-    cflags="$cflags -I../cxx-stl/system"
-    cflags="$cflags -Iinclude"
-    cflags="$cflags -I../android/support/src/locale"
-    cflags="$cflags -I../android/support/src/musl-locale"
+    cflags="$cflags -I$CRYSTAX_SRCDIR/include"
+    cflags="$cflags -I$CRYSTAX_SRCDIR/../android/support/src/locale"
+    cflags="$cflags -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
+    #cflags="$cflags -I$CRYSTAX_SRCDIR/../cxx-stl/system"
     echo $cflags
 }
 
