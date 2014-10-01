@@ -36,9 +36,7 @@
 extern "C" {
 #endif
 
-#if !defined(__LP64__) || !__LP64__
-int pthread_mutex_timedlock(pthread_mutex_t *, struct timespec*);
-#endif
+int pthread_mutex_timedlock(pthread_mutex_t *, const struct timespec*);
 
 #ifdef __cplusplus
 }
