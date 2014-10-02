@@ -61,7 +61,7 @@
 
 #if !defined(__LP64__)
 
-#include <xlocale.h>  // for locale_t
+#include <xlocale.h>  /* for locale_t */
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,6 +87,6 @@ int toupper_l(int, locale_t);
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif  /* __CRYSTAX_SUPPORT_CTYPE_H_E2FDF96252AF4F3FB6FD2B1EE260B93E */

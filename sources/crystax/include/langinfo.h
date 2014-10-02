@@ -58,8 +58,6 @@
 #ifndef __CRYSTAX_LANGINFO_H_257cc5118e8142dcb24466e933c1182f
 #define __CRYSTAX_LANGINFO_H_257cc5118e8142dcb24466e933c1182f
 
-// __LP64__
-
 #include <xlocale.h>
 #include <nl_types.h>
 
@@ -145,7 +143,7 @@ extern "C" {
 #if !defined(__LP64__)
 char *nl_langinfo(nl_item);
 char *nl_langinfo_l(nl_item, locale_t);
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -75,6 +75,6 @@ imaxdiv_t imaxdiv(intmax_t, intmax_t) __attribute__((__const__));
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_INTTYPES_H_5e9e7eb0dcf6422fab883b875bed8e02 */

@@ -166,6 +166,6 @@ const int __ctype_c_mask_table_size = 256;
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif  /* __CRYSTAX_SUPPORT_LOCALE_H_7FE3F18123674A0BB50D5C3BFC2CE90C */

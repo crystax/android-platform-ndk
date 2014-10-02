@@ -121,6 +121,6 @@ int towupper_l(int, locale_t);
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_WCTYPE_H_aa04fbd4dd6c4d3c92be07d763083ef7 */

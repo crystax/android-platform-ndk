@@ -101,11 +101,11 @@
 extern "C" {
 #endif
 
-#include <stdarg.h>  // for va_list
-#include <stdio.h>   // for FILE
-#include <stddef.h>  // for size_t
+#include <stdarg.h>  /* for va_list */
+#include <stdio.h>   /* for FILE */
+#include <stddef.h>  /* for size_t */
 #include <wctype.h>
-#include <xlocale.h> // for locale_t
+#include <xlocale.h> /* for locale_t */
 
 #define __need___wchar_t
 #include <stddef.h>
@@ -256,6 +256,6 @@ size_t wcsxfrm_l(wchar_t *__restrict__, const wchar_t *__restrict__, size_t n, l
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_WCHAR_H_065d3e9b5f8645d38b9597ed38f66315 */
