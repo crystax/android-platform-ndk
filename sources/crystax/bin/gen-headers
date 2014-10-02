@@ -40,11 +40,27 @@ log()
     if [ "x$VERBOSE" = "xyes" ]; then
         echo "$@"
     fi
+    if [ -n "$TMPLOG" ]; then
+        echo "$@" >> $TMPLOG
+    fi
+}
+
+dump()
+{
+    echo "$@"
+    if [ -n "$TMPLOG" ]; then
+        echo "$@" >> $TMPLOG
+    fi
+}
+
+error()
+{
+    dump "ERROR: $@" 1>&2
 }
 
 panic()
 {
-    echo "*** FATAL: $@" 1>&2
+    dump "*** FATAL: $@" 1>&2
     exit 1
 }
 
@@ -55,6 +71,26 @@ fail_panic()
     fi
 }
 
+# $1: API Level
+is_arch_valid()
+{
+    local apilevel=$1
+    if [ "x$apilevel" = "x" ]; then
+        error "Usage: is_arch_valid apilevel"
+        exit 1
+    fi
+
+    if [ "x$apilevel" = "xL" ]; then
+        return 0
+    fi
+
+    if [ $apilevel -le 19 -a "x${arch%%64}" != "x$arch" ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
 for apilevel in $APILEVELS; do
     if [ "x$ARCH" = "x" ]; then
         ARCHS=$({ for a in $(ls -d $NDK_DIR/platforms/android-${apilevel}/arch-* 2>/dev/null); do expr "$(basename $a)" : "^arch-\(.*\)$"; done; } | sort)
@@ -62,6 +98,11 @@ for apilevel in $APILEVELS; do
         ARCHS=$ARCH
     fi
     for arch in $ARCHS; do
+        # Skip invalid for this API level CPU architectures
+        is_arch_valid $apilevel || continue
+
+        dump "Generating CrystaX headers in \$DST/platforms/android-$apilevel/arch-$arch/include"
+
         adir=$NDK_DIR/platforms/android-${apilevel}/arch-${arch}/usr/include
         for f in $(find $CRYSTAX_DIR/include -type f -print | sort); do
             f=${f#$CRYSTAX_DIR/include/}
