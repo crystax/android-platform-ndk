@@ -30,12 +30,27 @@
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
+#include <dlfcn.h>
+#include <stdlib.h>
 
-#if !defined(__LP64__) || !__LP64__
+static int initialized = 0;
+static int (*pthread_mutex_timedlock_func)(pthread_mutex_t *, const struct timespec *) = 0;
+static int (*pthread_mutex_lock_timeout_np_func)(pthread_mutex_t *, unsigned int ) = 0;
 
-/* 32-bit Android libc don't provide pthread_mutex_timedlock so we implement it on our own
- * There is no need to do that for 64-bit target since pthread_mutex_timedlock is implemented there
- */
+static int crystax_atomic_fetch(volatile int *ptr)
+{
+    return __sync_add_and_fetch(ptr, 0);
+}
+
+static int crystax_atomic_swap(int v, volatile int *ptr)
+{
+    int prev;
+    do
+    {
+        prev = *ptr;
+    } while (__sync_val_compare_and_swap(ptr, prev, v) != prev);
+    return prev;
+}
 
 /* return difference in milliseconds */
 static long long diff(const struct timespec *s, const struct timespec *e)
@@ -46,7 +61,7 @@ static long long diff(const struct timespec *s, const struct timespec *e)
     return end - start;
 }
 
-int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
+static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
 {
     int rc = 0;
     long long msecs = 0;
@@ -71,11 +86,32 @@ int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *absti
 
     /* pthread_mutex_lock_timeout_np returns EBUSY when timeout expires
      * but POSIX specifies ETIMEDOUT return value */
-    rc = pthread_mutex_lock_timeout_np(mutex, (unsigned) msecs);
+    rc = pthread_mutex_lock_timeout_np_func(mutex, (unsigned) msecs);
     if (rc == EBUSY)
         rc = ETIMEDOUT;
 
     return rc;
 }
 
-#endif /* !defined(__LP64__) || !__LP64__ */
+int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
+{
+    if (crystax_atomic_fetch(&initialized) == 0)
+    {
+        void *pc;
+
+        pc = dlopen("libc.so", RTLD_NOW);
+        if (!pc) abort();
+
+        pthread_mutex_timedlock_func = dlsym(pc, "pthread_mutex_timedlock");
+        pthread_mutex_lock_timeout_np_func = dlsym(pc, "pthread_mutex_lock_timeout_np");
+
+        crystax_atomic_swap(1, &initialized);
+    }
+
+    if (pthread_mutex_timedlock_func)
+        return pthread_mutex_timedlock_func(mutex, abstime);
+    else if (pthread_mutex_lock_timeout_np_func)
+        return crystax_pthread_mutex_timedlock(mutex, abstime);
+    else
+        return EFAULT;
+}
