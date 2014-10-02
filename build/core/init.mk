@@ -571,6 +571,8 @@ $(foreach _config_mk,$(TOOLCHAIN_CONFIGS),\
 
 NDK_ALL_TOOLCHAINS   := $(sort $(NDK_ALL_TOOLCHAINS))
 NDK_ALL_ABIS         := $(sort $(NDK_ALL_ABIS))
+# Temporarily disable mips64 ABI since there are too many errors with mips64 toolchains
+NDK_ALL_ABIS         := $(filter-out mips64,$(NDK_ALL_ABIS))
 NDK_ALL_ARCHS        := $(sort $(NDK_ALL_ARCHS))
 
 # Check that each ABI has a single architecture definition
