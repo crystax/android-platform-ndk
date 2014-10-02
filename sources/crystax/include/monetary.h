@@ -75,6 +75,6 @@ ssize_t strfmon_l(char *__restrict__, size_t, locale_t, const char *__restrict__
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_MONETARY_H_c9a012f4a21d473d80ad2fc80c89d63e */

@@ -29,8 +29,6 @@
 #ifndef __CRYSTAX_TIME_H_9fd46807ae8c4a6cbf9e64f9c55cd57e
 #define __CRYSTAX_TIME_H_9fd46807ae8c4a6cbf9e64f9c55cd57e
 
-// __LP64__
-
 #include <crystax/google/time.h>
 
 #if !defined(__LP64__)
@@ -48,6 +46,6 @@ size_t strftime_l(char *s, size_t maxsize, const char *format,
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_TIME_H_9fd46807ae8c4a6cbf9e64f9c55cd57e */

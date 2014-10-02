@@ -64,6 +64,6 @@
 
 #include <limits.h> // For SIZE_MAX
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be */

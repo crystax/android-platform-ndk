@@ -68,6 +68,6 @@
 
 #define ELAST ENOTRECOVERABLE
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_ERRNO_H_850afb1fd0684f5184320801869617ad */

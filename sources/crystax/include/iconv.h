@@ -76,6 +76,6 @@ int     iconv_close(iconv_t);
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_ICONV_H_dea88f817c99449cb77eb7d9f3ee0352 */

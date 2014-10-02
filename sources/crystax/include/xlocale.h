@@ -78,6 +78,6 @@ struct locale_struct {
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif  /* __CRYSTAX_XLOCALE_H_95A67C61CD594840A25BA6643EC827BD */

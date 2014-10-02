@@ -75,6 +75,6 @@ size_t strxfrm_l(char *, const char *, size_t, locale_t);
 }  // extern "C"
 #endif
 
-#endif // !__LP64__
+#endif /* !__LP64__ */
 
 #endif /* __CRYSTAX_STRING_H_5360343393a041f0b414299e396a687b */

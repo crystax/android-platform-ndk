@@ -30,6 +30,10 @@
 #ifndef _CRYSTAX_PATH_HPP_e07f4133db9547fc910f4c7e2f6a8a35
 #define _CRYSTAX_PATH_HPP_e07f4133db9547fc910f4c7e2f6a8a35
 
+#ifndef __cplusplus
+#error "This is C++ header file, you shouldn't include it to non-C++ sources"
+#endif
+
 #include <crystax/common.hpp>
 #include <crystax/memory.hpp>
 #include <crystax/jutils.hpp>

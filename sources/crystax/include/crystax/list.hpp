@@ -30,6 +30,10 @@
 #ifndef _CRYSTAX_LIST_HPP_fac4d8667aa24cb0a843360a1d7d8cad
 #define _CRYSTAX_LIST_HPP_fac4d8667aa24cb0a843360a1d7d8cad
 
+#ifndef __cplusplus
+#error "This is C++ header file, you shouldn't include it to non-C++ sources"
+#endif
+
 #include <crystax/common.hpp>
 #include <stddef.h>
 
