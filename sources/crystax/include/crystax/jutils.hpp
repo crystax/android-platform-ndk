@@ -32,6 +32,10 @@
 
 #include <jni.h>
 
+#ifndef __cplusplus
+#error "This is C++ header file, you shouldn't include it to non-C++ sources"
+#endif
+
 namespace crystax
 {
 namespace jni
