@@ -666,6 +666,9 @@ build_project ()
     if [ $RET != 0 ] ; then
         (( NUM_FAILED_BUILDS += 1 ))
         dump "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
+        if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+            echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"build-failed\",\"path\":\"$1\"}"
+        fi
         if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
             exit 1
         fi
@@ -916,6 +919,9 @@ if is_testable device; then
             if [ $? != 0 ] ; then
                 (( NUM_FAILED_DEVICE_TESTS += 1 ))
                 dump "   ---> TEST FAILED!!"
+                if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+                    echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-failed\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
+                fi
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm -f $DSTPATH"
             for DATA in $(ls $DATAPATHS); do
