@@ -13,9 +13,9 @@ extern "C" int my_dladdr(const void* addr, void **info);
 
 TEST(libdl, my_dladdr) {
     void *h, *libdl = dlopen("libc.so", RTLD_NOW);
-    EXPECT_NE(0, libdl);
+    EXPECT_NE((void*)0, libdl);
     h = dlsym(libdl, "printf");
-    EXPECT_NE(0, h);
+    EXPECT_NE((void*)0, h);
     int r = my_dladdr((char*)h+1, &info);
 #if __ANDROID_API__ >= 8
     EXPECT_NE(0, r);
