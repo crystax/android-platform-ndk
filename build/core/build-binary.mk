@@ -416,11 +416,9 @@ ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),exceptions))
     LOCAL_CPPFLAGS += -fexceptions
 endif
 
-ifeq ($(TARGET_USE_CXX11),true)
-    LOCAL_CPPFLAGS += -std=gnu++11
-else
-ifeq ($(TARGET_USE_CXX11),strict)
-    LOCAL_CPPFLAGS += -std=c++11
+ifeq ($(filter -std=%,$(LOCAL_CPPFLAGS)),)
+ifneq ($(TARGET_CXX_STANDARD),)
+LOCAL_CPPFLAGS += -std=$(TARGET_CXX_STANDARD)
 endif
 endif
 
