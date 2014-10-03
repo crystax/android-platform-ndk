@@ -61,9 +61,9 @@ int test_einval(pthread_mutex_t *mutex)
     struct timespec timeout;
 
     /* check NULL timeout */
-    rc = pthread_mutex_timed_lock(mutex, NULL);
+    rc = pthread_mutex_timedlock(mutex, NULL);
     if (rc != EINVAL) {
-        printf("pthread_mutex_timed_lock failed with NULL timeout\n");
+        printf("pthread_mutex_timedlock failed with NULL timeout\n");
         return 1;
     }
 
@@ -71,24 +71,24 @@ int test_einval(pthread_mutex_t *mutex)
     if (get_time(&timeout) != 0)
         return 1;
     timeout.tv_nsec = 1000000000;
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != EINVAL) {
-        printf("pthread_mutex_timed_lock failed with big nsec\n");
+        printf("pthread_mutex_timedlock failed with big nsec\n");
         return 1;
     }
     timeout.tv_nsec = -2;
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != EINVAL) {
-        printf("pthread_mutex_timed_lock failed with negative nsec\n");
+        printf("pthread_mutex_timedlock failed with negative nsec\n");
         return 1;
     }
 
     /* check with NULL mutex */
     timeout.tv_sec += 5;
     timeout.tv_nsec = 300;
-    rc = pthread_mutex_timed_lock(NULL, &timeout);
+    rc = pthread_mutex_timedlock(NULL, &timeout);
     if (rc != EINVAL) {
-        printf("pthread_mutex_timed_lock failed with NULL mutex\n");
+        printf("pthread_mutex_timedlock failed with NULL mutex\n");
         return 1;
     }
 
@@ -105,9 +105,9 @@ int test_lock_unlock(pthread_mutex_t *mutex)
         return 1;
     timeout.tv_sec += 3;
 
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != 0) {
-        printf("pthread_mutex_timed_lock failed: %d; %s\n", rc, strerror(rc));
+        printf("pthread_mutex_timedlock failed: %d; %s\n", rc, strerror(rc));
         return 1;
     }
 
@@ -130,9 +130,9 @@ int test_expired(pthread_mutex_t *mutex)
         return 1;
     timeout.tv_sec -= 3;
 
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != ETIMEDOUT) {
-        printf("pthread_mutex_timed_lock failed with expired timeout\n");
+        printf("pthread_mutex_timedlock failed with expired timeout\n");
         return 1;
     }
 
@@ -152,9 +152,9 @@ int test_with_thread(pthread_mutex_t *mutex)
     if (get_time(&timeout) != 0)
         return 1;
     timeout.tv_sec += 3;
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != 0) {
-        printf("pthread_mutex_timed_lock failed: %d; %s\n", rc, strerror(rc));
+        printf("pthread_mutex_timedlock failed: %d; %s\n", rc, strerror(rc));
         return 1;
     }
     rc = pthread_mutex_unlock(mutex);
@@ -170,9 +170,9 @@ int test_with_thread(pthread_mutex_t *mutex)
     if (get_time(&timeout) != 0)
         return 1;
     timeout.tv_sec += 2;
-    rc = pthread_mutex_timed_lock(mutex, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
     if (rc != ETIMEDOUT) {
-        printf("pthread_mutex_timed_lock failed: expected timeout, got %d; %s\n", rc, strerror(rc));
+        printf("pthread_mutex_timedlock failed: expected timeout, got %d; %s\n", rc, strerror(rc));
         return 1;
     }
 

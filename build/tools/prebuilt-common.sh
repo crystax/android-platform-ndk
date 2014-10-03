@@ -600,7 +600,7 @@ check_darwin_sdk ()
         fi
     fi
     if [ -d "$MACSDK" ] ; then
-        HOST_CFLAGS=$HOST_CFLAGS" -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
+        HOST_CFLAGS=$HOST_CFLAGS" -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYMENT_TARGET=$MINVER"
         HOST_LDFLAGS=$HOST_LDFLAGS" -Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
         DARWIN_MINVER=$MINVER
         return 0  # success

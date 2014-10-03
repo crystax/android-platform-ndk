@@ -457,6 +457,8 @@ build_stl_libs_for_abi ()
     builder_reset_cflags DEFAULT_CFLAGS
     builder_reset_cxxflags DEFAULT_CXXFLAGS
 
+    builder_ldflags "-lcrystax"
+
     if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
         builder_set_srcdir "$GABIXX_SRCDIR"
         builder_cflags "$DEFAULT_CFLAGS $GABIXX_CFLAGS $EXTRA_CFLAGS"

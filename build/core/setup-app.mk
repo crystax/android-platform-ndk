@@ -115,20 +115,17 @@ endif
 endif
 endif
 
-ifndef NDK_APP_USE_CXX11
-    NDK_APP_USE_CXX11 := $(DEFAULT_USE_CXX11)
+ifndef NDK_APP_CXX_STANDARD
+    NDK_APP_CXX_STANDARD := $(DEFAULT_CXX_STANDARD)
 else
-    NDK_APP_USE_CXX11 := $(strip $(NDK_APP_USE_CXX11))
-    ifneq (,$(filter-out true false strict,$(NDK_APP_USE_CXX11)))
-        $(call __ndk_info,Wrong value of APP_USE_CXX11: $(NDK_APP_USE_CXX11))
-        $(call __ndk_info,The only allowed values are 'true', 'false' and 'strict')
-        $(call __ndk_info,  'true'   - use C++ 11 with GNU extensions)
-        $(call __ndk_info,  'strict' - use C++ 11 without GNU extensions)
-        $(call __ndk_info,  'false'  - don\'t use C++ 11)
+    NDK_APP_CXX_STANDARD := $(strip $(NDK_APP_CXX_STANDARD))
+    ifneq (,$(filter-out c++98 gnu++98 c++03 gnu++03 c++11 gnu++11,$(NDK_APP_CXX_STANDARD)))
+        $(call __ndk_info,Wrong value of APP_CXX_STANDARD: $(NDK_APP_CXX_STANDARD))
+        $(call __ndk_info,The only allowed values are: c++98 gnu++98 c++03 gnu++03 c++11 gnu++11)
         $(call __ndk_error,Aborting)
     endif
 endif
-TARGET_USE_CXX11 := $(NDK_APP_USE_CXX11)
+TARGET_CXX_STANDARD := $(NDK_APP_CXX_STANDARD)
 
 # Clear all installed binaries for this application
 # This ensures that if the build fails, you're not going to mistakenly
