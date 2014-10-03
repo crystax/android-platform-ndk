@@ -673,6 +673,9 @@ build_project ()
             exit 1
         fi
     fi
+    if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+        echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"build-success\",\"path\":\"$1\"}"
+    fi
 }
 
 #
@@ -757,6 +760,9 @@ if is_testable build; then
                 if [ "$CONTINUE_ON_BUILD_FAIL" != yes ] ; then
                     exit 1
                 fi
+            fi
+            if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"build-success\",\"path\":\"$1\"}"
             fi
         else
             build_project $1 "yes"
@@ -925,6 +931,9 @@ if is_testable device; then
                 if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
                     echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-failed\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
                 fi
+            fi
+            if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAME`\",\"abi\":\"$CPU_ABI\"}"
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm $DSTPATH"
             for DATA in $(ls $DATAPATHS); do
