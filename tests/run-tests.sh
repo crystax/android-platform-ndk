@@ -923,9 +923,9 @@ if is_testable device; then
                     echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-failed\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
                 fi
             fi
-            adb_var_shell_cmd "$DEVICE" "" "rm -f $DSTPATH"
+            adb_var_shell_cmd "$DEVICE" "" "rm $DSTPATH"
             for DATA in $(ls $DATAPATHS); do
-                adb_var_shell_cmd "$DEVICE" "" "rm -f $DSTDIR/`basename $DATA`"
+                adb_var_shell_cmd "$DEVICE" "" "rm $DSTDIR/`basename $DATA`"
             done
         done
         # Cleanup
