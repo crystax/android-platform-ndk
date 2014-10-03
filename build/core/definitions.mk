@@ -1312,7 +1312,7 @@ NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CONLY_FLAGS APP_C
                          APP_LDFLAGS APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
                          APP_PROJECT_PATH APP_STL APP_SHORT_COMMANDS \
                          APP_PIE APP_THIN_ARCHIVE \
-                         APP_CRYSTAX APP_OBJC
+                         APP_CRYSTAX APP_OBJC APP_USE_CXX11
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
