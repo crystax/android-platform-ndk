@@ -933,7 +933,7 @@ if is_testable device; then
                 fi
             fi
             if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
-                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAME`\",\"abi\":\"$CPU_ABI\"}"
+                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm $DSTPATH"
             for DATA in $(ls $DATAPATHS); do
