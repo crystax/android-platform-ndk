@@ -60,6 +60,11 @@
 
 #include <crystax/google/sys/limits.h>
 
+#ifdef _POSIX_MONOTONIC_CLOCK
+#undef _POSIX_MONOTONIC_CLOCK
+#endif
+#define _POSIX_MONOTONIC_CLOCK 1
+
 #define _POSIX_TIMEOUTS 200809L
 
 #endif /* __CRYSTAX_LIMITS_H_5914EAF7C381467A983954447C94C723 */
