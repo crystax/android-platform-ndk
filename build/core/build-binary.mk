@@ -544,8 +544,9 @@ endif
 ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
 # Enable muldefs option if we linking statically.
 # This way app will use functions from libcrystax and link successfully
-# even if there are symbols with the same name if subsequent libraries (libc)
+# even if there are symbols with the same name in subsequent libraries (libc etc)
 TARGET_LIBCRYSTAX := -Wl,-z,muldefs $(TARGET_LIBCRYSTAX)
+# Link other libraries statically
 TARGET_LIBCRYSTAX := $(TARGET_LIBCRYSTAX) -Wl,-Bstatic
 else
 # Link other libraries dynamically
