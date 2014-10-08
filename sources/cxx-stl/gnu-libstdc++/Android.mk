@@ -4,6 +4,12 @@ LOCAL_PATH := $(call my-dir)
 # This is controlled by the APP_GNUSTL_FORCE_CPP_FEATURES variable.
 # See docs/APPLICATION-MK.html for all details.
 #
+
+ifeq (undefined,$(origin APP_GNUSTL_FORCE_CPP_FEATURES))
+# Enable RTTI and exceptions by default
+APP_GNUSTL_FORCE_CPP_FEATURES := rtti exceptions
+endif
+
 gnustl_exported_cppflags := $(strip \
   $(if $(filter exceptions,$(APP_GNUSTL_FORCE_CPP_FEATURES)),-fexceptions)\
   $(if $(filter rtti,$(APP_GNUSTL_FORCE_CPP_FEATURES)),-frtti))
