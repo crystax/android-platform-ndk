@@ -57,7 +57,7 @@ int test_iswctype()
 		{ "xdigit", iswxdigit }
 	};
 
-	printf("1..2\n");
+	printf("1..2 - iswctype\n");
 
 	/*
 	 * C/POSIX locale.

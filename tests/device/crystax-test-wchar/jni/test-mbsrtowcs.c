@@ -44,7 +44,7 @@ int test_mbsrtowcs()
     int rc;
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbsrtowcs()\n");
 
     /*
      * C/POSIX locale.

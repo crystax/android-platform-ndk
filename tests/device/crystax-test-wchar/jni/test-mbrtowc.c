@@ -42,7 +42,7 @@ int test_mbrtowc()
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbrtowc()\n");
 
     /*
      * C/POSIX locale.

@@ -41,7 +41,7 @@ int test_mbrlen()
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbrlen()\n");
 
     /*
      * C/POSIX locale.

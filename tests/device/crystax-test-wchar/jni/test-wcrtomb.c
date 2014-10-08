@@ -42,7 +42,7 @@ int test_wcrtomb()
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - wcrtomb()\n");
 
     /*
      * C/POSIX locale.

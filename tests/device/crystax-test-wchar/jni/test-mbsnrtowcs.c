@@ -42,7 +42,7 @@ int test_mbsnrtowcs()
 	mbstate_t s;
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbsnrtowcs()\n");
 
     /*
      * C/POSIX locale.

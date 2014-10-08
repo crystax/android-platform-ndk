@@ -41,7 +41,7 @@ int test_mbstowcs()
 	wchar_t dstbuf[128];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbstowcs()\n");
 
     /*
      * C/POSIX locale.

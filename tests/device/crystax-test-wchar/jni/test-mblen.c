@@ -40,7 +40,7 @@ int test_mblen()
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mblen()\n");
 
     /*
      * C/POSIX locale.

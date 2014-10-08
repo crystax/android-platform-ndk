@@ -47,7 +47,7 @@ int test_towctrans()
 		{ "toupper", towupper },
 	};
 
-	printf("1..2\n");
+	printf("1..2 - towctrans()\n");
 
     /*
      * C/POSIX locale.

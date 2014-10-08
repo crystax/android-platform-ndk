@@ -3,7 +3,7 @@
 GLOBAL
 int test_wcslen_cpp()
 {
-    printf("1..1\n");
+    printf("1..1 - wcslen_cpp\n");
 
     wchar_t const *s;
     size_t len;

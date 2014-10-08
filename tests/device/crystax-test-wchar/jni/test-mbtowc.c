@@ -41,7 +41,7 @@ int test_mbtowc()
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 
-	printf("1..1\n");
+	printf("1..1 - mbtowc()\n");
 
     /*
      * C/POSIX locale.

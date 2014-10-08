@@ -39,7 +39,7 @@ int test_btowc()
 	unsigned int i;
     char *locale;
 
-	printf("1..2\n");
+	printf("1..2 - btowc()\n");
 
 	/*
 	 * C/POSIX locale.
