@@ -10,7 +10,7 @@ run-tests: bin/test-stdio
 
 .PHONY: clean
 clean:
-	rm -Rf test-stdio obj
+	rm -Rf bin obj
 
 bin:
 	mkdir bin
