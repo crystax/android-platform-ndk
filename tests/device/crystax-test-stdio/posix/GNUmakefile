@@ -13,10 +13,10 @@ clean:
 	rm -Rf bin obj
 
 bin:
-	mkdir bin
+	mkdir -p bin
 
 obj:
-	mkdir obj
+	mkdir -p obj
 
 bin/test-stdio: $(OBJFILES) | bin
 	gcc -o $@ $^
