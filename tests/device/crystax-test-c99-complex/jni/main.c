@@ -27,8 +27,12 @@ static void print_long_double_result(const char*funcname);
 
 int main()
 {
-    printf("sizeof(long double) = %d\n", sizeof(long double));
+    printf("sizeof(long double) = %zu\n", sizeof(long double));
+#ifdef __ANDROID__
     assert(sizeof(long double) == sizeof(double));
+#else
+    assert(sizeof(long double) >= sizeof(double));
+#endif
 
     /* 7.3.5 Trigonometric functions */
     /* 7.3.5.1 The cacos functions */
