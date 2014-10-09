@@ -2,8 +2,14 @@ include ../common.mk
 
 CC ?= clang
 
+LINUX := $(shell uname -s | grep -iq linux && echo yes)
+
 ifeq (yes,$(shell $(CC) --version 2>/dev/null | grep -iq gcc && echo yes))
 CFLAGS += -Wno-unused-parameter
+else
+ifeq (yes,$(LINUX))
+CFLAGS += -Wno-unused-parameter
+endif
 endif
 
 VPATH := ../jni
@@ -36,7 +42,7 @@ $(OBJDIR):
 	mkdir -p $@
 
 $(TARGET): $(OBJFILES) | $(TARGETDIR)
-	$(CC) -o $@ $^ -framework CoreFoundation -lobjc
+	$(CC) -o $@ $^ $(if $(filter yes,$(LINUX)),,-framework CoreFoundation) -lobjc
 
 $(OBJDIR)/%.o: %.m | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $^
