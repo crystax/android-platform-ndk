@@ -1,6 +1,8 @@
 include ../common.mk
 include $(or $(NDK),../../../..)/tests/onhost.mk
 
+DISABLED := $(if $(or $(call is-gcc-version,4,6),$(call is-gcc-version,4,7)),yes)
+
 CXXFLAGS := $(call std-c++11-switch) $(if $(call is-cxx-clang),,-pthread) $(CFLAGS)
 
 VPATH := ../jni
@@ -12,11 +14,19 @@ TARGETDIR := bin/$(CXX)
 TARGET := $(TARGETDIR)/test-c++11
 
 .PHONY: test
+ifeq (yes,$(DISABLED))
+test:
+else
 test: $(TARGET)
 	$<
+endif
 
 .PHONY: build
+ifeq (yes,$(DISABLED))
+build:
+else
 build: $(TARGET)
+endif
 
 .PHONY: clean
 clean:

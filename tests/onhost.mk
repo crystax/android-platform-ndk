@@ -39,6 +39,10 @@ $(strip $(if $(call is-cxx-gcc),\
 ))
 endef
 
+define is-gcc-version
+$(and $(filter $(1),$(gcc-major-version)),$(filter $(2),$(gcc-minor-version)))
+endef
+
 define std-c++11-switch
 $(strip \
     $(if \
