@@ -1,10 +1,10 @@
-#if defined(__APPLE__)
+#define UNUSED(x) (void)x
 
+#if defined(__APPLE__)
 
 #import <Foundation/Foundation.h>
 
 typedef NSObject BaseObject;
-
 
 #elif defined(__GNUC__)
 
@@ -39,31 +39,32 @@ typedef Object BaseObject;
 
 @end /* BaseObject */
 
-#endif
+#endif /* (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) && !__clang__ */
 #endif
 
+#ifdef __APPLE__
+typedef NSZone Zone;
+#else
+typedef id Zone;
+#endif
 
 @interface Bar : BaseObject
 {
-    int intProperty;
+    int _intProperty;
 }
 
 @property int intProperty;
 
 - (id)init;
 - (void)test;
-#ifdef __APPLE__
-- (id)copyWithZone: (NSZone *) zone;
-#else
-- (id)copyWithZone: (id) zone;
-#endif
+- (id)copyWithZone: (Zone *) zone;
 
 @end
 
 
 @implementation Bar
 
-@synthesize intProperty;
+@synthesize intProperty = _intProperty;
 
 - (id)init
 {
@@ -79,12 +80,9 @@ typedef Object BaseObject;
     self.intProperty = 10;
 }
 
-#ifdef __APPLE__
-- (id)copyWithZone: (NSZone *) zone
-#else
-- (id)copyWithZone: (id) zone
+- (id)copyWithZone: (Zone *) zone
 {
-#endif
+    UNUSED(zone);
     Bar *bar = [[Bar alloc] init];
     bar.intProperty = self.intProperty;
 
@@ -136,7 +134,6 @@ typedef Object BaseObject;
 }
 
 @end
-
 
 int main()
 {
