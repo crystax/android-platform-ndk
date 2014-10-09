@@ -80,6 +80,8 @@ long double          strtold_l(const char *nptr, char **endptr, locale_t loc);
 
 int clearenv(void);
 
+int rand_r(unsigned int*);
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
