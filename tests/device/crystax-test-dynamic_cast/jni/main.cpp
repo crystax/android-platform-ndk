@@ -19,6 +19,8 @@ B::~B() {}
 
 int main()
 {
+    ::printf("dynamic_cast - begin");
+
     A *pa = dynamic_cast<A*>(new B);
     B *pb = static_cast<B*>(pa);
     B *pc = dynamic_cast<B*>(pa);
@@ -41,6 +43,8 @@ int main()
     }
 
     delete pa;
+
+    ::printf("OK\n");
 
     return 0;
 }
