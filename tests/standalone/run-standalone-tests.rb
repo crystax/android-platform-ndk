@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -w
+#!/usr/bin/env ruby
 #
 # This script runs all standalone tests for all supported toolchiains,
 # platforms and architectures.
@@ -42,7 +42,7 @@ require 'fileutils'
 
 class Ndk_data
 
-  attr_reader :ndk_path, :gcc_versions_for_64_archs
+  attr_reader :ndk_path, :gcc_versions_for_64_archs, :tag
   attr_accessor :api_levels, :architectures, :gcc_versions, :llvm_versions
 
   def initialize
@@ -65,6 +65,8 @@ class Ndk_data
     @gcc_versions = default_gcc_versions
     @gcc_versions_for_64_archs = ["4.9"]
     @llvm_versions = default_llvm_versions
+
+    @tag = host_tag
   end
 
   def min_api_level(arch)
@@ -88,8 +90,8 @@ class Ndk_data
     get_info_from_shell("echo $(get_default_toolchain_prefix_for_arch #{arch})")
   end
 
-  def tag
-    'darwin-x86_64' # todo:
+  def use_32bit_tools
+    @tag = host_tag32
   end
 
   private
@@ -108,6 +110,14 @@ class Ndk_data
 
   def default_llvm_versions
     get_info_from_shell("echo $DEFAULT_LLVM_VERSION_LIST").split
+  end
+
+  def host_tag
+    get_info_from_shell("echo $HOST_TAG")
+  end
+
+  def host_tag32
+    get_info_from_shell("echo $HOST_TAG32")
   end
 
   def get_info_from_shell(cmd)
@@ -289,6 +299,10 @@ OptionParser.new do |opts|
 
   opts.on("--gcc-vers=LIST", String, "List of GCC version;", "#{$ndk_data.gcc_versions}") do |l|
     $ndk_data.gcc_versions = l.split(',')
+  end
+
+  opts.on("--use-32bit-tools", "Use 32bit versions of tools on 64bit host") do |_|
+    $ndk_data.use_32bit_tools
   end
 
   opts.on("-h", "--help", "Display this help and exit") do
