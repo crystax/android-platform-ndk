@@ -7,11 +7,17 @@
 #include <iomanip>
 #include <regex>
 
+template <typename... T>
+void unused(T... ) {}
+
 // Const expressions
 constexpr int get_five() {return 5;}
 
 // rvalue references
-struct A {};
+class A {
+public:
+    A() {}
+};
 void foobar(A &&) {std::cout << __PRETTY_FUNCTION__ << std::endl;}
 void foobar(A const &) {std::cout << __PRETTY_FUNCTION__ << std::endl;}
 
@@ -71,6 +77,7 @@ auto test_language() -> int
 {
     // nullptr
     char *np = nullptr;
+    unused(np);
     // ERROR: cannot convert 'std::nullptr_t' to 'int' in initialization
     //int nv = nullptr;
 
@@ -80,6 +87,7 @@ auto test_language() -> int
     // decltype
     int some_int;
     decltype(some_int) other_integer_variable = 5;
+    unused(other_integer_variable);
 
     // New for syntax
     int my_array[5] = {1, 2, 3, 4, 5};
@@ -114,6 +122,7 @@ auto test_language() -> int
     auto s1 = u8"test";
     auto s2 = u"test";
     auto s3 = U"test";
+    unused(s1, s2, s3);
 
     // Raw string literals
     auto r1 = R"(foo " \ bar)";

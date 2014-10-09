@@ -1,12 +1,8 @@
 LOCAL_PATH := $(call my-dir)
+include $(LOCAL_PATH)/../common.mk
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := crystax-test-c++11
-LOCAL_SRC_FILES := main.cpp                 \
-                   test-language.cpp        \
-                   test-chrono-duration.cpp \
-                   test-thread.cpp          \
-                   test-to-string.cpp       \
-                   test-to-wstring.cpp      \
-                   test-stol.cpp
+LOCAL_CFLAGS := $(CFLAGS)
+LOCAL_SRC_FILES := $(SRCFILES)
 include $(BUILD_EXECUTABLE)

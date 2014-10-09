@@ -1,18 +1,12 @@
 #include "common.h"
 
-#if GCC_ATLEAST(4, 6)
-
 #include <sstream>
 #include <ratio>
 #include <chrono>
 
 
-// very strange: min shoud be -9223372036854775808
-// but gcc emits a warning about integer constant being too large...
-// so we have: 9223372036854775808 == -9223372036854775808
-// very strange...
-#define SYS_CLOCK_MIN    9223372036854775808ULL
-#define SYS_CLOCK_MAX    9223372036854775807
+#define SYS_CLOCK_MIN    LLONG_MIN
+#define SYS_CLOCK_MAX    LLONG_MAX
 
 
 int test_chrono_duration_ctor()
@@ -102,8 +96,6 @@ int test_chrono_duration_count()
 int test_chrono_duration_min_max()
 {
     auto minval = std::chrono::system_clock::duration::min().count();
-    // std::cout << "min value:     " << minval << std::endl;
-    // std::cout << "sys clock min: " << SYS_CLOCK_MIN << std::endl;
     if (minval != SYS_CLOCK_MIN) {
         std::cout << "bad system_clock min value: " << minval << std::endl;
         return 1;
@@ -118,33 +110,3 @@ int test_chrono_duration_min_max()
 
     return 0;
 }
-
-
-#else
-
-
-int test_chrono_duration_ctor()
-{
-    return -1;
-}
-
-
-int test_chrono_duration_operators()
-{
-    return -1;
-}
-
-
-int test_chrono_duration_count()
-{
-    return -1;
-}
-
-
-int test_chrono_duration_min_max()
-{
-    return -1;
-}
-
-
-#endif  // GCC_ATLEAST(4, 6)

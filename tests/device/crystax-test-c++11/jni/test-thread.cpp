@@ -1,6 +1,6 @@
 #include "common.h"
 
-#if GCC_ATLEAST(4, 6)
+#if defined(__GLIBCXX__)
 
 #if !defined(_GLIBCXX_HAS_GTHREADS)
 #error _GLIBCXX_HAS_GTHREADS undefined!
@@ -14,7 +14,9 @@
 #error _GLIBCXX_USE_NANOSLEEP undefined!
 #endif
 
-#if !defined(_POSIX_TIMEOUTS)
+#endif // __GLIBCXX__
+
+#if defined(__ANDROID__) && !defined(_POSIX_TIMEOUTS)
 #error _POSIX_TIMEOUTS undefined!
 #endif
 
@@ -63,15 +65,3 @@ int test_thread()
 
     return 0;
 }
-
-
-#else
-
-
-int test_thread()
-{
-    return -1;
-}
-
-
-#endif  // GCC_ATLEAST(4, 7)

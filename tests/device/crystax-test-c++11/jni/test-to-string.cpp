@@ -1,15 +1,5 @@
 #include "common.h"
 
-
-#if !defined(__GXX_EXPERIMENTAL_CXX0X__)
-#error __GXX_EXPERIMENTAL_CXX0X__ undefined!
-#endif
-
-#if !defined(_GLIBCXX_USE_C99)
-#error _GLIBCXX_USE_C99 undefined!
-#endif
-
-
 #include <string>
 
 #define TEST_RESULT(type, got, exp)                        \
