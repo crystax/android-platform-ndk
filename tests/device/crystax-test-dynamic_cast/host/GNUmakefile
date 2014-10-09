@@ -1,5 +1,5 @@
 include ../common.mk
-include $(or $(NDK)/tests,../../..)/onhost.mk
+include $(or $(NDK),../../../..)/tests/onhost.mk
 
 CXXFLAGS := $(call std-c++11-switch) $(CFLAGS)
 
