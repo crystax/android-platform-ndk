@@ -142,58 +142,62 @@ make_standalone ()
         --system=$TAG)
 }
 
-dump "#############################################"
-dump "#############################################"
-dump "###"
-dump "### 32 bit architectures"
-dump "###"
-dump "#############################################"
-dump "#############################################"
+dump "#"
+dump "# 32 bit architectures"
+dump "#"
+dump ""
 
-API=14
-ARCHS="arm x86 mips"
-GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
+for API in $API_LEVELS; do
 
-echo "API level         = $API"
-echo "ARCHS             = $ARCHS"
-echo "GCC_VERSION_LIST  = $GCC_VERSION_LIST"
-echo "LLVM_VERSION_LIST = $LLVM_VERSION_LIST"
-echo "TAGS              = $TAGS"
+    ARCHS="arm x86 mips"
+    GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+    LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
 
-
-for ARCH in $(commas_to_spaces $ARCHS); do
-    dump "#############################################"
-    dump "### [$ARCH]"
-    dump "#############################################"
-    dump ""
-    for GCC_VERSION in $GCC_VERSION_LIST; do
-        for LLVM_VERSION in $(commas_to_spaces $LLVM_VERSION_LIST); do
-            for TAG in $TAGS; do
-                dump "### [$TAG] Making $ARCH gcc-$GCC_VERSION/clang-$LLVM_VERSION standalone toolchain"
-                #echo "make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION"
-                make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION
-                dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION standalone toolchain"
-                (cd $NDK && \
-                    ./tests/standalone/run.sh --no-sysroot \
-                    --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/$(get_default_toolchain_prefix_for_arch $ARCH)-gcc)
-                dump "### [$TAG] Testing $ARCH clang-$LLVM_VERSION with gcc-$GCC_VERSION standalone toolchain"
-                (cd $NDK && \
-                    ./tests/standalone/run.sh --no-sysroot \
-                    --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/clang)
-	        rm -rf $(standalone_path $TAG $API $ARCH $GCC_VERSION)
+    echo "API level         = $API"
+    echo "ARCHS             = $ARCHS"
+    echo "GCC_VERSION_LIST  = $GCC_VERSION_LIST"
+    echo "LLVM_VERSION_LIST = $LLVM_VERSION_LIST"
+    echo "TAGS              = $TAGS"
+    
+    for ARCH in $(commas_to_spaces $ARCHS); do
+        dump "##"
+        dump "## [$ARCH]"
+        dump "##"
+        dump ""
+        if [ "$ARCH" == "x86" -a "$API" -lt 10 ]; then
+            dump "$ARCH does not supports API level $API"
+            continue
+        fi
+        if [ "$ARCH" == "mips" -a "$API" -lt 15 ]; then
+            dump "$ARCH does not supports API level $API"
+            continue
+        fi
+        for GCC_VERSION in $GCC_VERSION_LIST; do
+            for LLVM_VERSION in $(commas_to_spaces $LLVM_VERSION_LIST); do
+                for TAG in $TAGS; do
+                    dump "### [$TAG] Making $ARCH gcc-$GCC_VERSION/clang-$LLVM_VERSION standalone toolchain"
+                    #echo "make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION"
+                    make_standalone $TAG $API $ARCH $GCC_VERSION $LLVM_VERSION
+                    dump "### [$TAG] Testing $ARCH gcc-$GCC_VERSION standalone toolchain"
+                    (cd $NDK && \
+                        ./tests/standalone/run.sh --no-sysroot \
+                        --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/$(get_default_toolchain_prefix_for_arch $ARCH)-gcc)
+                    dump "### [$TAG] Testing $ARCH clang-$LLVM_VERSION with gcc-$GCC_VERSION standalone toolchain"
+                    (cd $NDK && \
+                        ./tests/standalone/run.sh --no-sysroot \
+                        --prefix=$(standalone_path $TAG $API $ARCH $GCC_VERSION)/bin/clang)
+	            rm -rf $(standalone_path $TAG $API $ARCH $GCC_VERSION)
+                done
             done
         done
     done
 done
 
-dump "#############################################"
-dump "#############################################"
-dump "###"
-dump "### 64 bit architectures"
-dump "###"
-dump "#############################################"
-dump "#############################################"
+dump ""
+dump "#"
+dump "# 64 bit architectures"
+dump "#"
+dump ""
 
 API=L
 ARCHS="arm64 x86_64 mips64"
@@ -207,9 +211,9 @@ echo "TAGS              = $TAGS"
 
 
 for ARCH in $(commas_to_spaces $ARCHS); do
-    dump "#############################################"
-    dump "### [$ARCH]"
-    dump "#############################################"
+    dump "##"
+    dump "## [$ARCH]"
+    dump "##"
     dump ""
     for GCC_VERSION in $GCC_VERSION_LIST; do
         for LLVM_VERSION in $(commas_to_spaces $DEFAULT_LLVM_VERSION_LIST); do
