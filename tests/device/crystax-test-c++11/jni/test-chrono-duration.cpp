@@ -3,6 +3,7 @@
 #include <sstream>
 #include <ratio>
 #include <chrono>
+#include <climits>
 
 
 #define SYS_CLOCK_MIN    LLONG_MIN

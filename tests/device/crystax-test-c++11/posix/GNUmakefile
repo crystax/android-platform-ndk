@@ -1,6 +1,8 @@
 include ../common.mk
 
-CXX = g++ -std=gnu++11 $(CFLAGS)
+CXX = g++
+
+CXXFLAGS := -std=gnu++11 $(CFLAGS)
 
 VPATH := ../jni
 
@@ -22,7 +24,7 @@ obj:
 	mkdir -p obj
 
 $(TARGET): $(OBJFILES) | bin
-	$(CXX) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 obj/%.o: %.cpp | obj
-	$(CXX) -c -o $@ $^
+	$(CXX) $(CXXFLAGS) -c -o $@ $^
