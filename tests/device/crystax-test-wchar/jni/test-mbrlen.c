@@ -38,7 +38,6 @@ GLOBAL
 int test_mbrlen()
 {
 	mbstate_t s;
-	size_t len;
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 

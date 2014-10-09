@@ -96,10 +96,3 @@ int test_wprintf_all()
 #undef DO_WPRINTF_TEST1
     return 0;
 }
-
-#ifndef __ANDROID__
-int main()
-{
-    return test_wprintf_all();
-}
-#endif

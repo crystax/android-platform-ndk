@@ -37,7 +37,6 @@
 GLOBAL
 int test_mbtowc()
 {
-	size_t len;
 	wchar_t wc;
 	char buf[MB_LEN_MAX + 1];
     char *locale;

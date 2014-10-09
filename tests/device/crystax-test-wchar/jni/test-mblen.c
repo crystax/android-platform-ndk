@@ -37,7 +37,6 @@
 GLOBAL
 int test_mblen()
 {
-	size_t len;
 	char buf[MB_LEN_MAX + 1];
     char *locale;
 

@@ -24,7 +24,7 @@ static int test_wstring_construct()
     printf("1..1\n");
 
     std::wstring data = L"abcdefghijkl";
-    printf("data.size(): %d\n", data.size());
+    printf("data.size(): %zu\n", data.size());
     assert(data.size() == 12);
     assert(data[0] == L'a');
     assert(data[1] == L'b');

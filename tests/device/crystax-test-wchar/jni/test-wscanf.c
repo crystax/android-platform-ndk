@@ -31,10 +31,3 @@ int test_wscanf_all()
 {
     return test_swscanf();
 }
-
-#ifndef __ANDROID__
-int main()
-{
-    return test_wscanf_all();
-}
-#endif

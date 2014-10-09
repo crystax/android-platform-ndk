@@ -36,8 +36,8 @@
 GLOBAL
 int test_towctrans()
 {
-	wctype_t t;
-	int i, j;
+	wctrans_t t;
+	unsigned int i, j;
     char *locale;
 	struct {
 		const char *name;
@@ -66,7 +66,7 @@ int test_towctrans()
 	t = wctrans("elephant");
 	assert(t == 0);
 	for (i = 0; i < 256; i++)
-		assert(towctrans(i, t) == i);
+		assert(towctrans(i, t) == (wint_t)i);
 
 #if CRYSTAX_FULL_LOCALES
 	/*
