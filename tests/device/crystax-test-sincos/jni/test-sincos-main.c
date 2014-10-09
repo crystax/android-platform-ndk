@@ -6,8 +6,16 @@ extern float test_sincos_cpp();
 int main()
 {
     float a, b;
-    a = test_sinc_c(0.3);
+
+    printf("test-sincos - begin\n");
+
+    a = test_sincos_c(0.3);
     b = test_sincos_cpp(0.3);
-    printf("a=%f, b=%f\n", a, b);
+    if (a != b) {
+        fprintf(stderr, "FAILED: a=%f, b=%f\n", a, b);
+        return 1;
+    }
+
+    printf("OK\n");
     return 0;
 }

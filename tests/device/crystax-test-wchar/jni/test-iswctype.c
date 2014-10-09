@@ -37,7 +37,7 @@ GLOBAL
 int test_iswctype()
 {
 	wctype_t t;
-	int i, j;
+	unsigned int i, j;
     char *locale;
 	struct {
 		const char *name;

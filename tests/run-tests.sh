@@ -480,12 +480,73 @@ if [ "$VERBOSE2" = "yes" ] ; then
     NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS V=1"
 fi
 
+ndk_toolchain_type()
+{
+    if [ -n "$NDK_TOOLCHAIN_VERSION" ]; then
+        if [ "${NDK_TOOLCHAIN_VERSION##clang}" != "$NDK_TOOLCHAIN_VERSION" ]; then
+            echo clang
+        else
+            echo gcc
+        fi
+    fi
+}
+
+compiler_type()
+{
+    local COMPILER=$1
+    if [ -n "$COMPILER" ]; then
+        if $COMPILER --version 2>/dev/null | grep -iq "\(llvm\|clang\)"; then
+            echo clang
+        elif $COMPILER --version 2>/dev/null | grep -iq "gcc"; then
+            echo gcc
+        else
+            echo unknown
+        fi
+    else
+        echo "Usage: compiler_type compiler" 1>&2
+        exit 1
+    fi
+}
+
+ALL_HOST_GCC="gcc gcc-4.6 gcc-4.7 gcc-4.8 gcc-4.9"
+ALL_HOST_GXX="g++ g++-4.6 g++-4.7 g++-4.8 g++-4.9"
+
+ALL_HOST_CLANG="  clang   clang-3.3   clang-3.4   clang-3.5"
+ALL_HOST_CLANGXX="clang++ clang++-3.3 clang++-3.4 clang++-3.5"
+
+ALL_HOST_CC=" cc  $ALL_HOST_GCC $ALL_HOST_CLANG"
+ALL_HOST_CXX="c++ $ALL_HOST_GXX $ALL_HOST_CLANGXX"
+
+all_host_compilers()
+{
+    local NDK_TOOLCHAIN_TYPE
+    local CC CCTYPE CCLIST
+
+    NDK_TOOLCHAIN_TYPE=$(ndk_toolchain_type)
+    CCLIST=""
+    for CC in "$@"; do
+        which $CC >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            continue
+        fi
+        if [ -n "$NDK_TOOLCHAIN_TYPE" ]; then
+            CCTYPE=$(compiler_type $CC)
+            if [ "x$CCTYPE" != "x$NDK_TOOLCHAIN_TYPE" ]; then
+                continue
+            fi
+        fi
+        CCLIST="$CCLIST $CC"
+    done
+    echo $CCLIST
+}
+
 run_on_host_test ()
 {
     local GNUMAKE GNUMAKEPARAMS
     local RET
     local CCS CXXS
     local ALLCC ALLCXX
+    local ENABLED
 
     # If there is 'host/GNUmakefile', that means this test is capable to run on host too.
     # In this case, before we build test with NDK build system, we build and run it on host,
@@ -500,58 +561,60 @@ run_on_host_test ()
     # - if there is need to test with different C/C++ compilers, targets 'c-enabled' and/or
     #   'c++-enabled' should be defined. If not defined, it's treated as if corresponding target
     #   exists, but return false result
-    if [ -f host/GNUmakefile ]; then
-        dump "  NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
-        if [ -z "$GNUMAKE" ]; then
-            GNUMAKE=make
-        fi
 
-        ALLCC=" cc  gcc gcc-4.6 gcc-4.7 gcc-4.8 gcc-4.9 clang   clang-3.3   clang-3.4   clang-3.5"
-        ALLCXX="c++ g++ g++-4.6 g++-4.7 g++-4.8 g++-4.9 clang++ clang++-3.3 clang++-3.4 clang++-3.5"
+    ENABLED=yes
+    test -f host/GNUmakefile || ENABLED=no
+    test "x$DISABLE_ONHOST_TESTING" = "xyes" && ENABLED=no
 
-        if $GNUMAKE -C host c-enabled   >/dev/null 2>&1; then
-            CCS=$ALLCC
-        else
-            CCS="none"
-        fi
-        if $GNUMAKE -C host c++-enabled >/dev/null 2>&1; then
-            CXXS=$ALLCXX
-        else
-            CXXS="none"
-        fi
+    test "x$ENABLED" = "xyes" || return 0
 
-        for cc in $CCS; do
-            if [ "x$cc" != "xnone" ]; then
-                # Skip non-existent CC
-                which $cc >/dev/null 2>&1 || continue
-            fi
-            for cxx in $CXXS; do
-                if [ "x$cxx" != "xnone" ]; then
-                    # Skip non-existent CXX
-                    which $cxx >/dev/null 2>&1 || continue
-                fi
-
-                GNUMAKEPARAMS=""
-                test "x$cc"  != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CC=$cc"
-                test "x$cxx" != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CXX=$cxx"
-
-                if [ "x$GNUMAKEPARAMS" != "x" ]; then
-                    dump "  On-host testing with $(echo $GNUMAKEPARAMS)"
-                else
-                    dump "  On-host testing"
-                fi
-
-                run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
-                RET=$?
-                run $GNUMAKE -C host clean
-                if [ $RET -ne 0 ]; then
-                    return 1
-                fi
-            done
-        done
-
-        dump "  OK: all on-host tests PASSED"
+    log "  NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
+    if [ -z "$GNUMAKE" ]; then
+        GNUMAKE=make
     fi
+
+    if $GNUMAKE -C host c-enabled   >/dev/null 2>&1; then
+        CCS=$(all_host_compilers $ALL_HOST_CC)
+    else
+        CCS="none"
+    fi
+    if $GNUMAKE -C host c++-enabled >/dev/null 2>&1; then
+        CXXS=$(all_host_compilers $ALL_HOST_CXX)
+    else
+        CXXS="none"
+    fi
+
+    for cc in $CCS; do
+        if [ "x$cc" != "xnone" ]; then
+            # Skip non-existent CC
+            which $cc >/dev/null 2>&1 || continue
+        fi
+        for cxx in $CXXS; do
+            if [ "x$cxx" != "xnone" ]; then
+                # Skip non-existent CXX
+                which $cxx >/dev/null 2>&1 || continue
+            fi
+
+            GNUMAKEPARAMS=""
+            test "x$cc"  != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CC=$cc"
+            test "x$cxx" != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CXX=$cxx"
+
+            if [ "x$GNUMAKEPARAMS" != "x" ]; then
+                log "  On-host testing with $(echo $GNUMAKEPARAMS)"
+            else
+                log "  On-host testing"
+            fi
+
+            run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
+            RET=$?
+            run $GNUMAKE -C host clean
+            if [ $RET -ne 0 ]; then
+                return 1
+            fi
+        done
+    done
+
+    log "  OK: all on-host tests PASSED"
 }
 
 run_ndk_build ()

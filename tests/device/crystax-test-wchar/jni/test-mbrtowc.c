@@ -38,7 +38,6 @@ GLOBAL
 int test_mbrtowc()
 {
 	mbstate_t s;
-	size_t len;
 	wchar_t wc;
 	char buf[MB_LEN_MAX + 1];
     char *locale;

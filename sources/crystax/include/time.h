@@ -31,6 +31,16 @@
 
 #include <crystax/google/time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int clock_nanosleep(clockid_t, int, const struct timespec *, struct timespec *);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
 #if !defined(__LP64__)
 
 #include <xlocale.h>

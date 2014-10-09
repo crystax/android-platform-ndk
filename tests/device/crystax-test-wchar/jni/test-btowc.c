@@ -36,7 +36,7 @@
 GLOBAL
 int test_btowc()
 {
-	int i;
+	unsigned int i;
     char *locale;
 
 	printf("1..2\n");
@@ -51,8 +51,10 @@ int test_btowc()
 
 	assert(btowc(EOF) == WEOF);
 	assert(wctob(WEOF) == EOF);
-	for (i = 0; i < UCHAR_MAX; i++)
-		assert(btowc(i) == (wchar_t)i && i == (int)wctob(i));
+	for (i = 0; i < UCHAR_MAX; i++) {
+        assert(btowc(i) == (wint_t)i);
+        assert(wctob(i) == (int)i);
+    }
 
 #if CRYSTAX_FULL_LOCALES
 	/*

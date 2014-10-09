@@ -60,8 +60,23 @@ int test_einval(pthread_mutex_t *mutex)
     int rc;
     struct timespec timeout;
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
+#endif
+
     /* check NULL timeout */
     rc = pthread_mutex_timedlock(mutex, NULL);
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     if (rc != EINVAL) {
         printf("pthread_mutex_timedlock failed with NULL timeout\n");
         return 1;
@@ -86,7 +101,23 @@ int test_einval(pthread_mutex_t *mutex)
     /* check with NULL mutex */
     timeout.tv_sec += 5;
     timeout.tv_nsec = 300;
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnonnull"
+#endif
+
     rc = pthread_mutex_timedlock(NULL, &timeout);
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
     if (rc != EINVAL) {
         printf("pthread_mutex_timedlock failed with NULL mutex\n");
         return 1;
