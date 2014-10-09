@@ -2,7 +2,11 @@ include ../common.mk
 
 CXX = g++
 
-CXXFLAGS := -std=gnu++11 $(CFLAGS)
+define is-cxx-clang
+$(shell $(CXX) --version | grep -iq clang && echo yes)
+endef
+
+CXXFLAGS := -std=gnu++11 $(if $(call is-cxx-clang),,-pthread) $(CFLAGS)
 
 VPATH := ../jni
 
