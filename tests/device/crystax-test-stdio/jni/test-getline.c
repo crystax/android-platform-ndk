@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #define TEST_FILE_NAME  "./test-getline.data"
-#define BUF_SIZE        128
 
 
 const char *DATA_1[] = {
@@ -31,7 +30,6 @@ static int make_test_file();
 
 static int test_getline_impl(size_t ln)
 {
-    char buf[BUF_SIZE];
     FILE *f;
     int i;
 
@@ -89,7 +87,6 @@ int test_getline()
 
 int test_getdelim()
 {
-    char buf[BUF_SIZE];
     FILE *f;
     int i;
 

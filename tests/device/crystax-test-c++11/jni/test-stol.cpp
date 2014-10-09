@@ -50,7 +50,7 @@ int test_stol()
 
     std::string s6 = "1965.58";
     float v6 = std::stof(s6);
-    TEST_FLOAT_RESULT("stof", fabsf, float, v6, 1965.58);
+    TEST_FLOAT_RESULT("stof", fabsf, float, v6, (float)1965.58);
 
     std::string s7 = "1965.58";
     double v7 = std::stof(s7);
