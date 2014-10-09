@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012 The Android Open Source Project
+# Copyright (C) 2012, 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -145,8 +145,13 @@ mkdir -p "$TMPDIR" && rm -rf "$TMPDIR/*"
 BUILD_DIR=$TMPDIR/build
 mkdir -p "$BUILD_DIR"
 
-LOGFILE=$TMPDIR/log.txt
-echo -n "" > $LOGFILE
+if [ -n "$TMPLOG" ] ; then
+    LOGFILE=$TMPLOG
+else
+    echo 1 > /tmp/tmp_log_not_set
+    LOGFILE=$TMPDIR/log.txt
+fi
+echo "############################################" >> $LOGFILE
 
 if [ $VERBOSE -ge 3 ]; then
     run () {
