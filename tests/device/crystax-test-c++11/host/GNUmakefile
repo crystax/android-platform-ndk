@@ -1,12 +1,7 @@
 include ../common.mk
+include $(or $(NDK),../../../..)/tests/onhost.mk
 
-CXX = g++
-
-define is-cxx-clang
-$(shell $(CXX) --version | grep -iq clang && echo yes)
-endef
-
-CXXFLAGS := -std=gnu++11 $(if $(call is-cxx-clang),,-pthread) $(CFLAGS)
+CXXFLAGS := $(call std-c++11-switch) $(if $(call is-cxx-clang),,-pthread) $(CFLAGS)
 
 VPATH := ../jni
 
