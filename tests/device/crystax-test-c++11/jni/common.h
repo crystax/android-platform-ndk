@@ -2,8 +2,12 @@
 
 // First, check some macros
 
-#if !defined(__cplusplus) || __cplusplus < 201103L
-#error "__cplusplus is not defined or it's value too small"
+#if !defined(__cplusplus)
+#error "__cplusplus is not defined"
+#endif
+
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 6)) && __cplusplus < 201103L
+#error "__cplusplus value is too small"
 #endif
 
 #if !defined(__GXX_EXPERIMENTAL_CXX0X__)
