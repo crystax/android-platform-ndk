@@ -4,9 +4,11 @@
 // That is why this test is.
 
 #include <iostream>
-
+#include <iomanip>
 
 int main()
 {
-	return 0;
+    std::cout << "iostream - begin" << std::endl;
+    std::cout << "OK" << std::endl;
+    return 0;
 }
