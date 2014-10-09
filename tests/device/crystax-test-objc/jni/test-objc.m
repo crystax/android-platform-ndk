@@ -1,6 +1,11 @@
 #import <stdio.h>
 #import "base.h"
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
+#include <assert.h>
+
 @interface foo : BaseObject {
     BOOL boolProperty;
     id stringProperty;
@@ -22,20 +27,20 @@
 -(id) init
 {
     printf("%s\n", __PRETTY_FUNCTION__);
+    assert(self != nil);
     return self;
 }
 
 -(void) bar
 {
-    printf("%s (1)\n", __PRETTY_FUNCTION__);
     self.boolProperty = YES;
-    printf("%s (2)\n", __PRETTY_FUNCTION__);
+    assert(self.boolProperty == YES);
     self.boolProperty = NO;
-    printf("%s (3): %d\n", __PRETTY_FUNCTION__, (int)self.boolProperty);
+    assert(self.boolProperty == NO);
     self.stringProperty = @"";
-    printf("%s (4)\n", __PRETTY_FUNCTION__);
+    assert([self.stringProperty isEqual:@""]);
     self.boolProperty = YES;
-    printf("%s (5): %d\n", __PRETTY_FUNCTION__, (int)self.boolProperty);
+    assert(self.boolProperty == YES);
 }
 
 @end

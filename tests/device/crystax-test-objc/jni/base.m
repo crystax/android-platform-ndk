@@ -1,15 +1,33 @@
 #import "base.h"
 
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+#ifdef __APPLE__
 
 @implementation BaseObject
 
-+ alloc
++ (id) alloc
+{
+    return [super alloc];
+}
+
+- (void) free
+{
+    [super dealloc];
+}
+
+@end /* BaseObject */
+
+#elif defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+
+#import <objc/runtime.h>
+
+@implementation BaseObject
+
++ (id) alloc
 {
     return class_createInstance(self, 0);
 }
 
-- free
+- (void) free
 {
     object_dispose(self);
 }
