@@ -19,7 +19,8 @@
     {                                                                  \
       double_type diff = abs(got - exp);                               \
       if (diff > EPSILON) {                                            \
-          printf("got: %e; expected: %e; diff: %e\n", got, exp, diff); \
+          printf("got: %Le; expected: %Le; diff: %Le\n",               \
+              (long double)got, (long double) exp, (long double)diff); \
           return 1;                                                    \
       }                                                                \
     }
@@ -49,7 +50,7 @@ int test_stol()
 
     std::string s6 = "1965.58";
     float v6 = std::stof(s6);
-    TEST_FLOAT_RESULT("stof", fabsf, float, v6, 1965.58);
+    TEST_FLOAT_RESULT("stof", fabsf, float, v6, (float)1965.58);
 
     std::string s7 = "1965.58";
     double v7 = std::stof(s7);
@@ -57,7 +58,7 @@ int test_stol()
 
     std::string s8 = "1965.58";
     long double v8 = std::stold(s8);
-    TEST_FLOAT_RESULT("stold", fabsl, long double, v7, 1965.58);
+    TEST_FLOAT_RESULT("stold", fabsl, long double, v8, 1965.58);
 
     return 0;
 }

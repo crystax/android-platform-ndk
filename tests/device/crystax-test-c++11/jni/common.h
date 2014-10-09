@@ -1,6 +1,30 @@
 #pragma once
 
+// First, check some macros
+
+#if !defined(__cplusplus)
+#error "__cplusplus is not defined"
+#endif
+
+#if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ > 6)) && __cplusplus < 201103L
+#error "__cplusplus value is too small"
+#endif
+
+#if !defined(__GXX_EXPERIMENTAL_CXX0X__)
+#error "__GXX_EXPERIMENTAL_CXX0X__ is not defined"
+#endif
+
 #include <iostream>
+
+// Now, check GNU libstdc++ macros
+
+#if defined(__GLIBCXX__) && !defined(_GLIBCXX_USE_C99)
+#error "_GLIBCXX_USE_C99 is not defined"
+#endif
+
+#if defined(__GLIBCXX__) && defined(_GLIBCXX_HAVE_BROKEN_VSWPRINTF)
+#error "_GLIBCXX_HAVE_BROKEN_VSWPRINTF is defined, but it shouldn't"
+#endif
 
 
 #define DO_TEST(name)   switch (test_ ## name ()) {                   \
@@ -14,10 +38,6 @@
                             std::cout << "FAILED test " #name "\n";   \
                             return 1;                                 \
                         }
-
-
-#define GCC_ATLEAST(major, minor) \
-    (__GNUC__ > (major) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
 
 
 int test_language();

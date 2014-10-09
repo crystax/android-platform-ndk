@@ -2312,6 +2312,11 @@ $(call ndk-crystax-register,\
     crystax_shared\
     )
 
+$(call ndk-crystax-register,\
+    none,\
+    crystax\
+    )
+
 ifneq (,$(NDK_UNIT_TESTS))
 $(call ndk-run-all-tests)
 endif

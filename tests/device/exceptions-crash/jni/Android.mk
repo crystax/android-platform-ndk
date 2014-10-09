@@ -5,6 +5,7 @@ LOCAL_MODULE := libfoo_static
 LOCAL_SRC_FILES := foo.cpp
 LOCAL_CPP_FEATURES := exceptions
 LOCAL_SHARED_LIBRARIES := gnustl_static
+LOCAL_SHARED_LIBRARIES += crystax_static
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -18,6 +19,7 @@ LOCAL_MODULE := libfoo_shared
 LOCAL_SRC_FILES := foo.cpp
 LOCAL_CPP_FEATURES := exceptions
 LOCAL_SHARED_LIBRARIES := gnustl_shared
+LOCAL_SHARED_LIBRARIES += crystax_shared
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -27,3 +29,4 @@ LOCAL_SHARED_LIBRARIES := libfoo_shared
 include $(BUILD_EXECUTABLE)
 
 $(call import-module,cxx-stl/gnu-libstdc++)
+$(call import-module,crystax)

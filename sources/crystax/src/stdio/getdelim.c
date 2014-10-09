@@ -27,21 +27,46 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
-#define __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 
-#include <crystax/google/stdio.h>
-#include <stdarg.h>
+#define DBG(fmt, ...) fprintf(stderr, "%s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ssize_t getdelim(char **s, size_t *n, int delim, FILE *f)
+{
+    int c;
+    size_t total = 0;
+    char *tmp;
+    size_t inc = 32;
 
-ssize_t getdelim(char **s, size_t *n, int delim, FILE *f);
-ssize_t getline(char **s, size_t *n, FILE *f);
+    if (!s || !n) {
+        errno = EINVAL;
+        return -1;
+    }
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+    if (!*s)
+        *n = 0;
 
-#endif /* __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93 */
+    for (;;) {
+        if ((c = fgetc(f)) == EOF)
+            break;
+        if (total >= *n) {
+            *n += inc;
+            if (inc < 65536)
+                inc = (inc << 1) - (inc >> 1);
+            tmp = realloc(*s, *n);
+            if (!tmp) {
+                errno = ENOMEM;
+                return -1;
+            }
+            *s = tmp;
+        }
+        *(*s + total) = (char)c;
+        ++total;
+        if (c == delim)
+            break;
+    }
+    *(*s + total) = '\0';
+    return total;
+}

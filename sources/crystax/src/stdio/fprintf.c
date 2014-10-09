@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2014 CrystaX .NET <dm@crystax.net>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,21 +27,17 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
-#define __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
-
-#include <crystax/google/stdio.h>
+#include <stdio.h>
 #include <stdarg.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+int fprintf(FILE *f, const char *fmt, ...)
+{
+    int rc;
+    va_list args;
 
-ssize_t getdelim(char **s, size_t *n, int delim, FILE *f);
-ssize_t getline(char **s, size_t *n, FILE *f);
+    va_start(args, fmt);
+    rc = vfprintf(f, fmt, args);
+    va_end(args);
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif /* __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93 */
+    return rc;
+}

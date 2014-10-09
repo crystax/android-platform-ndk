@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <wctype.h>
 
 #define BUF_SIZE 1024
 
@@ -8,6 +9,8 @@ int test_printf()
 {
     int ret;
     int len;
+
+#define CRYSTAX_TEST_NAME "printf"
 
 #define DO_PRINTF_TEST(n, check, fmt, ...) \
     ret = printf(fmt "\n", ##__VA_ARGS__); \
@@ -24,8 +27,6 @@ int test_printf()
 
 #include "test-printf-data.c"
 
-#undef DO_PRINTF_TEST
-
     return 0;
 }
 
@@ -33,6 +34,8 @@ int test_fprintf()
 {
     int ret;
     int len;
+
+#define CRYSTAX_TEST_NAME "fprintf"
 
 #define DO_PRINTF_TEST(n, check, fmt, ...) \
     ret = fprintf(stderr, fmt "\n", ##__VA_ARGS__); \
@@ -49,8 +52,6 @@ int test_fprintf()
 
 #include "test-printf-data.c"
 
-#undef DO_PRINTF_TEST
-
     return 0;
 }
 
@@ -58,6 +59,8 @@ int test_sprintf()
 {
     char buf[BUF_SIZE];
     int len, ret;
+
+#define CRYSTAX_TEST_NAME "sprintf"
 
 #define DO_PRINTF_TEST(n, check, fmt, ...) \
     memset(buf, 0, sizeof buf); \
@@ -75,8 +78,6 @@ int test_sprintf()
 
 #include "test-printf-data.c"
 
-#undef DO_PRINTF_TEST
-
     return 0;
 }
 
@@ -84,6 +85,8 @@ int test_snprintf()
 {
     char buf[BUF_SIZE];
     int len, ret;
+
+#define CRYSTAX_TEST_NAME "snprintf"
 
 #define DO_PRINTF_TEST(n, check, fmt, ...) \
     memset(buf, 0, sizeof buf); \
@@ -100,8 +103,6 @@ int test_snprintf()
     printf("snprintf " #n " - ok\n")
 
 #include "test-printf-data.c"
-
-#undef DO_PRINTF_TEST
 
     return 0;
 }

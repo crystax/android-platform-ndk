@@ -480,6 +480,80 @@ if [ "$VERBOSE2" = "yes" ] ; then
     NDK_BUILD_FLAGS="$NDK_BUILD_FLAGS V=1"
 fi
 
+run_on_host_test ()
+{
+    local GNUMAKE GNUMAKEPARAMS
+    local RET
+    local CCS CXXS
+    local ALLCC ALLCXX
+
+    # If there is 'host/GNUmakefile', that means this test is capable to run on host too.
+    # In this case, before we build test with NDK build system, we build and run it on host,
+    # ensuring there is no errors in this test running on host OS.
+    # For maximum coverage, we use wide range of C/C++ compilers and test with all of them
+    # we can found on host
+    # Requirements for on-host tests:
+    # - there should be host/GNUmakefile file in test directory
+    # - that GNUmakefile should support 'test' target, which build and run test on host
+    # - that GNUmakefile should allow redefining of CC and CXX variables and use them for
+    #   test build
+    # - if there is need to test with different C/C++ compilers, targets 'c-enabled' and/or
+    #   'c++-enabled' should be defined. If not defined, it's treated as if corresponding target
+    #   exists, but return false result
+    if [ -f host/GNUmakefile ]; then
+        dump "  NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
+        if [ -z "$GNUMAKE" ]; then
+            GNUMAKE=make
+        fi
+
+        ALLCC=" cc  gcc gcc-4.6 gcc-4.7 gcc-4.8 gcc-4.9 clang   clang-3.3   clang-3.4   clang-3.5"
+        ALLCXX="c++ g++ g++-4.6 g++-4.7 g++-4.8 g++-4.9 clang++ clang++-3.3 clang++-3.4 clang++-3.5"
+
+        if $GNUMAKE -C host c-enabled   >/dev/null 2>&1; then
+            CCS=$ALLCC
+        else
+            CCS="none"
+        fi
+        if $GNUMAKE -C host c++-enabled >/dev/null 2>&1; then
+            CXXS=$ALLCXX
+        else
+            CXXS="none"
+        fi
+
+        for cc in $CCS; do
+            if [ "x$cc" != "xnone" ]; then
+                # Skip non-existent CC
+                which $cc >/dev/null 2>&1 || continue
+            fi
+            for cxx in $CXXS; do
+                if [ "x$cxx" != "xnone" ]; then
+                    # Skip non-existent CXX
+                    which $cxx >/dev/null 2>&1 || continue
+                fi
+
+                GNUMAKEPARAMS=""
+                test "x$cc"  != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CC=$cc"
+                test "x$cxx" != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CXX=$cxx"
+
+                if [ "x$GNUMAKEPARAMS" != "x" ]; then
+                    dump "  On-host testing with $(echo $GNUMAKEPARAMS)"
+                else
+                    dump "  On-host testing"
+                fi
+
+                run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
+                RET=$?
+                run $GNUMAKE -C host clean
+                if [ $RET -ne 0 ]; then
+                    return 1
+                fi
+            done
+        done
+
+        dump "  OK: all on-host tests PASSED"
+    fi
+}
+
 run_ndk_build ()
 {
     if [ "$WINE" ]; then
@@ -649,7 +723,7 @@ build_project ()
     fi
     rm -rf "$DIR" && cp -r "$1" "$DIR"
     # build it
-    (run cd "$DIR" && run_ndk_build $NDK_BUILD_FLAGS)
+    (run cd "$DIR" && run_on_host_test && run_ndk_build $NDK_BUILD_FLAGS)
     local RET=$?
     if [ -f "$1/BUILD_SHOULD_FAIL" ]; then
         if [ $RET = 0 ]; then
@@ -750,7 +824,7 @@ if is_testable build; then
             fi
             rm -rf "$DIR" && cp -r "$1" "$DIR"
             export NDK
-            (cd "$DIR" && run ./build.sh -j$JOBS $NDK_BUILD_FLAGS)
+            (cd "$DIR" && run_on_host_test && run ./build.sh -j$JOBS $NDK_BUILD_FLAGS)
             if [ $? != 0 ]; then
                 (( NUM_FAILED_BUILDS += 1 ))
                 dump "!!! BUILD FAILURE [$1]!!! See $NDK_LOGFILE for details or use --verbose option!"
