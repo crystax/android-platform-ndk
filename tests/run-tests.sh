@@ -568,7 +568,7 @@ run_on_host_test ()
 
     test "x$ENABLED" = "xyes" || return 0
 
-    dump "  NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
+    log "  NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
     if [ -z "$GNUMAKE" ]; then
         GNUMAKE=make
     fi
@@ -600,9 +600,9 @@ run_on_host_test ()
             test "x$cxx" != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CXX=$cxx"
 
             if [ "x$GNUMAKEPARAMS" != "x" ]; then
-                dump "  On-host testing with $(echo $GNUMAKEPARAMS)"
+                log "  On-host testing with $(echo $GNUMAKEPARAMS)"
             else
-                dump "  On-host testing"
+                log "  On-host testing"
             fi
 
             run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
@@ -614,7 +614,7 @@ run_on_host_test ()
         done
     done
 
-    dump "  OK: all on-host tests PASSED"
+    log "  OK: all on-host tests PASSED"
 }
 
 run_ndk_build ()
