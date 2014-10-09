@@ -1,6 +1,6 @@
 #include <math.h>
 
-float test_sinc_c(float a)
+float test_sincos_c(float a)
 {
     return sin(a) + cos(a);
 }

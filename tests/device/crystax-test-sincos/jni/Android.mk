@@ -1,6 +1,8 @@
 LOCAL_PATH := $(call my-dir)
+include $(LOCAL_PATH)/../common.mk
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := test-sincos
-LOCAL_SRC_FILES := test-sincos-main.c test-sincos-c.c test-sincos-cpp.cpp
+LOCAL_MODULE    := test-sincos
+LOCAL_SRC_FILES := $(SRCFILES)
+LOCAL_CFLAGS    := $(CFLAGS)
 include $(BUILD_EXECUTABLE)
