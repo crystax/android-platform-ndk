@@ -1181,10 +1181,13 @@ if [ "$ABI" = "$(find_ndk_unknown_archs)" ]; then
   run rm -rf $NDK/$GABIXX_SUBDIR/libs/$ABI
   run rm -rf $NDK/$LIBPORTABLE_SUBDIR/libs/$ABI
 fi
-rm -rf $BUILD_DIR
+NUM_FAILS=$(( NUM_FAILED_BUILDS + NUM_FAILED_DEVICE_TESTS ))
+if [ $NUM_FAILS -eq 0 ]; then
+    rm -rf $BUILD_DIR
+fi
 
 dump "Number of failed builds:       $NUM_FAILED_BUILDS"
 dump "Number of failed device tests: $NUM_FAILED_DEVICE_TESTS"
 dump "Done."
 
-exit $(( NUM_FAILED_BUILDS + NUM_FAILED_DEVICE_TESTS ))
+exit $NUM_FAILS
