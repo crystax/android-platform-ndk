@@ -206,7 +206,7 @@ LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 #
 ifeq ($(TARGET_ARCH_ABI),armeabi)
 ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
-LOCAL_SHARED_LIBRARIES := compiler_rt_shared
+LOCAL_LDLIBS := -latomic
 endif
 endif
 
