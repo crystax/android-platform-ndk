@@ -411,9 +411,11 @@ done
 for ABI in $ABIS; do
     ARCH=$(convert_abi_to_arch $ABI)
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
+    echo "Default GCC version for $ABI ($ARCH) : $DEFAULT_GCC_VERSION"
     for VERSION in $GCC_VERSION_LIST; do
         # Only build for this GCC version if it on or after DEFAULT_GCC_VERSION
-        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_greater_than "$DEFAULT_GCC_VERSION" "${VERSION%%l}"; then
+        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_greater_than "${VERSION%%l}" "$DEFAULT_GCC_VERSION"; then
+            echo "Skipping build for GCC $VERSION for $ABI ($ARCH)"
             continue
         fi
 
