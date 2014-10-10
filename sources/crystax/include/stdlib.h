@@ -58,7 +58,19 @@
 #ifndef __CRYSTAX_STDLIB_H_149f4a29a3d4428282419c7dcb5e9ba8
 #define __CRYSTAX_STDLIB_H_149f4a29a3d4428282419c7dcb5e9ba8
 
+#if !defined(__LP64__) || !__LP64__
+#define atof google_atof
+#define strtof google_strtof
+#define strtod google_strtod
+#endif
+
 #include <crystax/google/stdlib.h>
+
+#if !defined(__LP64__) || !__LP64__
+#undef atof
+#undef strtof
+#undef strtod
+#endif
 
 #if !defined(__LP64__) || !__LP64__
 
@@ -77,6 +89,18 @@ unsigned long        strtoul_l(const char *nptr, char **endptr, int base, locale
 long long            strtoll_l(const char *nptr, char **endptr, int base, locale_t loc);
 unsigned long long   strtoull_l(const char *nptr, char **endptr, int base, locale_t loc);
 long double          strtold_l(const char *nptr, char **endptr, locale_t loc);
+
+double strtod(const char *nptr, char **endptr);
+
+static __inline__ float strtof(const char *nptr, char **endptr)
+{
+    return (float)strtod(nptr, endptr);
+}
+
+static __inline__ double atof(const char *nptr)
+{
+    return strtod(nptr, NULL);
+}
 
 int clearenv(void);
 
