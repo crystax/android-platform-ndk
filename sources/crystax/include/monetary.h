@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_MONETARY_H_c9a012f4a21d473d80ad2fc80c89d63e
 #define __CRYSTAX_MONETARY_H_c9a012f4a21d473d80ad2fc80c89d63e
 
+#include <crystax/id.h>
+
 #if !defined(__LP64__)
 
 #ifdef __cplusplus

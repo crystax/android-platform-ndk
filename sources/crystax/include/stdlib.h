@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_STDLIB_H_149f4a29a3d4428282419c7dcb5e9ba8
 #define __CRYSTAX_STDLIB_H_149f4a29a3d4428282419c7dcb5e9ba8
 
+#include <crystax/id.h>
+
 #if !defined(__LP64__) || !__LP64__
 #define atof google_atof
 #define strtof google_strtof

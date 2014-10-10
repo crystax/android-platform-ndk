@@ -29,6 +29,8 @@
 #ifndef __CRYSTAX_TIME_H_9fd46807ae8c4a6cbf9e64f9c55cd57e
 #define __CRYSTAX_TIME_H_9fd46807ae8c4a6cbf9e64f9c55cd57e
 
+#include <crystax/id.h>
+
 #include <crystax/google/time.h>
 
 #ifdef __cplusplus

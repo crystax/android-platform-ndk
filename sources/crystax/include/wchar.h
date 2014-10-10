@@ -55,6 +55,8 @@
 #ifndef __CRYSTAX_WCHAR_H_065d3e9b5f8645d38b9597ed38f66315
 #define __CRYSTAX_WCHAR_H_065d3e9b5f8645d38b9597ed38f66315
 
+#include <crystax/id.h>
+
 /* IMPORTANT NOTE: Unlike other headers in the support library, this
  * one doesn't try to include the Bionic header through #include_next.
  *

@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_XLOCALE_H_95A67C61CD594840A25BA6643EC827BD
 #define __CRYSTAX_XLOCALE_H_95A67C61CD594840A25BA6643EC827BD
 
+#include <crystax/id.h>
+
 #if defined(__LP64__)
 
 #include <crystax/google/xlocale.h>

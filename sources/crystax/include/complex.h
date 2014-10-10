@@ -64,8 +64,10 @@
  */
 
 
-#ifndef	CRYSTAX_COMPLEX_H
-#define	CRYSTAX_COMPLEX_H
+#ifndef __CRYSTAX_COMPLEX_H_2095C51D205A42B2BCF16B69AE8D6FB5
+#define __CRYSTAX_COMPLEX_H_2095C51D205A42B2BCF16B69AE8D6FB5
+
+#include <crystax/id.h>
 
 #define complex _Complex
 #define _Complex_I 1.0fi
@@ -256,4 +258,4 @@ long double creall(long double complex);
 
 __END_DECLS
 
-#endif	/* ! CRYSTAX_COMPLEX_H */
+#endif	/* __CRYSTAX_COMPLEX_H_2095C51D205A42B2BCF16B69AE8D6FB5 */

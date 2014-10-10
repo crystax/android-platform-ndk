@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_ERRNO_H_850afb1fd0684f5184320801869617ad
 #define __CRYSTAX_ERRNO_H_850afb1fd0684f5184320801869617ad
 
+#include <crystax/id.h>
+
 #include <crystax/google/errno.h>
 
 #if !defined(__LP64__)

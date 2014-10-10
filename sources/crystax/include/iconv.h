@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_ICONV_H_dea88f817c99449cb77eb7d9f3ee0352
 #define __CRYSTAX_ICONV_H_dea88f817c99449cb77eb7d9f3ee0352
 
+#include <crystax/id.h>
+
 #if !defined(__LP64__)
 
 #ifdef __cplusplus

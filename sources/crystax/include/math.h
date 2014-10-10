@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_MATH_H_C4D010B0E53E4890A32F6C512574E6A0
 #define __CRYSTAX_MATH_H_C4D010B0E53E4890A32F6C512574E6A0
 
+#include <crystax/id.h>
+
 #include <crystax/google/math.h>
 
 #if !defined(__LP64__) || !__LP64__

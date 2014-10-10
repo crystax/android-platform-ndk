@@ -30,6 +30,8 @@
 #ifndef __CRYSTAX_PTHREAD_H_B2421410F8124BED8ACB3D385041AECF
 #define __CRYSTAX_PTHREAD_H_B2421410F8124BED8ACB3D385041AECF
 
+#include <crystax/id.h>
+
 #include <crystax/google/pthread.h>
 
 #ifdef __cplusplus

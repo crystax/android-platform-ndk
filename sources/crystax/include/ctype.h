@@ -57,6 +57,8 @@
 #ifndef __CRYSTAX_SUPPORT_CTYPE_H_E2FDF96252AF4F3FB6FD2B1EE260B93E
 #define __CRYSTAX_SUPPORT_CTYPE_H_E2FDF96252AF4F3FB6FD2B1EE260B93E
 
+#include <crystax/id.h>
+
 #include <crystax/google/ctype.h>
 
 #if !defined(__LP64__)

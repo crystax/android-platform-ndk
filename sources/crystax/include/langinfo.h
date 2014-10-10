@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_LANGINFO_H_257cc5118e8142dcb24466e933c1182f
 #define __CRYSTAX_LANGINFO_H_257cc5118e8142dcb24466e933c1182f
 
+#include <crystax/id.h>
+
 #include <xlocale.h>
 #include <nl_types.h>
 

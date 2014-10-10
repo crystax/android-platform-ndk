@@ -55,6 +55,8 @@
 #ifndef __CRYSTAX_WCTYPE_H_aa04fbd4dd6c4d3c92be07d763083ef7
 #define __CRYSTAX_WCTYPE_H_aa04fbd4dd6c4d3c92be07d763083ef7
 
+#include <crystax/id.h>
+
 /* Please read note in wchar.h to see why the C library version of this
  * file is not included through #include_next here.
  */

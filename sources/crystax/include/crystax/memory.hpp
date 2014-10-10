@@ -30,7 +30,11 @@
 #ifndef _CRYSTAX_MEMORY_HPP_082889d25d1243759f873416990f0023
 #define _CRYSTAX_MEMORY_HPP_082889d25d1243759f873416990f0023
 
+#include <crystax/id.h>
+
 #include <crystax/common.hpp>
+
+#include <cstdlib>
 
 namespace crystax
 {

@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_STRING_H_5360343393a041f0b414299e396a687b
 #define __CRYSTAX_STRING_H_5360343393a041f0b414299e396a687b
 
+#include <crystax/id.h>
+
 #include <crystax/google/string.h>
 
 #if !defined(__LP64__)

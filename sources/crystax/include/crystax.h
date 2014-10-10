@@ -30,6 +30,8 @@
 #ifndef __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
 #define __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
 
+#include <crystax/id.h>
+
 #include <jni.h>
 
 #ifdef __cplusplus

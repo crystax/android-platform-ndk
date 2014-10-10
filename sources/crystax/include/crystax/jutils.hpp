@@ -30,6 +30,8 @@
 #ifndef _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
 #define _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
 
+#include <crystax/id.h>
+
 #include <jni.h>
 
 #ifndef __cplusplus

@@ -27,42 +27,9 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef _CRYSTAX_COMMON_HPP_1df9183305a1490da3f1854786bcc851
-#define _CRYSTAX_COMMON_HPP_1df9183305a1490da3f1854786bcc851
+#ifndef __CRYSTAX_ID_H_637E161F7CDA4836818F70A36B450FD1
+#define __CRYSTAX_ID_H_637E161F7CDA4836818F70A36B450FD1
 
-#include <crystax/id.h>
+#define __LIBCRYSTAX 1
 
-namespace crystax
-{
-
-class non_copyable_t
-{
-public:
-    non_copyable_t() {}
-    virtual ~non_copyable_t() {}
-
-private:
-    non_copyable_t(non_copyable_t const &);
-    non_copyable_t &operator=(non_copyable_t const &);
-};
-
-namespace fileio
-{
-
-bool is_normalized(const char *path);
-char *normalize(const char *path);
-
-bool is_absolute(const char *path);
-char *absolutize(const char *path);
-
-bool is_subpath(const char *root, const char *path);
-char *relpath(const char *root, const char *path);
-
-char *basename(const char *path);
-char *dirname(const char *path);
-
-} // namespace fileio
-
-} // namespace crystax
-
-#endif /* _CRYSTAX_COMMON_HPP_1df9183305a1490da3f1854786bcc851 */
+#endif /* __CRYSTAX_ID_H_637E161F7CDA4836818F70A36B450FD1 */

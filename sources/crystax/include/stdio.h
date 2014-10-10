@@ -30,6 +30,8 @@
 #ifndef __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
 #define __CRYSTAX_STDIO_H_D7BF5FC71D4046FBA05DCA37D8EF2F93
 
+#include <crystax/id.h>
+
 #include <crystax/google/stdio.h>
 #include <stdarg.h>
 

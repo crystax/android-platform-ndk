@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_INTTYPES_H_5e9e7eb0dcf6422fab883b875bed8e02
 #define __CRYSTAX_INTTYPES_H_5e9e7eb0dcf6422fab883b875bed8e02
 
+#include <crystax/id.h>
+
 #include <crystax/google/inttypes.h>
 
 #if !defined(__LP64__)

@@ -30,6 +30,8 @@
 #ifndef _CRYSTAX_PATH_HPP_e07f4133db9547fc910f4c7e2f6a8a35
 #define _CRYSTAX_PATH_HPP_e07f4133db9547fc910f4c7e2f6a8a35
 
+#include <crystax/id.h>
+
 #ifndef __cplusplus
 #error "This is C++ header file, you shouldn't include it to non-C++ sources"
 #endif

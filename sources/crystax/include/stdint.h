@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be
 #define __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be
 
+#include <crystax/id.h>
+
 #include <crystax/google/stdint.h>
 
 #if !defined(__LP64__)

@@ -58,6 +58,8 @@
 #ifndef __CRYSTAX_LIMITS_H_5914EAF7C381467A983954447C94C723
 #define __CRYSTAX_LIMITS_H_5914EAF7C381467A983954447C94C723
 
+#include <crystax/id.h>
+
 #include <crystax/google/sys/limits.h>
 
 #ifdef _POSIX_MONOTONIC_CLOCK
