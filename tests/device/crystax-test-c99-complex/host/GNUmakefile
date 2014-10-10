@@ -32,7 +32,7 @@ $(OBJDIR):
 	mkdir -p $@
 
 $(TARGET): $(OBJFILES) | $(TARGETDIR)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lm
 
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $^

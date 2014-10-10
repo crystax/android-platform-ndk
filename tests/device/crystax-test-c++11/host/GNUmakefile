@@ -3,7 +3,8 @@ include $(or $(NDK),../../../..)/tests/onhost.mk
 
 DISABLED := $(if $(or $(call is-gcc-version,4,6),$(call is-gcc-version,4,7)),yes)
 
-CXXFLAGS := $(call std-c++11-switch) $(if $(call is-cxx-clang),,-pthread) $(CFLAGS)
+CXXFLAGS := $(call std-c++11-switch) $(CFLAGS)
+CXXFLAGS += $(if $(and $(call is-host-os-darwin),$(call is-cxx-clang)),,-pthread)
 
 VPATH := ../jni
 

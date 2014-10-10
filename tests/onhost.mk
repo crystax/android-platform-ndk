@@ -8,11 +8,11 @@ endif
 
 define compiler-type
 $(strip $(if $(strip $(1)),\
-    $(if $(shell $(1) --version 2>/dev/null | grep -iq "gcc" && echo yes),\
+    $(if $(shell $(1) --version 2>/dev/null | grep -iq "\(gcc\|Free Software Foundation\)" && echo yes),\
         gcc,\
         $(if $(shell $(1) --version 2>/dev/null | grep -iq "\(clang\|llvm\)" && echo yes),\
             clang,\
-            $(error Can\'t detect compiler type of '$(1)')\
+            $(error Can not detect compiler type of '$(1)')\
         )\
     ),\
     $(error Usage: call c++-compiler-type,compiler)\
@@ -55,6 +55,18 @@ $(strip \
         -std=c++11\
     )\
 )
+endef
+
+define host-os
+$(shell uname -s | tr '[A-Z]' '[a-z]')
+endef
+
+define is-host-os-linux
+$(if $(filter linux,$(call host-os)),yes)
+endef
+
+define is-host-os-darwin
+$(if $(filter darwin,$(call host-os)),yes)
 endef
 
 CC ?= cc
