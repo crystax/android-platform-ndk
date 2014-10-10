@@ -545,7 +545,6 @@ run_on_host_test ()
     local GNUMAKE GNUMAKEPARAMS
     local RET
     local CCS CXXS
-    local ALLCC ALLCXX
     local ENABLED
 
     # If there is 'host/GNUmakefile', that means this test is capable to run on host too.
@@ -563,10 +562,23 @@ run_on_host_test ()
     #   exists, but return false result
 
     ENABLED=yes
+    # Disable on-host testing if there is no host/GNUmakefile
     test -f host/GNUmakefile || ENABLED=no
-    test "x$DISABLE_ONHOST_TESTING" = "xyes" && ENABLED=no
+    # Disable on-host testing if it was explicitly requested
+    if [ "x$ENABLED" = "xyes" -a "x$DISABLE_ONHOST_TESTING" = "xyes" ]; then
+        ENABLED=no
+    fi
+    # Enable on-host testing on Linux/Darwin hosts only
+    if [ "x$ENABLED" = "xyes" ]; then
+        uname -s 2>/dev/null | grep -iq "\(linux\|darwin\)"
+        if [ $? -ne 0 ]; then
+            ENABLED=no
+        fi
+    fi
 
-    test "x$ENABLED" = "xyes" || return 0
+    if [ "x$ENABLED" != "xyes" ]; then
+        return 0
+    fi
 
     log "== NOTE: On-host testing enabled for $(basename $(pwd)), so run on-host tests first"
     if [ -z "$GNUMAKE" ]; then
