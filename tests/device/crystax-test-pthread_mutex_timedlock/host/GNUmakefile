@@ -42,7 +42,7 @@ $(OBJDIR):
 	mkdir -p $@
 
 $(TARGET): $(OBJFILES) | $(TARGETDIR)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) -o $@ $^ -lpthread -lrt
 
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
 	$(CC) $(CFLAGS) -c -o $@ $^
