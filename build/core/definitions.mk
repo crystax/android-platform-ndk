@@ -1457,6 +1457,39 @@ convert-deps = $1
 cmd-convert-deps =
 endif
 
+# Extract -IPATH/platforms/android-X/arch-Y/include from passed argument
+define extract-platforms-include
+$(strip $(foreach __opt,$(1),\
+    $(if \
+        $(and \
+            $(filter -I%,$(__opt)),\
+            $(findstring /platforms/,$(__opt)),\
+            $(findstring /android-,$(__opt)),\
+            $(findstring /arch-,$(__opt))\
+        ),\
+        $(__opt)\
+    )\
+))
+endef
+
+# Extract -IPATH/sources/crystax/include from passed argument
+define extract-crystax-include
+$(strip $(foreach __opt,$(1),\
+    $(if \
+        $(filter -I%/sources/crystax/include,$(__opt)),\
+        $(__opt)\
+    )\
+))
+endef
+
+# Put platforms include option to the end of list, ensuring CrystaX include option going right before that
+define transform-includes
+$(strip \
+    $(filter-out $(call extract-crystax-include,$(1)) $(call extract-platforms-include,$(1)),$(1)) \
+    $(call extract-crystax-include,$(1)) $(call extract-platforms-include,$(1))\
+)
+endef
+
 # This assumes that many variables have been pre-defined:
 # _SRC: source file
 # _OBJ: destination file
@@ -1472,7 +1505,7 @@ $$(_OBJ): PRIVATE_DEPS     := $$(call host-path,$$(_OBJ).d)
 $$(_OBJ): PRIVATE_MODULE   := $$(LOCAL_MODULE)
 $$(_OBJ): PRIVATE_TEXT     := $$(_TEXT)
 $$(_OBJ): PRIVATE_CC       := $$(_CC)
-$$(_OBJ): PRIVATE_CFLAGS   := $$(_FLAGS)
+$$(_OBJ): PRIVATE_CFLAGS   := $$(call transform-includes,$$(_FLAGS))
 
 ifeq ($$(LOCAL_SHORT_COMMANDS),true)
 _OPTIONS_LISTFILE := $$(_OBJ).cflags
