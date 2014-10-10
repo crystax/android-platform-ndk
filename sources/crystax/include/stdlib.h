@@ -64,6 +64,7 @@
 #define atof google_atof
 #define strtof google_strtof
 #define strtod google_strtod
+#define strtold google_strtold
 #endif
 
 #include <crystax/google/stdlib.h>
@@ -72,6 +73,7 @@
 #undef atof
 #undef strtof
 #undef strtod
+#undef strtold
 #endif
 
 #if !defined(__LP64__) || !__LP64__
@@ -83,7 +85,6 @@ extern "C" {
 #endif
 
 long long   strtoll(const char*, char**, int);
-long double strtold(const char*, char**);
 void _Exit(int);
 int                  mbtowc(wchar_t *pwc, const char *pmb, size_t max);
 long                 strtol_l(const char *nptr, char **endptr, int base, locale_t loc);
@@ -93,6 +94,7 @@ unsigned long long   strtoull_l(const char *nptr, char **endptr, int base, local
 long double          strtold_l(const char *nptr, char **endptr, locale_t loc);
 
 double strtod(const char *nptr, char **endptr);
+long double strtold(const char *nptr, char **endptr);
 
 static __inline__ float strtof(const char *nptr, char **endptr)
 {

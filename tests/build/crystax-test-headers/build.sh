@@ -19,7 +19,7 @@ for HEADER in $HEADERS; do
     HEADER=${HEADER##$INCDIR/}
     for PLATFORM in $PLATFORMS; do
         echo "== Compiling CrystaX header $HEADER for $PLATFORM"
-        $NDK/ndk-build -C $MYDIR -B APP_CFLAGS=-DHEADER=\"\<$HEADER\>\" APP_PLATFORM=$PLATFORM HEADER=$HEADER V=1
+        $NDK/ndk-build -C $MYDIR -B APP_CFLAGS=-DHEADER=\"\<$HEADER\>\" APP_PLATFORM=$PLATFORM HEADER=$HEADER
         if [ $? -ne 0 ]; then
             echo "ERROR: Can't compile CrystaX header <$HEADER> alone" 1>&2
             exit 1
