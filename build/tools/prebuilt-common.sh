@@ -84,9 +84,9 @@ version_is_greater_than ()
     B_MINOR=$(extract_minor_version $2)
 
     if [ $A_MINOR -lt $B_MINOR ]; then
-        return 1
-    else
         return 0
+    else
+        return 1
     fi
 }
 
