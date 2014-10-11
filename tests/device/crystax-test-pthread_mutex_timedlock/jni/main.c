@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <string.h>
 #include <time.h>
@@ -6,76 +7,39 @@
 #include <pthread.h>
 
 #define DO_TEST(name, param)                           \
-    printf("test %s - begin\n", #name);                \
+    printf("test " #name "(" #param "): BEGIN\n");   \
     fflush(stdout);                                    \
-    if (test_ ## name (param) == 0) {                  \
-        printf("test " #name "(" #param "): OK\n");    \
-    } else  {                                          \
-        printf("FAILED test " #name "(" #param ")\n"); \
-        return 1;                                      \
-    }
+    test_ ## name (param);                             \
+    printf("test " #name "(" #param "): OK\n");        \
+    fflush(stdout)
 
 struct thread_fun_args {
     int sec;
     pthread_mutex_t *mutex;
 };
 
-/* Linux has no static mutex initializers, except PTHREAD_MUTEX_INITIALIZER */
-#ifdef __linux__
-#define INIT(x)
-#else
-#define INIT(x) = x
+#if !defined(__ANDROID__)
+#define PTHREAD_RECURSIVE_MUTEX_INITIALIZER PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
+#define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP
 #endif
 
-pthread_mutex_t fast_mutex     INIT(PTHREAD_MUTEX_INITIALIZER);
-pthread_mutex_t rec_mutex      INIT(PTHREAD_RECURSIVE_MUTEX_INITIALIZER);
-pthread_mutex_t errcheck_mutex INIT(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER);
+pthread_mutex_t fast_mutex     = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t rec_mutex      = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+pthread_mutex_t errcheck_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
 
 
-int test_lock_unlock(pthread_mutex_t *mutex);
-int test_einval(pthread_mutex_t *mutex);
-int test_expired(pthread_mutex_t *mutex);
-int test_with_thread(pthread_mutex_t *mutex);
+void test_lock_unlock(pthread_mutex_t *mutex);
+void test_einval(pthread_mutex_t *mutex);
+void test_expired(pthread_mutex_t *mutex);
+void test_with_thread(pthread_mutex_t *mutex);
 
-int lock_mutex_on_thread(pthread_mutex_t *mutex, int seconds);
+void lock_mutex_on_thread(pthread_mutex_t *mutex, int seconds);
 void *thread_fun(void *);
-int get_time(struct timespec *ts);
+void get_time(struct timespec *ts);
 void nano_sleep(int sec);
-
-#ifdef __linux__
-void checkrc(int rc)
-{
-    if (rc == 0) return;
-    fprintf(stderr, "ERROR: %s\n", strerror(rc));
-    fflush(stderr);
-    abort();
-}
-#endif
 
 int main()
 {
-    printf("begin\n");
-    fflush(stdout);
-
-#ifdef __linux__
-    pthread_mutexattr_t attr;
-
-    checkrc(pthread_mutexattr_init(&attr));
-    checkrc(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL));
-    checkrc(pthread_mutex_init(&fast_mutex, &attr));
-    checkrc(pthread_mutexattr_destroy(&attr));
-
-    checkrc(pthread_mutexattr_init(&attr));
-    checkrc(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE));
-    checkrc(pthread_mutex_init(&rec_mutex, &attr));
-    checkrc(pthread_mutexattr_destroy(&attr));
-
-    checkrc(pthread_mutexattr_init(&attr));
-    checkrc(pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK));
-    checkrc(pthread_mutex_init(&errcheck_mutex, &attr));
-    checkrc(pthread_mutexattr_destroy(&attr));
-#endif
-
 #ifndef __linux__
     DO_TEST(einval,      NULL);
 #endif
@@ -92,8 +56,31 @@ int main()
     return 0;
 }
 
+#define FAIL_IF(c, fmt, ...) do { if (c) fail("FATAL: %s:%d: " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__); } while (0)
 
-int test_einval(pthread_mutex_t *mutex)
+void fail(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    abort();
+}
+
+const char *mutex_type(pthread_mutex_t *mutex)
+{
+    if (mutex == &fast_mutex)
+        return "normal";
+    else if (mutex == &rec_mutex)
+        return "recursive";
+    else if (mutex == &errcheck_mutex)
+        return "errorcheck";
+
+    fprintf(stderr, "FATAL: unknown mutex passed to 'mutex_type' function\n");
+    abort();
+}
+
+void test_einval(pthread_mutex_t *mutex)
 {
     int rc;
     struct timespec timeout;
@@ -115,26 +102,16 @@ int test_einval(pthread_mutex_t *mutex)
 #pragma GCC diagnostic pop
 #endif
 
-    if (rc != EINVAL) {
-        printf("pthread_mutex_timedlock failed with NULL timeout\n");
-        return 1;
-    }
+    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if NULL timeout passed, but it didn't");
 
     /* check bad nsec values */
-    if (get_time(&timeout) != 0)
-        return 1;
+    get_time(&timeout);
     timeout.tv_nsec = 1000000000;
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != EINVAL) {
-        printf("pthread_mutex_timedlock failed with big nsec\n");
-        return 1;
-    }
+    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if timeout passed with wrong nsec field, but it didn't");
     timeout.tv_nsec = -2;
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != EINVAL) {
-        printf("pthread_mutex_timedlock failed with negative nsec\n");
-        return 1;
-    }
+    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if timeout passed with negative nsec field, but it didn't");
 
     /* check with NULL mutex */
     timeout.tv_sec += 5;
@@ -156,100 +133,93 @@ int test_einval(pthread_mutex_t *mutex)
 #pragma GCC diagnostic pop
 #endif
 
-    if (rc != EINVAL) {
-        printf("pthread_mutex_timedlock failed with NULL mutex\n");
-        return 1;
-    }
-
-    return 0;
+    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if NULL mutex passed, but it didn't");
 }
 
 
-int test_lock_unlock(pthread_mutex_t *mutex)
+void test_lock_unlock(pthread_mutex_t *mutex)
 {
     int rc;
     struct timespec timeout;
 
-    if (get_time(&timeout) != 0)
-        return 1;
+    get_time(&timeout);
     timeout.tv_sec += 3;
 
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != 0) {
-        printf("pthread_mutex_timedlock failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_mutex_timedlock failed to lock %s mutex: %s", mutex_type(mutex), strerror(rc));
+
+    rc = pthread_mutex_timedlock(mutex, &timeout);
+    if (mutex == &rec_mutex)
+        FAIL_IF(rc != 0, "pthread_mutex_timedlock failed to lock second time recursive mutex: %s", strerror(rc));
+    else
+        FAIL_IF(rc == 0, "pthread_mutex_timedlock successfully locked second time non-recursive mutex, but it shouldn't");
 
     rc = pthread_mutex_unlock(mutex);
-    if (rc != 0) {
-        printf("pthread_mutex_unlock failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
-
-    return 0;
+    FAIL_IF(rc != 0, "pthread_mutex_unlock failed to unlock %s mutex: %s", mutex_type(mutex), strerror(rc));
+    rc = pthread_mutex_unlock(mutex);
+    if (mutex == &rec_mutex || mutex == &fast_mutex)
+        FAIL_IF(rc != 0, "pthread_mutex_unlock failed to unlock %s mutex second time: %s", mutex_type(mutex), strerror(rc));
+    else
+        FAIL_IF(rc == 0, "pthread_mutex_unlock successfully unlocked %s mutex second time, but it shouldn't", mutex_type(mutex));
 }
 
 
-int test_expired(pthread_mutex_t *mutex)
+void test_expired(pthread_mutex_t *mutex)
 {
     int rc;
     struct timespec timeout;
 
-    if (get_time(&timeout) != 0)
-        return 1;
+    get_time(&timeout);
     timeout.tv_sec -= 3;
 
+    /* Under no circumstance shall the function fail with a timeout if the mutex can be locked immediately.
+     * The validity of the abs_timeout parameter need not be checked if the mutex can be locked immediately.
+     */
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != ETIMEDOUT) {
-        printf("pthread_mutex_timedlock failed with expired timeout: rc=%d (%s)\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_mutex_timedlock failed to lock %s mutex with expired timeout: %s", mutex_type(mutex), strerror(rc));
 
-    return 0;
+    rc = pthread_mutex_timedlock(mutex, &timeout);
+    if (mutex == &rec_mutex)
+        FAIL_IF(rc != 0, "pthread_mutex_timedlock failed to lock recursive mutex second time with expired timeout: %s", strerror(rc));
+    else
+        FAIL_IF(rc == 0, "pthread_mutex_timedlock successfully locked non-recursive mutex second time with expired timeout, but it shouldn't");
+
+    rc = pthread_mutex_unlock(mutex);
+    FAIL_IF(rc != 0, "pthread_mutex_unlock failed to unlock %s mutex: %s", mutex_type(mutex), strerror(rc));
+    rc = pthread_mutex_unlock(mutex);
+    if (mutex == &rec_mutex || mutex == &fast_mutex)
+        FAIL_IF(rc != 0, "pthread_mutex_unlock failed to unlock %s mutex second time: %s", mutex_type(mutex), strerror(rc));
+    else
+        FAIL_IF(rc == 0, "pthread_mutex_unlock successfully unlocked %s mutex second time, but it shouldn't", mutex_type(mutex));
 }
 
 
-int test_with_thread(pthread_mutex_t *mutex)
+void test_with_thread(pthread_mutex_t *mutex)
 {
     int rc;
     struct timespec timeout;
 
     /* lock must succeed */
-    if (lock_mutex_on_thread(mutex, 2) != 0)
-        return 1;
+    lock_mutex_on_thread(mutex, 2);
     nano_sleep(1);
-    if (get_time(&timeout) != 0)
-        return 1;
+    get_time(&timeout);
     timeout.tv_sec += 3;
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != 0) {
-        printf("pthread_mutex_timedlock failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_mutex_timedlock failed: %s", strerror(rc));
     rc = pthread_mutex_unlock(mutex);
-    if (rc != 0) {
-        printf("pthread_mutex_unlock failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_mutex_unlock failed: %s", strerror(rc));
 
     /* lock must timeout */
-    if (lock_mutex_on_thread(mutex, 5) != 0)
-        return 1;
+    lock_mutex_on_thread(mutex, 5);
     nano_sleep(1);
-    if (get_time(&timeout) != 0)
-        return 1;
+    get_time(&timeout);
     timeout.tv_sec += 2;
     rc = pthread_mutex_timedlock(mutex, &timeout);
-    if (rc != ETIMEDOUT) {
-        printf("pthread_mutex_timedlock failed: expected timeout, got %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
-
-    return 0;
+    FAIL_IF(rc != ETIMEDOUT, "pthread_mutex_timedlock failed: expected timeout, got %d (%s)", rc, strerror(rc));
 }
 
 
-int lock_mutex_on_thread(pthread_mutex_t *mutex, int seconds)
+void lock_mutex_on_thread(pthread_mutex_t *mutex, int seconds)
 {
     int rc;
     pthread_t tid;
@@ -257,32 +227,18 @@ int lock_mutex_on_thread(pthread_mutex_t *mutex, int seconds)
     struct thread_fun_args *args;
 
     rc = pthread_attr_init(&attr);
-    if (rc != 0) {
-        printf("pthread_attr_init failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_attr_init failed: %s", strerror(rc));
 
     args = malloc(sizeof (struct thread_fun_args));
-    if (args == NULL) {
-        printf("no memory for thread args\n");
-        return 1;
-    }
+    FAIL_IF(!args, "no memory for thread args");
     args->sec = seconds;
     args->mutex = mutex;
 
     rc = pthread_create(&tid, &attr, thread_fun, args);
-    if (rc != 0) {
-        printf("pthread_create failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
+    FAIL_IF(rc != 0, "pthread_create failed: %s", strerror(rc));
 
     rc = pthread_detach(tid);
-    if (rc != 0) {
-        printf("pthread_detach failed: %d; %s\n", rc, strerror(rc));
-        return 1;
-    }
-
-    return 0;
+    FAIL_IF(rc != 0, "pthread_detach failed: %s", strerror(rc));
 }
 
 
@@ -309,14 +265,12 @@ void *thread_fun(void *v)
 }
 
 
-int get_time(struct timespec *ts)
+void get_time(struct timespec *ts)
 {
     if (clock_gettime(CLOCK_REALTIME, ts) != 0) {
-        printf("clock_gettime failed: %s\n", strerror(errno));
-        return 1;
+        fprintf(stderr, "FATAL: clock_gettime failed: %s\n", strerror(errno));
+        abort();
     }
-
-    return 0;
 }
 
 
@@ -329,7 +283,7 @@ void nano_sleep(int sec)
     ts.tv_nsec = 0;
 
     if (nanosleep(&ts, &rem) != 0) {
-        printf("nanosleep failed: %d, %s\n", errno, strerror(errno));
-        exit(1);
+        fprintf(stderr, "FATAL: nanosleep failed: %s\n", strerror(errno));
+        abort();
     }
 }

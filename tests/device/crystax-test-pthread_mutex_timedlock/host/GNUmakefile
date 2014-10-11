@@ -12,6 +12,8 @@ OBJFILES := $(addprefix $(OBJDIR)/,$(patsubst %.c,%.o,$(SRCFILES)))
 TARGETDIR := bin/$(CC)
 TARGET := $(TARGETDIR)/test-pthread_mutex_timedlock
 
+CFLAGS += -D_GNU_SOURCE=1
+
 .PHONY: test
 ifeq (yes,$(DARWIN))
 test:
