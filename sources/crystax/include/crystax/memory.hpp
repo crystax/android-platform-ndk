@@ -34,7 +34,7 @@
 
 #include <crystax/common.hpp>
 
-#include <cstdlib>
+#include <stdlib.h>
 
 namespace crystax
 {
