@@ -312,6 +312,7 @@ OptionParser.new do |opts|
   end
 end.parse!
 
+puts "using tools for tag: #{$ndk_data.tag}"
 $ndk_data.architectures.each do |name|
   puts "#{name}:"
   print "  initializing..."
