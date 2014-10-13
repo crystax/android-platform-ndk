@@ -497,7 +497,7 @@ compiler_type()
     if [ -n "$COMPILER" ]; then
         if $COMPILER --version 2>/dev/null | grep -iq "\(llvm\|clang\)"; then
             echo clang
-        elif $COMPILER --version 2>/dev/null | grep -iq "gcc"; then
+        elif $COMPILER --version 2>/dev/null | grep -iq "\(gcc\|g++\|Free Software Foundation\)"; then
             echo gcc
         else
             echo unknown
@@ -537,7 +537,11 @@ all_host_compilers()
         fi
         CCLIST="$CCLIST $CC"
     done
-    echo $CCLIST
+    if [ -n "$CCLIST" ]; then
+        echo $CCLIST
+    else
+        echo "$@"
+    fi
 }
 
 run_on_host_test ()
