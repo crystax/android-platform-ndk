@@ -188,19 +188,25 @@ class Toolchain
     end
   end
 
-  def run_tests
+  def run_tests(abi)
     # run tests with GCC toolchain
     # since GCC compilers are the same for each LLVM version
     # use first LLVM version to run GCC tests
     cmd = "./tests/standalone/run.sh " +
           " --no-sysroot"              +
           " --prefix=#{@install_dir_base}-#{$ndk_data.llvm_versions[0]}/bin/#{@prefix}-gcc"
+    if abi
+      cmd += " --abi=#{abi}"
+    end
     results['gcc'] = run_test_cmd(cmd)
     # run tests with LLVM toolchains
     $ndk_data.llvm_versions.each do |llvm_ver|
       cmd = "./tests/standalone/run.sh " +
             " --no-sysroot"              +
             " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang"
+      if abi
+        cmd += " --abi=#{abi}"
+      end
       results['clang'+llvm_ver] = run_test_cmd(cmd)
     end
   end
@@ -250,8 +256,8 @@ class GCC
     @toolchains.each {|tc| tc.make_standalone_toolchain}
   end
 
-  def run_tests
-    @toolchains.each {|tc| tc.run_tests }
+  def run_tests(abi=nil)
+    @toolchains.each {|tc| tc.run_tests(abi) }
   end
 
   def clean
@@ -286,6 +292,7 @@ class GCC
 end
 
 
+options = { clean: true }
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
@@ -303,6 +310,10 @@ OptionParser.new do |opts|
 
   opts.on("--use-32bit-tools", "Use 32bit versions of tools on 64bit host") do |_|
     $ndk_data.use_32bit_tools
+  end
+
+  opts.on("--no-clean", "Do not remove toolchains after tests were run") do |_|
+    options[:clean] = false
   end
 
   opts.on("-h", "--help", "Display this help and exit") do
@@ -324,9 +335,6 @@ $ndk_data.architectures.each do |name|
   print "  running tests..."
   gccs.each {|c| c.run_tests }
   puts "OK"
-  print "  cleaning..."
-  gccs.each {|c| c.clean }
-  puts "OK"
   puts "  results:"
   gccs.each do |gcc|
     puts "  #{gcc.version}"
@@ -336,6 +344,27 @@ $ndk_data.architectures.each do |name|
       puts "      successful api levels: #{ok[compiler]}"
       puts "      failed api levels:     #{failures[compiler]}"
     end
+  end
+  if name == "arm"
+    puts "armeabi-v7a:"
+    print "  running tests..."
+    gccs.each {|c| c.run_tests("armeabi-v7a") }
+    puts "OK"
+    puts "  results:"
+    gccs.each do |gcc|
+      puts "  #{gcc.version}"
+      ok, failures = gcc.results
+      Toolchain.result_keys.each do |compiler|
+        puts "    #{compiler}"
+        puts "      successful api levels: #{ok[compiler]}"
+        puts "      failed api levels:     #{failures[compiler]}"
+      end
+    end
+  end
+  if options[:clean]
+    print "  cleaning..."
+    gccs.each {|c| c.clean }
+    puts "OK"
   end
 end
 
