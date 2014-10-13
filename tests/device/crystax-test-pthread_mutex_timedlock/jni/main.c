@@ -40,7 +40,7 @@ void nano_sleep(int sec);
 
 int main()
 {
-#ifndef __linux__
+#ifdef __ANDROID__
     DO_TEST(einval,      NULL);
 #endif
     DO_TEST(lock_unlock, &fast_mutex);
@@ -85,38 +85,13 @@ void test_einval(pthread_mutex_t *mutex)
     int rc;
     struct timespec timeout;
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnonnull"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-
-    /* check NULL timeout */
-    rc = pthread_mutex_timedlock(mutex, NULL);
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if NULL timeout passed, but it didn't");
-
-    /* check bad nsec values */
     get_time(&timeout);
-    timeout.tv_nsec = 1000000000;
-    rc = pthread_mutex_timedlock(mutex, &timeout);
-    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if timeout passed with wrong nsec field, but it didn't");
-    timeout.tv_nsec = -2;
-    rc = pthread_mutex_timedlock(mutex, &timeout);
-    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if timeout passed with negative nsec field, but it didn't");
-
-    /* check with NULL mutex */
     timeout.tv_sec += 5;
     timeout.tv_nsec = 300;
 
+    /* check with NULL mutex */
+    FAIL_IF(mutex != NULL, "passed mutex is not NULL");
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnonnull"
@@ -125,7 +100,7 @@ void test_einval(pthread_mutex_t *mutex)
 #pragma GCC diagnostic ignored "-Wnonnull"
 #endif
 
-    rc = pthread_mutex_timedlock(NULL, &timeout);
+    rc = pthread_mutex_timedlock(mutex, &timeout);
 
 #ifdef __clang__
 #pragma clang diagnostic pop
