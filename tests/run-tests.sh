@@ -575,6 +575,11 @@ run_on_host_test ()
             ENABLED=no
         fi
     fi
+    if [ "x$ENABLED" = "xyes" -a -f host/DISABLED ]; then
+        if grep -q "\<$(uname -s 2>/dev/null | tr '[A-Z]' '[a-z]')\>" host/DISABLED; then
+            ENABLED=no
+        fi
+    fi
 
     if [ "x$ENABLED" != "xyes" ]; then
         return 0
@@ -601,10 +606,20 @@ run_on_host_test ()
             # Skip non-existent CC
             which $cc >/dev/null 2>&1 || continue
         fi
+        if [ -f host/DISABLED ]; then
+            if grep -iq "\<$cc\>" host/DISABLED; then
+                continue
+            fi
+        fi
         for cxx in $CXXS; do
             if [ "x$cxx" != "xnone" ]; then
                 # Skip non-existent CXX
                 which $cxx >/dev/null 2>&1 || continue
+            fi
+            if [ -f host/DISABLED ]; then
+                if grep -iq "\<$(echo $cxx | sed 's,^g++,gcc,' | sed 's,^clang++,clang,')\>" host/DISABLED; then
+                    continue
+                fi
             fi
 
             GNUMAKEPARAMS=""
