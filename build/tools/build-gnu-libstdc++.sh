@@ -42,7 +42,8 @@ The output will be placed in appropriate sub-directories of
 <ndk>/$GNUSTL_SUBDIR/<gcc-version>, but you can override this with the --out-dir=<path>
 option.
 "
-GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+
+GCC_VERSION_LIST=
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC versions"
 
 PACKAGE_DIR=
@@ -75,6 +76,13 @@ register_jobs_option
 register_try64_option
 
 extract_parameters "$@"
+
+# set compiler version to any even earlier than default
+EXPLICIT_COMPILER_VERSION=1
+if [ -z "$GCC_VERSION_LIST" ]; then
+    EXPLICIT_COMPILER_VERSION=
+    GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+fi
 
 SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
@@ -403,9 +411,11 @@ done
 for ABI in $ABIS; do
     ARCH=$(convert_abi_to_arch $ABI)
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
+    echo "Default GCC version for $ABI ($ARCH) : $DEFAULT_GCC_VERSION"
     for VERSION in $GCC_VERSION_LIST; do
         # Only build for this GCC version if it on or after DEFAULT_GCC_VERSION
-        if [ "${VERSION%%l}" \< "$DEFAULT_GCC_VERSION" ]; then
+        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_greater_than "${VERSION%%l}" "$DEFAULT_GCC_VERSION"; then
+            echo "Skipping build for GCC $VERSION for $ABI ($ARCH)"
             continue
         fi
 
