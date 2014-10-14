@@ -367,6 +367,11 @@ COMMON_FLAGS=
 # as a compiler macro when building all test programs.
 ABI_MACRO=ABI_$(echo "$ABI" | tr '-' '_')
 COMMON_FLAGS=$COMMON_FLAGS" -D$ABI_MACRO=1"
+if [ "$ABI" == "armeabi-v7a" ]; then
+    COMMON_FLAGS=$COMMON_FLAGS" -march=armv7-a"
+elif [ "$ABI" == "armeabi-v7a-hard" ]; then
+    COMMON_FLAGS=$COMMON_FLAGS" -march=armv7-a -mfloat-abi=hard -Wl,--no-warn-mismatch -lm_hard"
+fi
 
 if [ -n "$NO_SYSROOT" ]; then
     SYSROOT=

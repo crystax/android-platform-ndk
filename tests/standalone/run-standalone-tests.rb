@@ -360,6 +360,20 @@ $ndk_data.architectures.each do |name|
         puts "      failed api levels:     #{failures[compiler]}"
       end
     end
+    puts "armeabi-v7a-hard:"
+    print "  running tests..."
+    gccs.each {|c| c.run_tests("armeabi-v7a-hard") }
+    puts "OK"
+    puts "  results:"
+    gccs.each do |gcc|
+      puts "  #{gcc.version}"
+      ok, failures = gcc.results
+      Toolchain.result_keys.each do |compiler|
+        puts "    #{compiler}"
+        puts "      successful api levels: #{ok[compiler]}"
+        puts "      failed api levels:     #{failures[compiler]}"
+      end
+    end
   end
   if options[:clean]
     print "  cleaning..."
