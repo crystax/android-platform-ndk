@@ -229,6 +229,14 @@ probe_test_subdir ()
         TEST_TYPE=cxx_executable
         SOURCES=main.cpp
 
+    elif [ -f "$DIR/main.m" ]; then
+        TEST_TYPE=objc_executable
+        SOURCES=main.m
+
+    elif [ -f "$DIR/main.mm" ]; then
+        TEST_TYPE=objcxx_executable
+        SOURCES=main.mm
+
     else
         return 1
     fi
@@ -423,6 +431,7 @@ CXXFLAGS=$CXXFLAGS" -fno-exceptions"
 
 CFLAGS=$COMMON_FLAGS" "$CFLAGS
 CXXFLAGS=$COMMON_FLAGS" "$CXXFLAGS
+OBJC_LDFLAGS="-lobjc"
 
 if [ -z "$TEST_SUBDIRS" ]; then
     TEST_SUBDIRS=$(cd $PROGDIR && ls -d *)
@@ -454,14 +463,28 @@ for TEST_SUBDIR in $TEST_SUBDIRS; do
 
         c_executable)
             (
-                run cd "$BUILD_DIR" && run $CC $LDFLAGS $CFLAGS -o $NULL $SOURCES
+                run cd "$BUILD_DIR" && run $CC $CFLAGS -o $NULL $SOURCES $LDFLAGS
             )
             RET=$?
             ;;
-
+ 
         cxx_executable)
             (
-                run cd "$BUILD_DIR" && run $CXX $LDFLAGS $CXXFLAGS -o $NULL $SOURCES
+                run cd "$BUILD_DIR" && run $CXX $CXXFLAGS -o $NULL $SOURCES $LDFLAGS
+            )
+            RET=$?
+            ;;
+ 
+        objc_executable)
+            (
+                run cd "$BUILD_DIR" && run $CC $CFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
+            )
+            RET=$?
+            ;;
+ 
+        objcxx_executable)
+            (
+                run cd "$BUILD_DIR" && run $CXX $CXXFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
             )
             RET=$?
             ;;
