@@ -31,7 +31,6 @@
 #define __CRYSTAX_SYS_USER_H_B9EB893CFC334D1C9C9C84088F6D746F
 
 #include <crystax/id.h>
-
 #include <sys/types.h>
 #include <crystax/google/sys/user.h>
 

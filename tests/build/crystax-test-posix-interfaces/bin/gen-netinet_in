@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+gen()
+{
+    local name=$1
+    echo "#if !defined(${name})"
+    echo "#error '${name}' not defined"
+    echo "#endif /* !defined(${name}) */"
+}
+
+gen IPPROTO_IP
+gen IPPROTO_ICMP
+gen IPPROTO_TCP
+gen IPPROTO_UDP
+
+gen INADDR_ANY
+gen INADDR_BROADCAST
+
+gen INET_ADDRSTRLEN
+
+echo "#if _POSIX_IPV6"
+
+gen IPPROTO_IPV6
+
+gen INET6_ADDRSTRLEN
+
+gen IPV6_JOIN_GROUP
+gen IPV6_LEAVE_GROUP
+gen IPV6_MULTICAST_HOPS
+gen IPV6_MULTICAST_IF
+gen IPV6_MULTICAST_LOOP
+gen IPV6_UNICAST_HOPS
+gen IPV6_V6ONLY
+
+gen IN6_IS_ADDR_UNSPECIFIED
+gen IN6_IS_ADDR_LOOPBACK
+gen IN6_IS_ADDR_MULTICAST
+gen IN6_IS_ADDR_LINKLOCAL
+gen IN6_IS_ADDR_SITELOCAL
+gen IN6_IS_ADDR_V4MAPPED
+gen IN6_IS_ADDR_V4COMPAT
+gen IN6_IS_ADDR_MC_NODELOCAL
+gen IN6_IS_ADDR_MC_LINKLOCAL
+gen IN6_IS_ADDR_MC_SITELOCAL
+gen IN6_IS_ADDR_MC_ORGLOCAL
+gen IN6_IS_ADDR_MC_GLOBAL
+
+echo "#endif /* _POSIX_IPV6 */"
+
+echo "#if _POSIX_RAW_SOCKETS"
+gen IPPROTO_RAW
+echo "#endif /* _POSIX_RAW_SOCKETS */"

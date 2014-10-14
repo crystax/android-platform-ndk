@@ -4,225 +4,721 @@ cd $(dirname $0)/.. || exit 1
 
 CRYSTAX_SRCDIR=$(pwd)
 
-target=
-action=
+REQUEST=
+ABI=
+MULTILIB=
+LIBTYPE=static
+TOOLCHAIN=gcc4.9
+NDK=$(cd ../../ && pwd)
 
 usage()
 {
     echo "Usage: $0 [options]"
     echo ""
-    echo "Required options (one of them):"
-    echo "  --sources             Print out all source files"
-    echo "  --cflags              Print out flags for compiler"
+    echo "Request (mandatory, should be specified only one of them):"
+    echo "  --abis                   Print all ABI variants"
+    echo "  --multilibs              Print multilibs variants for specific ABI"
+    echo "  --sources                Print all source files"
+    echo "  --cflags                 Print flags for C compiler"
+    echo "  --c++flags               Print flags for C++ compiler"
+    echo "  --asmflags               Print flags for ASM compiler"
+    echo "  --ldflags                Print flags for linker"
+    echo "  --libpath                Print path to libraries"
+    echo "                           for specified ABI and multilib variant"
+    echo "  --sysroot-libpath        The same as above, but print library path"
+    echo "                           used in platforms sysroot"
     echo ""
-    echo "Optional:"
-    echo "  --target=ABI          Target ABI (armeabi, armeabi-v7a etc)"
+    echo "Parameters (mandatory):"
+    echo "  --abi=ABI                Target ABI (armeabi, armeabi-v7a etc)"
+    echo ""
+    echo "Parameters (optional):"
+    echo "  --ndk=DIR                Path to NDK directory [$NDK]"
+    echo "  --multilib=MLIB          Specific multilib variant"
+    echo "                           If not specified, default one for ABI will be used"
+    echo "  --libtype=static|shared  Type of library to be built [$LIBTYPE]"
+    echo "  --toolchain=TOOLCHAIN    Toolchain used to build libcrystax [$TOOLCHAIN]"
 }
 
-check_action()
+is_true()
 {
-    if [ "x$action" != "x" ]; then
-        echo "ERROR: You already specified $action option" 1>&2
+    echo "$@" | grep -iq "^\(yes\|on\|true\|1\)$"
+}
+
+is_debug_mode()
+{
+    is_true $DEBUG
+}
+
+all_abis()
+{
+    echo "armeabi"
+    echo "armeabi-v7a"
+    echo "armeabi-v7a-hard"
+    echo "x86"
+    echo "mips"
+    echo "arm64-v8a"
+    echo "x86_64"
+    echo "mips64"
+}
+
+# $1: ABI
+multilibs_for_abi()
+{
+    local a=$1
+    if [ -z "$a" ]; then
+        echo "ERROR: Usage: $0 ABI" 1>&2
+        exit 1
+    fi
+
+    # First is always default one
+    case $a in
+        armeabi*)
+            #echo "thumb"
+            echo "arm"
+            ;;
+        arm64-v8a)
+            echo "aarch64"
+            ;;
+        x86)
+            echo "i386"
+            ;;
+        x86_64)
+            echo "x86_64 i386 x32"
+            ;;
+        mips)
+            echo "mips32 mips32r2 mips32r6"
+            ;;
+        mips64)
+            echo "mips64r6 mips64r2 mips32 mips32r2 mips32r6"
+            ;;
+        *)
+            echo "ERROR: Unknown target ABI: $a" 1>&2
+            exit 1
+    esac
+}
+
+# $1: ABI
+check_abi()
+{
+    local abi=$1
+    if [ -z "$abi" ]; then
+        echo "ERROR: Usage: $0 ABI" 1>&2
+        exit 1
+    fi
+
+    all_abis | tr ' ' '\n' | grep -q "^$abi$"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: ABI '$abi' not supported" 1>&2
+        exit 1
+    fi
+}
+
+# $1: ABI
+# $2: multilib variant
+check_multilib()
+{
+    local abi=$1
+    local mlib=$2
+    if [ -z "$abi" -o -z "$mlib" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    multilibs_for_abi $abi | tr ' ' '\n' | grep -q "^$mlib$"
+    if [ $? -ne 0 ]; then
+        echo "ERROR: '$mlib' is wrong multilib variant for ABI '$abi'" 1>&2
+        exit 1
+    fi
+}
+
+# $1: ABI
+# $2: libtype (static or shared)
+sources_for_abi()
+{
+    local a=$1
+    local t=$2
+    if [ -z "$a" -o -z "$t" ]; then
+        echo "ERROR: Usage: $0 ABI LIBTYPE" 1>&2
+        exit 1
+    fi
+
+    find gen -name '*.c' -a -not -name 'freebsd_*' -print | sort
+    find src -name '*.c' -print | sort
+    find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print | sort
+    if [ "$t" = "shared" ]; then
+        echo "src/crystax/android_jni.cpp"
+    fi
+
+    case $a in
+        x86)
+            echo "src/crystax/string/i386/ffs.s"
+            ;;
+    esac
+}
+
+# $1: ABI
+# $2: multilib variant
+arch_flags_for_abi()
+{
+    local abi=$1
+    local mlib=$2
+
+    if [ -z "$abi" -o -z "$mlib" ]; then
+        echo "ERROR: Usage $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    check_abi $abi
+    check_multilib $abi $mlib
+
+    case $mlib in
+        arm|thumb)
+            case $abi in
+                armeabi)
+                    echo "-march=armv5te -mtune=xscale -msoft-float"
+                    ;;
+                armeabi-v7a)
+                    echo "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp"
+                    ;;
+                armeabi-v7a-hard)
+                    echo "-march=armv7-a -mfpu=vfpv3-d16 -mhard-float"
+                    ;;
+            esac
+            if [ "$mlib" = "thumb" ]; then
+                echo "-mthumb"
+                if [ ${TOOLCHAIN##gcc} != ${TOOLCHAIN} ]; then
+                    test "$abi" = "armeabi" && echo "-minline-thumb1-jumptable"
+                fi
+            fi
+            ;;
+        aarch64)
+            echo ""
+            ;;
+        i386)
+            echo "-m32"
+            ;;
+        x86_64)
+            echo "-m64"
+            ;;
+        x32)
+            echo "-mx32"
+            ;;
+        mips32)
+            echo "-mabi=32 -mips32"
+            ;;
+        mips32r2)
+            echo "-mabi=32 -mips32r2"
+            ;;
+        mips32r6)
+            echo "-mabi=32 -mips32r6"
+            ;;
+        mips64r6)
+            echo "-mabi=64 -mips64r6"
+            ;;
+        mips64r2)
+            echo "-mabi=64 -mips64r2"
+            ;;
+        *)
+            echo "ERROR: Unsupported multilib variant: '$mlib'" 1>&2
+            exit 1
+    esac
+}
+
+# $1: ABI
+# $2: multilib variant
+common_cflags_for_abi()
+{
+    local abi mlib
+    local flags crystax freebsd bsdarch
+
+    abi=$1
+    mlib=$2
+
+    if [ -z "$abi" -o -z "$mlib" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    crystax=$CRYSTAX_SRCDIR
+    freebsd=$CRYSTAX_SRCDIR/gen/freebsd
+
+    arch_flags_for_abi $abi $mlib
+
+    echo "-fPIC -DPIC"
+    echo "-g -O2"
+
+    if is_debug_mode; then
+        echo "-D_DEBUG"
+        echo "-DCRYSTAX_DEBUG=1"
+    else
+        echo "-DNDEBUG"
+    fi
+
+    echo "-D_POSIX_SOURCE"
+    echo "-DBZ_NO_STDIO"
+
+    echo "-ffunction-sections -fdata-sections"
+    echo "-fdiagnostics-show-option"
+
+    echo "-Wall -Wextra"
+    echo "-Werror"
+    if   [ ${TOOLCHAIN##gcc}   != ${TOOLCHAIN} ]; then
+        echo "-Wno-pragmas"
+    elif [ ${TOOLCHAIN##clang} != ${TOOLCHAIN} ]; then
+        echo "-Wno-unknown-pragmas"
+    fi
+
+    echo "-I$crystax/include"
+    echo "-I$crystax/src/include"
+
+    echo "-I$freebsd/contrib/gdtoa"
+    echo "-I$freebsd/contrib/libc-vis"
+    echo "-I$freebsd/contrib/tzcode/stdtime"
+    echo "-I$freebsd/lib/libc/iconv"
+    echo "-I$freebsd/lib/libc/include"
+    echo "-I$freebsd/lib/libc/locale"
+    echo "-I$freebsd/lib/libc/stdio"
+    echo "-I$freebsd/lib/libc/stdlib"
+    echo "-I$freebsd/lib/libc/stdtime"
+    echo "-I$freebsd/lib/msun/src"
+
+    case $abi in
+        armeabi*)
+            bsdarch=arm
+            ;;
+        x86)
+            bsdarch=i386
+            ;;
+        mips)
+            bsdarch=mips
+            ;;
+        x86_64)
+            case $mlib in
+                x86_64)
+                    bsdarch=amd64
+                    ;;
+                *)
+                    bsdarch=i386
+            esac
+            ;;
+        arm64*)
+            bsdarch=arm64
+            ;;
+        mips64)
+            case $mlib in
+                mips64*)
+                    bsdarch=mips64
+                    ;;
+                *)
+                    bsdarch=mips
+            esac
+            ;;
+    esac
+
+    if [ -n "$bsdarch" ]; then
+        echo "-I$freebsd/lib/libc/$bsdarch"
+    fi
+}
+
+# $1: ABI
+# $2: multilib variant
+cflags_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    echo "-std=c11"
+    common_cflags_for_abi $a $m
+}
+
+# $1: ABI
+# $2: multilib variant
+cxxflags_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+    echo "-std=c++11 -fuse-cxa-atexit -fno-exceptions -fno-rtti"
+    common_cflags_for_abi $a $m
+}
+
+# $1: ABI
+# $2: multilib variant
+asmflags_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    arch_flags_for_abi $a $m
+    echo "-O2"
+}
+
+# $1: ABI
+# $2: multilib variant
+ldflags_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$2" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        exit 1
+    fi
+
+    arch_flags_for_abi $a $m
+
+    echo "-fPIC"
+
+    if [ "$a" = "armeabi-v7a" -o "$a" = "armeabi-v7a-hard" ]; then
+        echo "-march=armv7-a -Wl,--fix-cortex-a8"
+    fi
+
+    echo "-Wl,--no-undefined"
+    echo "-Wl,-z,noexecstack"
+    echo "-Wl,-z,muldefs"
+
+    echo "-lstdc++ -ldl"
+    if [ "$a" = "armeabi-v7a-hard" ]; then
+        echo "-Wl,--no-warn-mismatch -lm_hard"
+    else
+        echo "-lm"
+    fi
+    echo "-lc"
+    is_debug_mode && echo "-llog"
+}
+
+# $1: ABI
+# $2: multilib variant
+libpath_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB"
+        exit 1
+    fi
+
+    check_abi $a
+    check_multilib $a $m
+
+    local p
+
+    case $m in
+        arm|thumb)
+            case $a in
+                armeabi)
+                    p="libs/armeabi"
+                    ;;
+                armeabi-v7a)
+                    p="libs/armeabi-v7a"
+                    ;;
+                armeabi-v7a-hard)
+                    p="libs/armeabi-v7a-hard"
+                    ;;
+            esac
+            if [ "$m" = "thumb" ]; then
+                p="$p/thumb"
+            fi
+            ;;
+        aarch64)
+            p="libs/arm64-v8a"
+            ;;
+        i386)
+            case $a in
+                x86)
+                    p="libs/x86"
+                    ;;
+                x86_64)
+                    p="libs/x86_64/32"
+                    ;;
+            esac
+            ;;
+        x86_64)
+            p="libs/x86_64"
+            ;;
+        x32)
+            p="libs/x86_64/x32"
+            ;;
+        mips32)
+            case $a in
+                mips)
+                    p="libs/mips"
+                    ;;
+                mips64)
+                    p="libs/mips64/lib32"
+                    ;;
+            esac
+            ;;
+        mips32r2)
+            case $a in
+                mips)
+                    p="libs/mips/r2"
+                    ;;
+                mips64)
+                    p="libs/mips64/lib32r2"
+                    ;;
+            esac
+            ;;
+        mips32r6)
+            case $a in
+                mips)
+                    p="libs/mips/r6"
+                    ;;
+                mips64)
+                    p="libs/mips64/lib32r6"
+                    ;;
+            esac
+            ;;
+        mips64r6)
+            p="libs/mips64"
+            ;;
+        mips64r2)
+            p="libs/mips64/r2"
+            ;;
+        *)
+            echo "ERROR: Unsupported multilib variant: $m" 1>&2
+            exit 1
+    esac
+
+    echo "$p"
+}
+
+# $1: ABI
+# $2: multilib variant
+sysroot_libpath_for_abi()
+{
+    local a=$1
+    local m=$2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB"
+        exit 1
+    fi
+
+    check_abi $a
+    check_multilib $a $m
+
+    case $m in
+        x86_64|mips64r6)
+            echo "lib64"
+            ;;
+        x32)
+            echo "libx32"
+            ;;
+        mips32r2)
+            echo "libr2"
+            ;;
+        mips32r6)
+            echo "libr6"
+            ;;
+        mips64r2)
+            echo "lib64r2"
+            ;;
+        *)
+            echo "lib"
+    esac
+}
+
+set_request()
+{
+    local newval=$1
+    if [ -n "$REQUEST" ]; then
+        echo "ERROR: 'request' specified twice (first: $REQUEST)" 1>&2
         usage 1>&2
         exit 1
     fi
+    REQUEST=$newval
+}
+
+set_abi()
+{
+    local newval=$1
+    if [ -n "$ABI" -a "$ABI" != "$newval" ]; then
+        echo "ERROR: ABI specified twice (first: $ABI)" 1>&2
+        usage 1>&2
+        exit 1
+    fi
+    check_abi $newval
+    ABI=$newval
+}
+
+set_multilib()
+{
+    local newval=$1
+    if [ -n "$MULTILIB" -a "$MULTILIB" != "$newval" ]; then
+        echo "ERROR: 'multilib' specified twice (first: $MULTILIB)" 1>&2
+        usage 1>&2
+        exit 1
+    fi
+    if [ -n "$ABI" ]; then
+        check_multilib $ABI $newval
+    fi
+    MULTILIB=$newval
+}
+
+set_ndkdir()
+{
+    local newval=$1
+    if [ ! -d $newval -o ! -d $newval/platforms ]; then
+        echo "ERROR: Wrong NDK path: $newval" 1>&2
+        exit 1
+    fi
+    NDK=$newval
+}
+
+set_libtype()
+{
+    local newval=$1
+    case $newval in
+        static|shared)
+            LIBTYPE=$newval
+            ;;
+        *)
+            echo "ERROR: Wrong 'libtype': $newval" 1>&2
+            usage 1>&2
+            exit 1
+    esac
+}
+
+set_toolchain()
+{
+    local newval=$1
+    case $newval in
+        gcc4.8|gcc4.9|clang3.4|clang3.5)
+            TOOLCHAIN=$newval
+            ;;
+        *)
+            echo "ERROR: Wrong 'toolchain': $newval" 1>&2
+            usage 1>&2
+            exit 1
+    esac
 }
 
 while [ "x$1" != "x" ]; do
     arg=$1
     shift
     case $arg in
-        --target=*)
-            target=$(expr "x$arg" : "^x--target=\(.*\)$")
-            if [ "x$target" = "x" ]; then
-                usage 1>&2
-                exit 1
-            fi
+        -h|-help|--help)
+            usage
+            exit 0
             ;;
-        --sources|--cflags)
-            check_action
-            action=$arg
+        --abis|--multilibs|--sources|--cflags|--c++flags|--asmflags|--ldflags|--libpath|--sysroot-libpath)
+            set_request $(expr "x$arg" : "^x--\(.*\)$")
+            ;;
+        --abi)
+            set_abi $1
+            shift
+            ;;
+        --abi=*)
+            set_abi $(expr "x$arg" : "^x--abi=\(.*\)$")
+            ;;
+        --multilib)
+            set_multilib $1
+            shift
+            ;;
+        --multilib=*)
+            set_multilib $(expr "x$arg" : "^x--multilib=\(.*\)$")
+            ;;
+        --ndk)
+            set_ndkdir $1
+            shift
+            ;;
+        --ndk=*)
+            set_ndkdir $(expr "x$arg" : "^x--ndk=\(.*\)$")
+            ;;
+        --libtype)
+            set_libtype $1
+            shift
+            ;;
+        --libtype=*)
+            set_libtype $(expr "x$arg" : "^x--libtype=\(.*\)$")
+            ;;
+        --toolchain)
+            set_toolchain $1
+            shift
+            ;;
+        --toolchain=*)
+            set_toolchain $(expr "x$arg" : "^x--toolchain=\(.*\)$")
             ;;
         *)
+            echo "ERROR: Unknown option: $arg" 1>&2
             usage 1>&2
             exit 1
-            ;;
     esac
 done
 
-list_c_sources()
-{
-    local asl_all asl_32bit asl_64bit asl_arch
-
-    find src -name '*.c' -print
-
-    asl_all="\
-        src/musl-locale/catclose.c \
-        src/musl-locale/catgets.c \
-        src/musl-locale/catopen.c \
-        src/musl-ctype/wctrans.c \
-        src/musl-multibyte/mblen.c \
-        "
-
-    asl_32bit="\
-        src/libdl_support.c \
-        src/locale_support.c \
-        src/math_support.c \
-        src/stdlib_support.c \
-        src/wchar_support.c \
-        src/locale/duplocale.c \
-        src/locale/freelocale.c \
-        src/locale/localeconv.c \
-        src/locale/newlocale.c \
-        src/locale/uselocale.c \
-        src/stdio/stdio_impl.c \
-        src/stdio/strtod.c \
-        src/stdio/vfprintf.c \
-        src/stdio/vfwprintf.c \
-        src/msun/e_log2.c \
-        src/msun/e_log2f.c \
-        src/msun/s_nan.c \
-        src/musl-ctype/iswalnum.c \
-        src/musl-ctype/iswalpha.c \
-        src/musl-ctype/iswblank.c \
-        src/musl-ctype/iswcntrl.c \
-        src/musl-ctype/iswctype.c \
-        src/musl-ctype/iswdigit.c \
-        src/musl-ctype/iswgraph.c \
-        src/musl-ctype/iswlower.c \
-        src/musl-ctype/iswprint.c \
-        src/musl-ctype/iswpunct.c \
-        src/musl-ctype/iswspace.c \
-        src/musl-ctype/iswupper.c \
-        src/musl-ctype/iswxdigit.c \
-        src/musl-ctype/towctrans.c \
-        src/musl-ctype/wcswidth.c \
-        src/musl-ctype/wcwidth.c \
-        src/musl-locale/iconv.c \
-        src/musl-locale/intl.c \
-        src/musl-locale/isalnum_l.c \
-        src/musl-locale/isalpha_l.c \
-        src/musl-locale/isblank_l.c \
-        src/musl-locale/iscntrl_l.c \
-        src/musl-locale/isdigit_l.c \
-        src/musl-locale/isgraph_l.c \
-        src/musl-locale/islower_l.c \
-        src/musl-locale/isprint_l.c \
-        src/musl-locale/ispunct_l.c \
-        src/musl-locale/isspace_l.c \
-        src/musl-locale/isupper_l.c \
-        src/musl-locale/iswalnum_l.c \
-        src/musl-locale/iswalpha_l.c \
-        src/musl-locale/iswblank_l.c \
-        src/musl-locale/iswcntrl_l.c \
-        src/musl-locale/iswctype_l.c \
-        src/musl-locale/iswdigit_l.c \
-        src/musl-locale/iswgraph_l.c \
-        src/musl-locale/iswlower_l.c \
-        src/musl-locale/iswprint_l.c \
-        src/musl-locale/iswpunct_l.c \
-        src/musl-locale/iswspace_l.c \
-        src/musl-locale/iswupper_l.c \
-        src/musl-locale/iswxdigit_l.c \
-        src/musl-locale/isxdigit_l.c \
-        src/musl-locale/langinfo.c \
-        src/musl-locale/strcasecmp_l.c \
-        src/musl-locale/strcoll.c \
-        src/musl-locale/strerror_l.c \
-        src/musl-locale/strfmon.c \
-        src/musl-locale/strftime_l.c \
-        src/musl-locale/strncasecmp_l.c \
-        src/musl-locale/strxfrm.c \
-        src/musl-locale/tolower_l.c \
-        src/musl-locale/toupper_l.c \
-        src/musl-locale/towctrans_l.c \
-        src/musl-locale/towlower_l.c \
-        src/musl-locale/towupper_l.c \
-        src/musl-locale/wcscoll.c \
-        src/musl-locale/wcsxfrm.c \
-        src/musl-locale/wctrans_l.c \
-        src/musl-locale/wctype_l.c \
-        src/musl-math/frexp.c \
-        src/musl-math/frexpf.c \
-        src/musl-math/frexpl.c \
-        src/musl-multibyte/btowc.c \
-        src/musl-multibyte/internal.c \
-        src/musl-multibyte/mbrlen.c \
-        src/musl-multibyte/mbrtowc.c \
-        src/musl-multibyte/mbsinit.c \
-        src/musl-multibyte/mbsnrtowcs.c \
-        src/musl-multibyte/mbsrtowcs.c \
-        src/musl-multibyte/mbstowcs.c \
-        src/musl-multibyte/mbtowc.c \
-        src/musl-multibyte/wcrtomb.c \
-        src/musl-multibyte/wcsnrtombs.c \
-        src/musl-multibyte/wcsrtombs.c \
-        src/musl-multibyte/wcstombs.c \
-        src/musl-multibyte/wctob.c \
-        src/musl-multibyte/wctomb.c \
-        src/musl-stdio/printf.c \
-        src/musl-stdio/snprintf.c \
-        src/musl-stdio/sprintf.c \
-        src/musl-stdio/vprintf.c \
-        src/musl-stdio/vsprintf.c \
-        src/musl-stdio/swprintf.c \
-        src/musl-stdio/vwprintf.c \
-        src/musl-stdio/wprintf.c \
-        src/wcstox/floatscan.c \
-        src/wcstox/intscan.c \
-        src/wcstox/shgetc.c \
-        src/wcstox/wcstol.c \
-        src/wcstox/wcstod.c \
-        "
-
-    asl_64bit=""
-
-    echo $target | grep -q 64
-    if [ $? -ne 0 ]; then
-        asl_arch=$asl_32bit
-    else
-        asl_arch=$asl_64bit
-    fi
-
-    for f in $asl_all $asl_arch; do
-        echo "../android/support/$f"
-    done
-}
-
-list_cxx_sources()
-{
-    find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print
-}
-
-print_cflags()
-{
-    local cflags
-    cflags="-fPIC -g -O2"
-    cflags="$cflags -DANDROID -D__ANDROID__ -DNDEBUG"
-    cflags="$cflags -Drestrict=__restrict__"
-    cflags="$cflags -ffunction-sections -fdata-sections"
-    cflags="$cflags -I$CRYSTAX_SRCDIR/include"
-    cflags="$cflags -I$CRYSTAX_SRCDIR/../android/support/src/locale"
-    cflags="$cflags -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
-    #cflags="$cflags -I$CRYSTAX_SRCDIR/../cxx-stl/system"
-    echo $cflags
-}
-
-if [ "x$action" = "x" ]; then
+if [ -z "$REQUEST" ]; then
+    echo "ERROR: 'request' not specified" 1>&2
     usage 1>&2
     exit 1
 fi
 
-case $action in
-    --sources)
-        list_c_sources
-        list_cxx_sources
+if [ -z "$ABI" -a "$REQUEST" != "abis" ]; then
+    echo "ERROR: ABI not specified" 1>&2
+    usage 1>&2
+    exit 1
+fi
+
+if [ "$REQUEST" = "abis" -a -n "$ABI" ]; then
+    echo "ERROR: Parameter --abi=ABI shouldn't be specified when requesting list of ABI" 1>&2
+    usage 1>&2
+    exit 1
+fi
+
+if [ -z "$MULTILIB" -a "$REQUEST" != "abis" -a "$REQUEST" != "multilibs" ]; then
+    all_multilibs=$(multilibs_for_abi $ABI)
+    if [ $(echo $all_multilibs | wc -w) -gt 1 ]; then
+        MULTILIB=$(echo $all_multilibs | tr ' ' '\n' | head -n 1)
+        #echo "WARNING: 'multilib' not specified; using default one [$MULTILIB]" 1>&2
+    else
+        MULTILIB=$all_multilibs
+    fi
+fi
+
+if [ "$REQUEST" = "multilibs" -a -n "$MULTILIB" ]; then
+    echo "ERROR: Parameter --multilib=M shouldn't be specified when requesting list of multilibs" 1>&2
+    usage 1>&2
+    exit 1
+fi
+
+case $REQUEST in
+    abis)
+        all_abis
         ;;
-    --cflags)
-        print_cflags
+    multilibs)
+        multilibs_for_abi $ABI
+        ;;
+    sources)
+        sources_for_abi $ABI $LIBTYPE
+        ;;
+    cflags)
+        cflags_for_abi $ABI $MULTILIB
+        ;;
+    c++flags)
+        cxxflags_for_abi $ABI $MULTILIB
+        ;;
+    asmflags)
+        asmflags_for_abi $ABI $MULTILIB
+        ;;
+    ldflags)
+        ldflags_for_abi $ABI $MULTILIB
+        ;;
+    libpath)
+        libpath_for_abi $ABI $MULTILIB
+        ;;
+    sysroot-libpath)
+        sysroot_libpath_for_abi $ABI $MULTILIB
         ;;
     *)
-        echo "ERROR: Unsupported action: $action"
+        echo "ERROR: Unsupported request: $REQUEST"
         exit 1
-        ;;
 esac

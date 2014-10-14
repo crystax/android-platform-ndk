@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+gen()
+{
+    local name=$1
+    echo "#if !defined(${name})"
+    echo "#error '${name}' not defined"
+    echo "#endif /* !defined(${name}) */"
+}
+
+gen SCM_RIGHTS
+
+gen CMSG_DATA
+gen CMSG_NXTHDR
+gen CMSG_FIRSTHDR
+
+gen SOCK_DGRAM
+gen SOCK_SEQPACKET
+gen SOCK_STREAM
+
+echo "#if _POSIX_RAW_SOCKETS > 0"
+gen SOCK_RAW
+echo "#endif"
+
+gen SOL_SOCKET
+
+gen SO_ACCEPTCONN
+gen SO_BROADCAST
+gen SO_DEBUG
+gen SO_DONTROUTE
+gen SO_ERROR
+gen SO_KEEPALIVE
+gen SO_LINGER
+gen SO_OOBINLINE
+gen SO_RCVBUF
+gen SO_RCVLOWAT
+gen SO_RCVTIMEO
+gen SO_REUSEADDR
+gen SO_SNDBUF
+gen SO_SNDLOWAT
+gen SO_SNDTIMEO
+gen SO_TYPE
+
+gen SOMAXCONN
+
+gen MSG_CTRUNC
+gen MSG_DONTROUTE
+gen MSG_EOR
+gen MSG_OOB
+echo "#if !__APPLE__"
+gen MSG_NOSIGNAL
+echo "#endif"
+gen MSG_PEEK
+gen MSG_TRUNC
+gen MSG_WAITALL
+
+gen AF_INET
+gen AF_UNIX
+gen AF_UNSPEC
+
+echo "#if _POSIX_IPV6 > 0"
+gen AF_INET6
+echo "#endif"
+
+gen SHUT_RD
+gen SHUT_RDWR
+gen SHUT_WR

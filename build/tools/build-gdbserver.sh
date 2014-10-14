@@ -170,9 +170,18 @@ run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
 
 ABI=$(echo $(commas_to_spaces $(convert_arch_to_abi $ARCH)) | tr -s ' ' '\n' | head -n 1)
 run mkdir -p "$BUILD_SYSROOT/usr/lib"
-run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI/libcrystax.a "$BUILD_SYSROOT/usr/lib"
 
+run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a "$BUILD_SYSROOT/usr/lib"
+fail_panic "Couldn't copy libcrystax.a stub to $BUILD_SYSROOT/usr/lib"
+
+# Don't use CrystaX headers when building gdbserver
+log "Restore Google's headers in $BUILD_SYSROOT ..."
 (cd $BUILD_SYSROOT/usr/include/crystax/google && tar chf - *) | (cd $BUILD_SYSROOT/usr/include && tar xf -)
+if [ $? != 0 ]; then
+    dump "ERROR: Could not restore Google's headers in $BUILD_SYSROOT!"
+    exit 1
+fi
+rm -Rf $BUILD_SYSROOT/usr/include/crystax*
 
 LIBDIR=$(get_default_libdir_for_arch $ARCH)
 

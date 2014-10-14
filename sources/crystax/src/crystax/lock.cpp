@@ -27,7 +27,8 @@
  * or implied, of CrystaX .NET.
  */
 
-#include "crystax/lock.hpp"
+#include <crystax/lock.hpp>
+#include <stdlib.h>
 
 namespace crystax
 {

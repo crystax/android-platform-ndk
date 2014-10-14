@@ -821,15 +821,19 @@ module-get-c++-extensions = $(strip \
 module-get-objc-sources = \
     $(eval __files := $(__ndk_modules.$1.SRC_FILES:%.neon=%))\
     $(eval __files := $(__files:%.arm=%))\
-    $(or $(filter %$(call module-get-objc-extension,$1),$(__files)),\
-        $(filter %$(call module-get-objc++-extension),$(__files)))
+    $(eval __files := $(or \
+        $(filter %$(call module-get-objc-extension,$1),$(__files)),\
+        $(filter %$(call module-get-objc++-extension),$(__files))))\
+    $(__files)
 
 # Return the list of Obj-C++ sources of a given module
 #
 module-get-objc++-sources = \
     $(eval __files := $(__ndk_modules.$1.SRC_FILES:%.neon=%))\
     $(eval __files := $(__files:%.arm=%))\
-    $(filter %$(call module-get-objc++-extension),$(__files))
+    $(eval __files := \
+        $(filter %$(call module-get-objc++-extension),$(__files)))\
+    $(__files)
 
 # Return the list of C++ sources of a given module
 #
@@ -1778,6 +1782,7 @@ _SRC:=$$(LOCAL_PATH)/$(1)
 _OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
 
 _FLAGS := $$($$(my)CFLAGS) \
+          $$(if $$(filter %clang %clang++,$$(TARGET_CC)),-integrated-as) \
           $$(call get-src-file-target-cflags,$(1)) \
           $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_CFLAGS) \
@@ -1855,8 +1860,9 @@ define  ev-compile-objc++-source
 _SRC:=$$(LOCAL_PATH)/$(1)
 _OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
 _FLAGS := $$($$(my)CXXFLAGS) \
+          $$(if $$(filter %clang %clang++,$$(TARGET_CC)),-integrated-as) \
           $$(call get-src-file-target-cflags,$(1)) \
-          $$(call host-c-includes, $$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
+          $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_CFLAGS) \
           $$(LOCAL_OBJCFLAGS) \
           $$(LOCAL_CPPFLAGS) \

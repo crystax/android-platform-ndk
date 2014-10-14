@@ -1,0 +1,388 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+revlist()
+{
+    echo "$@" | awk '
+        {
+            n = split($0, words);
+            for (i=n; i>0; i--) {
+                printf "%s ", words[i]
+            }
+        }
+        END {
+            printf("\n")
+        }'
+}
+
+gen()
+{
+    local name=$1
+    shift
+    local conditions="$@"
+    if [ -z "$name" ]; then
+        echo "ERROR: empty name passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    for cond in $conditions; do
+        echo "#if ${cond}"
+    done
+    echo "#if !defined(${name})"
+    echo "#error ${name} not defined"
+    echo "#endif /* !defined(${name}) */"
+    for cond in $(revlist $conditions); do
+        echo "#endif /* ${cond} */"
+    done
+}
+
+#gen AIO_LISTIO_MAX
+gen _POSIX_AIO_LISTIO_MAX
+
+#gen AIO_MAX
+gen _POSIX_AIO_MAX
+
+gen AIO_PRIO_DELTA_MAX !__APPLE__ !__ANDROID__
+
+gen ARG_MAX !__gnu_linux__
+gen _POSIX_ARG_MAX
+
+#gen ATEXIT_MAX
+
+gen CHILD_MAX !__gnu_linux__
+gen _POSIX_CHILD_MAX
+
+gen DELAYTIMER_MAX !__APPLE__ !__ANDROID__
+gen _POSIX_DELAYTIMER_MAX
+
+gen HOST_NAME_MAX  !__APPLE__ !__ANDROID__
+gen _POSIX_HOST_NAME_MAX
+
+gen IOV_MAX __XSI_VISIBLE !__ANDROID__
+gen _XOPEN_IOV_MAX __XSI_VISIBLE
+
+gen LOGIN_NAME_MAX !__APPLE__ !__ANDROID__
+gen _POSIX_LOGIN_NAME_MAX
+
+gen MQ_OPEN_MAX _POSIX_MESSAGE_PASSING
+gen _POSIX_MQ_OPEN_MAX _POSIX_MESSAGE_PASSING
+gen MQ_PRIO_MAX _POSIX_MESSAGE_PASSING
+gen _POSIX_MQ_PRIO_MAX _POSIX_MESSAGE_PASSING
+
+gen OPEN_MAX !__gnu_linux__
+gen _POSIX_OPEN_MAX
+
+gen PAGESIZE !__APPLE__ !__gnu_linux__
+gen PAGE_SIZE __XSI_VISIBLE
+
+gen PTHREAD_DESTRUCTOR_ITERATIONS !__ANDROID__
+gen _POSIX_THREAD_DESTRUCTOR_ITERATIONS
+
+gen PTHREAD_KEYS_MAX
+gen _POSIX_THREAD_KEYS_MAX
+
+gen PTHREAD_STACK_MIN
+
+gen PTHREAD_THREADS_MAX !__APPLE__ !__gnu_linux__
+gen _POSIX_THREAD_THREADS_MAX
+
+gen RE_DUP_MAX
+gen _POSIX2_RE_DUP_MAX
+
+gen RTSIG_MAX !__APPLE__ !__ANDROID__
+gen _POSIX_RTSIG_MAX
+
+#gen SEM_NSEMS_MAX
+gen _POSIX_SEM_NSEMS_MAX
+
+gen SEM_VALUE_MAX !__APPLE__ !__ANDROID__
+gen _POSIX_SEM_VALUE_MAX
+
+#gen SIGQUEUE_MAX
+gen _POSIX_SIGQUEUE_MAX
+
+gen SS_REPL_MAX _POSIX_SPORADIC_SERVER _POSIX_THREAD_SPORADIC_SERVER
+gen _POSIX_SS_REPL_MAX _POSIX_SPORADIC_SERVER _POSIX_THREAD_SPORADIC_SERVER
+
+#gen STREAM_MAX
+gen _POSIX_STREAM_MAX
+
+#gen SYMLOOP_MAX
+gen _POSIX_SYMLOOP_MAX
+
+#gen TIMER_MAX
+gen _POSIX_TIMER_MAX
+
+gen TTY_NAME_MAX !__APPLE__ !__ANDROID__
+gen _POSIX_TTY_NAME_MAX
+
+#gen TZNAME_MAX
+gen _POSIX_TZNAME_MAX
+
+#gen FILESIZEBITS
+
+gen LINK_MAX !__gnu_linux__
+gen _POSIX_LINK_MAX
+
+gen MAX_CANON
+gen _POSIX_MAX_CANON
+
+gen MAX_INPUT
+gen _POSIX_MAX_INPUT
+
+gen NAME_MAX
+gen _POSIX_NAME_MAX
+gen _XOPEN_NAME_MAX __XSI_VISIBLE
+
+gen PATH_MAX
+gen _POSIX_PATH_MAX
+gen _XOPEN_PATH_MAX __XSI_VISIBLE
+
+gen PIPE_BUF
+gen _POSIX_PIPE_BUF
+
+echo "#if _POSIX_ADVISORY_INFO > 0"
+gen POSIX_ALLOC_SIZE_MIN
+gen POSIX_REC_INCR_XFER_SIZE
+gen POSIX_REC_MAX_XFER_SIZE
+gen POSIX_REC_MIN_XFER_SIZE
+gen POSIX_REC_XFER_ALIGN
+echo "#endif"
+
+#gen SYMLINK_MAX
+gen _POSIX_SYMLINK_MAX
+
+gen BC_BASE_MAX
+gen _POSIX2_BC_BASE_MAX
+
+gen BC_DIM_MAX
+gen _POSIX2_BC_DIM_MAX
+
+gen BC_SCALE_MAX
+gen _POSIX2_BC_SCALE_MAX
+
+gen BC_STRING_MAX
+gen _POSIX2_BC_STRING_MAX
+
+gen CHARCLASS_NAME_MAX !__ANDROID__
+gen _POSIX2_CHARCLASS_NAME_MAX
+
+gen COLL_WEIGHTS_MAX
+gen _POSIX2_COLL_WEIGHTS_MAX
+
+gen EXPR_NEST_MAX
+gen _POSIX2_EXPR_NEST_MAX
+
+gen LINE_MAX
+gen _POSIX2_LINE_MAX
+
+gen NGROUPS_MAX
+gen _POSIX_NGROUPS_MAX
+
+gen RE_DUP_MAX
+gen _POSIX2_RE_DUP_MAX
+
+# Numerical limits
+
+gen CHAR_BIT
+gen CHAR_MAX
+gen CHAR_MIN
+gen INT_MAX
+gen INT_MIN
+gen LLONG_MAX
+gen LLONG_MIN
+gen LONG_BIT
+gen LONG_MAX
+gen LONG_MIN
+gen MB_LEN_MAX
+gen SCHAR_MAX
+gen SCHAR_MIN
+gen SHRT_MAX
+gen SHRT_MIN
+gen SSIZE_MAX
+gen UCHAR_MAX
+gen UINT_MAX
+gen ULLONG_MAX
+gen ULONG_MAX
+gen USHRT_MAX
+gen WORD_BIT
+
+# Other invariant values
+
+gen NL_ARGMAX
+gen NL_LANGMAX __XSI_VISIBLE
+gen NL_MSGMAX
+gen NL_SETMAX
+gen NL_TEXTMAX
+gen NZERO __XSI_VISIBLE !__ANDROID__
+
+# Check minimum/maximum values
+
+gen()
+{
+    local name=$1
+    local value=$2
+    shift 2
+    local conditions="$@"
+    if [ -z "$name" -o -z "$value" ]; then
+        echo "ERROR: empty name or value passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    for cond in $conditions; do
+        echo "#if ${cond}"
+    done
+    echo "#if ${name} != ${value}"
+    echo "#error ${name} is not equal to ${value}"
+    echo "#endif /* ${name} != ${value} */"
+    for cond in $(revlist $conditions); do
+        echo "#endif /* ${cond} */"
+    done
+}
+
+gen _POSIX_CLOCKRES_MIN 20000000 _POSIX_MONOTONIC_CLOCK
+gen _POSIX_AIO_LISTIO_MAX 2
+gen _POSIX_AIO_MAX 1
+gen _POSIX_ARG_MAX 4096
+gen _POSIX_CHILD_MAX 25
+gen _POSIX_DELAYTIMER_MAX 32
+gen _POSIX_HOST_NAME_MAX 255
+gen _POSIX_LINK_MAX 8
+gen _POSIX_LOGIN_NAME_MAX 9
+gen _POSIX_MAX_CANON 255
+gen _POSIX_MAX_INPUT 255
+
+gen _POSIX_MQ_OPEN_MAX 8  _POSIX_MESSAGE_PASSING
+gen _POSIX_MQ_PRIO_MAX 32 _POSIX_MESSAGE_PASSING
+
+gen _POSIX_NAME_MAX 14
+gen _POSIX_NGROUPS_MAX 8
+gen _POSIX_OPEN_MAX 20
+gen _POSIX_PATH_MAX 256
+gen _POSIX_PIPE_BUF 512
+gen _POSIX_RE_DUP_MAX 255
+gen _POSIX_RTSIG_MAX 8
+gen _POSIX_SEM_NSEMS_MAX 256
+gen _POSIX_SEM_VALUE_MAX 32767
+gen _POSIX_SIGQUEUE_MAX 32
+gen _POSIX_SSIZE_MAX 32767
+
+gen _POSIX_SS_REPL_MAX 4 _POSIX_SPORADIC_SERVER _POSIX_THREAD_SPORADIC_SERVER
+
+gen _POSIX_STREAM_MAX 8
+gen _POSIX_SYMLINK_MAX 255
+gen _POSIX_SYMLOOP_MAX 8
+gen _POSIX_THREAD_DESTRUCTOR_ITERATIONS 4
+gen _POSIX_THREAD_KEYS_MAX 128
+gen _POSIX_THREAD_THREADS_MAX 64
+gen _POSIX_TIMER_MAX 32
+
+gen _POSIX_TTY_NAME_MAX 9
+gen _POSIX_TZNAME_MAX 6
+
+gen _POSIX2_BC_BASE_MAX 99
+gen _POSIX2_BC_DIM_MAX 2048
+gen _POSIX2_BC_SCALE_MAX 99
+gen _POSIX2_BC_STRING_MAX 1000
+gen _POSIX2_CHARCLASS_NAME_MAX 14
+gen _POSIX2_COLL_WEIGHTS_MAX 2
+gen _POSIX2_EXPR_NEST_MAX 32
+gen _POSIX2_LINE_MAX 2048
+gen _POSIX2_RE_DUP_MAX 255
+
+gen _XOPEN_IOV_MAX  16   __XSI_VISIBLE
+gen _XOPEN_NAME_MAX 255  __XSI_VISIBLE
+gen _XOPEN_PATH_MAX 1024 __XSI_VISIBLE
+
+gen CHAR_BIT 8
+
+gen SCHAR_MIN -128
+gen SCHAR_MAX 127
+gen UCHAR_MAX 255
+
+echo "#if __arm__ || __aarch64__"
+gen CHAR_MIN 0
+gen CHAR_MAX UCHAR_MAX
+echo "#else"
+gen CHAR_MIN SCHAR_MIN
+gen CHAR_MAX SCHAR_MAX
+echo "#endif"
+
+gen SHRT_MIN -32768
+gen SHRT_MAX 32767
+
+gen USHRT_MAX 65535
+
+gen INT_MIN -2147483648
+gen INT_MAX 2147483647
+
+gen UINT_MAX 4294967295
+
+gen LLONG_MIN '(-0x7fffffffffffffffLL-1)'
+gen LLONG_MAX 0x7fffffffffffffffLL
+
+gen ULLONG_MAX 0xffffffffffffffffLL
+
+echo "#if __LP64__"
+gen LONG_MIN  LLONG_MIN
+gen LONG_MAX  LLONG_MAX
+gen ULONG_MAX ULLONG_MAX
+echo "#else"
+gen LONG_MIN  INT_MIN
+gen LONG_MAX  INT_MAX
+gen ULONG_MAX UINT_MAX
+echo "#endif"
+
+gen()
+{
+    local name=$1
+    local value=$2
+    shift 2
+    local conditions="$@"
+    if [ -z "$name" -o -z "$value" ]; then
+        echo "ERROR: empty name or value passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    for cond in $conditions; do
+        echo "#if ${cond}"
+    done
+    echo "#if defined(${name}) && ${name} < ${value}"
+    echo "#error ${name} less than ${value}"
+    echo "#endif /* defined(${name}) && ${name} != ${value} */"
+    for cond in $(revlist $conditions); do
+        echo "#endif /* ${cond} */"
+    done
+}
+
+gen MB_LEN_MAX 6
+
+gen NL_ARGMAX 9
+gen NL_LANGMAX 14 __XSI_VISIBLE
+gen NL_MSGMAX 32767
+gen NL_SETMAX 255
+gen NL_TEXTMAX _POSIX2_LINE_MAX
+gen NZERO 20 __XSI_VISIBLE !__ANDROID__

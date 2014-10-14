@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+revlist()
+{
+    echo "$@" | awk '
+        {
+            n = split($0, words);
+            for (i=n; i>0; i--) {
+                printf "%s ", words[i]
+            }
+        }
+        END {
+            printf("\n")
+        }'
+}
+
+gen()
+{
+    local name=$1
+    shift
+    local conditions="$@"
+    if [ -z "$name" ]; then
+        echo "ERROR: empty name passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    for cond in $conditions; do
+        echo "#if ${cond}"
+    done
+    echo "#if !defined(${name})"
+    echo "#error ${name} not defined"
+    echo "#endif /* !defined(${name}) */"
+    for cond in $(revlist $conditions); do
+        echo "#endif /* ${cond} */"
+    done
+}
+
+gen F_DUPFD
+gen F_DUPFD_CLOEXEC
+gen F_GETFD
+gen F_SETFD
+gen F_GETFL
+gen F_SETFL
+gen F_GETLK
+gen F_SETLK
+gen F_SETLKW
+gen F_GETOWN
+gen F_SETOWN
+
+echo "#if !__APPLE__ && !__gnu_linux__"
+gen F_DUP2FD
+gen F_DUP2FD_CLOEXEC
+echo "#endif"
+
+gen FD_CLOEXEC
+
+gen F_RDLCK
+gen F_UNLCK
+gen F_WRLCK
+
+gen SEEK_SET
+gen SEEK_CUR
+gen SEEK_END
+
+gen O_CLOEXEC
+gen O_CREAT
+gen O_DIRECTORY
+gen O_EXCL
+gen O_NOCTTY
+gen O_NOFOLLOW
+gen O_TRUNC
+#gen O_TTY_INIT
+
+gen O_APPEND
+gen O_DSYNC !__ANDROID__ "_POSIX_SYNCHRONIZED_IO > 0"
+gen O_NONBLOCK
+gen O_RSYNC !__ANDROID__ "_POSIX_SYNCHRONIZED_IO > 0"
+gen O_SYNC
+
+gen O_ACCMODE
+
+#gen O_EXEC
+gen O_RDONLY
+gen O_RDWR
+#gen O_SEARCH
+gen O_WRONLY
+
+echo "#if HAVE_XXXAT"
+gen AT_FDCWD
+gen AT_EACCESS !__ANDROID__
+gen AT_SYMLINK_NOFOLLOW
+gen AT_SYMLINK_FOLLOW
+gen AT_REMOVEDIR
+echo "#endif"
+
+echo "#if _POSIX_ADVISORY_INFO"
+gen POSIX_FADV_DONTNEED
+gen POSIX_FADV_NOREUSE
+gen POSIX_FADV_NORMAL
+gen POSIX_FADV_RANDOM
+gen POSIX_FADV_SEQUENTIAL
+gen POSIX_FADV_WILLNEED
+echo "#endif"

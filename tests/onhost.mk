@@ -56,16 +56,16 @@ $(strip $(if $(strip $(1)),\
 ))
 endef
 
-define std-c++11-switch
+define c++11
 $(strip \
     $(if \
         $(and \
-            $(call is-gcc,$(CXX)),\
-            $(filter 4,$(call gcc-major-version,$(CXX))),\
-            $(filter 6,$(call gcc-minor-version,$(CXX)))\
+            $(call is-gcc,$(CC)),\
+            $(filter 4,$(call gcc-major-version,$(CC))),\
+            $(filter 6,$(call gcc-minor-version,$(CC)))\
         ),\
-        -std=c++0x,\
-        -std=c++11\
+        c++0x,\
+        c++11\
     )\
 )
 endef
@@ -98,46 +98,43 @@ ifneq (b c,$(call tail,a b c))
 $(error Function 'tail' broken)
 endif
 
-define join-with
-$(if $(strip $(2)),$(call head,$(2))$(if $(strip $(call tail,$(2))),$(1)$(call join-with,$(1),$(call tail,$(2)))))
+define objc-runtime
+$(if $(and $(call is-clang,$(CC)),$(call is-host-os-darwin)),next,gnu)
 endef
 
-ifneq (a-b-c,$(call join-with,-,a b c))
-$(error Function 'join-with' broken)
-endif
+define has-c-sources
+$(if $(filter %.c %.m,$(SRCFILES)),yes)
+endef
+
+define has-objective-c-sources
+$(if $(filter %.m %.mm,$(SRCFILES)),yes)
+endef
+
+define has-c++-sources
+$(if $(filter %.cpp %.cc %.mm,$(SRCFILES)),yes)
+endef
+
+# $1: regexp
+# $2: string
+define match
+$(shell echo $(2) | grep -iq "$(1)" && echo yes)
+endef
 
 #=================================================================================
 
 CC ?= cc
-CXX ?= c++
 
 TESTDIR := $(shell pwd)
 
-ifeq (,$(strip $(C_ENABLED)))
-C_ENABLED := $(if $(filter %.c %.m,$(SRCFILES)),yes)
-endif
+is-device-test := $(shell test -d $(dir $(lastword $(MAKEFILE_LIST)))/device/$(notdir $(realpath $(TESTDIR)/..)) && echo yes)
 
-ifeq (,$(strip $(CXX_ENABLED)))
-CXX_ENABLED := $(if $(filter %.cpp %.cc %.mm,$(SRCFILES)),yes)
-endif
-
+ifeq (,$(wildcard $(TESTDIR)/DISABLED))
 is-test-disabled :=
-ifneq (,$(wildcard $(TESTDIR)/DISABLED))
-
-is-test-disabled := $(or $(is-test-disabled),$(shell grep -iq "\<$(call host-os)\>" DISABLED && echo yes))
-
-ifneq (,$(call is-true,$(C_ENABLED)))
-ifneq (,$(call is-gcc,$(CC)))
-is-test-disabled := $(or $(is-test-disabled),$(shell grep -iq "\<gcc-$(subst .,\.,$(call gcc-version,$(CC)))\>" DISABLED && echo yes))
-endif
-endif
-
-ifneq (,$(call is-true,$(CXX_ENABLED)))
-ifneq (,$(call is-gcc,$(CXX)))
-is-test-disabled := $(or $(is-test-disabled),$(shell grep -iq "\<gcc-$(subst .,\.,$(call gcc-version,$(CXX)))\>" DISABLED && echo yes))
-endif
-endif
-
+else
+is-test-disabled := $(strip $(or \
+    $(call match,"\<$(call host-os)\>",$(shell cat DISABLED)),\
+    $(and $(call is-gcc,$(CC)),$(call match,"\<$(subst .,\.,gcc-$(call gcc-version,$(CC)))\>",$(shell cat DISABLED)))\
+))
 endif
 
 ifeq (,$(strip $(SRCFILES)))
@@ -151,18 +148,17 @@ endif
 ifeq (,$(strip $(CXXFLAGS)))
 CXXFLAGS := $(CFLAGS)
 endif
+
 ifeq (,$(filter -std=%,$(CXXFLAGS)))
-CXXFLAGS += $(call std-c++11-switch)
+CXXFLAGS += -std=$(c++11)
 endif
 
-ifneq (,$(filter %.m %.mm,$(SRCFILES)))
-ifneq (,$(filter darwin,$(call host-os)))
-LDLIBS += -framework CoreFoundation
-endif
-LDLIBS += -lobjc
+ifneq (,$(and $(call is-clang,$(CC)),$(if $(filter -stdlib=%,$(CXXFLAGS)),,yes)))
+CXXFLAGS += -stdlib=libc++
+LDFLAGS  += -stdlib=libc++
 endif
 
-OBJDIR := obj/$(call join-with,-,$(if $(call is-true,$(C_ENABLED)),$(CC)) $(if $(call is-true,$(CXX_ENABLED)),$(CXX)))
+OBJDIR := obj/$(CC)
 OBJFILES := $(strip $(addprefix $(OBJDIR)/,\
     $(patsubst   %.c,%.o,$(filter   %.c,$(SRCFILES)))\
     $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCFILES)))\
@@ -170,7 +166,7 @@ OBJFILES := $(strip $(addprefix $(OBJDIR)/,\
     $(patsubst  %.mm,%.o,$(filter  %.mm,$(SRCFILES)))\
 ))
 
-TARGETDIR := bin/$(call join-with,-,$(if $(call is-true,$(C_ENABLED)),$(CC)) $(if $(call is-true,$(CXX_ENABLED)),$(CXX)))
+TARGETDIR := bin/$(CC)
 TARGET := $(TARGETDIR)/test
 
 .PHONY: test
@@ -179,24 +175,16 @@ test:
 	@echo "On-host test disabled"
 else
 test: $(TARGET)
-	cd $$(dirname $(TARGET)) && ./$$(basename $(TARGET))
+ifeq (yes,$(is-device-test))
+	$(realpath $(TARGET))
+endif
 endif
 
 .PHONY: clean
 clean:
 	@rm -Rf $(TARGETDIR) $(OBJDIR)
-
-ifeq (yes,$(call is-true,$(C_ENABLED)))
-.PHONY: c-enabled
-c-enabled:
-	@true
-endif
-
-ifeq (yes,$(call is-true,$(CXX_ENABLED)))
-.PHONY: c++-enabled
-c++-enabled:
-	@true
-endif
+	@rmdir $$(dirname $(TARGETDIR)) 2>/dev/null || true
+	@rmdir $$(dirname $(OBJDIR)) 2>/dev/null || true
 
 $(TARGETDIR):
 	mkdir -p $@
@@ -205,16 +193,38 @@ $(OBJDIR):
 	mkdir -p $@
 
 $(TARGET): $(OBJFILES) | $(TARGETDIR)
-	$(if $(call is-true,$(CXX_ENABLED)),$(CXX),$(CC)) $(LDFLAGS) -o $@ $^ $(LDLIBS)
+	$(strip \
+		$(CC) \
+		$(if $(has-objective-c-sources),\
+			-f$(objc-runtime)-runtime \
+		)\
+		$(LDFLAGS) \
+		-o $@ $^ \
+		$(LDLIBS) \
+		$(if $(has-c++-sources),\
+			-lstdc++ \
+		)\
+		$(if $(has-objective-c-sources),\
+			$(if $(filter next,$(objc-runtime)),\
+				-framework CoreFoundation \
+			)\
+			-lobjc \
+		)\
+		-lm -ldl \
+	)
+
+ifneq (,$(PRETEST))
+$(OBJFILES): | $(PRETEST)
+endif
 
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) -x c $(CFLAGS) -c -o $@ $^
 
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
-	$(CXX) $(CXXFLAGS) -c -o $@ $^
+	$(CC) -x c++  $(CXXFLAGS) -c -o $@ $^
 
 $(OBJDIR)/%.o: %.m | $(OBJDIR)
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) -x objective-c -f$(objc-runtime)-runtime $(CFLAGS) -c -o $@ $^
 
 $(OBJDIR)/%.o: %.mm | $(OBJDIR)
-	$(CXX) $(CXXFLAGS) -c -o $@ $^
+	$(CC) -x objective-c++ -f$(objc-runtime)-runtime $(CXXFLAGS) -c -o $@ $^

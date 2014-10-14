@@ -31,13 +31,13 @@
 #include "crystax/private.h"
 
 CRYSTAX_GLOBAL
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
+jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
 {
     return crystax_jni_on_load(vm);
 }
 
 CRYSTAX_GLOBAL
-void JNI_OnUnload(JavaVM* vm, void* reserved)
+void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 {
     crystax_jni_on_unload(vm);
 }

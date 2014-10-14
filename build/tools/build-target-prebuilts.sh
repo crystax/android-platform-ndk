@@ -120,7 +120,7 @@ ABIS=$(convert_archs_to_abis $ARCHS)
 UNKNOWN_ABIS=$(convert_archs_to_abis $UNKNOWN_ARCH)
 
 dump "Building $ABIS libcrystax binaries..."
-run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" $FLAGS
+run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
 
 dump "Building $ABIS compiler-rt binaries..."

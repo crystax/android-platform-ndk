@@ -27,45 +27,49 @@
  * or implied, of CrystaX .NET.
  */
 
-/*
- * Copyright (C) 2013 The Android Open Source Project
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- */
+#ifndef __CRYSTAX_INCLUDE_STDINT_H_3A899278F04C4423895BBD7A8E83C321
+#define __CRYSTAX_INCLUDE_STDINT_H_3A899278F04C4423895BBD7A8E83C321
 
-#ifndef __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be
-#define __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be
+#define __LIBCRYSTAX_STDINT_H_INCLUDED 1
 
 #include <crystax/id.h>
+#include <sys/_null.h> /* for NULL */
+#include <sys/limits.h>
+#include <sys/stdint.h>
 
-#include <crystax/google/stdint.h>
+#if !defined(__cplusplus) || defined(__STDC_CONSTANT_MACROS)
 
-#if !defined(__LP64__)
+#define INT_LEAST8_C(c)   INT8_C(c)
+#define INT_FAST8_C(c)    INT8_C(c)
 
-#include <limits.h> // For SIZE_MAX
+#define UINT_LEAST8_C(c)  UINT8_C(c)
+#define UINT_FAST8_C(c)   UINT8_C(c)
 
-#endif /* !__LP64__ */
+#define INT_LEAST16_C(c)  INT16_C(c)
+#define INT_FAST16_C(c)   INT32_C(c)
 
-#endif /* __CRYSTAX_STDINT_H_c34ecfb39e1847a684b6a96b12c0d5be */
+#define UINT_LEAST16_C(c) UINT16_C(c)
+#define UINT_FAST16_C(c)  UINT32_C(c)
+
+#define INT_LEAST32_C(c)  INT32_C(c)
+#define INT_FAST32_C(c)   INT32_C(c)
+
+#define UINT_LEAST32_C(c) UINT32_C(c)
+#define UINT_FAST32_C(c)  UINT32_C(c)
+
+#define INT_LEAST64_C(c)  INT64_C(c)
+#define INT_FAST64_C(c)   INT64_C(c)
+
+#define UINT_LEAST64_C(c) UINT64_C(c)
+#define UINT_FAST64_C(c)  UINT64_C(c)
+
+#define INTPTR_C(c)       INT32_C(c)
+#define UINTPTR_C(c)      UINT32_C(c)
+#define PTRDIFF_C(c)      INT32_C(c)
+
+#define INTMAX_C(c)       INT64_C(c)
+#define UINTMAX_C(c)      UINT64_C(c)
+
+#endif /* !defined(__cplusplus) || defined(__STDC_CONSTANT_MACROS) */
+
+#endif /* __CRYSTAX_INCLUDE_STDINT_H_3A899278F04C4423895BBD7A8E83C321 */

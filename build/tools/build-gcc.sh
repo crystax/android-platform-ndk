@@ -264,28 +264,13 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
-CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-
-dump "Sysroot  : Copying libcrystax headers --> $TOOLCHAIN_BUILD_SYSROOT"
-mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/include" && (cd $CRYSTAX_SRCDIR/include && tar chf - *) | (cd $TOOLCHAIN_BUILD_SYSROOT/usr/include && tar xf -)
-
 dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
 mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
-for lib in libcrystax.a; do
-    cp -f "$CRYSTAX_SRCDIR/empty/$ARCH/$lib" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/"
+for lib in libcrystax.a libstdc++.a libm.a; do
+    test -f "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/$lib" && continue
+    cp "$NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/$lib"
     if [ $? != 0 ] ; then
         echo "Error while copying libcrystax stubs. See $TMPLOG for details."
-        exit 1
-    fi
-done
-
-dump "Sysroot  : Copying empty libm stubs (if needed) --> $TOOLCHAIN_BUILD_SYSROOT"
-mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
-for lib in libm.a; do
-    test -f "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/$lib" && continue
-    cp -f "$CRYSTAX_SRCDIR/empty/$ARCH/$lib" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
-    if [ $? != 0 ] ; then
-        echo "Error while copying libm stubs. See $TMPLOG for details."
         exit 1
     fi
 done

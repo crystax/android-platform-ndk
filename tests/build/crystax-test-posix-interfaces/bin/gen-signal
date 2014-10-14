@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+gen()
+{
+    local name=$1
+    echo "#if !defined(${name})"
+    echo "#error '${name}' not defined"
+    echo "#endif /* !defined(${name}) */"
+}
+
+gen SIG_DFL
+gen SIG_ERR
+gen SIG_IGN
+
+gen SIGEV_NONE
+gen SIGEV_SIGNAL
+gen SIGEV_THREAD
+
+gen SIGABRT
+gen SIGALRM
+gen SIGBUS
+gen SIGCHLD
+gen SIGCONT
+gen SIGFPE
+gen SIGHUP
+gen SIGILL
+gen SIGINT
+gen SIGKILL
+gen SIGPIPE
+gen SIGQUIT
+gen SIGSEGV
+gen SIGSTOP
+gen SIGTERM
+gen SIGTSTP
+gen SIGTTIN
+gen SIGTTOU
+gen SIGUSR1
+gen SIGUSR2
+gen SIGURG
+
+echo "#if __XSI_VISIBLE"
+gen SIGSYS
+gen SIGTRAP
+gen SIGVTALRM
+gen SIGXCPU
+gen SIGXFSZ
+echo "#endif"
+
+gen SIG_BLOCK
+gen SIG_UNBLOCK
+gen SIG_SETMASK
+
+gen SA_NOCLDSTOP
+gen SA_RESETHAND
+gen SA_RESTART
+gen SA_SIGINFO
+gen SA_NOCLDWAIT
+gen SA_NODEFER
+
+echo "#if __XSI_VISIBLE"
+gen SA_ONSTACK
+gen SS_ONSTACK
+gen SS_DISABLE
+gen MINSIGSTKSZ
+gen SIGSTKSZ
+echo "#endif"
+
+gen ILL_ILLOPC
+gen ILL_ILLOPN
+gen ILL_ILLADR
+gen ILL_ILLTRP
+gen ILL_PRVOPC
+gen ILL_PRVREG
+gen ILL_COPROC
+gen ILL_BADSTK
+
+gen FPE_INTDIV
+gen FPE_INTOVF
+gen FPE_FLTDIV
+gen FPE_FLTOVF
+gen FPE_FLTUND
+gen FPE_FLTRES
+gen FPE_FLTINV
+gen FPE_FLTSUB
+
+gen SEGV_MAPERR
+gen SEGV_ACCERR
+
+gen BUS_ADRALN
+gen BUS_ADRERR
+gen BUS_OBJERR
+
+echo "#if __XSI_VISIBLE"
+gen TRAP_BRKPT
+gen TRAP_TRACE
+echo "#endif"
+
+gen CLD_EXITED
+gen CLD_KILLED
+gen CLD_DUMPED
+gen CLD_TRAPPED
+gen CLD_STOPPED
+gen CLD_CONTINUED
+
+gen SI_USER
+gen SI_QUEUE
+gen SI_TIMER
+gen SI_ASYNCIO
+gen SI_MESGQ

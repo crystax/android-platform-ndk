@@ -36,6 +36,8 @@
 #error "This is C++ header file, you shouldn't include it to non-C++ sources"
 #endif
 
+#include <string.h>
+
 #include <crystax/common.hpp>
 #include <crystax/memory.hpp>
 #include <crystax/jutils.hpp>

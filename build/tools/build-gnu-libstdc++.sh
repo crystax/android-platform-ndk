@@ -213,7 +213,7 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    CRYSTAX_LDFLAGS="-lcrystax"
+    CRYSTAX_LDFLAGS="-lcrystax -lstdc++ -lm"
 
     export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
 

@@ -1,6 +1,7 @@
 *~
 *.bak
 *.pyc
+*.swp
 .DS_Store
 Thumbs.db
 local.properties

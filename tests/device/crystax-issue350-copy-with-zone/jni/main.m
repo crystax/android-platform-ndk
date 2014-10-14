@@ -1,6 +1,6 @@
 #define UNUSED(x) (void)x
 
-#if defined(__APPLE__)
+#if defined(__NEXT_RUNTIME__)
 
 #import <Foundation/Foundation.h>
 
@@ -42,7 +42,7 @@ typedef Object BaseObject;
 #endif /* (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) && !__clang__ */
 #endif
 
-#ifdef __APPLE__
+#ifdef __NEXT_RUNTIME__
 typedef NSZone Zone;
 #else
 typedef id Zone;

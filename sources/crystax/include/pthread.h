@@ -34,6 +34,26 @@
 
 #include <crystax/google/pthread.h>
 
+/* In old platform headers, these symbols were defined as enum elements.
+ * We defined them as macro here so they become available to preprocessor.
+ */
+
+#ifndef PTHREAD_MUTEX_DEFAULT
+#define PTHREAD_MUTEX_DEFAULT PTHREAD_MUTEX_DEFAULT
+#endif
+
+#ifndef PTHREAD_MUTEX_ERRORCHECK
+#define PTHREAD_MUTEX_ERRORCHECK PTHREAD_MUTEX_ERRORCHECK
+#endif
+
+#ifndef PTHREAD_MUTEX_NORMAL
+#define PTHREAD_MUTEX_NORMAL PTHREAD_MUTEX_NORMAL
+#endif
+
+#ifndef PTHREAD_MUTEX_RECURSIVE
+#define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

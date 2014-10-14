@@ -535,22 +535,18 @@ ifndef LOCAL_SHORT_COMMANDS
     LOCAL_SHORT_COMMANDS := $(strip $(NDK_APP_SHORT_COMMANDS))
 endif
 
-ifeq ($(strip $(NDK_APP_CRYSTAX)),static)
-TARGET_LIBCRYSTAX := -Wl,-Bstatic,-lcrystax
-else
-TARGET_LIBCRYSTAX := -Wl,-Bdynamic,-lcrystax
-endif
-
-ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
-# Enable muldefs option if we linking statically.
+# Enable muldefs option when linking with libcrystax
 # This way app will use functions from libcrystax and link successfully
 # even if there are symbols with the same name in subsequent libraries (libc etc)
-TARGET_LIBCRYSTAX := -Wl,-z,muldefs $(TARGET_LIBCRYSTAX)
+TARGET_LIBCRYSTAX := -Wl,-z,muldefs
+TARGET_LIBCRYSTAX += -Wl,-B$(if $(filter static,$(NDK_APP_CRYSTAX)),static,dynamic),-lcrystax
+
+ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
 # Link other libraries statically
-TARGET_LIBCRYSTAX := $(TARGET_LIBCRYSTAX) -Wl,-Bstatic
+TARGET_LIBCRYSTAX += -Wl,-Bstatic
 else
 # Link other libraries dynamically
-TARGET_LIBCRYSTAX := $(TARGET_LIBCRYSTAX) -Wl,-Bdynamic
+TARGET_LIBCRYSTAX += -Wl,-Bdynamic
 endif
 
 $(call generate-file-dir,$(LOCAL_BUILT_MODULE))

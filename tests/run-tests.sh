@@ -56,6 +56,7 @@ test-googletest-full test-libc++-shared-full test-libc++-static-full"
 # Parse options
 #
 VERBOSE=no
+FORCE=no
 ABI=default
 PLATFORM=""
 NDK_ROOT=
@@ -88,6 +89,9 @@ while [ -n "$1" ]; do
             else
                 VERBOSE=yes
             fi
+            ;;
+        --force)
+            FORCE=yes
             ;;
         --abi=*)
             ABI="$optarg"
@@ -166,6 +170,7 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo ""
     echo "    --help|-h|-?      Print this help"
     echo "    --verbose         Enable verbose mode (can be used several times)"
+    echo "    --force           Force build/run tests even if they marked as broken"
     echo "    --ndk=<path>      Path to NDK to test [$ROOTDIR]"
     echo "    --package=<path>  Path to NDK package to test"
     echo "    -j<N> --jobs=<N>  Launch parallel builds [$JOBS]"
@@ -365,7 +370,7 @@ run_awk_test ()
     fi
     cmp -s "$OUTPUT" "$EXPECTED"
     if [ $? = 0 ] ; then
-        dump "Awk script: $SCRIPT_NAME: passed $INPUT_NAME"
+        log "Awk script: $SCRIPT_NAME: passed $INPUT_NAME"
         if [ "$VERBOSE2" = "yes" ]; then
             cat "$OUTPUT"
         fi
@@ -509,13 +514,8 @@ compiler_type()
 }
 
 ALL_HOST_GCC="gcc gcc-4.6 gcc-4.7 gcc-4.8 gcc-4.9"
-ALL_HOST_GXX="g++ g++-4.6 g++-4.7 g++-4.8 g++-4.9"
-
-ALL_HOST_CLANG="  clang   clang-3.3   clang-3.4   clang-3.5"
-ALL_HOST_CLANGXX="clang++ clang++-3.3 clang++-3.4 clang++-3.5"
-
-ALL_HOST_CC=" cc  $ALL_HOST_GCC $ALL_HOST_CLANG"
-ALL_HOST_CXX="c++ $ALL_HOST_GXX $ALL_HOST_CLANGXX"
+ALL_HOST_CLANG="clang clang-3.3 clang-3.4 clang-3.5"
+ALL_HOST_CC="cc $ALL_HOST_GCC $ALL_HOST_CLANG"
 
 all_host_compilers()
 {
@@ -540,7 +540,7 @@ all_host_compilers()
     if [ -n "$CCLIST" ]; then
         echo $CCLIST
     else
-        echo "$@"
+        echo "cc"
     fi
 }
 
@@ -548,7 +548,6 @@ run_on_host_test ()
 {
     local GNUMAKE GNUMAKEPARAMS
     local RET
-    local CCS CXXS
     local ENABLED
 
     # If there is 'host/GNUmakefile', that means this test is capable to run on host too.
@@ -561,9 +560,6 @@ run_on_host_test ()
     # - that GNUmakefile should support 'test' target, which build and run test on host
     # - that GNUmakefile should allow redefining of CC and CXX variables and use them for
     #   test build
-    # - if there is need to test with different C/C++ compilers, targets 'c-enabled' and/or
-    #   'c++-enabled' should be defined. If not defined, it's treated as if corresponding target
-    #   exists, but return false result
 
     ENABLED=yes
     # Disable on-host testing if there is no host/GNUmakefile
@@ -594,18 +590,7 @@ run_on_host_test ()
         GNUMAKE=make
     fi
 
-    if $GNUMAKE -C host c-enabled   >/dev/null 2>&1; then
-        CCS=$(all_host_compilers $ALL_HOST_CC)
-    else
-        CCS="none"
-    fi
-    if $GNUMAKE -C host c++-enabled >/dev/null 2>&1; then
-        CXXS=$(all_host_compilers $ALL_HOST_CXX)
-    else
-        CXXS="none"
-    fi
-
-    for cc in $CCS; do
+    for cc in $(all_host_compilers $ALL_HOST_CC); do
         if [ "x$cc" != "xnone" ]; then
             # Skip non-existent CC
             which $cc >/dev/null 2>&1 || continue
@@ -615,34 +600,22 @@ run_on_host_test ()
                 continue
             fi
         fi
-        for cxx in $CXXS; do
-            if [ "x$cxx" != "xnone" ]; then
-                # Skip non-existent CXX
-                which $cxx >/dev/null 2>&1 || continue
-            fi
-            if [ -f host/DISABLED ]; then
-                if grep -iq "\<$(echo $cxx | sed 's,^g++,gcc,' | sed 's,^clang++,clang,')\>" host/DISABLED; then
-                    continue
-                fi
-            fi
 
-            GNUMAKEPARAMS=""
-            test "x$cc"  != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CC=$cc"
-            test "x$cxx" != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CXX=$cxx"
+        GNUMAKEPARAMS=""
+        test "x$cc"  != "xnone" && GNUMAKEPARAMS="$GNUMAKEPARAMS CC=$cc"
 
-            if [ "x$GNUMAKEPARAMS" != "x" ]; then
-                log "== On-host testing with $(echo $GNUMAKEPARAMS)"
-            else
-                log "== On-host testing"
-            fi
+        if [ "x$GNUMAKEPARAMS" != "x" ]; then
+            log "== On-host testing with $(echo $GNUMAKEPARAMS)"
+        else
+            log "== On-host testing"
+        fi
 
-            run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
-            RET=$?
-            if [ $RET -ne 0 ]; then
-                return 1
-            fi
-            run $GNUMAKE -C host clean
-        done
+        run $GNUMAKE -C host -B -j$JOBS test $GNUMAKEPARAMS
+        RET=$?
+        if [ $RET -ne 0 ]; then
+            return 1
+        fi
+        run $GNUMAKE -C host clean
     done
 
     log "== OK: all on-host tests PASSED"
@@ -687,7 +660,7 @@ is_broken_build ()
     local PROJECT="$1"
     local ERRMSG="$2"
 
-    if [ -z "$RUN_TESTS" ] ; then
+    if [ "$FORCE" != "yes" ] ; then
         if [ -f "$PROJECT/BROKEN_BUILD" ] ; then
             if [ ! -s "$PROJECT/BROKEN_BUILD" ] ; then
                 # skip all
@@ -872,7 +845,7 @@ if is_testable samples; then
         for DIR in `ls -d $DEVNDK_DIR/platforms/android-*/samples`; do
             SAMPLES_DIRS="$SAMPLES_DIRS $DIR"
         done
-        dump "Using development NDK samples from $DEVNDK_DIR"
+        log "Using development NDK samples from $DEVNDK_DIR"
         if [ "$VERBOSE" = "yes" ] ; then
             echo "$SAMPLES_DIRS" | tr ' ' '\n'
         fi
@@ -975,7 +948,7 @@ if is_testable device; then
         local DSTFILE
         local PROGRAM
         # Do not run the test if BROKEN_RUN is defined
-        if [ -z "$RUN_TESTS" ]; then
+        if [ "$FORCE" != "yes" ]; then
             if is_broken_build $TEST "NDK device test not built"; then
                 return 0
             fi
@@ -1193,7 +1166,7 @@ if is_testable device; then
     fi
 fi
 
-dump "Cleaning up..."
+log "Cleaning up..."
 if [ "$ABI" = "$(find_ndk_unknown_archs)" ]; then
   # Cleanup some intermediate files for testing
   run rm -rf $NDK/$GNUSTL_SUBDIR/$GCC_TOOLCHAIN_VERSION/libs/$ABI
@@ -1205,8 +1178,8 @@ if [ $NUM_FAILS -eq 0 ]; then
     rm -rf $BUILD_DIR
 fi
 
-dump "Number of failed builds:       $NUM_FAILED_BUILDS"
-dump "Number of failed device tests: $NUM_FAILED_DEVICE_TESTS"
+#dump "Number of failed builds:       $NUM_FAILED_BUILDS"
+#dump "Number of failed device tests: $NUM_FAILED_DEVICE_TESTS"
 dump "Done."
 
 exit $NUM_FAILS

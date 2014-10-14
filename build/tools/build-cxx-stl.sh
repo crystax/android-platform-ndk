@@ -178,6 +178,7 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 rm -f $BUILD_DIR/ndk
 ln -sf $ANDROID_NDK_ROOT $BUILD_DIR/ndk
 
+CRYSTAX_SRCDIR=$BUILD_DIR/ndk/$CRYSTAX_SUBDIR
 GABIXX_SRCDIR=$BUILD_DIR/ndk/$GABIXX_SUBDIR
 STLPORT_SRCDIR=$BUILD_DIR/ndk/$STLPORT_SUBDIR
 LIBCXX_SRCDIR=$BUILD_DIR/ndk/$LIBCXX_SUBDIR
@@ -190,6 +191,7 @@ elif [ "$CXX_SUPPORT_LIB" = "libc++abi" ]; then
 else
     panic "Unknown CXX_SUPPORT_LIB: $CXX_SUPPORT_LIB"
 fi
+LIBCXX_INCLUDES="-I$CRYSTAX_SRCDIR/include $LIBCXX_INCLUDES"
 
 COMMON_C_CXX_FLAGS="-fPIC -O2 -ffunction-sections -fdata-sections"
 COMMON_CXXFLAGS="-fexceptions -frtti -fuse-cxa-atexit"
@@ -261,6 +263,9 @@ src/cxa.c"
 LIBCXX_LINKER_SCRIPT=export_symbols.txt
 LIBCXX_CFLAGS="$COMMON_C_CXX_FLAGS $LIBCXX_INCLUDES -Drestrict=__restrict__"
 LIBCXX_CXXFLAGS="$LIBCXX_CFLAGS -DLIBCXXABI=1 -std=c++11"
+LIBCXX_CXXFLAGS="$LIBCXX_CXXFLAGS -Wall -Wextra"
+LIBCXX_CXXFLAGS="$LIBCXX_CXXFLAGS -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function"
+LIBCXX_CXXFLAGS="$LIBCXX_CXXFLAGS -Werror"
 if [ -f "$_BUILD_SRCDIR/$LIBCXX_LINKER_SCRIPT" ]; then
     LIBCXX_LDFLAGS="-Wl,--version-script,\$_BUILD_SRCDIR/$LIBCXX_LINKER_SCRIPT"
 fi
@@ -291,7 +296,6 @@ libcxx/src/thread.cpp \
 libcxx/src/typeinfo.cpp \
 libcxx/src/utility.cpp \
 libcxx/src/valarray.cpp \
-libcxx/src/support/android/locale_android.cpp \
 "
 
 LIBCXXABI_SOURCES=\

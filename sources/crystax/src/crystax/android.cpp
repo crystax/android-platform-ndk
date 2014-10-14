@@ -36,6 +36,8 @@
 
 #include "crystax/private.h"
 
+#include <stdlib.h>
+
 namespace crystax
 {
 
@@ -51,10 +53,10 @@ JavaVM *jvm()
     return s_jvm;
 }
 
-static void jnienv_detach_thread(void *arg)
+static void jnienv_detach_thread(void * /*arg*/)
 {
-    JNIEnv *env = reinterpret_cast<JNIEnv *>(arg);
-    DBG("env=%p, jvm=%p", env, jvm());
+    //JNIEnv *env = reinterpret_cast<JNIEnv *>(arg);
+    //DBG("env=%p, jvm=%p", env, jvm());
     if (jvm())
         jvm()->DetachCurrentThread();
 }
@@ -121,10 +123,7 @@ void __crystax_on_load()
     ::pthread_once(&::crystax::s_jnienv_key_once, &::crystax::jni::jnienv_key_create);
 
     if (!__crystax_init())
-    {
         PANIC("libcrystax initialization failed");
-        ::abort();
-    }
 
     TRACE;
 }

@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+downcase()
+{
+    echo "$@" | tr '[A-Z]' '[a-z]'
+}
+
+gen()
+{
+    local typ=$1
+    local siz=$2
+    if [ -z "$typ" -o -z "$siz" ]; then
+        echo "ERROR: empty type or size passed to 'gen' function" 1>&2
+        exit 1
+    fi
+
+    echo "${typ} stdint_check_type_${typ}_var;"
+    if [ "${typ%%fast*}" != "$typ" ]; then
+        op=">="
+    elif [ "${typ%%least*}" != "$typ" ]; then
+        op=">="
+    else
+        op="=="
+    fi
+    echo "typedef int stdint_assert_sizeof_type_${typ}[(sizeof(${typ}) ${op} ${siz}/8) ? 1 : -1];"
+}
+
+for signed in '' 'u'; do
+    for f in '' LEAST FAST; do
+        for s in 8 16 32 64; do
+            gen ${signed}int$(test -z "$f" && echo '' || echo "_$(downcase $f)")${s}_t $s
+        done
+    done
+
+    gen ${signed}intmax_t 64
+
+    echo "#if __LP64__"
+    gen ${signed}intptr_t 64
+    echo "#else"
+    gen ${signed}intptr_t 32
+    echo "#endif"
+done
+
+gen()
+{
+    local siz=$1
+    if [ -z "$siz" ]; then
+        echo "ERROR: empty size passed to 'gen' function" 1>&2
+        exit 1
+    fi
+
+    for c in '' _LEAST _FAST; do
+        echo "#ifndef INT${c}${siz}_MIN"
+        echo "#error 'INT${c}${siz}_MIN' not defined"
+        echo "#endif"
+
+        echo "#ifndef INT${c}${siz}_MAX"
+        echo "#error 'INT${c}${siz}_MAX' not defined"
+        echo "#endif"
+
+        echo "#ifndef UINT${c}${siz}_MAX"
+        echo "#error 'UINT${c}${siz}_MAX' not defined"
+        echo "#endif"
+    done
+}
+
+for s in 8 16 32 64; do
+    gen $s
+done
+
+for c in MAX PTR; do
+    echo "#ifndef INT${c}_MIN"
+    echo "#error 'INT${c}_MIN' not defined"
+    echo "#endif"
+
+    echo "#ifndef INT${c}_MAX"
+    echo "#error 'INT${c}_MAX' not defined"
+    echo "#endif"
+
+    echo "#ifndef UINT${c}_MAX"
+    echo "#error 'UINT${c}_MAX' not defined"
+    echo "#endif"
+done
+
+gen()
+{
+    local name=$1
+    local min=$2
+    local max=$3
+    if [ -z "$name" -o -z "$min" -o -z "$max" ]; then
+        echo "ERROR: empty name or min or max passed to 'gen' function" 1>&2
+        exit 1
+    fi
+
+    echo "#ifndef ${name}_MIN"
+    echo "#error '${name}_MIN' not defined"
+    echo "#endif"
+
+    echo "#if ${name}_MIN > ${min}"
+    echo "#error '${name}_MIN' greater than ${min}"
+    echo "#endif"
+
+    echo "#ifndef ${name}_MAX"
+    echo "#error '${name}_MAX' not defined"
+    echo "#endif"
+
+    echo "#if ${name}_MAX < ${max}"
+    echo "#error '${name}_MAX' less than ${max}"
+    echo "#endif"
+}
+
+gen PTRDIFF -65535 65535
+gen SIG_ATOMIC -127 127
+gen WCHAR 0 255
+echo "#if __gnu_linux__"
+gen WINT 0 65535
+echo "#else"
+gen WINT -32767 32767
+echo "#endif"
+
+echo "#ifndef SIZE_MAX"
+echo "#error 'SIZE_MAX' not defined"
+echo "#endif"
+echo "#if SIZE_MAX < 65535"
+echo "#error 'SIZE_MAX' less than 65535"
+echo "#endif"
+
+gen()
+{
+    local siz=$1
+    if [ -z "$siz" ]; then
+        echo "ERROR: empty size passed to 'gen' function" 1>&2
+        exit 1
+    fi
+
+    echo "#ifndef INT${siz}_C"
+    echo "#error 'INT${siz}_C' not defined"
+    echo "#endif"
+
+    echo "#ifndef UINT${siz}_C"
+    echo "#error 'UINT${siz}_C' not defined"
+    echo "#endif"
+}
+
+for s in 8 16 32 64; do
+    gen $s
+done
+
+echo "#ifndef INTMAX_C"
+echo "#error 'INTMAX_C' not defined"
+echo "#endif"
+
+echo "#ifndef UINTMAX_C"
+echo "#error 'UINTMAX_C' not defined"
+echo "#endif"

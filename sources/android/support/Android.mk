@@ -141,7 +141,7 @@ endif  # 64-/32-bit ABIs
 
 # This is only available as a static library for now.
 include $(CLEAR_VARS)
-LOCAL_MODULE := android_support
+LOCAL_MODULE := android_support_disabled
 LOCAL_SRC_FILES := $(android_support_sources)
 #LOCAL_C_INCLUDES := $(android_support_c_includes)
 LOCAL_CFLAGS += -Drestrict=__restrict__ -ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden

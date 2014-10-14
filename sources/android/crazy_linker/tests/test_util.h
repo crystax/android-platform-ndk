@@ -137,14 +137,14 @@ class TempDirectory {
     if (!mktemp(path_))
       Panic("Could not create temporary directory name: %s\n", strerror(errno));
     if (mkdir(path_, 0700) < 0)
-      Panic("Could not create temporary directory %s: %s\n", strerror(errno));
+      Panic("Could not create temporary directory %s: %s\n", path_, strerror(errno));
   }
 
   ~TempDirectory() {
     // Remove any file in this directory.
     DIR* d = opendir(path_);
     if (!d)
-      Panic("Could not open directory %s: %s\n", strerror(errno));
+      Panic("Could not open directory %s: %s\n", path_, strerror(errno));
 
     struct dirent* entry;
     while ((entry = readdir(d)) != NULL) {

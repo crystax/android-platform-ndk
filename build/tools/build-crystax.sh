@@ -29,7 +29,6 @@
 
 # include common function and variable definitions
 . `dirname $0`/prebuilt-common.sh
-. `dirname $0`/builder-funcs.sh
 
 PROGRAM_PARAMETERS=""
 
@@ -48,157 +47,61 @@ option.
 "
 
 PACKAGE_DIR=
-register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
+register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>"
 
-NDK_DIR=
-register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
+NDK_DIR=$ANDROID_NDK_ROOT
+register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build"
 
 BUILD_DIR=
 OPTION_BUILD_DIR=
-register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
-
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
+register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir"
 
 ABIS="$PREBUILT_ABIS"
-register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
+register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
-NO_MAKEFILE=
-register_var_option "--no-makefile" NO_MAKEFILE "Do not use makefile to speed-up build"
+TOOLCHAIN_VERSION=gcc4.9
+register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
-GCC_VERSION=
-register_var_option "--gcc-version=<ver>" GCC_VERSION "Specify GCC version"
-
-LLVM_VERSION=
-register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
+PATCH_SYSROOT=
+register_var_option "--patch-sysroot" PATCH_SYSROOT "Patch sysroot with CrystaX libraries after build"
 
 register_jobs_option
-
-register_try64_option
 
 extract_parameters "$@"
 
 ABIS=$(commas_to_spaces $ABIS)
 
-# Handle NDK_DIR
-if [ -z "$NDK_DIR" ] ; then
-    NDK_DIR=$ANDROID_NDK_ROOT
-    log "Auto-config: --ndk-dir=$NDK_DIR"
-else
-    if [ ! -d "$NDK_DIR" ] ; then
-        echo "ERROR: NDK directory does not exists: $NDK_DIR"
-        exit 1
-    fi
-fi
-
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-crystax
 else
-    BUILD_DIR=$OPTION_BUILD_DIR
+    eval BUILD_DIR=$OPTION_BUILD_DIR
 fi
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
-# Location of the crystax source tree
-STDCXX_SRCDIR=$NDK_DIR/sources/cxx-stl/system
-CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-
-# Compiler flags we want to use
-#CRYSTAX_CFLAGS="-fPIC -g -O2 -DANDROID -D__ANDROID__ -DNDEBUG"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -fno-strict-aliasing -finline-limit=64 -Wa,--noexecstack"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__ -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$STDCXX_SRCDIR/include"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/include"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/locale"
-#CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/../android/support/src/musl-locale"
-CRYSTAX_CFLAGS=$($CRYSTAX_SRCDIR/bin/config --cflags)
-for p in $(ls -1d $CRYSTAX_SRCDIR/src/*) ; do
-    CRYSTAX_CFLAGS=$CRYSTAX_CFLAGS" -I$p"
-done
-CRYSTAX_ARM_CFLAGS="-marm -mno-unaligned-access"
-CRYSTAX_CXXFLAGS="-std=gnu++11 -fuse-cxa-atexit -fno-exceptions -fno-rtti"
-CRYSTAX_LDFLAGS="-Wl,--no-undefined -Wl,-z,noexecstack"
-CRYSTAX_LDFLAGS=$CRYSTAX_LDFLAGS" -lstdc++ -ldl"
-
-# If the --no-makefile flag is not used, we're going to put all build
-# commands in a temporary Makefile that we will be able to invoke with
-# -j$NUM_JOBS to build stuff in parallel.
-#
-if [ -z "$NO_MAKEFILE" ]; then
-    MAKEFILE=$BUILD_DIR/Makefile
-else
-    MAKEFILE=
-fi
-
 # $1: ABI
 # $2: build directory
 # $3: build type: "static" or "shared"
-# $4: (optional) installation directory
 build_crystax_libs_for_abi ()
 {
-    local ARCH BINPREFIX
     local ABI=$1
-    local BUILDDIR="$2"
+    local OBJDIR="$2"
     local TYPE="$3"
-    local DSTDIR="$4"
-    local GCCVER
 
-    mkdir -p "$BUILDDIR"
-
-    # If the output directory is not specified, use default location
-    if [ -z "$DSTDIR" ]; then
-        DSTDIR=$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI
+    local V
+    if [ "$VERBOSE2" = "yes" ]; then
+        V=1
     fi
 
-    mkdir -p "$DSTDIR"
+    dump "Building $TYPE $ABI libcrystax"
 
-    ARCH=$(convert_abi_to_arch $ABI)
+    rm -Rf $OBJDIR
+    mkdir -p $OBJDIR
+    fail_panic "Couldn't create temporary build directory $OBJDIR"
 
-    CFLAGS=$CRYSTAX_CFLAGS" -I$CRYSTAX_SRCDIR/src/include/$ARCH"
-    CXXFLAGS=$CRYSTAX_CXXFLAGS" "$CFLAGS
-    LDFLAGS=$CRYSTAX_LDFLAGS
-
-    if [ -n "$GCC_VERSION" ]; then
-        GCCVER=$GCC_VERSION
-    else
-        GCCVER=$(get_default_gcc_version_for_arch $ARCH)
-    fi
-
-    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE"
-    builder_set_srcdir "$CRYSTAX_SRCDIR"
-    builder_set_dstdir "$DSTDIR"
-
-    builder_cflags "$CFLAGS"
-    if [ $ABI == "armeabi" -o $ABI == "armeabi-v7a" -o $ABI == "armeabi-v7a-hard" ]; then
-        builder_cflags "-D__ARM_EABI__"
-        if [ $ABI == "armeabi-v7a-hard" ]; then
-            builder_cflags "-mhard-float -D_NDK_MATH_NO_SOFTFP=1"
-        fi
-    fi
-
-    builder_cxxflags "$CXXFLAGS"
-
-    builder_ldflags "$LDFLAGS"
-    if [ $ABI == "armeabi-v7a-hard" ]; then
-        builder_cflags "-Wl,--no-warn-mismatch -lm_hard"
-    fi
-
-    builder_sources $($CRYSTAX_SRCDIR/bin/config --sources --target=$ABI)
-
-    if [ "$TYPE" = "static" ]; then
-        log "Building $DSTDIR/libcrystax.a"
-        builder_static_library libcrystax
-    else
-        log "Building $DSTDIR/libcrystax.so"
-        builder_sources src/crystax/android_jni.cpp
-        builder_ldflags "-lc"
-        if [ $ABI != "armeabi-v7a-hard" ]; then
-            builder_ldflags "-lm"
-        fi
-        builder_shared_library libcrystax
-    fi
-    builder_end
+    run make -C $NDK_DIR/$CRYSTAX_SUBDIR -j$NUM_JOBS $TYPE V=$V NDK=$NDK_DIR ABI=$ABI OBJDIR=$OBJDIR TVS=$TOOLCHAIN_VERSION
+    fail_panic "Couldn't build $TYPE libcrystax"
 }
 
 BUILT_ABIS=""
@@ -215,10 +118,15 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_crystax_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared" "$OUT_DIR"
-        build_crystax_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static" "$OUT_DIR"
+        build_crystax_libs_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared"
+        build_crystax_libs_for_abi $ABI "$BUILD_DIR/$ABI/static" "static"
     fi
 done
+
+if [ "$PATCH_SYSROOT" = "yes" ]; then
+    $NDK_DIR/$CRYSTAX_SUBDIR/bin/patch-sysroot --libraries --fast-copy
+    fail_panic "Couldn't patch sysroot with CrystaX libraries"
+fi
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then

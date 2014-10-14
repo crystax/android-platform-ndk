@@ -1,0 +1,274 @@
+#!/bin/bash
+
+VERBOSE=no
+APILEVEL=
+ARCH=
+FAST_COPY=
+PATCH_HEADERS=
+PATCH_LIBRARIES=
+
+while [ "x$1" != "x" ]; do
+    arg=$1
+    shift
+    case $arg in
+        -v|--verbose)
+            VERBOSE=yes
+            ;;
+        --apilevel=*)
+            APILEVEL=$(expr "x$arg" : "x--apilevel=\(.*\)$")
+            ;;
+        --arch=*)
+            ARCH=$(expr "x$arg" : "x--arch=\(.*\)$")
+            ;;
+        --fast-copy)
+            FAST_COPY=yes
+            ;;
+        --headers)
+            PATCH_HEADERS=yes
+            ;;
+        --libraries)
+            PATCH_LIBRARIES=yes
+            ;;
+        *)
+            echo "Usage: $0 [options]" 1>&2;
+            exit 1
+            ;;
+    esac
+done
+
+cd $(dirname $0)/.. || exit 1
+
+log()
+{
+    if [ "x$VERBOSE" = "xyes" ]; then
+        echo "$@"
+    fi
+    if [ -n "$TMPLOG" ]; then
+        echo "$@" >> $TMPLOG
+    fi
+}
+
+dump()
+{
+    echo "$@"
+    if [ -n "$TMPLOG" ]; then
+        echo "$@" >> $TMPLOG
+    fi
+}
+
+error()
+{
+    dump "ERROR: $@" 1>&2
+}
+
+panic()
+{
+    dump "*** FATAL: $@" 1>&2
+    exit 1
+}
+
+fail_panic()
+{
+    if [ $? -ne 0 ]; then
+        panic "$@"
+    fi
+}
+
+run()
+{
+    log "$@"
+    "$@"
+}
+
+# $1: ARCH
+# $2: API Level
+is_valid_arch()
+{
+    local arch=$1
+    local apilevel=$2
+    if [ "x$arch" = "x" -o "x$apilevel" = "x" ]; then
+        error "Usage: $0 arch apilevel"
+        exit 1
+    fi
+
+    if [ "x$apilevel" = "xL" ]; then
+        return 0
+    fi
+
+    if [ $apilevel -le 20 -a "x${arch%%64}" != "x$arch" ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# $1: ARCH
+# $2: ABI
+is_valid_abi()
+{
+    local arch=$1
+    local abi=$2
+    if [ "x$arch" = "x" -o "x$abi" = "x" ]; then
+        error "Usage: $0 arch abi"
+        exit 1
+    fi
+
+    case $abi in
+        armeabi*)
+            test "$arch" = "arm"
+            ;;
+        arm64*)
+            test "$arch" = "arm64"
+            ;;
+        *)
+            test "$arch" = "$abi"
+    esac
+}
+
+if [ "$PATCH_HEADERS" != "yes" -a "$PATCH_LIBRARIES" != "yes" ]; then
+    panic "Neither one of --headers or --libraries were specified"
+fi
+
+if [ "$FAST_COPY" != "yes" ]; then
+    realpath --version 2>/dev/null | grep -iq gnu
+    if [ $? -ne 0 ]; then
+        echo "GNU realpath not available (coreutils not installed?); force --fast-copy mode"
+        FAST_COPY=yes
+    fi
+fi
+
+CRYSTAX_DIR=$(pwd)
+NDK_DIR=$(cd $CRYSTAX_DIR/../.. && pwd)
+if [ "$FAST_COPY" != "yes" ]; then
+    NDK_DIR=$(realpath $NDK_DIR)
+fi
+
+dump "Generating CrystaX headers   in \$DST/sources/crystax"
+$CRYSTAX_DIR/bin/gen-sources -q
+fail_panic "Couldn't generate CrystaX headers"
+
+if [ "x$APILEVEL" = "x" ]; then
+    APILEVELS=$({ for p in $(ls -d $NDK_DIR/platforms/android-* 2>/dev/null); do expr "$(basename $p)" : "^android-\(.*\)$"; done; } | sed 's,L,,' | sort -n)
+    test -d $NDK_DIR/platforms/android-L && APILEVELS="$APILEVELS L"
+else
+    APILEVELS="$APILEVEL"
+fi
+
+for apilevel in $APILEVELS; do
+    if [ "x$ARCH" = "x" ]; then
+        ARCHS=$({ for a in $(ls -d $NDK_DIR/platforms/android-${apilevel}/arch-* 2>/dev/null); do expr "$(basename $a)" : "^arch-\(.*\)$"; done; } | sort)
+    else
+        ARCHS=$ARCH
+    fi
+    for arch in $ARCHS; do
+        # Skip invalid for this API level CPU architectures
+        is_valid_arch $arch $apilevel || continue
+
+        sysroot=platforms/android-$apilevel/arch-$arch
+
+        if [ "$PATCH_HEADERS" = "yes" ]; then
+            dump "Generating CrystaX headers   in \$DST/$sysroot/usr/include"
+
+            adir=$NDK_DIR/$sysroot/usr/include
+            for cf in $(find $CRYSTAX_DIR/include -type f -print | sort); do
+                # Skip hidden files
+                expr "x$(basename $cf)" : "^x\." >/dev/null 2>&1 && continue
+
+                f=${cf#$CRYSTAX_DIR/include/}
+                log "Processing $f [android-${apilevel}]"
+
+                first=$(echo "$f" | awk -F/ '{print $1}')
+
+                srcf=$adir/$f
+                srcd=$(dirname $srcf)
+                dstf=$adir/crystax/google/$f
+                if [ "x$first" != "xcrystax" -a -e $srcf -a ! -e $dstf ]; then
+                    dstd=$(dirname $dstf)
+                    mkdir -p $dstd
+                    fail_panic "Couldn't create Google's headers backup directory"
+                    if [ -L $srcf -a "$FAST_COPY" != "yes" ]; then
+                        (
+                        cd $srcd || exit 1
+                        sl=$(readlink $srcf)
+                        fail_panic "Couldn't read symlink path of Google's header $f"
+                        rp=$(realpath -s $sl)
+                        fail_panic "Couldn't detect symlink path of Google's header $f"
+                        rpd=${rp%%/$f}
+                        rpds=${rpd##$NDK_DIR/platforms/android-*/arch-*/usr/include}
+                        test "$rpds" = "$rpd" && exit 0
+                        relp=$(realpath -s --relative-to=$dstd $rpd/crystax/google/$f)
+                        fail_panic "Couldn't detect relative path for Google's header $f"
+                        ln -s $relp $dstf
+                        fail_panic "Couldn't symlink Google's header $f to backup directory"
+                        ) || exit 1
+                    elif [ -f $srcf ]; then
+                        grep -q __CRYSTAX $srcf
+                        if [ $? -ne 0 ]; then
+                            mv $srcf $dstd/
+                            fail_panic "Couldn't move Google's header $f into backup directory"
+                        fi
+                    else
+                        panic "Don't know how to deal with Google's header $f: it's not regular file and not symlink"
+                    fi
+                fi
+
+                mkdir -p $srcd
+                fail_panic "Couldn't create target directory for CrystaX header"
+
+                if [ "$FAST_COPY" = "yes" ]; then
+                    run cp -f $cf $srcd/
+                    fail_panic "Couldn't copy CrystaX header $f to $sysroot"
+                else
+                    rm -f $srcf
+                    crelpath=$(realpath --relative-to=$srcd $cf)
+                    fail_panic "Couldn't get relative path of $cf"
+                    run ln -s $crelpath $srcd/
+                    fail_panic "Couldn't symlink CrystaX header $f to $sysroot"
+                fi
+            done
+        fi
+
+        if [ "$PATCH_LIBRARIES" = "yes" ]; then
+            dump "Generating CrystaX libraries in \$DST/$sysroot"
+
+            for lib in libcrystax.a libcrystax.so; do
+                run find $NDK_DIR/$sysroot -name $lib -delete
+                fail_panic "Couldn't cleanup sysroot"
+            done
+
+            cconf="$CRYSTAX_DIR/bin/config --ndk=$NDK_DIR"
+            abis=$($cconf --abis)
+            fail_panic "Couldn't get list of ABIs"
+
+            for abi in $abis; do
+                is_valid_abi $arch $abi || continue
+
+                multilibs=$($cconf --multilibs --abi=$abi)
+                fail_panic "Couldn't get list of multilibs for $abi"
+
+                for multilib in $multilibs; do
+                    srclibpath=$CRYSTAX_DIR/$($cconf --libpath --abi=$abi --multilib=$multilib)
+                    fail_panic "Couldn't get source libpath for $abi/$multilib"
+
+                    dstlibpath=$NDK_DIR/$sysroot/usr/$($cconf --sysroot-libpath --abi=$abi --multilib=$multilib)
+                    fail_panic "Couldn't get destination libpath for $abi/$multilib"
+
+                    for lib in libcrystax.a libcrystax.so; do
+                        if [ -e $dstlibpath/$lib ]; then
+                            continue
+                        fi
+                        if [ "$FAST_COPY" = "yes" ]; then
+                            run cp -f $srclibpath/$lib $dstlibpath/
+                            fail_panic "Couldn't copy $lib to $sysroot"
+                        else
+                            crelpath=$(realpath --relative-to=$dstlibpath $srclibpath/$lib)
+                            fail_panic "Couldn't get relative path of $srclibpath/$lib"
+                            run ln -s $crelpath $dstlibpath/
+                            fail_panic "Couldn't symlink $lib to $sysroot"
+                        fi
+                    done
+                done
+            done
+        fi
+    done
+done

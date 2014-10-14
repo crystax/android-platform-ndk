@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+revlist()
+{
+    echo "$@" | awk '
+        {
+            n = split($0, words);
+            for (i=n; i>0; i--) {
+                printf "%s ", words[i]
+            }
+        }
+        END {
+            printf("\n")
+        }'
+}
+
+gen()
+{
+    local name=$1
+    shift
+    local conditions="$@"
+    if [ -z "$name" ]; then
+        echo "ERROR: empty name passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    for cond in $conditions; do
+        echo "#if ${cond}"
+    done
+    echo "#if !defined(${name})"
+    echo "#error ${name} not defined"
+    echo "#endif /* !defined(${name}) */"
+    for cond in $(revlist $conditions); do
+        echo "#endif /* ${cond} */"
+    done
+}
+
+#gen FLT_EVAL_METHOD
+gen FLT_RADIX
+
+gen FLT_MANT_DIG
+gen DBL_MANT_DIG
+gen LDBL_MANT_DIG
+
+#gen DECIMAL_DIG
+
+gen FLT_DIG
+gen DBL_DIG
+gen LDBL_DIG
+
+gen FLT_MIN_EXP
+gen DBL_MIN_EXP
+gen LDBL_MIN_EXP
+
+gen FLT_MIN_10_EXP
+gen DBL_MIN_10_EXP
+gen LDBL_MIN_10_EXP
+
+gen FLT_MAX_EXP
+gen DBL_MAX_EXP
+gen LDBL_MAX_EXP
+
+gen FLT_MAX_10_EXP
+gen DBL_MAX_10_EXP
+gen LDBL_MAX_10_EXP
+
+gen FLT_MAX
+gen DBL_MAX
+gen LDBL_MAX
+
+gen FLT_EPSILON
+gen DBL_EPSILON
+gen LDBL_EPSILON
+
+gen FLT_MIN
+gen DBL_MIN
+gen LDBL_MIN

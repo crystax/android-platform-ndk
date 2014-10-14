@@ -1,0 +1,159 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+gen()
+{
+    local name=$1
+    local val=$2
+
+    echo "#if !defined(${name})"
+    echo "#error '${name}' not defined"
+    echo "#endif /* !defined(${name}) */"
+
+    if [ -n "$val" ]; then
+        echo "#if ${name} != ${val}"
+        echo "#error '${name}' not equal to ${val}"
+        echo "#endif"
+    fi
+}
+
+gen NCCS
+
+gen VEOF
+gen VEOL
+gen VERASE
+gen VINTR
+gen VKILL
+gen VQUIT
+gen VSTART
+gen VSTOP
+gen VSUSP
+gen VTIME
+
+gen BRKINT
+gen ICRNL
+gen IGNBRK
+gen IGNCR
+gen IGNPAR
+gen INLCR
+gen INPCK
+gen ISTRIP
+gen IXANY
+gen IXOFF
+gen IXON
+gen PARMRK
+
+gen OPOST
+gen ONLCR
+gen OCRNL
+gen ONOCR
+gen ONLRET
+gen OFDEL
+gen OFILL
+
+gen NLDLY
+gen NL0
+gen NL1
+
+gen CRDLY
+gen CR0
+gen CR1
+gen CR2
+gen CR3
+
+gen TABDLY
+gen TAB0
+gen TAB1
+gen TAB2
+gen TAB3
+
+gen BSDLY
+gen BS0
+gen BS1
+
+gen VTDLY
+gen VT0
+gen VT1
+
+gen FFDLY
+gen FF0
+gen FF1
+
+gen B0
+gen B50
+gen B75
+gen B110
+gen B134
+gen B150
+gen B200
+gen B300
+gen B600
+gen B1200
+gen B1800
+gen B2400
+gen B4800
+gen B9600
+gen B19200
+gen B38400
+
+gen CSIZE
+gen CS5
+gen CS6
+gen CS7
+gen CS8
+
+gen CSTOPB
+gen CREAD
+gen PARENB
+gen PARODD
+gen HUPCL
+gen CLOCAL
+
+gen ECHO
+gen ECHOE
+gen ECHOK
+gen ECHONL
+gen ICANON
+gen IEXTEN
+gen ISIG
+gen NOFLSH
+gen TOSTOP
+
+gen TCSANOW
+gen TCSADRAIN
+gen TCSAFLUSH
+
+gen TCIFLUSH
+gen TCIOFLUSH
+gen TCOFLUSH
+
+gen TCIOFF
+gen TCION
+gen TCOOFF
+gen TCOON

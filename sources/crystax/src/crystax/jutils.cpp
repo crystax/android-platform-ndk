@@ -28,8 +28,9 @@
  */
 
 #include <crystax.h>
-
-#include "crystax/private.h"
+#include <crystax/jutils.hpp>
+#include <crystax/memory.hpp>
+#include <crystax/private.h>
 
 namespace crystax
 {
@@ -117,7 +118,7 @@ void call_void_method(JNIEnv *env, jclass cls, jmethodID mid, ...)
 template <typename T>
 struct result_helper
 {
-    static T make_result(JNIEnv *env, T obj) {return obj;}
+    static T make_result(JNIEnv * /*env*/, T obj) {return obj;}
 };
 
 template <typename T>

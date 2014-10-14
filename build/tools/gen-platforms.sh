@@ -258,6 +258,14 @@ if [ "$OPTION_MINIMAL" ]; then
     OPTION_FAST_COPY=yes
 fi
 
+if [ -z "$OPTION_FAST_COPY" ]; then
+    realpath --version 2>/dev/null | grep -iq gnu
+    if [ $? -ne 0 ]; then
+        log "GNU realpath not available (coreutils not installed?); force --fast-copy mode"
+        OPTION_FAST_COPY=yes
+    fi
+fi
+
 BAD_ARCHS=
 for ARCH in $ARCHS; do
     CHECK=`var_value CHECK_$ARCH`
@@ -473,10 +481,6 @@ gen_shared_libraries ()
     local FLAGS="$4"
     local CC funcs vars numfuncs numvars
 
-    if [ ! -d "$SYMDIR" -a -d "$2" ]; then
-        SYMDIR="$2"
-    fi
-
     # Let's locate the toolchain we're going to use
     CC=$(get_default_compiler_for_arch $ARCH)" $FLAGS"
     if [ $? != 0 ]; then
@@ -639,8 +643,6 @@ generate_api_level ()
 EOF
 }
 
-CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-
 # Copy platform sysroot and samples into your destination
 #
 
@@ -733,9 +735,6 @@ for ARCH in $ARCHS; do
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "x86 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64 $SYSROOT_DST/lib64 "x86_64 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libx32 $SYSROOT_DST/libx32 "x32 sysroot libs"
-                    for l in lib lib64 libx32; do
-                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
-                    done
                     ;;
                 mips64)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "mips -mabi=32 -mips32 sysroot libs"
@@ -743,23 +742,14 @@ for ARCH in $ARCHS; do
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr6 $SYSROOT_DST/libr6 "mips -mabi=32 -mips32r6 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64r2 $SYSROOT_DST/lib64r2 "mips -mabi=64 -mips64r2 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib64 $SYSROOT_DST/lib64 "mips -mabi=64 -mips64r6 sysroot libs"
-                    for l in lib libr2 libr6 lib64 lib64r2; do
-                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
-                    done
                     ;;
                 mips)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/lib $SYSROOT_DST/lib "mips -mabi=32 -mips32 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr2 $SYSROOT_DST/libr2 "mips -mabi=32 -mips32r2 sysroot libs"
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/libr6 $SYSROOT_DST/libr6 "mips -mabi=32 -mips32r6 sysroot libs"
-                    for l in lib libr2 libr6; do
-                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
-                    done
                     ;;
                 *)
                     copy_src_directory $PLATFORM_SRC/arch-$ARCH/$LIBDIR $SYSROOT_DST/$LIBDIR "$ARCH sysroot libs"
-                    for l in lib; do
-                        mkdir -p $SYSROOT_DST/$l && cp -f $CRYSTAX_SRCDIR/empty/$ARCH/libcrystax.a $SYSROOT_DST/$l
-                    done
                     ;;
             esac
 
@@ -802,36 +792,26 @@ for ARCH in $ARCHS; do
                 gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-target le32-none-ndk"
                 gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-target le64-none-ndk"
             else
-                GEN_SHLIB_SRCS="$PLATFORM_SRC/arch-$ARCH/symbols"
-                GEN_SHLIB_SRCS="$GEN_SHLIB_SRCS $CRYSTAX_SRCDIR/symbols"
                 case "$ARCH" in
                     x86_64)
-                        for src in $GEN_SHLIB_SRCS; do
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-m32"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64 "-m64"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libx32 "-mx32"
-                        done
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-m32"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-m64"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libx32 "-mx32"
                         ;;
                     mips64)
-                        for src in $GEN_SHLIB_SRCS; do
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-mabi=32 -mips32"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64r2 "-mabi=64 -mips64r2"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib64 "-mabi=64 -mips64r6"
-                        done
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-mabi=32 -mips32"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64r2 "-mabi=64 -mips64r2"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-mabi=64 -mips64r6"
                         ;;
                     mips)
-                        for src in $GEN_SHLIB_SRCS; do
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/lib "-mabi=32 -mips32"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
-                        done
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-mabi=32 -mips32"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr2 "-mabi=32 -mips32r2"
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/libr6 "-mabi=32 -mips32r6"
                         ;;
                     *)
-                        for src in $GEN_SHLIB_SRCS; do
-                            gen_shared_libraries $ARCH $src $SYSROOT_DST/$LIBDIR
-                        done
+                        gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/$LIBDIR
                         ;;
                 esac
             fi
@@ -864,7 +844,12 @@ for ARCH in $ARCHS; do
     done
 done
 
-$CRYSTAX_SRCDIR/bin/gen-headers
+CRYSTAX_OPTIONS=
+if [ "$OPTION_FAST_COPY" = "yes" ]; then
+    CRYSTAX_OPTIONS="$CRYSTAX_OPTIONS --fast-copy"
+fi
+CRYSTAX_OPTIONS="$CRYSTAX_OPTIONS --headers"
+$NDK_DIR/$CRYSTAX_SUBDIR/bin/patch-sysroot $CRYSTAX_OPTIONS
 fail_panic "Couldn't generate libcrystax headers"
 
 #

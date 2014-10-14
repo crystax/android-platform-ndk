@@ -31,6 +31,7 @@
 #define __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
 
 #include <crystax/id.h>
+#include <crystax/ctassert.h>
 
 #include <jni.h>
 

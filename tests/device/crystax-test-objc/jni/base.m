@@ -1,6 +1,6 @@
 #import "base.h"
 
-#ifdef __APPLE__
+#ifdef __NEXT_RUNTIME__
 
 @implementation BaseObject
 

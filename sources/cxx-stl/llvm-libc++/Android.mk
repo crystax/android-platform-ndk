@@ -76,7 +76,6 @@ llvm_libc++_sources := \
 	typeinfo.cpp \
 	utility.cpp \
 	valarray.cpp \
-	support/android/locale_android.cpp
 
 llvm_libc++_sources := $(llvm_libc++_sources:%=libcxx/src/%)
 

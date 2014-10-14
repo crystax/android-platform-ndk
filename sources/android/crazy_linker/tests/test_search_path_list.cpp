@@ -42,7 +42,7 @@ void CheckLibrary(const char* library_name,
   crazy_library_t* library;
 
   if (!crazy_library_open(&library, library_name, context))
-    Panic("Could not open library %s: %s\n", crazy_context_get_error(context));
+    Panic("Could not open library %s: %s\n", library_name, crazy_context_get_error(context));
 
   size_t failures = 0;
 

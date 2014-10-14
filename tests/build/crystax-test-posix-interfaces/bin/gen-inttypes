@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+downcase()
+{
+    echo "$@" | tr '[A-Z]' '[a-z]'
+}
+
+gen()
+{
+    local name=$1
+    local typ=$2
+    if [ -z "$name" -o -z "$typ" ]; then
+        echo "ERROR: empty name or type passed to 'gen' function" 1>&2
+        exit 1
+    fi
+    echo ""
+    echo "#if !defined(${name})"
+    echo "#error ${name} not defined"
+    echo "#endif"
+    echo ""
+    echo "inttypes_check(\"%\"${name}\"\n\", (${typ})0);"
+}
+
+echo "__attribute__((format(printf, 1, 2)))"
+echo "void inttypes_check(const char *fmt, ...)"
+echo "{"
+echo "    (void)fmt;"
+echo "}"
+
+echo "void inttypes_check_format()"
+echo "{"
+
+for t in PRI SCN; do
+    for m in d i o u x X; do
+        test "x$t" = "xSCN" -a "x$m" = "xX" && continue
+
+        if [ "$m" = "d" -o "$m" = "i" ]; then
+            signed=""
+        else
+            signed="u"
+        fi
+
+        for f in '' LEAST FAST; do
+            for s in 8 16 32 64; do
+                gen ${t}${m}${f}${s} ${signed}int$(test -z "$f" && echo '' || echo "_$(downcase $f)")${s}_t
+            done
+        done
+        for f in MAX PTR; do
+            gen ${t}${m}${f} ${signed}int$(downcase $f)_t
+        done
+    done
+done
+
+echo "}"

@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2014 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+cd $(dirname $0)/.. || exit 1
+
+TOPDIR=$(pwd)
+
+if [ -z "$NDK" ]; then
+    NDK=$(cd $TOPDIR/../../.. && pwd)
+fi
+
+items=""
+items="$items aio"
+items="$items cpio"
+items="$items errno"
+items="$items fcntl"
+items="$items fenv"
+items="$items float"
+items="$items fmtmsg"
+items="$items fnmatch"
+items="$items ftw"
+items="$items glob"
+items="$items inttypes"
+items="$items iso646"
+items="$items langinfo"
+items="$items limits"
+items="$items locale"
+items="$items math"
+items="$items netdb"
+items="$items netinet_in"
+items="$items poll"
+items="$items pthread"
+items="$items regex"
+items="$items sched"
+items="$items signal"
+items="$items spawn"
+items="$items stdbool"
+items="$items stdint"
+items="$items stdio"
+items="$items stdlib"
+items="$items sys_ipc"
+items="$items sys_mman"
+items="$items sys_resource"
+items="$items sys_sem"
+items="$items sys_shm"
+items="$items sys_socket"
+items="$items sys_stat"
+items="$items sys_statvfs"
+items="$items sys_time"
+items="$items sys_wait"
+items="$items syslog"
+items="$items tar"
+items="$items termios"
+items="$items tgmath"
+items="$items time"
+items="$items unistd"
+items="$items wchar"
+items="$items wordexp"
+
+lic()
+{
+    echo "/*" || exit 1
+    cat $NDK/sources/crystax/LICENSE | sed 's/^/ \* /' | sed 's/ *$//' || exit 1
+    test ${PIPESTATUS[0]} -ne 0 && exit 1
+    echo " */" || exit 1
+}
+
+DSTDIR=$TOPDIR/jni/gen
+rm -Rf $DSTDIR
+mkdir -p $DSTDIR || exit 1
+
+for t in $items; do
+    echo "Generate ${t} checks ..."
+
+    dst=$DSTDIR/${t}.inc
+
+    echo "/* WARNING!!! THIS IS AUTO-GENERATED FILE!!! DO NOT MODIFY IT MANUALLY!!! */" >$dst || exit 1
+
+    echo "" >>$dst || exit 1
+    lic     >>$dst || exit 1
+    echo "" >>$dst || exit 1
+
+    ${TOPDIR}/bin/gen-${t} >>$dst || exit 1
+done

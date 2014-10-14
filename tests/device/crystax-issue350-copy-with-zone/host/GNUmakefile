@@ -1,15 +1,29 @@
 include ../common.mk
 
-CC ?= clang
+is-gcc-on-os-x-pre-10-9 := $(strip $(and \
+    $(shell $(CC) --version | grep -iq gcc && echo yes),\
+    $(shell uname -s | grep -iq darwin && echo yes),\
+    $(shell test $$(sw_vers -productVersion | awk -F. '{print $$1 * 10000 + $$2 * 100 + $$3}') -lt 100900 && echo yes)\
+))
 
-LINUX := $(shell uname -s | grep -iq linux && echo yes)
+ifneq (,$(is-gcc-on-os-x-pre-10-9))
 
-ifeq (yes,$(shell $(CC) --version 2>/dev/null | grep -iq gcc && echo yes))
-CFLAGS += -Wno-unused-parameter
+.PHONY: test
+test:
+	@echo "Skipped for GCC on OS X < 10.9"
+
 else
-ifeq (yes,$(LINUX))
-CFLAGS += -Wno-unused-parameter
-endif
-endif
+
+CFLAGS += $(strip \
+    $(if \
+        $(or \
+            $(shell $(CC) --version | grep -iq gcc && echo yes),\
+            $(shell uname -s | grep -iq linux && echo yes)\
+        ),\
+        -Wno-unused-parameter\
+    )\
+)
 
 include $(or $(NDK),../../../..)/tests/onhost.mk
+
+endif
