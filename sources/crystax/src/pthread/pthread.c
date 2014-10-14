@@ -67,10 +67,18 @@ static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct 
     long long msecs = 0;
     struct timespec curtime;
 
-    if (abstime == NULL)
+    if (!mutex)
         return EINVAL;
 
-    if ((abstime->tv_nsec < 0) || (abstime->tv_nsec >= 1000000000))
+    /* See http://pubs.opengroup.org/onlinepubs/009695399/functions/pthread_mutex_timedlock.html:
+     * Under no circumstance shall the function fail with a timeout if the mutex can be locked immediately.
+     * The validity of the abs_timeout parameter need not be checked if the mutex can be locked immediately.
+     */
+    rc = pthread_mutex_trylock(mutex);
+    if (rc == 0)
+        return 0;
+
+    if (!abstime || (abstime->tv_nsec < 0) || (abstime->tv_nsec >= 1000000000))
         return EINVAL;
 
     /* CLOCK_REALTIME is used here because it's required by IEEE Std
