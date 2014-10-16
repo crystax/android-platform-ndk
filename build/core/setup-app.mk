@@ -41,6 +41,11 @@ all: ndk-app-$(_app)
 
 # which platform/abi/toolchain are we going to use?
 TARGET_PLATFORM := $(call get,$(_map),APP_PLATFORM)
+ifeq ($(TARGET_PLATFORM),android-L)
+$(call __ndk_warning,WARNING: android-L is renamed as android-21)
+TARGET_PLATFORM := android-21
+endif
+
 
 # The ABI(s) to use
 NDK_APP_ABI := $(subst $(comma),$(space),$(strip $(NDK_APP_ABI)))
@@ -145,7 +150,7 @@ endif
 RENDERSCRIPT_TOOLCHAIN_ROOT   := $(NDK_ROOT)/toolchains/renderscript
 RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(RENDERSCRIPT_TOOLCHAIN_ROOT))
 RENDERSCRIPT_TOOLCHAIN_PREFIX := $(RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT)/bin/
-RENDERSCRIPT_TOOLCHAIN_HEADER := $(RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT)/lib/clang/3.3/include
+RENDERSCRIPT_TOOLCHAIN_HEADER := $(RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT)/lib/clang/3.5/include
 
 # Each ABI
 $(foreach _abi,$(NDK_APP_ABI),\
