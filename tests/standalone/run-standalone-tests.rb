@@ -66,7 +66,8 @@ class Ndk_data
     @gcc_versions_for_64_archs = ["4.9"]
     @llvm_versions = default_llvm_versions
 
-    @tag = host_tag
+    # todo: why 32 windows returns host_tag 'windows' but 64 -- cygwin-x86_64?
+    @tag = (host_tag == 'cygwin-x86_64') ? 'windows-x86_64' : host_tag
   end
 
   def min_api_level(arch)
