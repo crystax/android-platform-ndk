@@ -143,7 +143,7 @@ class Toolchain
 
   def self.make_all(arch, ver)
     $ndk_data.api_levels.map do |api|
-      if Integer(api == 'L' ? 20 : api) >= $ndk_data.min_api_level(arch)
+      if Integer(api) >= $ndk_data.min_api_level(arch)
         Toolchain.new(arch, ver, api)
       end
     end.compact
@@ -298,7 +298,7 @@ OptionParser.new do |opts|
   opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
   opts.on("--apis=LIST", String, "List of API levels;", "#{$ndk_data.api_levels}") do |l|
-    $ndk_data.api_levels = l.split(',').map {|s|  (s == 'L') ? s : Integer(s) }
+    $ndk_data.api_levels = l.split(',').map {|s| Integer(s) }
   end
 
   opts.on("--archs=LIST", String, "List of architectures;", "#{$ndk_data.architectures}") do |l|
