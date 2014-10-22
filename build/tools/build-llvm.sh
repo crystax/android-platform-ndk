@@ -351,6 +351,7 @@ if [ "$MCLINKER" = "yes" -o "$TOOLCHAIN" = "llvm-$DEFAULT_LLVM_VERSION" ] ; then
     fail_panic "Couldn't copy mclinker source: $MCLINKER_SRC_DIR"
 
     CXXFLAGS="$CXXFLAGS -fexceptions"  # optimized/ScriptParser.cc needs it
+    CXXFLAGS="$CXXFLAGS -std=c++11"
     export CXXFLAGS
 
     cd $MCLINKER_SRC_DIR && run ./autogen.sh
