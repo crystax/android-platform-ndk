@@ -124,7 +124,8 @@ run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" $FLAGS
 fail_panic "Could not build libcrystax!"
 
 dump "Building $ABIS compiler-rt binaries..."
-run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$DEFAULT_LLVM_VERSION/compiler-rt" \
+# todo zuav: $DEFAULT_LLVM_VERSION is 3.5 but compiler-rt 3.5 is not used yet
+run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-3.4/compiler-rt" \
    --llvm-version=$DEFAULT_LLVM_VERSION
 fail_panic "Could not build compiler-rt!"
 
