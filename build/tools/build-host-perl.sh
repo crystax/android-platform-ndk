@@ -107,8 +107,14 @@ fail_panic "Could not copy perl source $SRC_DIR/perl/perl-$PERL_VERSION to build
 
 LIBS_SEARCH=`$CC -print-search-dirs | grep libraries | sed ' s/^.*=// ' | sed ' s/:/ /g '`
 
+extra_flags="-s"
+if [ $HOST_OS = "darwin" ]; then
+    # todo zuav: /usr/include should be removed
+    extra_flags="-I/usr/include"
+fi
+
 cd $BUILD_OUT &&
-CFLAGS=$HOST_CFLAGS" -O2 -s" &&
+CFLAGS=$HOST_CFLAGS" -O2 $extra_flags" &&
 run ./Configure \
     -des \
     -Dprefix=$BUILD_OUT/prefix \
