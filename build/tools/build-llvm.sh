@@ -195,11 +195,9 @@ LDFLAGS_FOR_BUILD="-L$TOOLCHAIN_BUILD_PREFIX/lib"
 # Statically link stdc++ to eliminate dependency on outdated libctdc++.so in old 32-bit
 # linux system, and libgcc_s_sjlj-1.dll and libstdc++-6.dll on windows
 LLVM_VERSION="`echo $TOOLCHAIN | tr '-' '\n' | tail -n 1`"
-if [ "$MINGW" = "yes" -o "$HOST_TAG" = "linux-x86" -o "$LLVM_VERSION" \> "3.4" ]; then
-    LDFLAGS_FOR_BUILD=$LDFLAGS_FOR_BUILD" -static-libstdc++"
-    if [ "$CC" = "${CC%%clang*}" ]; then
-        LDFLAGS_FOR_BUILD=$LDFLAGS_FOR_BUILD" -static-libgcc"
-    fi
+LDFLAGS_FOR_BUILD=$LDFLAGS_FOR_BUILD" -static-libstdc++"
+if [ "$CC" = "${CC%%clang*}" ]; then
+    LDFLAGS_FOR_BUILD=$LDFLAGS_FOR_BUILD" -static-libgcc"
 fi
 
 CFLAGS="$CFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"
