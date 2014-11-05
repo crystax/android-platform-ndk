@@ -548,8 +548,10 @@ build_stl_libs_for_abi ()
             FLOAT_ABI="hard"
             ;;
         arm64-v8a)
-            EXTRA_CFLAGS="-mfix-cortex-a53-835769"
-            EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
+            if [ -n "$GCC_VERSION" ]; then
+                EXTRA_CFLAGS="-mfix-cortex-a53-835769"
+                EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
+            fi
             ;;
     esac
 
