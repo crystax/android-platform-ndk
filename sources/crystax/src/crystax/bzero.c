@@ -27,12 +27,9 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_ARM64_ATOMIC_H_CA3FF3ED21504D378E026F23E3BFF0A9
-#define __CRYSTAX_INCLUDE_ARM64_ATOMIC_H_CA3FF3ED21504D378E026F23E3BFF0A9
+#include <stdlib.h>
 
-#include <crystax/id.h>
-
-#define atomic_add_long(p, v)      __sync_add_and_fetch(p, v)
-#define atomic_fetchadd_long(p, v) __sync_fetch_and_add(p, v)
-
-#endif /* __CRYSTAX_INCLUDE_ARM64_ATOMIC_H_CA3FF3ED21504D378E026F23E3BFF0A9 */
+void bzero(void *s, size_t n)
+{
+    memset(s, 0, n);
+}

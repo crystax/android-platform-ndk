@@ -49,6 +49,7 @@ class Generator
             @public = lambda do
                 return false unless header?
                 return true if path == "lib/msun/src/math.h"
+                return true if path == "lib/msun/src/fenv-softfloat.h"
                 return true if path =~ /^(include|sys)\b/
                 false
             end.call if @public.nil?
@@ -59,6 +60,9 @@ class Generator
             @dstpath = lambda do
                 if header? && path == "lib/msun/src/math.h"
                     return "math.h"
+                end
+                if header? && path == "lib/msun/src/fenv-softfloat.h"
+                    return File.join("crystax/freebsd", path)
                 end
                 if header? && !sarch.nil? && path.split('/')[0..2] == ['sys', sarch, 'include']
                     return (['machine'] + path.split('/')[3..-1]).join('/')
@@ -127,6 +131,7 @@ class Generator
 
     def initialize(options)
         @files = []
+        @has_file = {}
         @fixups = {}
 
         @dryrun  = options[:dryrun]
@@ -229,7 +234,9 @@ class Generator
     end
 
     def add(file, options = {}, &block)
+        raise "File #{file} already added" if @has_file[file]
         @files << {sf: SrcFile.new(file), options: options, generator: block}
+        @has_file[file] = true
     end
 
     def generate
@@ -361,18 +368,6 @@ g.fixup :include_wctype_h do |f|
     f.puts "#include <wctype.h>"
 end
 
-g.fixup :atomic_fixwarnings do |f|
-    f.puts "#if __arm__ || __i386__ || __x86_64__"
-    f.puts "#define atomic_add_long __crystax_freebsd_atomic_add_long"
-    f.puts "#define atomic_fetchadd_long __crystax_freebsd_atomic_fetchadd_long"
-    f.puts "#include <machine/atomic.h>"
-    f.puts "#undef atomic_add_long"
-    f.puts "#define atomic_add_long(p, val) __crystax_freebsd_atomic_add_long((volatile u_long *)p, val)"
-    f.puts "#undef atomic_fetchadd_long"
-    f.puts "#define atomic_fetchadd_long(p, val) __crystax_freebsd_atomic_fetchadd_long((volatile u_long *)p, val)"
-    f.puts "#endif"
-end
-
 g.fixup :collate_fixwarnings do |f|
     f.puts "#define __collate_substitute __crystax_freebsd___collate_substitute"
     f.puts "#define __collate_lookup __crystax_freebsd___collate_lookup"
@@ -433,10 +428,6 @@ end
 
 g.fixup :include_sys_wait_h do |f|
     f.puts "#include <sys/wait.h>"
-end
-
-g.fixup :include_sys_cdefs_h do |f|
-    f.puts "#include <sys/cdefs.h>"
 end
 
 g.fixup :include_crystax_sys_ctype_h do |f|
@@ -647,6 +638,7 @@ g.add "lib/libc/gdtoa/machdep_ldisd.c"
 g.add "lib/libc/gen/err.c"
 g.add "lib/libc/gen/isinf.c"
 g.add "lib/libc/gen/isnan.c"
+g.add "lib/libc/gen/ldexp.c"
 g.add "lib/libc/gen/lockf.c"
 g.add "lib/libc/i386/_fpmath.h"
 g.add "lib/libc/i386/arith.h"
@@ -754,7 +746,7 @@ g.add "lib/libc/locale/wctrans.c",         warnings: "unused-parameter"
 g.add "lib/libc/locale/wctype.c",          warnings: "unused-parameter", fixup: "include_wctype_h"
 g.add "lib/libc/locale/wcwidth.c"
 g.add "lib/libc/locale/xlocale.c",         warnings: "missing-field-initializers"
-g.add "lib/libc/locale/xlocale_private.h", fixup:    "atomic_fixwarnings"
+g.add "lib/libc/locale/xlocale_private.h"
 # libc mips
 g.add "lib/libc/mips/_fpmath.h"
 g.add "lib/libc/mips/arith.h"
@@ -914,25 +906,78 @@ g.add "lib/libc/string/wmemcpy.c"
 g.add "lib/libc/string/wmemmove.c"
 g.add "lib/libc/string/wmemset.c"
 # msun
+g.add "lib/msun/bsdsrc/b_exp.c"
+g.add "lib/msun/bsdsrc/b_log.c"
+g.add "lib/msun/bsdsrc/b_tgamma.c"
+g.add "lib/msun/bsdsrc/mathimpl.h"
 g.add "lib/msun/src/catrig.c",             warnings: "unused-variable"
 g.add "lib/msun/src/catrigf.c",            warnings: "unused-variable"
 g.add "lib/msun/src/e_acos.c"
+g.add "lib/msun/src/e_acosf.c"
+g.add "lib/msun/src/e_acosh.c"
+g.add "lib/msun/src/e_acoshf.c"
 g.add "lib/msun/src/e_asin.c"
+g.add "lib/msun/src/e_asinf.c"
+g.add "lib/msun/src/e_atan2.c",            warnings: "parentheses"
+g.add "lib/msun/src/e_atan2f.c"
+g.add "lib/msun/src/e_atanh.c"
+g.add "lib/msun/src/e_atanhf.c"
+g.add "lib/msun/src/e_cosh.c"
+g.add "lib/msun/src/e_coshf.c"
+g.add "lib/msun/src/e_exp.c"
+g.add "lib/msun/src/e_expf.c"
+g.add "lib/msun/src/e_fmod.c"
+g.add "lib/msun/src/e_fmodf.c"
+g.add "lib/msun/src/e_fmodl.c",            warnings: ["sign-compare", "maybe-uninitialized"]
+g.add "lib/msun/src/e_hypot.c"
 g.add "lib/msun/src/e_hypotf.c"
+g.add "lib/msun/src/e_j0.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_j1.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_jn.c"
+g.add "lib/msun/src/e_lgamma.c"
+g.add "lib/msun/src/e_lgammaf.c"
+g.add "lib/msun/src/e_log.c"
+g.add "lib/msun/src/e_log10.c"
+g.add "lib/msun/src/e_log10f.c"
+g.add "lib/msun/src/e_log2.c"
+g.add "lib/msun/src/e_log2f.c"
+g.add "lib/msun/src/e_logf.c"
+g.add "lib/msun/src/e_pow.c",              warnings: "sign-compare"
+g.add "lib/msun/src/e_powf.c",             warnings: "sign-compare"
 g.add "lib/msun/src/e_rem_pio2.c"
+g.add "lib/msun/src/e_rem_pio2f.c"
+g.add "lib/msun/src/e_remainder.c"
+g.add "lib/msun/src/e_remainderf.c"
+g.add "lib/msun/src/e_sinh.c"
+g.add "lib/msun/src/e_sinhf.c"
+g.add "lib/msun/src/e_sqrt.c",             warnings: "sign-compare"
+g.add "lib/msun/src/e_sqrtf.c"
+g.add "lib/msun/src/fenv-softfloat.h"
 g.add "lib/msun/src/k_cos.c"
+g.add "lib/msun/src/k_cosf.c"
 g.add "lib/msun/src/k_exp.c"
 g.add "lib/msun/src/k_expf.c"
+g.add "lib/msun/src/k_log.h"
+g.add "lib/msun/src/k_logf.h"
 g.add "lib/msun/src/k_rem_pio2.c"
 g.add "lib/msun/src/k_sin.c"
+g.add "lib/msun/src/k_sinf.c"
 g.add "lib/msun/src/k_tan.c"
+g.add "lib/msun/src/k_tanf.c"
 g.add "lib/msun/src/math.h",               postfixup: "include_crystax_sys_math_h"
 g.add "lib/msun/src/math_private.h"
+g.add "lib/msun/src/s_asinh.c"
+g.add "lib/msun/src/s_asinhf.c"
 g.add "lib/msun/src/s_atan.c"
+g.add "lib/msun/src/s_atanf.c"
 g.add "lib/msun/src/s_carg.c"
 g.add "lib/msun/src/s_cargf.c"
+g.add "lib/msun/src/s_cbrt.c"
+g.add "lib/msun/src/s_cbrtf.c"
 g.add "lib/msun/src/s_ccosh.c"
 g.add "lib/msun/src/s_ccoshf.c"
+g.add "lib/msun/src/s_ceil.c",             warnings: "sign-compare"
+g.add "lib/msun/src/s_ceilf.c"
 g.add "lib/msun/src/s_cexp.c"
 g.add "lib/msun/src/s_cexpf.c"
 g.add "lib/msun/src/s_cimag.c"
@@ -941,7 +986,11 @@ g.add "lib/msun/src/s_cimagl.c"
 g.add "lib/msun/src/s_conj.c"
 g.add "lib/msun/src/s_conjf.c"
 g.add "lib/msun/src/s_conjl.c"
+g.add "lib/msun/src/s_copysign.c"
+g.add "lib/msun/src/s_copysignf.c"
+g.add "lib/msun/src/s_copysignl.c"
 g.add "lib/msun/src/s_cos.c"
+g.add "lib/msun/src/s_cosf.c"
 g.add "lib/msun/src/s_cproj.c"
 g.add "lib/msun/src/s_cprojf.c"
 g.add "lib/msun/src/s_cprojl.c"
@@ -954,32 +1003,94 @@ g.add "lib/msun/src/s_csqrt.c",            warnings: "unknown-pragmas"
 g.add "lib/msun/src/s_csqrtf.c",           warnings: "unknown-pragmas"
 g.add "lib/msun/src/s_ctanh.c"
 g.add "lib/msun/src/s_ctanhf.c"
+g.add "lib/msun/src/s_erf.c"
+g.add "lib/msun/src/s_erff.c"
+g.add "lib/msun/src/s_exp2.c"
+g.add "lib/msun/src/s_exp2f.c"
+g.add "lib/msun/src/s_expm1.c"
+g.add "lib/msun/src/s_expm1f.c"
+g.add "lib/msun/src/s_fabs.c"
+g.add "lib/msun/src/s_fabsf.c"
+g.add "lib/msun/src/s_fabsl.c"
+g.add "lib/msun/src/s_fdim.c"
+g.add "lib/msun/src/s_finite.c"
 g.add "lib/msun/src/s_finitef.c"
+g.add "lib/msun/src/s_floor.c",            warnings: "sign-compare"
+g.add "lib/msun/src/s_floorf.c"
+g.add "lib/msun/src/s_fma.c",              warnings: "parentheses"
+g.add "lib/msun/src/s_fmaf.c"
+g.add "lib/msun/src/s_fmax.c"
+g.add "lib/msun/src/s_fmaxf.c"
+g.add "lib/msun/src/s_fmaxl.c"
+g.add "lib/msun/src/s_fmin.c"
+g.add "lib/msun/src/s_fminf.c"
+g.add "lib/msun/src/s_fminl.c"
 g.add "lib/msun/src/s_frexp.c"
+g.add "lib/msun/src/s_frexpf.c"
+g.add "lib/msun/src/s_ilogb.c"
+g.add "lib/msun/src/s_ilogbf.c"
+g.add "lib/msun/src/s_ilogbl.c"
 g.add "lib/msun/src/s_isfinite.c",         warnings: "uninitialized"
 g.add "lib/msun/src/s_isnan.c"
+g.add "lib/msun/src/s_llrint.c"
+g.add "lib/msun/src/s_llrintf.c"
+g.add "lib/msun/src/s_llrintl.c"
+g.add "lib/msun/src/s_llround.c"
+g.add "lib/msun/src/s_llroundf.c"
+g.add "lib/msun/src/s_llroundl.c"
+g.add "lib/msun/src/s_log1p.c"
+g.add "lib/msun/src/s_log1pf.c"
+g.add "lib/msun/src/s_logb.c"
+g.add "lib/msun/src/s_logbf.c"
+g.add "lib/msun/src/s_lrint.c"
+g.add "lib/msun/src/s_lrintf.c"
+g.add "lib/msun/src/s_lrintl.c"
+g.add "lib/msun/src/s_lround.c"
+g.add "lib/msun/src/s_lroundf.c"
+g.add "lib/msun/src/s_lroundl.c"
+g.add "lib/msun/src/s_modf.c"
+g.add "lib/msun/src/s_modff.c"
+g.add "lib/msun/src/s_modfl.c",            warnings: ["uninitialized", "maybe-uninitialized"]
+g.add "lib/msun/src/s_nan.c"
+g.add "lib/msun/src/s_nearbyint.c"
+g.add "lib/msun/src/s_nextafter.c"
+g.add "lib/msun/src/s_nextafterf.c"
+g.add "lib/msun/src/s_remquo.c"
+g.add "lib/msun/src/s_remquof.c"
+g.add "lib/msun/src/s_rint.c"
+g.add "lib/msun/src/s_rintf.c"
+g.add "lib/msun/src/s_round.c"
+g.add "lib/msun/src/s_roundf.c"
+g.add "lib/msun/src/s_roundl.c"
+g.add "lib/msun/src/s_scalbln.c"
+g.add "lib/msun/src/s_scalbn.c",           warnings: "parentheses"
+g.add "lib/msun/src/s_scalbnf.c",          warnings: "parentheses"
+g.add "lib/msun/src/s_signgam.c"
 g.add "lib/msun/src/s_sin.c"
+g.add "lib/msun/src/s_sinf.c"
 g.add "lib/msun/src/s_tan.c"
+g.add "lib/msun/src/s_tanf.c"
+g.add "lib/msun/src/s_tanh.c"
+g.add "lib/msun/src/s_tanhf.c"
+g.add "lib/msun/src/s_tgammaf.c"
+g.add "lib/msun/src/s_trunc.c"
+g.add "lib/msun/src/s_truncf.c"
 g.add "lib/msun/src/w_cabs.c"
 g.add "lib/msun/src/w_cabsf.c"
 # libc nls
 g.add "lib/libc/nls/msgcat.c",             warnings: "sign-compare"
 # platform-specific
-g.add "sys/amd64/include/atomic.h",        fixup:    ["include_sys_cdefs_h", "include_sys_types_h"]
 g.add "sys/arm/include/_inttypes.h"
 g.add "sys/arm/include/_limits.h"
 g.add "sys/arm/include/_stdint.h"
 g.add "sys/arm/include/armreg.h"
-g.add "sys/arm/include/atomic.h"
 g.add "sys/arm/include/endian.h"
 g.add "sys/arm/include/sysarch.h"
-g.add "sys/i386/include/atomic.h",         fixup:    ["include_sys_cdefs_h", "include_sys_types_h"]
 g.add "sys/i386/include/ieeefp.h"
 g.add "sys/mips/include/_inttypes.h"
 g.add "sys/mips/include/_limits.h"
 g.add "sys/mips/include/_stdint.h"
 g.add "sys/mips/include/endian.h"
-g.add "sys/mips/include/atomic.h"
 g.add "sys/sys/_null.h"
 g.add "sys/sys/_stdint.h"
 g.add "sys/sys/endian.h",                  postfixup: "include_crystax_sys_endian_h"
@@ -996,7 +1107,6 @@ g.add "sys/x86/include/endian.h"
         "_inttypes.h",
         "_limits.h",
         "_stdint.h",
-        "atomic.h",
         "endian.h",
     ].each do |i|
         g.add "sys/#{a}/include/#{i}" do |f|

@@ -33,14 +33,28 @@ include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_static
 LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.a
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI)
+# For armeabi*, choose thumb mode unless LOCAL_ARM_MODE := arm
+ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
+ifneq (arm,$(LOCAL_ARM_MODE))
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/thumb/libcrystax.a
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI)/thumb
+endif
+endif
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE            := crystax_shared
 LOCAL_MODULE_FILENAME   := libcrystax
 LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/libcrystax.so
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI)
+# For armeabi*, choose thumb mode unless LOCAL_ARM_MODE := arm
+ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
+ifneq (arm,$(LOCAL_ARM_MODE))
+LOCAL_SRC_FILES         := libs/$(TARGET_ARCH_ABI)/thumb/libcrystax.so
+LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_ABI)/thumb
+endif
+endif
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 include $(PREBUILT_SHARED_LIBRARY)

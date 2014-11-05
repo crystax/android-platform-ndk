@@ -73,7 +73,7 @@ multilibs_for_abi()
     # First is always default one
     case $a in
         armeabi*)
-            #echo "thumb"
+            echo "thumb"
             echo "arm"
             ;;
         arm64-v8a)
@@ -142,9 +142,10 @@ sources_for_abi()
         exit 1
     fi
 
-    find gen -name '*.c' -a -not -name 'freebsd_*' -print | sort
     find src -name '*.c' -print | sort
+
     find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print | sort
+
     if [ "$t" = "shared" ]; then
         echo "src/crystax/android_jni.cpp"
     fi
@@ -154,6 +155,8 @@ sources_for_abi()
             echo "src/crystax/string/i386/ffs.s"
             ;;
     esac
+
+    find gen -name '*.c' -a -not -name 'freebsd_*' -print | sort
 }
 
 # $1: ABI

@@ -89,6 +89,11 @@
 #define __weak_reference(s, a) __weak_alias(s, a)
 #endif
 
+#ifndef __strong_reference
+#define __strong_reference(sym,aliassym) \
+    extern __typeof (sym) aliassym __attribute__ ((__alias__ (#sym)))
+#endif
+
 #ifndef __always_inline
 #define __always_inline __attribute__((__always_inline__))
 #endif

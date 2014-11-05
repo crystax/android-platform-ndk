@@ -20,7 +20,6 @@ include/machine/_inttypes.h
 include/machine/_limits.h
 include/machine/_stdint.h
 include/machine/armreg.h
-include/machine/atomic.h
 include/machine/endian.h
 include/machine/ieeefp.h
 include/machine/sysarch.h
