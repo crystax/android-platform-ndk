@@ -420,7 +420,13 @@ log2 "HOST_NUM_CPUS=$HOST_NUM_CPUS"
 # run Make commands in parralles, as in 'make -j$BUILD_NUM_CPUS'
 #
 if [ -z "$BUILD_NUM_CPUS" ] ; then
-    BUILD_NUM_CPUS=`expr $HOST_NUM_CPUS \* 2`
+    case "$HOST_OS" in
+        darwin)
+            BUILD_NUM_CPUS=$HOST_NUM_CPUS
+            ;;
+        *)
+            BUILD_NUM_CPUS=`expr $HOST_NUM_CPUS \* 2`
+    esac
 fi
 
 log2 "BUILD_NUM_CPUS=$BUILD_NUM_CPUS"
