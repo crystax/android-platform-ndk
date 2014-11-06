@@ -161,8 +161,6 @@ if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
 fi
 
 dump "Building $ABIS gnustl binaries..."
-run $BUILDTOOLS/build-gnu-libstdc++.sh --abis="$ABIS" $FLAGS $GNUSTL_STATIC_VIS_FLAG "$SRC_DIR"
-fail_panic "Could not build gnustl!"
 run $BUILDTOOLS/build-gnu-libstdc++.sh --abis="$ABIS" $FLAGS $GNUSTL_STATIC_VIS_FLAG "$SRC_DIR" --with-debug-info
 fail_panic "Could not build gnustl with debug info!"
 
