@@ -422,6 +422,8 @@ fi
 
 # Remove un-needed files
 rm -f $REFERENCE/CleanSpec.mk
+rm -Rf $REFERENCE/sources/crystax/vendor
+rm -Rf $REFERENCE/sources/cxx-stl/llvm-libc++/libcxx
 
 # now, for each system, create a package
 #
