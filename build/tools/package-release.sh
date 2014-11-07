@@ -321,6 +321,23 @@ copy_prebuilt ()
     fi
 }
 
+# Pack a release
+#
+# $1: archive file path (including extension)
+# $2: source directory for archive content
+# $3: directory to pack
+pack_release ()
+{
+    local archive="$1"
+    local srcdir="$2"
+    local reldir="$3"
+    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -sfx"
+    if [ "`basename $archive`" = "$archive" ] ; then
+        archive="`pwd`/$archive"
+    fi
+    mkdir -p `dirname $ARCHIVE`
+    (cd $srcdir && 7z $flags_7z "$archive" "$reldir" > /dev/null && chmod a+x $archive)
+}
 
 rm -rf $TMPDIR && mkdir -p $TMPDIR
 
@@ -577,12 +594,12 @@ for SYSTEM in $SYSTEMS; do
     # Remove duplicated files in case-insensitive file system
     if [ "$SYSTEM" = "windows" -o "$SYSTEM" = "darwin-x86" ]; then
         rm -rf $DSTDIR/tests/build/c++-stl-source-extensions
-        find "$DSTDIR/platforms" | sort -f | uniq -di | xargs rm
-        find "$DSTDIR64/platforms" | sort -f | uniq -di | xargs rm
+        find "$DSTDIR/platforms" | sort -f | uniq -di | xargs rm -f
+        find "$DSTDIR64/platforms" | sort -f | uniq -di | xargs rm -f
     fi
 
     # Remove include-fixed/linux/a.out.h.   See b.android.com/73728
-    find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm
+    find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm -f
 
     # Create an archive for the final package. Extension depends on the
     # host system.
@@ -594,12 +611,14 @@ for SYSTEM in $SYSTEMS; do
     fi
     case "$SYSTEM" in
         windows)
-            ARCHIVE64="$ARCHIVE-64bit-tools.zip"
-            ARCHIVE="$ARCHIVE.zip"
+            ARCHIVE64="${ARCHIVE}_64.exe"
+            ARCHIVE="${ARCHIVE}.exe"
+            SHORT_SYSTEM="windows"
             ;;
         *)
-            ARCHIVE64="$ARCHIVE-64bit-tools.tar.bz2"
-            ARCHIVE="$ARCHIVE.tar.bz2"
+            ARCHIVE64="${ARCHIVE}_64.bin"
+            ARCHIVE="${ARCHIVE}.bin"
+            SHORT_SYSTEM=$SYSTEM
             ;;
     esac
     echo "Creating $ARCHIVE"
@@ -607,10 +626,15 @@ for SYSTEM in $SYSTEMS; do
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
     find $DSTDIR $DSTDIR64 -executable -exec chmod a+x {} \;
-    pack_archive "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_PREFIX"
+    pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_PREFIX"
     fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
     if [ "$SEPARATE_64" = "yes" ] ; then
-        pack_archive "$OUT_DIR/$ARCHIVE64" "$TMPDIR/64" "${RELEASE_PREFIX}"
+        rm -rf "$DSTDIR/prebuilt/common"
+        rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"
+        find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
+        cp -r "$DSTDIR64"/* "$DSTDIR"/
+        rm -rf "$DSTDIR64"
+        pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_PREFIX"
         fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
     fi
 done

@@ -235,60 +235,6 @@ timestamp_check ()
     fi
 }
 
-# $1 - list of systems names
-repack_64bit_packages ()
-{
-    local systems=$(commas_to_spaces ${1#"--systems="})
-    local repack_dir="$OUT_DIR/repack"
-    local sys
-    local short_sys
-    local pkg32_name
-    local pkg32_name
-    local pkg64_name
-    local tools64_name
-    local pkg_base
-    dump "Will repack 64-bit packages for systems: $systems"
-    for sys in $systems ; do
-        case "$sys" in
-            linux-x86|darwin-x86)
-                short_sys=$sys
-                pkg_ext="tar.bz2"
-                ;;
-            windows)
-                pkg_ext="zip"
-                sys=windows-x86
-                short_sys=windows
-                ;;
-            *)
-                echo "Unknown system to repack 64-bit packages: $sys"
-                exit 1
-        esac
-        #
-        echo "Repacking $sys packages"
-        pkg32_name=`ls $OUT_DIR/$PREFIX-*-$sys.$pkg_ext`
-        pkg32_name=${pkg32_name#"$OUT_DIR/"}
-        pkg64_name=${pkg32_name/"-x86"/"-x86_64"}
-        tools64_name=${pkg32_name/"-x86"/"-x86-64bit-tools"}
-        pkg_base=${pkg32_name%"-$sys.$pkg_ext"}
-        #echo "pkg32_name:   $pkg32_name"
-        #echo "pkg64_name:   $pkg64_name"
-        #echo "tools64_name: $tools64_name"
-        #echo "pkg_base:     $pkg_base"
-        run mkdir -p "$repack_dir"
-        unpack_archive "$OUT_DIR/$pkg32_name" "$repack_dir"
-        run rm -rf "$repack_dir/$pkg_base/prebuilt/common"
-        run rm -rf "$repack_dir/$pkg_base/prebuilt/$short_sys"
-        find "$repack_dir/$pkg_base/toolchains" -type d -name prebuilt | xargs rm -rf
-        unpack_archive "$OUT_DIR/$tools64_name" "$repack_dir"
-        run rm "$OUT_DIR/$tools64_name"
-        pack_archive "$OUT_DIR/$pkg64_name" "$repack_dir"
-        run rm -rf "$repack_dir"
-    done
-
-    echo "Done, please see packages in $OUT_DIR:"
-    ls -l $OUT_DIR
-}
-
 dump "Building for target architectures: $ARCHS"
 
 # Step 1, If needed, download toolchain sources into a temporary directory
@@ -337,15 +283,12 @@ fi
 # Step 3, package a release with everything
 if timestamp_check make-packages; then
     if [ "$SKIP_PACKAGING" = "no" ]; then
-    dump "Generating NDK release packages"
-    run $ANDROID_NDK_ROOT/build/tools/package-release.sh $VERBOSE_FLAG --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
-    if [ $? != 0 ] ; then
-        dump "ERROR: Can't generate proper release packages."
-        exit 1
-    fi
-    if [ -n "$ALSO_64_FLAG" ] ; then
-        repack_64bit_packages "$HOST_SYSTEMS"
-    fi
+        dump "Generating NDK release packages"
+        run $ANDROID_NDK_ROOT/build/tools/package-release.sh $VERBOSE_FLAG --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
+        if [ $? != 0 ] ; then
+            dump "ERROR: Can't generate proper release packages."
+            exit 1
+        fi
     fi # SKIP_PACKAGING
     timestamp_set make-packages
 fi
