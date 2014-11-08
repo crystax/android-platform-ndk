@@ -132,8 +132,11 @@ fi
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
         FILES=""
-        for LIB in libcrystax.a libcrystax.so; do
-            FILES="$FILES $CRYSTAX_SUBDIR/libs/$ABI/$LIB"
+        for MLIB in $($NDK_DIR/$CRYSTAX_SUBDIR/bin/config --multilibs --abi=$ABI); do
+            LIBPATH=$($NDK_DIR/$CRYSTAX_SUBDIR/bin/config --libpath --abi=$ABI --multilib=$MLIB)
+            for LIB in libcrystax.a libcrystax.so; do
+                FILES="$FILES $CRYSTAX_SUBDIR/$LIBPATH/$LIB"
+            done
         done
         PACKAGE_NAME="crystax-libs-$ABI.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
