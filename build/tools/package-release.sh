@@ -331,12 +331,20 @@ pack_release ()
     local archive="$1"
     local srcdir="$2"
     local reldir="$3"
-    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -sfx"
+    local ext="${archive##*.}"
+    if [ "$ext" = "7z" ] ; then
+        sfx_flags=
+        chmod_flags="a-x"
+    else
+        sfx_flags="-sfx"
+        chmod_flags="a+x"
+    fi
+    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $sfx_flags"
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
     mkdir -p `dirname $ARCHIVE`
-    (cd $srcdir && 7z $flags_7z "$archive" "$reldir" > /dev/null && chmod a+x $archive)
+    (cd $srcdir && 7z $flags_7z "$archive" "$reldir" > /dev/null && chmod $chmod_flags $archive)
 }
 
 rm -rf $TMPDIR && mkdir -p $TMPDIR
@@ -611,8 +619,8 @@ for SYSTEM in $SYSTEMS; do
     fi
     case "$SYSTEM" in
         windows)
-            ARCHIVE64="${ARCHIVE}_64.exe"
-            ARCHIVE="${ARCHIVE}.exe"
+            ARCHIVE64="${ARCHIVE}_64.7z"
+            ARCHIVE="${ARCHIVE}.7z"
             SHORT_SYSTEM="windows"
             ;;
         *)
