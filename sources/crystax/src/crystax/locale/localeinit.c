@@ -37,7 +37,7 @@
 
 #include <pthread.h>
 #include <crystax/ctassert.h>
-#include "locale_impl.h"
+#include <crystax/localeimpl.h>
 
 /* BZip2 compressed af_ZA.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd[] = {

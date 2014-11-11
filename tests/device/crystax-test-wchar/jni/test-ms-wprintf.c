@@ -1,10 +1,13 @@
-#include <common.h>
+#include <stdio.h>
+#include <wchar.h>
+#include <string.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #define BUF_SIZE  1024
 #define ENV_VAR   "CRYSTAX_USE_MS_STYLE_WPRINTF"
 
-GLOBAL
-int test_ms_wprintf()
+int main()
 {
     wchar_t wbuf[BUF_SIZE];
     int len;

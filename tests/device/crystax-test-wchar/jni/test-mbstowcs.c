@@ -32,24 +32,29 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-GLOBAL
-int test_mbstowcs()
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+int
+main(int argc, char *argv[])
 {
 	char srcbuf[128];
 	wchar_t dstbuf[128];
-    char *locale;
 
-	printf("1..1 - mbstowcs()\n");
+	/*
+	 * C/POSIX locale.
+	 */
 
-    /*
-     * C/POSIX locale.
-     */
-
-    locale = setlocale(LC_CTYPE, "C");
-    assert(locale != NULL);
-    assert(strcmp(locale, "C") == 0);
+	printf("1..1\n");
 
 	/* Simple null terminated string. */
 	memset(srcbuf, 0xcc, sizeof(srcbuf));
@@ -87,14 +92,11 @@ int test_mbstowcs()
 	assert(mbstowcs(dstbuf, srcbuf, 0) == 0);
 	assert(dstbuf[0] == 0xcccc);
 
-#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
-    assert(locale != NULL);
-    assert(strcmp(locale, "ja_JP.eucJP") == 0);
+	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
 	memset(srcbuf, 0xcc, sizeof(srcbuf));
@@ -103,7 +105,6 @@ int test_mbstowcs()
 	assert(mbstowcs(dstbuf, srcbuf, sizeof(dstbuf) / sizeof(*dstbuf)) == 5);
 	assert(dstbuf[0] == 0xA3C1 && dstbuf[1] == 0x20 && dstbuf[2] == 0x42 &&
 	    dstbuf[3] == 0x20 && dstbuf[4] == 0xA3C3 && dstbuf[5] == 0);
-#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - mbstowcs()\n");
 

@@ -1,6 +1,6 @@
-#include <common.h>
+#include <stdio.h>
+#include <wchar.h>
 
-GLOBAL
 int test_swscanf()
 {
     int ret;
@@ -26,8 +26,7 @@ int test_swscanf()
     return 0;
 }
 
-GLOBAL
-int test_wscanf_all()
+int main()
 {
     return test_swscanf();
 }

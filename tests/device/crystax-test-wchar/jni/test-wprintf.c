@@ -1,6 +1,7 @@
-#include <common.h>
+#include <stdio.h>
+#include <wchar.h>
+#include <string.h>
 
-GLOBAL
 int test_swprintf()
 {
 
@@ -25,14 +26,13 @@ int test_swprintf()
     } \
     printf("ok " #n " - swprintf\n")
 
-#include "test-wprintf-local.c"
+#include "wprintf.inc"
 
 #undef DO_WPRINTF_TEST
 
     return 0;
 }
 
-GLOBAL
 int test_fwprintf()
 {
     int ret;
@@ -52,14 +52,13 @@ int test_fwprintf()
     } \
     printf("ok " #n " - fwprintf\n")
 
-#include "test-wprintf-local.c"
+#include "wprintf.inc"
 
 #undef DO_WPRINTF_TEST
 
     return 0;
 }
 
-GLOBAL
 int test_wprintf()
 {
     int ret;
@@ -79,15 +78,14 @@ int test_wprintf()
     } \
     printf("ok " #n " - wprintf\n")
 
-#include "test-wprintf-local.c"
+#include "wprintf.inc"
 
 #undef DO_WPRINTF_TEST
 
     return 0;
 }
 
-GLOBAL
-int test_wprintf_all()
+int main()
 {
 #define DO_WPRINTF_TEST1(x) if (test_ ## x ()) return 1
     DO_WPRINTF_TEST1(swprintf);

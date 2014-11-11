@@ -383,20 +383,6 @@ g.fixup :collate_rename do |f|
     f.puts "#define __collate_lookup __crystax_freebsd___collate_lookup"
 end
 
-g.fixup :path_locale do |f|
-    f.puts "#define _PATH_LOCALE \"/usr/share/locale\""
-    f.puts ""
-    f.puts "extern char *_PathLocale;"
-    f.puts "int __detect_path_locale()"
-    f.puts "{"
-    f.puts "    _PathLocale = _PATH_LOCALE;"
-    f.puts "    return 0;"
-    f.puts "}"
-    f.puts ""
-    f.puts "int __crystax_freebsd___detect_path_locale();"
-    f.puts "#define __detect_path_locale __crystax_freebsd___detect_path_locale"
-end
-
 g.fixup :mutex_initializer do |f|
     f.puts "#include <pthread.h>"
     f.puts ""
@@ -719,7 +705,7 @@ g.add "lib/libc/locale/none.c",            warnings: ["sign-compare", "type-limi
 g.add "lib/libc/locale/rune.c"
 g.add "lib/libc/locale/runefile.h"
 g.add "lib/libc/locale/runetype.c"
-g.add "lib/libc/locale/setlocale.c",       fixup:    "path_locale"
+g.add "lib/libc/locale/setlocale.c"
 g.add "lib/libc/locale/setlocale.h"
 g.add "lib/libc/locale/setrunelocale.c",   warnings: "unused-parameter"
 g.add "lib/libc/locale/table.c",           warnings: "missing-field-initializers"
@@ -872,6 +858,7 @@ g.add "lib/libc/stdtime/strftime.c",       fixup:    "include_wctype_h"
 g.add "lib/libc/stdtime/timelocal.c"
 g.add "lib/libc/stdtime/timelocal.h"
 # libc string
+g.add "lib/libc/string/memchr.c"
 g.add "lib/libc/string/strcasecmp.c"
 g.add "lib/libc/string/strcoll.c",         fixup:    "collate_fixwarnings"
 g.add "lib/libc/string/strxfrm.c",         fixup:    "collate_fixwarnings"

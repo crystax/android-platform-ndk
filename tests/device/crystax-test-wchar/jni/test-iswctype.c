@@ -31,14 +31,21 @@
  * The functions are tested in the "C" and "ja_JP.eucJP" locales.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-GLOBAL
-int test_iswctype()
+#include <assert.h>
+#include <locale.h>
+#include <stdio.h>
+#include <string.h>
+#include <wchar.h>
+#include <wctype.h>
+
+int
+main(int argc, char *argv[])
 {
 	wctype_t t;
-	unsigned int i, j;
-    char *locale;
+	int i, j;
 	struct {
 		const char *name;
 		int (*func)(wint_t);
@@ -57,16 +64,11 @@ int test_iswctype()
 		{ "xdigit", iswxdigit }
 	};
 
-	printf("1..2 - iswctype\n");
+	printf("1..2\n");
 
 	/*
 	 * C/POSIX locale.
 	 */
-
-    locale = setlocale(LC_CTYPE, "C");
-    assert(locale != NULL);
-    assert(strcmp(locale, "C") == 0);
-
 	for (i = 0; i < sizeof(cls) / sizeof(*cls); i++) {
 		t = wctype(cls[i].name);
 		assert(t != 0);
@@ -78,13 +80,10 @@ int test_iswctype()
 	for (i = 0; i < 256; i++)
 		assert(iswctype(i, t) == 0);
 
-#if CRYSTAX_FULL_LOCALES
 	/*
-	* Japanese (EUC) locale.
-	*/
-	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
-    assert(locale != NULL);
-    assert(strcmp(locale, "ja_JP.eucJP") == 0);
+	 * Japanese (EUC) locale.
+	 */
+	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	for (i = 0; i < sizeof(cls) / sizeof(*cls); i++) {
 		t = wctype(cls[i].name);
 		assert(t != 0);
@@ -95,7 +94,6 @@ int test_iswctype()
 	assert(t == 0);
 	for (i = 0; i < 65536; i++)
 		assert(iswctype(i, t) == 0);
-#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - iswctype()\n");
 	printf("ok 2 - wctype()\n");

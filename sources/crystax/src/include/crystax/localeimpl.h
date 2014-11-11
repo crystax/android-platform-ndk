@@ -27,8 +27,8 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_LOCALE_LOCALE_IMPL_H_6A027653796D422F8D10248B5E30AD39
-#define __CRYSTAX_LOCALE_LOCALE_IMPL_H_6A027653796D422F8D10248B5E30AD39
+#ifndef __CRYSTAX_LOCALEIMPL_H_6A027653796D422F8D10248B5E30AD39
+#define __CRYSTAX_LOCALEIMPL_H_6A027653796D422F8D10248B5E30AD39
 
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +54,7 @@ int __crystax_locale_init();
 size_t __crystax_locale_table_size();
 __crystax_locale_data_t * __crystax_locale_data(size_t idx);
 
-__crystax_locale_data_t * __crystax_locale_lookup(const char *encoding);
+int __crystax_locale_load(const char *encoding, int type, void **buf, size_t *bufsize);
+int __crystax_locale_loads(const char *encoding, const char *type, void **buf, size_t *bufsize);
 
-#endif /* __CRYSTAX_LOCALE_LOCALE_IMPL_H_6A027653796D422F8D10248B5E30AD39 */
+#endif /* __CRYSTAX_LOCALEIMPL_H_6A027653796D422F8D10248B5E30AD39 */
