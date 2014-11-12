@@ -634,6 +634,7 @@ copy_objc_libs_for_abi () {
 }
 
 copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$ABI_TARGET/include"
+copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$TMPDIR/lib/clang/$LLVM_VERSION/include"
 for ABI in $(tr ',' ' ' <<< $ABIS); do
   copy_objc_libs_for_abi "$ABI"
 done
