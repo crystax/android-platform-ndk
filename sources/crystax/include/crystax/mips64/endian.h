@@ -98,6 +98,11 @@
 
 #if defined(__mips_isa_rev) && (__mips_isa_rev >= 2)
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#endif
+
 static __inline __uint16_t
 __bswap16_var(__uint16_t x)
 {
@@ -123,6 +128,10 @@ __bswap64_var(__uint64_t x)
     return ((__uint64_t) __bswap32_var(_x >> 32)) |
         ((__uint64_t) __bswap32_var(_x & 0xffffffff) << 32);
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #else /* !defined(__mips_isa_rev) || (__mips_isa_rev < 2) */
 

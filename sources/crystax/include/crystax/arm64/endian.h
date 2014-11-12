@@ -66,6 +66,11 @@
 #define __htons(x) ((uint16_t)(x))
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#endif
+
 static __inline __uint16_t
 __bswap16_var(__uint16_t x)
 {
@@ -73,6 +78,10 @@ __bswap16_var(__uint16_t x)
     __asm volatile ("rev16 %0, %0" : "+r" (_x));
     return _x;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #define __bswap32_var(x) __builtin_bswap32(x)
 #define __bswap64_var(x) __builtin_bswap64(x)
