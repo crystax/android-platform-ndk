@@ -42,6 +42,26 @@ ext_for_lang()
     esac
 }
 
+abis_for_platform()
+{
+    local platform=$1
+    if [ -z "$platform" ]; then
+        echo "ERROR: You should pass android-N to call of abis_for_platform" 1>&2
+        exit 1
+    fi
+
+    local apilevel=$(expr "$platform" : "^android-\(.*\)")
+    if [ "$apilevel" = "L" ]; then
+        echo all
+    elif [ $apilevel -ge 21 ]; then
+        echo all
+    elif [ $apilevel -ge 9 ]; then
+        echo armeabi armeabi-v7a armeabi-v7a-hard x86 mips
+    else
+        echo armeabi armeabi-v7a armeabi-v7a-hard
+    fi
+}
+
 run()
 {
     echo "## COMMAND: $@"
@@ -58,7 +78,7 @@ for PLATFORM in $PLATFORMS; do
     rm -Rf jni obj libs
     mkdir -p jni || exit 1
 
-    echo 'APP_ABI := all' >jni/Application.mk || exit 1
+    echo "APP_ABI := $(abis_for_platform $PLATFORM)" >jni/Application.mk || exit 1
 
     {
         echo 'LOCAL_PATH := $(call my-dir)'
