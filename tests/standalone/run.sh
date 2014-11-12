@@ -336,7 +336,7 @@ else
 
     CLANG_VERSION=$($CLANG -v 2>&1 | awk '/version/ { print $3 }')
     if [ "$CLANG_VERSION" = "3.4" ]; then
-        OBJC_LDFLAGS="-integrated-as"
+        OBJC_CFLAGS="-integrated-as"
     fi
 fi
 
@@ -355,6 +355,9 @@ if [ -z "$ABI" ]; then
         mipsel*-linux-android)
             ABI=mips
             ARCH=mips
+            if [ "$CLANG_VERSION" = "3.5" ]; then
+                OBJC_CFLAGS="-fintegrated-as"
+            fi
             ;;
         aarch64*-linux-android)
             ABI=arm64-v8a
@@ -367,6 +370,9 @@ if [ -z "$ABI" ]; then
         mips64el*-linux-android)
             ABI=mips64
             ARCH=mips64
+            if [ "$CLANG_VERSION" = "3.5" ]; then
+                OBJC_CFLAGS="-fintegrated-as"
+            fi
             ;;
         *)
             panic "Unknown target architecture '$CC_TARGET', please use --abi=<name> to manually specify ABI."
@@ -482,14 +488,14 @@ for TEST_SUBDIR in $TEST_SUBDIRS; do
  
         objc_executable)
             (
-                run cd "$BUILD_DIR" && run $CC $CFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
+                run cd "$BUILD_DIR" && run $CC $CFLAGS $OBJC_CFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
             )
             RET=$?
             ;;
  
         objcxx_executable)
             (
-                run cd "$BUILD_DIR" && run $CXX $CXXFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
+                run cd "$BUILD_DIR" && run $CXX $CXXFLAGS $OBJC_CFLAGS -o $NULL $SOURCES $OBJC_LDFLAGS
             )
             RET=$?
             ;;
