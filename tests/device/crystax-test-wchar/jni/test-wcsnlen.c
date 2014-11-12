@@ -24,10 +24,24 @@
  * SUCH DAMAGE.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
+
+#include <sys/mman.h>
+#include <sys/param.h>
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+#include <unistd.h>
 
 #ifndef roundup2
 #define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
+#endif
+
+#if __APPLE__
+#define PAGE_SIZE getpagesize()
 #endif
 
 static void *
@@ -38,7 +52,6 @@ makebuf(size_t len, int guard_at_end)
 
 	buf = mmap(NULL, alloc_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 	assert(buf);
-	assert(buf != MAP_FAILED);
 	if (guard_at_end) {
 		assert(munmap(buf + alloc_size - PAGE_SIZE, PAGE_SIZE) == 0);
 		return (buf + alloc_size - PAGE_SIZE - len);
@@ -49,7 +62,7 @@ makebuf(size_t len, int guard_at_end)
 }
 
 static void
-test_wcsnlen_internal(const wchar_t *s)
+test_wcsnlen(const wchar_t *s)
 {
 	wchar_t *s1;
 	size_t size, len, bufsize;
@@ -66,18 +79,18 @@ test_wcsnlen_internal(const wchar_t *s)
 	}
 }
 
-GLOBAL
-int test_wcsnlen()
+int
+main(int argc, char *argv[])
 {
 
 	printf("1..3\n");
 
-	test_wcsnlen_internal(L"");
+	test_wcsnlen(L"");
 	printf("ok 1 - wcsnlen\n");
-	test_wcsnlen_internal(L"foo");
+	test_wcsnlen(L"foo");
 	printf("ok 2 - wcsnlen\n");
-	test_wcsnlen_internal(L"glorp");
+	test_wcsnlen(L"glorp");
 	printf("ok 3 - wcsnlen\n");
 
-	return (0);
+	exit(0);
 }

@@ -32,25 +32,31 @@
  * "ja_JP.eucJP". Other encodings are not tested.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-GLOBAL
-int test_mbrtowc()
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+int
+main(int argc, char *argv[])
 {
 	mbstate_t s;
+	size_t len;
 	wchar_t wc;
 	char buf[MB_LEN_MAX + 1];
-    char *locale;
 
-	printf("1..1 - mbrtowc()\n");
+	/*
+	 * C/POSIX locale.
+	 */
 
-    /*
-     * C/POSIX locale.
-     */
-
-    locale = setlocale(LC_CTYPE, "C");
-    assert(locale != NULL);
-    assert(strcmp(locale, "C") == 0);
+	printf("1..1\n");
 
 	assert(MB_CUR_MAX == 1);
 
@@ -89,14 +95,11 @@ int test_mbrtowc()
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
 	assert(wc == L'z');
 
-#if CRYSTAX_FULL_LOCALES
 	/*
 	 * Japanese (EUC) locale.
 	 */
 
-	locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
-    assert(locale != NULL);
-    assert(strcmp(locale, "ja_JP.eucJP") == 0);
+	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
 	/* Null wide character, internal state. */
@@ -153,7 +156,6 @@ int test_mbrtowc()
 	buf[0] = 0xc1;
 	assert(mbrtowc(&wc, buf, 1, &s) == 1);
 	assert(wc == 0xa3c1);
-#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - mbrtowc()\n");
 

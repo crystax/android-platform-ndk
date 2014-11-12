@@ -31,43 +31,40 @@
  * The function is tested in the "C" and "ja_JP.eucJP" locales.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-GLOBAL
-int test_btowc()
+#include <assert.h>
+#include <limits.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+
+int
+main(int argc, char *argv[])
 {
-	unsigned int i;
-    char *locale;
+	int i;
 
-	printf("1..2 - btowc()\n");
+	printf("1..2\n");
 
 	/*
 	 * C/POSIX locale.
 	 */
-
-    locale = setlocale(LC_CTYPE, "C");
-    assert(locale != NULL);
-    assert(strcmp(locale, "C") == 0);
-
 	assert(btowc(EOF) == WEOF);
 	assert(wctob(WEOF) == EOF);
-	for (i = 0; i < UCHAR_MAX; i++) {
-        assert(btowc(i) == (wint_t)i);
-        assert(wctob(i) == (int)i);
-    }
+	for (i = 0; i < UCHAR_MAX; i++)
+		assert(btowc(i) == (wchar_t)i && i == (int)wctob(i));
 
-#if CRYSTAX_FULL_LOCALES
 	/*
-	* Japanese (EUC) locale.
-	*/
+	 * Japanese (EUC) locale.
+	 */
 
-    locale = setlocale(LC_CTYPE, "ja_JP.eucJP");
-    assert(locale != NULL);
-    assert(strcmp(locale, "ja_JP.eucJP") == 0);
+	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 	assert(btowc('A') == L'A' && wctob(L'A') == 'A');
 	assert(btowc(0xa3) == WEOF && wctob(0xa3c1) == EOF);
-#endif /* CRYSTAX_FULL_LOCALES */
 
 	printf("ok 1 - btowc()\n");
 	printf("ok 2 - wctob()\n");

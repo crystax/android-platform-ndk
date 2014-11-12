@@ -1,7 +1,8 @@
-#include <common.h>
+#include <stdio.h>
+#include <wchar.h>
+#include <assert.h>
 
-GLOBAL
-int test_wcslen_c()
+int main()
 {
     printf("1..1 - wcslen_c\n");
 

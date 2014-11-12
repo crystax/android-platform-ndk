@@ -24,22 +24,23 @@
  * SUCH DAMAGE.
  */
 
-#include <common.h>
+#include <sys/cdefs.h>
+__FBSDID("$FreeBSD$");
 
-GLOBAL
-int test_wcscasecmp()
+#include <assert.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <wchar.h>
+#include <wctype.h>
+
+int
+main(int argc, char *argv[])
 {
-    char *locale;
 
 	printf("1..6\n");
 
-    /*
-     * C/POSIX locale.
-     */
-
-    locale = setlocale(LC_CTYPE, "C");
-    assert(locale != NULL);
-    assert(strcmp(locale, "C") == 0);
+	setlocale(LC_CTYPE, "C");
 
 	assert(wcscasecmp(L"", L"") == 0);
 	assert(wcsncasecmp(L"", L"", 50) == 0);
@@ -77,13 +78,11 @@ int test_wcscasecmp()
 	printf("ok 5 - wcsncasecmp\n");
 
 	assert(wcscasecmp(L"λ", L"Λ") != 0);
-    locale = setlocale(LC_CTYPE, "el_GR.UTF-8");
-    assert(locale != NULL);
-    assert(strcmp(locale, "el_GR.UTF-8") == 0);
+	setlocale(LC_CTYPE, "el_GR.UTF-8");
 	assert(wcscasecmp(L"λ", L"Λ") == 0);
 	assert(wcscasecmp(L"λ", L"Ω") < 0);
 	assert(wcscasecmp(L"Ω", L"λ") > 0);
 	printf("ok 6 - greek\n");
 
-	return (0);
+	exit(0);
 }

@@ -274,6 +274,8 @@ common_cflags_for_abi()
     echo "-I$crystax/include"
     echo "-I$crystax/src/include"
 
+    echo "-I$crystax/vendor/bzip2"
+
     echo "-I$freebsd/contrib/gdtoa"
     echo "-I$freebsd/contrib/libc-vis"
     echo "-I$freebsd/contrib/tzcode/stdtime"

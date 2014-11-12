@@ -105,7 +105,7 @@ File.open(options[:out], "w") do |f|
     f.puts ""
     f.puts "#include <pthread.h>"
     f.puts "#include <crystax/ctassert.h>"
-    f.puts "#include \"locale_impl.h\""
+    f.puts "#include <crystax/localeimpl.h>"
     f.puts ""
     locales.each do |ll|
         next unless ll[:alias].nil?

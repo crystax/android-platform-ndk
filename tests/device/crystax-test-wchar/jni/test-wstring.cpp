@@ -1,5 +1,8 @@
-#include <common.h>
 #include <string>
+#include <cwchar>
+#include <assert.h>
+#include <stdlib.h>
+#include <locale.h>
 
 static int test_wstring_base()
 {
@@ -108,8 +111,7 @@ static int test_wstring_erase()
     return 0;
 }
 
-GLOBAL
-int test_wstring_all()
+int main()
 {
 #define DO_WSTRING_TEST(x) if (test_wstring_ ## x ()) return 1
     DO_WSTRING_TEST(base);

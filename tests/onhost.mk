@@ -167,7 +167,8 @@ OBJFILES := $(strip $(addprefix $(OBJDIR)/,\
 ))
 
 TARGETDIR := bin/$(CC)
-TARGET := $(TARGETDIR)/test
+TARGETNAME := $(or $(strip $(TARGETNAME)),test)
+TARGET := $(TARGETDIR)/$(TARGETNAME)
 
 .PHONY: test
 ifneq (,$(is-test-disabled))
