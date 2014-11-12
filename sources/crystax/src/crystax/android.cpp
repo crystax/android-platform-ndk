@@ -63,7 +63,6 @@ static void jnienv_detach_thread(void * /*arg*/)
 
 static void jnienv_key_create()
 {
-    TRACE;
     if (::pthread_key_create(&s_jnienv_key, &jnienv_detach_thread) != 0)
         ::abort();
 }
@@ -118,22 +117,16 @@ static bool __crystax_init()
 CRYSTAX_GLOBAL __attribute__((constructor))
 void __crystax_on_load()
 {
-    TRACE;
-
     ::pthread_once(&::crystax::s_jnienv_key_once, &::crystax::jni::jnienv_key_create);
 
     if (!__crystax_init())
         PANIC("libcrystax initialization failed");
-
-    TRACE;
 }
 
 CRYSTAX_GLOBAL __attribute__((destructor))
 void __crystax_on_unload()
 {
-    TRACE;
     ::pthread_key_delete(::crystax::s_jnienv_key);
-    TRACE;
 }
 
 CRYSTAX_GLOBAL
