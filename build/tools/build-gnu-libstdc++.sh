@@ -193,6 +193,7 @@ build_gnustl_for_abi ()
     EXTRA_FLAGS="-ffunction-sections -fdata-sections"
     if [ -n "$THUMB" ] ; then
         EXTRA_FLAGS="-mthumb"
+        EXTRA_FLAGS="$EXTRA_FLAGS -minline-thumb1-jumptable"
     fi
     CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"

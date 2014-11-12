@@ -190,7 +190,7 @@ arch_flags_for_abi()
             if [ "$mlib" = "thumb" ]; then
                 echo "-mthumb"
                 if [ ${TOOLCHAIN##gcc} != ${TOOLCHAIN} ]; then
-                    test "$abi" = "armeabi" && echo "-minline-thumb1-jumptable"
+                    echo "-minline-thumb1-jumptable"
                 fi
             fi
             ;;
