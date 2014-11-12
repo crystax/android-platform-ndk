@@ -333,6 +333,11 @@ else
     CXX=${CLANG%clang}clang++
     CC_TARGET=$($CLANG -v 2>&1 | grep Target:)
     CC_TARGET=${CC_TARGET##Target: }
+
+    CLANG_VERSION=$($CLANG -v 2>&1 | awk '/version/ { print $3 }')
+    if [ "$CLANG_VERSION" = "3.4" ]; then
+        OBJC_LDFLAGS="-integrated-as"
+    fi
 fi
 
 if [ -z "$ABI" ]; then
@@ -431,7 +436,7 @@ CXXFLAGS=$CXXFLAGS" -fno-exceptions"
 
 CFLAGS=$COMMON_FLAGS" "$CFLAGS
 CXXFLAGS=$COMMON_FLAGS" "$CXXFLAGS
-OBJC_LDFLAGS="-lobjc"
+OBJC_LDFLAGS="-lobjc $OBJC_LDFLAGS"
 
 if [ -z "$TEST_SUBDIRS" ]; then
     TEST_SUBDIRS=$(cd $PROGDIR && ls -d *)
