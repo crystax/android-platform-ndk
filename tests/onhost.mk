@@ -117,7 +117,7 @@ endef
 # $1: regexp
 # $2: string
 define match
-$(shell echo $(2) | grep -iq "$(1)" && echo yes)
+$(shell echo $(2) | grep -iq $(1) && echo yes)
 endef
 
 #=================================================================================
@@ -131,10 +131,15 @@ is-device-test := $(shell test -d $(dir $(lastword $(MAKEFILE_LIST)))/device/$(n
 ifeq (,$(wildcard $(TESTDIR)/DISABLED))
 is-test-disabled :=
 else
-is-test-disabled := $(strip $(or \
-    $(call match,"\<$(call host-os)\>",$(shell cat DISABLED)),\
-    $(and $(call is-gcc,$(CC)),$(call match,"\<$(subst .,\.,gcc-$(call gcc-version,$(CC)))\>",$(shell cat DISABLED)))\
-))
+is-test-disabled := $(strip \
+    $(eval __disabled := $(shell cat DISABLED 2>/dev/null))\
+    $(or \
+        $(call match,"\<$(call host-os)\>",$(__disabled)),\
+        $(and $(call is-clang,$(CC)),$(call match,"\<clang\>",$(__disabled))),\
+        $(and $(call is-gcc,$(CC)),$(call match,"\<gcc\>",$(__disabled))),\
+        $(and $(call is-gcc,$(CC)),$(call match,"\<$(subst .,\.,gcc-$(call gcc-version,$(CC)))\>",$(__disabled)))\
+    )\
+)
 endif
 
 ifeq (,$(strip $(SRCFILES)))
