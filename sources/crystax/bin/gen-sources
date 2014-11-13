@@ -1090,8 +1090,6 @@ g.add "lib/msun/src/s_trunc.c"
 g.add "lib/msun/src/s_truncf.c"
 g.add "lib/msun/src/w_cabs.c"
 g.add "lib/msun/src/w_cabsf.c"
-# libc nls
-g.add "lib/libc/nls/msgcat.c",             warnings: "sign-compare"
 # platform-specific
 g.add "sys/arm/include/_inttypes.h"
 g.add "sys/arm/include/_limits.h"
