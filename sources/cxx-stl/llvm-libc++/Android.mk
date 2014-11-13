@@ -192,6 +192,7 @@ LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
+LOCAL_STATIC_LIBRARIES := crystax_static
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -218,8 +219,10 @@ LOCAL_LDLIBS := -latomic
 endif
 endif
 
+LOCAL_SHARED_LIBRARIES := crystax_shared
 include $(BUILD_SHARED_LIBRARY)
 
 endif # __libcxx_force_rebuild == true
 
+$(call import-module,crystax)
 $(call import-module, android/compiler-rt)
