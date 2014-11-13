@@ -99,10 +99,12 @@ fi
 # Compiler flags we want to use
 COMPILER_RT_CFLAGS="-fPIC -O2 -DANDROID -D__ANDROID__ -ffunction-sections"
 COMPILER_RT_CFLAGS=$COMPILER_RT_CFLAGS" -I$SRC_DIR/include -I$SRC_DIR/lib"
+COMPILER_RT_CFLAGS=$COMPILER_RT_CFLAGS" -I$SRC_DIR/android"
 COMPILER_RT_LDFLAGS="-nostdlib"
 
 # List of sources to compile
 COMPILER_RT_GENERIC_SOURCES=$(cd $SRC_DIR && ls lib/*.c)
+COMPILER_RT_GENERIC_SOURCES="$COMPILER_RT_GENERIC_SOURCES $(cd $SRC_DIR && ls BlocksRuntime/*.c)"
 
 # filter out the sources we don't need
 UNUSED_SOURCES="lib/apple_versioning.c lib/gcc_personality_v0.c"
