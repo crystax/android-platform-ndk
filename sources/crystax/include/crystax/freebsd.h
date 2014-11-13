@@ -102,8 +102,8 @@
 #define __DEVOLATILE(type, var) ((type)(__uintptr_t)(volatile void *)(var))
 #endif
 
-#ifdef __NO_TLS
-#undef __NO_TLS
+#ifndef __NO_TLS
+#define __NO_TLS 1
 #endif
 
 #if !defined(__compiler_membar)
