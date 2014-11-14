@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd $(dirname $0) || exit 1
+
+max=$1
+test -z "$max" && max=10000
+
+{
+    echo "int foo(int r)"
+    echo "{"
+    echo "    switch (r)"
+    echo "    {"
+    for i in $(seq 0 $max); do
+        echo "    case $i: return 0;"
+    done
+    echo "    default: return 0;"
+    echo "    }"
+    echo "}"
+} | cat >switch.c
+
+{
+    echo "extern int foo(int r);"
+    echo "int main()"
+    echo "{"
+    echo "    int rc;"
+    for i in $(seq 0 $max); do
+        echo "    if ((rc = foo($i)) != 0) return rc;"
+    done
+    echo "    return 0;"
+    echo "}"
+} | cat >main.c
