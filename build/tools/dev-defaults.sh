@@ -37,6 +37,9 @@ LIBCXXABI_SUBDIR=sources/cxx-stl/llvm-libc++abi/libcxxabi
 # root directory.
 GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 
+# Location of the GNUStep libobjc2 headers and libraries, relative to the NDK root directory
+OBJC2_SUBDIR=sources/objc/libobjc2
+
 # Location of the libportable sources, relative to the NDK root directory
 LIBPORTABLE_SUBDIR=sources/android/libportable
 

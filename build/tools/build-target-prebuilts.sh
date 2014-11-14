@@ -194,6 +194,10 @@ dump "Building $ABIS gnuobjc binaries..."
 run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
 fail_panic "Could not build gnuobjc!"
 
+dump "Building $ABIS Objective-C v2 runtime..."
+run $BUILDTOOLS/build-libobjc2.sh $FLAGS --abis="$ABIS" --src-dir=$(cd $SRC_DIR/../vendor/libobjc2 && pwd)
+fail_panic "Could not build Objective-C v2 runtime"
+
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
     GNUSTL_STATIC_VIS_FLAG=--visible-libgnustl-static
 fi
