@@ -157,6 +157,8 @@ sources_for_abi()
     esac
 
     find gen -name '*.c' -a -not -name 'freebsd_*' -print | sort
+
+    find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
 }
 
 # $1: ABI
