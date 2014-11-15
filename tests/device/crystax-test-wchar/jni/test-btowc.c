@@ -32,7 +32,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <limits.h>
@@ -41,6 +40,12 @@ __FBSDID("$FreeBSD$");
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+
+#if __gnu_linux__
+#define CHAR_LIM SCHAR_MAX
+#else
+#define CHAR_LIM UCHAR_MAX
+#endif
 
 int
 main(int argc, char *argv[])
@@ -54,7 +59,7 @@ main(int argc, char *argv[])
 	 */
 	assert(btowc(EOF) == WEOF);
 	assert(wctob(WEOF) == EOF);
-	for (i = 0; i < UCHAR_MAX; i++)
+	for (i = 0; i < CHAR_LIM; i++)
 		assert(btowc(i) == (wchar_t)i && i == (int)wctob(i));
 
 	/*

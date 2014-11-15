@@ -32,7 +32,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <locale.h>
@@ -73,7 +72,7 @@ main(int argc, char *argv[])
 		t = wctype(cls[i].name);
 		assert(t != 0);
 		for (j = 0; j < 256; j++)
-			assert(cls[i].func(j) == iswctype(j, t));
+			assert((cls[i].func(j) != 0) == iswctype(j, t));
 	}
 	t = wctype("elephant");
 	assert(t == 0);
@@ -88,7 +87,7 @@ main(int argc, char *argv[])
 		t = wctype(cls[i].name);
 		assert(t != 0);
 		for (j = 0; j < 65536; j++)
-			assert(cls[i].func(j) == iswctype(j, t));
+			assert((cls[i].func(j) != 0) == iswctype(j, t));
 	}
 	t = wctype("elephant");
 	assert(t == 0);

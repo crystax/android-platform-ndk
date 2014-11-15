@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <errno.h>
@@ -98,6 +97,7 @@ main(int argc, char *argv[])
 	assert(len == 1);
 	assert((unsigned char)buf[0] == 'A' && (unsigned char)buf[1] == 0xcc);
 
+#if !__gnu_linux__
 	/* Full width letter A. */
 	memset(buf, 0xcc, sizeof(buf));
 	len = wctomb(buf, 0xa3c1);
@@ -105,6 +105,7 @@ main(int argc, char *argv[])
 	assert((unsigned char)buf[0] == 0xa3 &&
 		(unsigned char)buf[1] == 0xc1 &&
 		(unsigned char)buf[2] == 0xcc);
+#endif
 
 	printf("ok 1 - wctomb()\n");
 

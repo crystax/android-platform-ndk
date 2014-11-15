@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <limits.h>
@@ -74,7 +73,9 @@ main(int argc, char *argv[])
 	/* Incomplete character sequence. */
 	wc = L'z';
 	buf[0] = '\0';
+#if !__gnu_linux__
 	assert(mbtowc(&wc, buf, 0) == -1);
+#endif
 	assert(wc == L'z');
 	assert(mbtowc(NULL, NULL, 0) == 0);
 
@@ -100,7 +101,9 @@ main(int argc, char *argv[])
 	/* Incomplete character sequence (zero length). */
 	wc = L'z';
 	buf[0] = '\0';
+#if !__gnu_linux__
 	assert(mbtowc(&wc, buf, 0) == -1);
+#endif
 	assert(wc == L'z');
 	assert(mbtowc(NULL, NULL, 0) == 0);
 
@@ -116,7 +119,9 @@ main(int argc, char *argv[])
 	/* Same as above, but complete. */
 	buf[1] = 0xc1;
 	assert(mbtowc(&wc, buf, 2) == 2);
+#if !__gnu_linux__
 	assert(wc == 0xa3c1);
+#endif
 
 	printf("ok 1 - mbtowc()\n");
 

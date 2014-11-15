@@ -25,7 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <sys/mman.h>
 #include <sys/param.h>
@@ -40,7 +39,7 @@ __FBSDID("$FreeBSD$");
 #define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
 #endif
 
-#if __APPLE__
+#if __APPLE__ || __gnu_linux__
 #define PAGE_SIZE getpagesize()
 #endif
 

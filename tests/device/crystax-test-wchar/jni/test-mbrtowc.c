@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <errno.h>
@@ -85,14 +84,18 @@ main(int argc, char *argv[])
 	/* Incomplete character sequence. */
 	wc = L'z';
 	memset(&s, 0, sizeof(s));
+#if !__gnu_linux__
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
+#endif
 	assert(wc == L'z');
 
 	/* Check that mbrtowc() doesn't access the buffer when n == 0. */
 	wc = L'z';
 	memset(&s, 0, sizeof(s));
 	buf[0] = '\0';
+#if !__gnu_linux__
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
+#endif
 	assert(wc == L'z');
 
 	/*
@@ -128,7 +131,9 @@ main(int argc, char *argv[])
 	/* Incomplete character sequence (zero length). */
 	wc = L'z';
 	memset(&s, 0, sizeof(s));
+#if !__gnu_linux__
 	assert(mbrtowc(&wc, buf, 0, &s) == (size_t)-2);
+#endif
 	assert(wc == L'z');
 
 	/* Incomplete character sequence (truncated double-byte). */
@@ -144,7 +149,9 @@ main(int argc, char *argv[])
 	memset(&s, 0, sizeof(s));
 	wc = 0;
 	assert(mbrtowc(&wc, buf, 2, &s) == 2);
+#if !__gnu_linux__
 	assert(wc == 0xa3c1);
+#endif
 
 	/* Test restarting behaviour. */
 	memset(buf, 0xcc, sizeof(buf));
@@ -155,7 +162,9 @@ main(int argc, char *argv[])
 	assert(wc == 0);
 	buf[0] = 0xc1;
 	assert(mbrtowc(&wc, buf, 1, &s) == 1);
+#if !__gnu_linux__
 	assert(wc == 0xa3c1);
+#endif
 
 	printf("ok 1 - mbrtowc()\n");
 

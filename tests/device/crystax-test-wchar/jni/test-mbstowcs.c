@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <errno.h>
@@ -103,8 +102,10 @@ main(int argc, char *argv[])
 	strcpy(srcbuf, "\xA3\xC1 B \xA3\xC3");
 	wmemset(dstbuf, 0xcccc, sizeof(dstbuf) / sizeof(*dstbuf));
 	assert(mbstowcs(dstbuf, srcbuf, sizeof(dstbuf) / sizeof(*dstbuf)) == 5);
+#if !__gnu_linux__
 	assert(dstbuf[0] == 0xA3C1 && dstbuf[1] == 0x20 && dstbuf[2] == 0x42 &&
 	    dstbuf[3] == 0x20 && dstbuf[4] == 0xA3C3 && dstbuf[5] == 0);
+#endif
 
 	printf("ok 1 - mbstowcs()\n");
 

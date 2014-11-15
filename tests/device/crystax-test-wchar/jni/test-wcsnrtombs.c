@@ -32,7 +32,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <errno.h>
@@ -162,6 +161,7 @@ main(int argc, char *argv[])
 	assert(strcmp(setlocale(LC_CTYPE, "ja_JP.eucJP"), "ja_JP.eucJP") == 0);
 	assert(MB_CUR_MAX > 1);
 
+#if !__gnu_linux__
 	wmemset(srcbuf, 0xcc, sizeof(srcbuf) / sizeof(*srcbuf));
 	srcbuf[0] = 0xA3C1;
 	srcbuf[1] = 0x0020;
@@ -187,6 +187,7 @@ main(int argc, char *argv[])
 	assert(memcmp(dstbuf, "\xA3\xC1 B ", 5) == 0);
 	assert((unsigned char)dstbuf[5] == 0xcc);
 	assert(src == srcbuf + 4);
+#endif /* !__gnu_linux__ */
 
 	printf("ok 1 - wcsnrtombs()\n");
 

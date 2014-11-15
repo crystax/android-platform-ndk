@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <errno.h>
@@ -79,7 +78,9 @@ main(int argc, char *argv[])
 
 	/* Incomplete character sequence. */
 	memset(&s, 0, sizeof(s));
+#if !__gnu_linux__
 	assert(mbrlen(buf, 0, &s) == (size_t)-2);
+#endif
 
 	/*
 	 * Japanese (EUC) locale.
@@ -109,7 +110,9 @@ main(int argc, char *argv[])
 
 	/* Incomplete character sequence (zero length). */
 	memset(&s, 0, sizeof(s));
+#if !__gnu_linux__
 	assert(mbrlen(buf, 0, &s) == (size_t)-2);
+#endif
 
 	/* Incomplete character sequence (truncated double-byte). */
 	memset(buf, 0xcc, sizeof(buf));

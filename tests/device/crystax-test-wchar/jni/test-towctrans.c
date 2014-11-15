@@ -32,7 +32,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <locale.h>
@@ -44,7 +43,7 @@ __FBSDID("$FreeBSD$");
 int
 main(int argc, char *argv[])
 {
-	wctype_t t;
+	wctrans_t t;
 	int i, j;
 	struct {
 		const char *name;

@@ -33,7 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 
 #include <assert.h>
 #include <limits.h>
@@ -70,7 +69,9 @@ main(int argc, char *argv[])
 
 	/* Incomplete character sequence. */
 	buf[0] = '\0';
+#if !__gnu_linux__
 	assert(mblen(buf, 0) == -1);
+#endif
 	assert(mblen(NULL, 0) == 0);
 
 	/*
@@ -94,7 +95,9 @@ main(int argc, char *argv[])
 
 	/* Incomplete character sequence. */
 	buf[0] = '\0';
+#if !__gnu_linux__
 	assert(mblen(buf, 0) == -1);
+#endif
 	assert(mblen(NULL, 0) == 0);
 
 	/* Incomplete character sequence (truncated double-byte). */
