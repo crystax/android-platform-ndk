@@ -39,7 +39,7 @@
 #define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
 #endif
 
-#if __APPLE__ || __gnu_linux__
+#ifndef PAGE_SIZE
 #define PAGE_SIZE getpagesize()
 #endif
 
