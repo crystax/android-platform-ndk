@@ -2178,6 +2178,11 @@ $(call ndk-objc-register,\
     gnuobjc_shared\
     )
 
+$(call ndk-objc-register,\
+    none,\
+    objc/none\
+    )
+
 #
 # C++ STL support
 #
