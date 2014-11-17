@@ -214,7 +214,11 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    CRYSTAX_LDFLAGS="-lcrystax -lstdc++ -lm"
+    CRYSTAX_LIBDIR="$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
+    if [ -n "$THUMB" ]; then
+        CRYSTAX_LIBDIR="$CRYSTAX_LIBDIR/thumb"
+    fi
+    CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR -lcrystax -lstdc++ -lm"
 
     export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
 
