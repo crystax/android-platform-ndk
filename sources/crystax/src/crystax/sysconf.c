@@ -36,7 +36,7 @@
 
 void * __crystax_bionic_symbol(const char *name);
 
-static int crystax_sysconf(int name)
+static long crystax_sysconf(int name)
 {
     switch (name)
     {
@@ -59,9 +59,9 @@ static int crystax_sysconf(int name)
     }
 }
 
-int sysconf(int name)
+long sysconf(int name)
 {
-    static int (*bionic_sysconf)(int name);
+    static long (*bionic_sysconf)(int name);
 
     if (name & __CRYSTAX_SC_BASE)
         return crystax_sysconf(name);
