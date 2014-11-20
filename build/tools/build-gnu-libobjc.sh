@@ -43,7 +43,7 @@ The output will be placed in appropriate sub-directories of
 option.
 "
 
-GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+GCC_VERSION_LIST="default"
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC versions"
 
 PACKAGE_DIR=
@@ -67,6 +67,10 @@ register_jobs_option
 register_try64_option
 
 extract_parameters "$@"
+
+if [ "$GCC_VERSION_LIST" = "default" ]; then
+    GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
+fi
 
 SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
