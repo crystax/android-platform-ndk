@@ -56,7 +56,7 @@ extract_parameters "$@"
 
 # Pickup one GCC_VERSION for the cases where we want only one build
 # That's actually all cases except libgnustl where we are building for each GCC version
-GCC_VERSION=
+GCC_VERSION="4.9"
 if [ "$GCC_VERSION_LIST" != "default" ]; then
    GCC_VERSIONS=$(commas_to_spaces $GCC_VERSION_LIST)
    GCC_VERSION=${GCC_VERSIONS%% *}
@@ -67,11 +67,18 @@ if [ -z "$GCC_VERSION_LIST" -a -z "$LLVM_VERSION" ]; then
    LLVM_VERSION=$DEFAULT_LLVM_VERSION
 fi
 
-if [ ! -z "$LLVM_VERSION" ]; then
-   BUILD_TOOLCHAIN="--llvm-version=$LLVM_VERSION"
-else
-   BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
-fi
+BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
+
+# the code below just makes no sense
+# since some packages could not be build with clang compiler
+# some could be build only with clang,
+# and some require both toolchains
+#if [ ! -z "$LLVM_VERSION" ]; then
+#   BUILD_TOOLCHAIN="--llvm-version=$LLVM_VERSION"
+#else
+#   BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
+#fi
+#
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -137,9 +144,11 @@ fi
 # First, gdbserver
 for ARCH in $ARCHS; do
     if [ "$GCC_VERSION" == "default" ]; then
-       GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
+        GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
     elif [ ! -z "$GCC_VERSION" ]; then
-       GDB_TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
+        GDB_TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
+    else
+        fail_panic "No GCC_VERSION to build gdb-server!"
     fi
     GDB_VERSION="--gdb-version="$(get_default_gdb_version_for_gcc $GDB_TOOLCHAIN)
     dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
@@ -158,7 +167,7 @@ fail_panic "Could not build libcrystax!"
 # todo zuav: $DEFAULT_LLVM_VERSION is 3.5 but compiler-rt 3.5 is not used yet
 if [ ! -z "$LLVM_VERSION" ]; then
    dump "Building $ABIS compiler-rt binaries..."
-   run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN
+   run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-3.4/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
    fail_panic "Could not build compiler-rt!"
 fi
 
@@ -171,7 +180,7 @@ run $BUILDTOOLS/build-cxx-stl.sh --stl=stlport --abis="$ABIS,$UNKNOWN_ABIS" $FLA
 fail_panic "Could not build stlport with debug info!"
 
 dump "Building $ABIS $UNKNOWN_ABIS libc++ binaries... with libc++abi"
-run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS,$UNKNOWN_ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
+run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS,$UNKNOWN_ABIS" $FLAGS --with-debug-info --llvm-version=$LLVM_VERSION
 fail_panic "Could not build libc++ with libc++abi and debug info!"
 
 # workaround issues in libc++/libc++abi for x86 and mips
