@@ -162,7 +162,7 @@ case $ABI in
                 ;;
             armeabi-v7a-hard)
                 macro_check __ARM_ARCH_7A__ 1     "ARMv7-A instructions (for armeabi-v7a)"
-                macro_check __ARM_PCS_VFP__ 1     "ARM hard-floating point"
+                macro_check __ARM_PCS_VFP   1     "ARM hard-floating point"
                 macro_check_undef __SOFTFP__      "ARM soft-floating point"
                 ;;
         esac
