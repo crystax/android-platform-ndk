@@ -283,7 +283,7 @@ class GCC
     Toolchain.result_keys.each do |k|
       if s[k] == []
         s[k] = 'none'
-      elsif f == []
+      elsif f[k] == []
         s[k] = 'all'
         f[k] = 'none'
       end
