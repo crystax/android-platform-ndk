@@ -152,6 +152,8 @@ else
     LOGFILE=$TMPDIR/log.txt
 fi
 echo "############################################" >> $LOGFILE
+echo " $*" >> $LOGFILE
+echo "############################################" >> $LOGFILE
 
 if [ $VERBOSE -ge 3 ]; then
     run () {
