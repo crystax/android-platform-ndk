@@ -332,14 +332,15 @@ pack_release ()
     local srcdir="$2"
     local reldir="$3"
     local ext="${archive##*.}"
+    local sys_flags=
     if [ "$ext" = "7z" ] ; then
-        sfx_flags=
+        sys_flags="-l"
         chmod_flags="a-x"
     else
-        sfx_flags="-sfx"
+        sys_flags="-sfx"
         chmod_flags="a+x"
     fi
-    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $sfx_flags"
+    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $sys_flags"
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
