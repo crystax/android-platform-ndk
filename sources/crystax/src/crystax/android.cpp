@@ -34,7 +34,8 @@
 #define CRYSTAX_DEBUG 1
 #endif
 
-#include "crystax/private.h"
+#include <crystax/private.h>
+#include <crystax/localeimpl.h>
 
 #include <stdlib.h>
 
@@ -100,14 +101,13 @@ JNIEnv *jnienv()
 static bool __crystax_init()
 {
 #define NEXT_MODULE_INIT(x) \
-    DBG("initialize " #x); \
     if (__crystax_ ## x ## _init() < 0) \
     { \
         ERR(#x " initialization failed"); \
         return false; \
     }
 
-    //NEXT_MODULE_INIT(locale);
+    NEXT_MODULE_INIT(locale);
 
 #undef NEXT_MODULE_INIT
 
