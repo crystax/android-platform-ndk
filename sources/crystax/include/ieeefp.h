@@ -1,4 +1,9 @@
 /*
+ * This library contains code from libc library of FreeBSD project which by-turn contains
+ * code from other projects. To see specific authors and/or licenses, look into appropriate
+ * source file. Here is license for those parts which are not derived from any other projects
+ * but written by CrystaX .NET.
+ *
  * Copyright (c) 2011-2014 CrystaX .NET.
  * All rights reserved.
  *
@@ -27,33 +32,13 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <pthread.h>
-#include <stdlib.h>
-#include <errno.h>
+#ifndef __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E
+#define __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E
 
-#ifndef ELAST
-#define ELAST ENOTRECOVERABLE
+#ifndef __i386__
+#error "Target architecture is not i386!"
 #endif
 
-int __crystax_isthreaded()
-{
-    return 1;
-}
+#include <machine/ieeefp.h>
 
-int const __hidden_sys_nerr = ELAST;
-
-int __crystax_freebsd__thread_autoinit_dummy_decl = 0;
-
-static pthread_mutex_t __crystax_stdio_thread_lock_var = PTHREAD_MUTEX_INITIALIZER;
-
-void __crystax_stdio_thread_lock()
-{
-    if (pthread_mutex_lock(&__crystax_stdio_thread_lock_var) != 0)
-        abort();
-}
-
-void __crystax_stdio_thread_unlock()
-{
-    if (pthread_mutex_unlock(&__crystax_stdio_thread_lock_var) != 0)
-        abort();
-}
+#endif /* __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E */

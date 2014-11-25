@@ -387,6 +387,18 @@ $(call cached,var-asmflags-$(1)-$(2),asmflags-impl,$(1),$(2))
 endef
 
 # $1: ABI
+# $2: multilib variant
+define abiflags-impl
+$(shell $(CCONF) --abiflags --abi=$(strip $(1)) --multilib=$(strip $(2)))
+endef
+
+# $1: ABI
+# $2: multilib variant
+define abiflags
+$(call cached,var-abiflags-$(1)-$(2),abiflags-impl,$(1),$(2))
+endef
+
+# $1: ABI
 # $2: multilib variant (optional)
 define ldflags-impl
 $(shell $(CCONF) --ldflags --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
@@ -532,11 +544,12 @@ $$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(MAKEFILE_LIS
 	$$(hide)$(strip $(if $(filter static,$(1)),\
 		$$(call ar,$(2),$$(TVS)) crs$$(if $$(call is-gcc,$$(TVS)),D) $$@ \
 			$$(filter-out $$(MAKEFILE_LIST),$$^),\
-		$$(call c++,$(2),$$(TVS)) $$(call linker-options,$(2),$$@) \
+		$$(call c++,$(2),$$(TVS)) \
+			$$(call abiflags,$(2),$(3)) \
+			$$(call linker-options,$(2),$$@) \
 			-L$$(call sysroot-libdir,$(2),$(3)) \
 			$$(call linker-crtfile,$(2),$(3),crtbegin_so.o) \
 			$$(call objfiles,$(1),$(2),$(3)) \
-			-lgcc \
 			$$(call ldflags,$(2),$(3)) \
 			$$(call linker-crtfile,$(2),$(3),crtend_so.o) \
 			-o $$@ \

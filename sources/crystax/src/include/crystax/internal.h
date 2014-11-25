@@ -34,6 +34,11 @@
 #include <xlocale.h>
 #include <machine/_align.h>
 
+/* Size of long double should be either 64- or 128-bit */
+#if __LDBL_MANT_DIG__ != 53 && __LDBL_MANT_DIG__ != 113
+#error "Wrong size of long double"
+#endif
+
 #define ALIGNBYTES _ALIGNBYTES
 #define ALIGN(p) _ALIGN(p)
 
