@@ -99,6 +99,7 @@ for PLATFORM in $PLATFORMS; do
 
         # Skip internal headers
         [[ ${HEADER} == "_ctype.h"    ]] && continue
+        [[ ${HEADER} == "ieeefp.h"    ]] && continue
         [[ ${HEADER##crystax/arm64/}   != $HEADER ]] && continue
         [[ ${HEADER##crystax/details}  != $HEADER ]] && continue
         [[ ${HEADER##crystax/freebsd/} != $HEADER ]] && continue
