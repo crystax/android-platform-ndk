@@ -34,6 +34,10 @@ for API_LEVEL in $API_LEVELS; do
         if [ ! -d $ANDROID_NDK_ROOT/platforms/android-$API_LEVEL/arch-$ARCH ]; then
             continue
         fi
+        # zuav: since mips64 not ready for prime time just skip it
+        if [ "$ARCH" = "mips64" ]; then
+            continue
+        fi
         HEADERS=$(cd $ANDROID_NDK_ROOT/platforms/android-$API_LEVEL/arch-$ARCH/usr/include ; ls *.h sys/*.h android/*.h EGL/*.h GLES/*.h GLES2/*.h GLES3/*.h OMXAL/*.h SLES/*.h 2> /dev/null)
         #echo $API_LEVEL $ARCH HEADERS=$HEADERS
         ABIS=$(commas_to_spaces $(convert_arch_to_abi $ARCH))
@@ -64,7 +68,6 @@ EOF
                 if [ "$ABI" != "${ABI%%64*}" ] ; then
                     if [ "$INVALID_HEADERS_FOR_64BIT" != "${INVALID_HEADERS_FOR_64BIT%%$HEADER*}" ] ; then
                         continue;
->>>>>>> google/master
                     fi
                 fi
                 NAME=$(echo "$HEADER" | tr '/' '__' | tr '.' '_' | tr '-' '_')
