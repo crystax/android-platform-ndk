@@ -43,7 +43,7 @@ TOOLCHAIN_PREFIX=`get_build_var TOOLCHAIN_PREFIX`
 OBJDUMP=${TOOLCHAIN_PREFIX}objdump
 
 # check if linker.list is empty
-ALL_SO=`find libs -name "*.so"`
+ALL_SO=`find libs -name "*.so" -a -not -name libcrystax.so -print`
 for SO in $ALL_SO; do
     NUM_LINE=`$OBJDUMP -s -j.rodata $SO | wc -l | tr -d ' '`
     if [ "$NUM_LINE" != "7" ]; then
