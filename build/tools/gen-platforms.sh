@@ -396,7 +396,9 @@ get_default_compiler_for_arch()
         elif [ -n "$OPTION_GCC_VERSION" -a "$OPTION_GCC_VERSION" != "default" ]; then
             GCC_VERSION=$OPTION_GCC_VERSION
         else
-            GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
+            # By default we want to use the first gcc (currently 4.6) instead of the default (gcc4.8)
+            # for best compatibility, at least before gcc4.6 (now deprecated) is removed from NDK package
+            GCC_VERSION=$(get_first_gcc_version_for_arch $ARCH) # $(get_default_gcc_version_for_arch $ARCH)
         fi
         for TAG in $HOST_TAG $HOST_TAG32; do
             TOOLCHAIN_PREFIX="$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)"
@@ -789,8 +791,8 @@ for ARCH in $ARCHS; do
 
             # Generate shared libraries from symbol files
             if [ "$(arch_in_unknown_archs $ARCH)" = "yes" ]; then
-                gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-target le32-none-ndk"
-                gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-target le64-none-ndk"
+                gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib "-target le32-none-ndk -emit-llvm"
+                gen_shared_libraries $ARCH $PLATFORM_SRC/arch-$ARCH/symbols $SYSROOT_DST/lib64 "-target le64-none-ndk -emit-llvm"
             else
                 case "$ARCH" in
                     x86_64)

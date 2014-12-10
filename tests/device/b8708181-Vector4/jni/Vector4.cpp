@@ -1,5 +1,17 @@
 #include <stdio.h>
 
+#if defined(__clang__) && defined(__aarch64__) && (__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ <= 4))
+/* Disable test for clang3.4/aarch64 because it cause the following error:
+   ..../lib/clang/3.4/include/arm_neon.h:65:24: error: 'neon_vector_type' attribute is not
+   supported for this target
+ */
+int main()
+{
+    return 0;
+}
+
+#else
+
 #if defined(__arm__) || defined(__aarch64__)
 #include <arm_neon.h>
 #define SP  "sp"
@@ -10,11 +22,11 @@ typedef __m128 float32x4_t;
 #elif defined(__mips__)  // mipsel64- defines __mips__ too
 #define SP  "sp"
 typedef float float32x4_t __attribute__ ((__vector_size__ (16)));
-#elif !defined(__le32__)
+#elif !defined(__le32__) && !defined(__le64__)
 #error unknown arch for type float32x4_t
 #endif
 
-#ifndef __le32__
+#if !defined(__le32__) && !defined(__le64__)
 class Vector4
 {
   public:
@@ -65,11 +77,12 @@ int main()
     return 0;
 }
 
-#else // __le32__
+#else // __le32__ ||  __le64__
 
 int main()
 {
     return 0; // Skip this test (Should not assume vector4 type on le32 triple)
 }
 
+#endif
 #endif

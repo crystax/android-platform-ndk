@@ -56,7 +56,7 @@ TargetAbi::TargetAbi(const std::string &abi) {
 
 
 BitcodeInfo::BitcodeInfo(const std::string &bc)
-  : mShared(false), mBCPath(bc) {
+  : mShared(false), mStatic(false), mBCPath(bc) {
   std::string stem = mBCPath.substr(0, mBCPath.rfind("."));
   mTargetBCPath = stem + "-target.bc";
   mObjPath = stem + ".o";
@@ -151,7 +151,7 @@ BitcodeCompiler::BitcodeCompiler(const std::string &abi, const std::string &sysr
   mGlobalCFlags += std::string(" -mtriple=") + kGlobalTargetAttrs[mAbi].mTriple;
   mGlobalCFlags += " -filetype=obj -mc-relax-all";
   mGlobalCFlags += " -relocation-model=pic -code-model=small -use-init-array";
-  mGlobalCFlags += " -ffunction-sections";
+  mGlobalCFlags += " " OPTION_FUNCTION_SECTION;
 
   // LDFlags
   mGlobalLDFlags = kGlobalTargetAttrs[mAbi].mBaseLDFlags;
@@ -236,6 +236,9 @@ void BitcodeCompiler::link() {
           cmd += std::string(" ") + mSysroot + "/usr/" + libdir + "/crtbegin_so.o";
           cmd += " -shared " + bc.mObjPath + " -o " + bc.mOutPath;
           cmd += " -soname " + bc.mSOName;
+        } else if (bc.mStatic) {
+          cmd += std::string(" ") + mSysroot + "/usr/" + libdir + "/crtbegin_static.o";
+          cmd += " " + bc.mObjPath + " -o " + bc.mOutPath;
         } else {
           cmd += std::string(" ") + mSysroot + "/usr/" + libdir + "/crtbegin_dynamic.o";
           cmd += " " + bc.mObjPath + " -o " + bc.mOutPath;
@@ -245,6 +248,10 @@ void BitcodeCompiler::link() {
         cmd += " " + mGlobalLDLibs;
         cmd += " " + bc.mLDLibsStr;
         cmd += " " + mExecutableToolsPath[(unsigned)CMD_LINK_RUNTIME];
+        if (!bc.mStatic)
+          cmd += std::string(" -ldl");
+        cmd += std::string(" -lc -lm"); // Libportable may uses libc symbols
+
         if (bc.mShared)
           cmd += std::string(" ") + mSysroot + "/usr/" + libdir + "/crtend_so.o";
         else

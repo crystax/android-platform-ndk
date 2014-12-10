@@ -712,11 +712,19 @@ is_incompatible_abi ()
         local APP_ABIS=`get_build_var $PROJECT APP_ABI`
         APP_ABIS=$APP_ABIS" "
         if [ "$APP_ABIS" != "${APP_ABIS%%all*}" ] ; then
-        # replace the first "all" with all available ABIs
-          ALL_ABIS=`get_build_var $PROJECT NDK_ALL_ABIS`
-          APP_ABIS_FRONT="${APP_ABIS%%all*}"
-          APP_ABIS_BACK="${APP_ABIS#*all}"
-          APP_ABIS="${APP_ABIS_FRONT}${ALL_ABIS}${APP_ABIS_BACK}"
+        # replace "all", "all32" and "all64"
+          _EXPANDED=`get_build_var $PROJECT NDK_APP_ABI_ALL_EXPANDED`
+          _FRONT="${APP_ABIS%%all*}"
+          _BACK="${APP_ABIS#*all}"
+          APP_ABIS="${_FRONT}${_EXPANDED}${_BACK}"
+          _EXPANDED=`get_build_var $PROJECT NDK_APP_ABI_ALL32_EXPANDED`
+          _FRONT="${APP_ABIS%%all32*}"
+          _BACK="${APP_ABIS#*all32}"
+          APP_ABIS="${_FRONT}${_EXPANDED}${_BACK}"
+          _EXPANDED=`get_build_var $PROJECT NDK_APP_ABI_ALL64_EXPANDED`
+          _FRONT="${APP_ABIS%%all64*}"
+          _BACK="${APP_ABIS#*all64}"
+          APP_ABIS="${_FRONT}${_EXPANDED}${_BACK}"
         fi
         if [ "$APP_ABIS" = "${APP_ABIS%$ABI *}" ] ; then
             dump "Skipping `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
@@ -1077,9 +1085,11 @@ if is_testable device; then
                 echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm $DSTPATH"
-            for DATA in $(ls $DATAPATHS); do
-                adb_var_shell_cmd "$DEVICE" "" "rm $DSTDIR/`basename $DATA`"
-            done
+            if [ -n "$DATAPATHS" ]; then
+                for DATA in $(ls $DATAPATHS); do
+                    adb_var_shell_cmd "$DEVICE" "" "rm $DSTDIR/`basename $DATA`"
+                done
+            fi
         done
         # Cleanup
         adb_var_shell_cmd "$DEVICE" "" rm -r $DSTDIR
@@ -1137,7 +1147,7 @@ if is_testable device; then
             adb_var_shell_cmd "$DEVICE" CPU_ABI2 getprop ro.product.cpu.abi2
             CPU_ABIS="$CPU_ABI1,$CPU_ABI2"
             CPU_ABIS=$(commas_to_spaces $CPU_ABIS)
-            if [ "$_NDK_TESTING_ALL_" = "yes" ]; then
+            if [ -n "$_NDK_TESTING_ALL_" ]; then
                 if [ "$CPU_ABI1" = "armeabi-v7a" -o "$CPU_ABI2" = "armeabi-v7a" ]; then
                     CPU_ABIS="$CPU_ABIS armeabi-v7a-hard"
                 fi

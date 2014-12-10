@@ -170,6 +170,12 @@ build_gnustl_for_abi ()
         exit 1
     fi
 
+    EXTRA_FLAGS="-ffunction-sections -fdata-sections"
+    if [ -n "$THUMB" ] ; then
+        EXTRA_FLAGS="$EXTRA_FLAGS -mthumb"
+        EXTRA_FLAGS="$EXTRA_FLAGS -minline-thumb1-jumptable"
+    fi
+
     case $ARCH in
         arm)
             BUILD_HOST=arm-linux-androideabi
@@ -191,11 +197,6 @@ build_gnustl_for_abi ()
             ;;
     esac
 
-    EXTRA_FLAGS="-ffunction-sections -fdata-sections"
-    if [ -n "$THUMB" ] ; then
-        EXTRA_FLAGS="-mthumb"
-        EXTRA_FLAGS="$EXTRA_FLAGS -minline-thumb1-jumptable"
-    fi
     CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
     CPPFLAGS="$CPPFLAGS --sysroot=$SYSROOT"
@@ -244,6 +245,11 @@ build_gnustl_for_abi ()
             CXXFLAGS=$CXXFLAGS" -mfix-cortex-a53-835769"
             ;;
     esac
+
+    if [ "$ABI" = "armeabi" -o "$ABI" = "armeabi-v7a" -o "$ABI" = "armeabi-v7a-hard" ]; then
+        CFLAGS=$CFLAGS" -minline-thumb1-jumptable"
+        CXXFLAGS=$CXXFLAGS" -minline-thumb1-jumptable"
+    fi
 
     LIBTYPE_FLAGS=
     if [ $LIBTYPE = "static" ]; then
@@ -427,11 +433,11 @@ for VERSION in $GCC_VERSION_LIST; do
 done
 for ABI in $ABIS; do
     ARCH=$(convert_abi_to_arch $ABI)
-    DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
-    echo "Default GCC version for $ABI ($ARCH) : $DEFAULT_GCC_VERSION"
+    FIRST_GCC_VERSION=$(get_first_gcc_version_for_arch $ARCH)
+    echo "First GCC version for $ABI ($ARCH) : $FIRST_GCC_VERSION"
     for VERSION in $GCC_VERSION_LIST; do
-        # Only build for this GCC version if it on or after DEFAULT_GCC_VERSION
-        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_greater_than "${VERSION%%l}" "$DEFAULT_GCC_VERSION"; then
+        # Only build for this GCC version if it on or after FIRST_GCC_VERSION
+        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_at_least "${VERSION%%l}" "$FIRST_GCC_VERSION"; then
             echo "Skipping build for GCC $VERSION for $ABI ($ARCH)"
             continue
         fi
