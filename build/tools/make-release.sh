@@ -97,8 +97,7 @@ ONLY_64_FLAG=
 register_option "--only-64" do_ONLY_64 "Build only 64-bit host toolchain"
 do_ONLY_64 () { ONLY_64_FLAG="--try-64"; SEPARATE_64_FLAG="--try-64"; }
 
-ARCHS=$(find_ndk_unknown_archs)
-ARCHS="$DEFAULT_ARCHS $ARCHS"
+ARCHS="$DEFAULT_ARCHS"
 register_var_option "--arch=<arch>" ARCHS "Specify target architectures"
 
 TOOLCHAIN_SRCDIR=
