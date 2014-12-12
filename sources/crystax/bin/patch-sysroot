@@ -231,7 +231,7 @@ for apilevel in $APILEVELS; do
         if [ "$PATCH_LIBRARIES" = "yes" ]; then
             dump "Generating CrystaX libraries in \$DST/$sysroot"
 
-            for lib in libcrystax.a libcrystax.so; do
+            for lib in libcrystax.a libcrystax.so libm.a libm.so libm_hard.a; do
                 run find $NDK_DIR/$sysroot -name $lib -delete
                 fail_panic "Couldn't cleanup sysroot"
             done
@@ -266,6 +266,11 @@ for apilevel in $APILEVELS; do
                             run ln -s $crelpath $dstlibpath/
                             fail_panic "Couldn't symlink $lib to $sysroot"
                         fi
+                    done
+
+                    for lib in libm.a libm_hard.a; do
+                        run cp -f $CRYSTAX_DIR/empty/libcrystax.a $dstlibpath/$lib
+                        fail_panic "Couldn't create empty $lib in $sysroot"
                     done
                 done
             done

@@ -89,6 +89,11 @@
 #define __weak_reference(s, a) __weak_alias(s, a)
 #endif
 
+#ifndef __warn_references
+#define __warn_references(sym, msg) \
+    __asm__(".section .gnu.warning." #sym "\n\t.ascii \"" msg "\"\n\t.text");
+#endif
+
 #ifndef __strong_reference
 #define __strong_reference(sym,aliassym) \
     extern __typeof (sym) aliassym __attribute__ ((__alias__ (#sym)))

@@ -94,7 +94,7 @@ bool IsSystemLibrary(const char* lib_name) {
       "libandroid.so",   "libc.so",         "libdl.so",     "libjnigraphics.so",
       "liblog.so",       "libm.so",         "libstdc++.so", "libz.so",
       "libEGL.so",       "libGLESv1_CM.so", "libGLESv2.so", "libGLESv3.so",
-      "libOpenMAXAL.so", "libOpenSLES.so", };
+      "libOpenMAXAL.so", "libOpenSLES.so",  "libcrystax.so" };
   const size_t kSize = sizeof(kSystemLibs) / sizeof(kSystemLibs[0]);
   const char* base_name = ::strrchr(lib_name, '/');
   if (!base_name)

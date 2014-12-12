@@ -39,31 +39,26 @@
 #include <crystax/ctassert.h>
 #include <crystax/localeimpl.h>
 
-/* BZip2 compressed af_ZA.ISO8859-1 LC_MESSAGES locale data */
+/* af_ZA.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed af_ZA.ISO8859-1 LC_MONETARY locale data */
+/* af_ZA.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_e77de040f5f7a8474db16baec9a524791f03815b969fc406975d33977ef0ca5c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCC,0xDB,0xF1,0x6D,0x00,0x00,
-    0x10,0xDE,0x00,0x00,0x10,0x40,0x07,0x78,0x08,0x20,0x00,0x10,0x10,0x20,0x00,0x31,
-    0x00,0xD0,0x00,0xD1,0xA9,0xA1,0xE4,0x9A,0x2F,0x1A,0x41,0xB0,0x4A,0x6E,0x92,0x88,
-    0x17,0x37,0x87,0x27,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x19,0x9B,0x7E,0x2D,0xA0
+    0x5A,0x41,0x52,0x20,0x0A,0x52,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e77de040f5f7a8474db16baec9a524791f03815b969fc406975d33977ef0ca5c) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e77de040f5f7a8474db16baec9a524791f03815b969fc406975d33977ef0ca5c) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed af_ZA.ISO8859-1 LC_NUMERIC locale data */
+/* af_ZA.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_b62cc548fd428ed75d0bb84710ac6a27bea4cf00823aba3d89955c63cf280f48[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b62cc548fd428ed75d0bb84710ac6a27bea4cf00823aba3d89955c63cf280f48) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b62cc548fd428ed75d0bb84710ac6a27bea4cf00823aba3d89955c63cf280f48) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed am_ET.UTF-8 LC_CTYPE locale data */
 static uint8_t  __crystax_locale_blob_1c7a57d8f7a459e5e0d226b6a20fb96365679d360fe09be748402c38286d21a0[] = {
@@ -119,33 +114,28 @@ static uint8_t  __crystax_locale_blob_1c7a57d8f7a459e5e0d226b6a20fb96365679d360f
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1c7a57d8f7a459e5e0d226b6a20fb96365679d360fe09be748402c38286d21a0) == 772, "Wrong size of locale's blob");
 
-/* BZip2 compressed am_ET.UTF-8 LC_MESSAGES locale data */
+/* am_ET.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_7933b309a0b751aa45fe67cd9234225cda9927c7f41fd3f64f2edf3607ca7fd4[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xAF,0x1B,0x4D,0xF3,0x00,0x00,
-    0x07,0xD7,0xF1,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x20,
-    0x58,0x02,0x00,0x40,0x02,0x20,0x00,0x20,0x00,0x21,0x28,0x93,0x27,0xA9,0xFA,0x88,
-    0xD3,0xC8,0x53,0x4C,0x8C,0x4C,0x4C,0x47,0xD8,0xFD,0x10,0x2C,0xE4,0x49,0x08,0xF4,
-    0x28,0x66,0xD8,0xDF,0x85,0x04,0x84,0x4D,0x59,0xED,0xC1,0x77,0x24,0x53,0x85,0x09,
-    0x0A,0xF1,0xB4,0xDF,0x30
+    0x5E,0x5B,0xE1,0x8B,0xAD,0xE1,0x88,0x81,0xE1,0x8A,0x95,0x79,0x59,0x5D,0x2E,0x2A,
+    0x0A,0x5E,0x5B,0xE1,0x8A,0xA0,0xE1,0x8B,0xAD,0xE1,0x88,0x81,0xE1,0x8A,0x95,0x6E,
+    0x4E,0x5D,0x2E,0x2A,0x0A,0xE1,0x8B,0xAD,0xE1,0x88,0x81,0xE1,0x8A,0x95,0x0A,0xE1,
+    0x8A,0xA0,0xE1,0x8B,0xAD,0xE1,0x88,0x81,0xE1,0x8A,0x95,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7933b309a0b751aa45fe67cd9234225cda9927c7f41fd3f64f2edf3607ca7fd4) == 85, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7933b309a0b751aa45fe67cd9234225cda9927c7f41fd3f64f2edf3607ca7fd4) == 60, "Wrong size of locale's blob");
 
-/* BZip2 compressed am_ET.UTF-8 LC_MONETARY locale data */
+/* am_ET.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_fb4794bd5b713e95c5005257777d1645ca584853723fdf5bb3725ac159ef5784[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x23,0x46,0x6D,0x7A,0x00,0x00,
-    0x10,0x5E,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x12,0x00,0x04,0x00,0x20,0x00,0x21,
-    0xA9,0xB4,0x41,0xEA,0x7A,0x9A,0x10,0x00,0x01,0x1D,0x4D,0x70,0x24,0x09,0x4A,0x5E,
-    0xC0,0xC3,0x87,0x66,0xFE,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0x46,0x8C,0xDA,0xF4
+    0x45,0x54,0x42,0x20,0x0A,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fb4794bd5b713e95c5005257777d1645ca584853723fdf5bb3725ac159ef5784) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fb4794bd5b713e95c5005257777d1645ca584853723fdf5bb3725ac159ef5784) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed am_ET.UTF-8 LC_NUMERIC locale data */
+/* am_ET.UTF-8 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_c80301ce26dcaa16da8f976d564b242a4bedb016d88ab2c630c5cc5b40a5d662[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c80301ce26dcaa16da8f976d564b242a4bedb016d88ab2c630c5cc5b40a5d662) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c80301ce26dcaa16da8f976d564b242a4bedb016d88ab2c630c5cc5b40a5d662) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed am_ET.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_dd17b3f3f5335e56d2c8f5a65e0596720ebf66c9d8c014b80b0746acd802ad8f[] = {
@@ -286,25 +276,20 @@ static uint8_t  __crystax_locale_blob_20be345810249c9cd73f01119db93e094413517de3
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_20be345810249c9cd73f01119db93e094413517de34fa249d5b5644cfa3c2aea) == 899, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.CP1131 LC_MESSAGES locale data */
+/* be_BY.CP1131 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_115f88e876207067e1abb1cca5616254c96bfa80638c76470b1af7411dd06ddf[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x5A,0x0F,0x41,0xD6,0x00,0x00,
-    0x07,0xD7,0xF1,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x02,0x10,0x00,0x42,0x12,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x3D,
-    0x40,0x1E,0x84,0x68,0x63,0xB5,0xB8,0xD8,0x4C,0xC1,0x24,0x1E,0x3D,0x20,0xCC,0xE4,
-    0x9F,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x2D,0x07,0xA0,0xEB,0x00
+    0x5E,0x5B,0xE2,0x92,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xAD,0x8D,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE2,0xA0,0xAA,0x0A,0xAD,0xA5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_115f88e876207067e1abb1cca5616254c96bfa80638c76470b1af7411dd06ddf) == 76, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_115f88e876207067e1abb1cca5616254c96bfa80638c76470b1af7411dd06ddf) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.CP1131 LC_MONETARY locale data */
+/* be_BY.CP1131 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_cac1e34dfdc6569c8897ea6bc7cacaccdab7c22f850766e6e1d57d3c4e2ee8f8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xDC,0x06,0x9D,0x53,0x00,0x00,
-    0x0F,0xDE,0x11,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x10,0x20,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x12,0x40,0x10,0x60,0xCC,0xD3,0x57,0xC5,0xDC,
-    0x91,0x4E,0x14,0x24,0x37,0x01,0xA7,0x54,0xC0
+    0x42,0x59,0x52,0x20,0x0A,0xE0,0xE3,0xA1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cac1e34dfdc6569c8897ea6bc7cacaccdab7c22f850766e6e1d57d3c4e2ee8f8) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cac1e34dfdc6569c8897ea6bc7cacaccdab7c22f850766e6e1d57d3c4e2ee8f8) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed be_BY.CP1131 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_468c22abad44e99854a1dc74bb8838c90006a5a13bec83069d89d04b7a025b18[] = {
@@ -383,33 +368,26 @@ static uint8_t  __crystax_locale_blob_3365f7493bb9d3fb943387168fa5714c2496b98c23
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3365f7493bb9d3fb943387168fa5714c2496b98c23793eb73e737f795e794a5a) == 779, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.CP1251 LC_MESSAGES locale data */
+/* be_BY.CP1251 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_eb3a423ecc2cc7c7893ee48d239842d61597634ce2a2f8e5784be4d44747ac7f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x7C,0x0B,0xF0,0x47,0x00,0x00,
-    0x07,0xD7,0x87,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x02,0x10,0x00,0x42,0x12,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x3D,
-    0x40,0x1E,0x84,0x68,0x63,0xB5,0xB8,0xD8,0x4C,0xC1,0x24,0x1E,0x3D,0x20,0xCC,0xE4,
-    0x9F,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x3E,0x05,0xF8,0x23,0x80
+    0x5E,0x5B,0xF2,0xD2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xED,0xCD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xF2,0xE0,0xEA,0x0A,0xED,0xE5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_eb3a423ecc2cc7c7893ee48d239842d61597634ce2a2f8e5784be4d44747ac7f) == 76, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_eb3a423ecc2cc7c7893ee48d239842d61597634ce2a2f8e5784be4d44747ac7f) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.CP1251 LC_MONETARY locale data */
+/* be_BY.CP1251 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b2e1949aa0823f3515284a27bafcc6754b41966db0ebbce38a234f9a80524f55[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xEF,0x2B,0xCA,0x64,0x00,0x00,
-    0x0F,0xDE,0x01,0x80,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x10,0x20,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x12,0x40,0x10,0x60,0xCC,0xD3,0x57,0xC5,0xDC,
-    0x91,0x4E,0x14,0x24,0x3B,0xCA,0xF2,0x99,0x00
+    0x42,0x59,0x52,0x20,0x0A,0xF0,0xF3,0xE1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b2e1949aa0823f3515284a27bafcc6754b41966db0ebbce38a234f9a80524f55) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b2e1949aa0823f3515284a27bafcc6754b41966db0ebbce38a234f9a80524f55) == 37, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.CP1251 LC_NUMERIC locale data */
+/* be_BY.CP1251 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_eb031fdf489e8b1c7565475b064767a7252f7d48a1f7405e290f0d898d2dddb2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_eb031fdf489e8b1c7565475b064767a7252f7d48a1f7405e290f0d898d2dddb2) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_eb031fdf489e8b1c7565475b064767a7252f7d48a1f7405e290f0d898d2dddb2) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed be_BY.CP1251 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_159b5768e14e294358f661602773514fc0d18fc9cc2a3e66a1f9d8d5cce0a89d[] = {
@@ -490,25 +468,20 @@ static uint8_t  __crystax_locale_blob_d6f383ec4e1d7325063f66e746ee508283dd8ee1cf
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d6f383ec4e1d7325063f66e746ee508283dd8ee1cfd9c67180ad4a80bb8f8767) == 805, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.ISO8859-5 LC_MESSAGES locale data */
+/* be_BY.ISO8859-5 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_0c4d5c9808f5b43e43ce27f3bc46c388012e8fb46a76d210f1fdef98061920cb[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x64,0x6A,0xA8,0x6D,0x00,0x00,
-    0x07,0xD7,0x8F,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x02,0x10,0x00,0x42,0x12,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x3D,
-    0x40,0x1E,0x84,0x68,0x63,0xB5,0xB8,0xD8,0x4C,0xC1,0x24,0x1E,0x3D,0x20,0xCC,0xE4,
-    0x9F,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x32,0x35,0x54,0x36,0x80
+    0x5E,0x5B,0xE2,0xC2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xDD,0xBD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE2,0xD0,0xDA,0x0A,0xDD,0xD5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0c4d5c9808f5b43e43ce27f3bc46c388012e8fb46a76d210f1fdef98061920cb) == 76, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0c4d5c9808f5b43e43ce27f3bc46c388012e8fb46a76d210f1fdef98061920cb) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.ISO8859-5 LC_MONETARY locale data */
+/* be_BY.ISO8859-5 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f54039248098acd0614b50b48a477da224b7f3670c70c9bc9a0ac0758bc90e0f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x50,0x2C,0xB1,0xDE,0x00,0x00,
-    0x0F,0xDE,0x03,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x10,0x20,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x12,0x40,0x10,0x60,0xCC,0xD3,0x57,0xC5,0xDC,
-    0x91,0x4E,0x14,0x24,0x14,0x0B,0x2C,0x77,0x80
+    0x42,0x59,0x52,0x20,0x0A,0xE0,0xE3,0xD1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f54039248098acd0614b50b48a477da224b7f3670c70c9bc9a0ac0758bc90e0f) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f54039248098acd0614b50b48a477da224b7f3670c70c9bc9a0ac0758bc90e0f) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed be_BY.ISO8859-5 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_cb3ae5dca75b7c9ae157001748bc6d822c4858fd609bdb53cf88e4f67ced6fea[] = {
@@ -533,27 +506,21 @@ static uint8_t  __crystax_locale_blob_cb3ae5dca75b7c9ae157001748bc6d822c4858fd60
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cb3ae5dca75b7c9ae157001748bc6d822c4858fd609bdb53cf88e4f67ced6fea) == 278, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.UTF-8 LC_MESSAGES locale data */
+/* be_BY.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_d0e72dfb43490f8187fc6cd4f3dc28dbf3dde32840fcd3a390150c1291304668[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCF,0x45,0xF5,0x75,0x00,0x00,
-    0x07,0xD7,0xFA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x10,
-    0x00,0x00,0x02,0x10,0x00,0x42,0x12,0x60,0x00,0x20,0x00,0x21,0xA2,0x03,0x4C,0x80,
-    0xF5,0x0A,0x64,0xC4,0xC8,0x32,0x31,0x77,0xC9,0x50,0x30,0x78,0x80,0xEE,0xE3,0x5B,
-    0x20,0xA2,0x1F,0x05,0x25,0x95,0x7E,0x2E,0xE4,0x8A,0x70,0xA1,0x21,0x9E,0x8B,0xEA,
-    0xEA
+    0x5E,0x5B,0xD1,0x82,0xD0,0xA2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xBD,
+    0xD0,0x9D,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD1,0x82,0xD0,0xB0,0xD0,0xBA,0x0A,0xD0,
+    0xBD,0xD0,0xB5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d0e72dfb43490f8187fc6cd4f3dc28dbf3dde32840fcd3a390150c1291304668) == 81, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d0e72dfb43490f8187fc6cd4f3dc28dbf3dde32840fcd3a390150c1291304668) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed be_BY.UTF-8 LC_MONETARY locale data */
+/* be_BY.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_52efdde10ea62a67946e4e4d44be3ff44883b355af157ef14cd7c245a4a6d37b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x72,0xF5,0xCE,0xC9,0x00,0x00,
-    0x0F,0xDE,0x4A,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x10,0x20,0x48,0x00,0x20,
-    0x00,0x60,0x00,0x20,0x00,0x31,0x4D,0x32,0x31,0x31,0x31,0x06,0xA7,0xA9,0xA9,0xEA,
-    0x3F,0x54,0xDA,0x6A,0x1F,0xAA,0x28,0x98,0x49,0x02,0x32,0x94,0x19,0xA2,0x3D,0x20,
-    0x0A,0x34,0x6E,0xD8,0x6E,0x5F,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x0E,0x5E,0xB9,0xD9,
-    0x20
+    0x42,0x59,0x52,0x20,0x0A,0xD1,0x80,0xD1,0x83,0xD0,0xB1,0x2E,0x0A,0x2C,0x0A,0x20,
+    0x0A,0x33,0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,
+    0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_52efdde10ea62a67946e4e4d44be3ff44883b355af157ef14cd7c245a4a6d37b) == 81, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_52efdde10ea62a67946e4e4d44be3ff44883b355af157ef14cd7c245a4a6d37b) == 40, "Wrong size of locale's blob");
 
 /* BZip2 compressed be_BY.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_22162ef6b8b722f6bec0452a7109590c8fd403a97d0ccf30c096dbe7b3a86e52[] = {
@@ -696,33 +663,26 @@ static uint8_t  __crystax_locale_blob_9fbf92515e9618e04064da740e46a25dccd95ddc0a
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9fbf92515e9618e04064da740e46a25dccd95ddc0a726f65760f74e00b887db5) == 943, "Wrong size of locale's blob");
 
-/* BZip2 compressed bg_BG.CP1251 LC_MESSAGES locale data */
+/* bg_BG.CP1251 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_78899c7f7f8b53cc2ed3edeb2b8eaaeb2e3ae55f86cba862780fd4c27f77c734[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xA0,0x4C,0xE9,0x90,0x00,0x00,
-    0x07,0x57,0x85,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x20,0x00,0x21,0xA8,0xF5,0x00,0xF4,0x08,0x53,0x00,0x04,0xD2,0x48,
-    0x8C,0x8E,0x84,0xCC,0x12,0x42,0x22,0x6A,0xF5,0xAC,0x13,0xF1,0x77,0x24,0x53,0x85,
-    0x09,0x0A,0x04,0xCE,0x99,0x00
+    0x5E,0x5B,0xE4,0xC4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xED,0xCD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE4,0xE0,0x0A,0xED,0xE5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_78899c7f7f8b53cc2ed3edeb2b8eaaeb2e3ae55f86cba862780fd4c27f77c734) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_78899c7f7f8b53cc2ed3edeb2b8eaaeb2e3ae55f86cba862780fd4c27f77c734) == 26, "Wrong size of locale's blob");
 
-/* BZip2 compressed bg_BG.CP1251 LC_MONETARY locale data */
+/* bg_BG.CP1251 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b58113b68d5850f2da8b8a52f36a9fbc410495900474f6363bd59452f1298aa7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x63,0xCB,0x46,0x08,0x00,0x00,
-    0x0F,0xDC,0x01,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x81,0x10,0x08,0x20,0x00,0x31,
-    0x4C,0x00,0x00,0xD4,0xF5,0x3D,0x4D,0x1E,0xA3,0x20,0xD4,0x26,0xD8,0x22,0xED,0xA3,
-    0x14,0x47,0x48,0x02,0x4C,0x9A,0xEF,0x97,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x18,0xF2,
-    0xD1,0x82,0x00
+    0x42,0x47,0x4E,0x20,0x0A,0xEB,0xE2,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b58113b68d5850f2da8b8a52f36a9fbc410495900474f6363bd59452f1298aa7) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b58113b68d5850f2da8b8a52f36a9fbc410495900474f6363bd59452f1298aa7) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed bg_BG.CP1251 LC_NUMERIC locale data */
+/* bg_BG.CP1251 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_3cb596d30b5b86a45b379afb6dc6a8ab18631dee1adace0c17e59247b720483e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3cb596d30b5b86a45b379afb6dc6a8ab18631dee1adace0c17e59247b720483e) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3cb596d30b5b86a45b379afb6dc6a8ab18631dee1adace0c17e59247b720483e) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed bg_BG.CP1251 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_4a60886611ae386874df841ce054dc38f4e1628c4942e649c9113372580b91a3[] = {
@@ -745,25 +705,21 @@ static uint8_t  __crystax_locale_blob_4a60886611ae386874df841ce054dc38f4e1628c49
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_4a60886611ae386874df841ce054dc38f4e1628c4942e649c9113372580b91a3) == 253, "Wrong size of locale's blob");
 
-/* BZip2 compressed bg_BG.UTF-8 LC_MESSAGES locale data */
+/* bg_BG.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_daf87376ffe7540fd6f59f8c8807c102d37a3b6a4d54af7e91e7e872fd853672[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x84,0x77,0x38,0x2F,0x00,0x00,
-    0x07,0x57,0xAA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x40,0x00,0x20,0x00,0x21,0x2A,0x34,0x03,0xD4,0x68,0xD0,0xA1,0xA6,
-    0x98,0x00,0xEB,0x0F,0x53,0x22,0xDE,0xC4,0x90,0xEF,0x00,0x7A,0x27,0x17,0xA3,0x37,
-    0xC5,0xDC,0x91,0x4E,0x14,0x24,0x21,0x1D,0xCE,0x0B,0xC0
+    0x5E,0x5B,0xD0,0xB4,0xD0,0x94,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xBD,
+    0xD0,0x9D,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD0,0xB4,0xD0,0xB0,0x0A,0xD0,0xBD,0xD0,
+    0xB5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_daf87376ffe7540fd6f59f8c8807c102d37a3b6a4d54af7e91e7e872fd853672) == 75, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_daf87376ffe7540fd6f59f8c8807c102d37a3b6a4d54af7e91e7e872fd853672) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed bg_BG.UTF-8 LC_MONETARY locale data */
+/* bg_BG.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_59abcff540d2355a60968c6d60f1a47c2ace6d4576804a4f5ad7c5104b57dc61[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC0,0x67,0x55,0x5D,0x00,0x00,
-    0x0F,0xDC,0x0A,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x81,0x10,0x08,0x40,0x00,0x20,
-    0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x62,0x05,0x30,0x00,0x4D,0x13,0x3B,0x24,0x81,
-    0x17,0x49,0x8B,0xC9,0x14,0x40,0x10,0x60,0xCD,0x78,0x7B,0x1F,0x17,0x72,0x45,0x38,
-    0x50,0x90,0xC0,0x67,0x55,0x5D
+    0x42,0x47,0x4E,0x20,0x0A,0xD0,0xBB,0xD0,0xB2,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,
+    0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_59abcff540d2355a60968c6d60f1a47c2ace6d4576804a4f5ad7c5104b57dc61) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_59abcff540d2355a60968c6d60f1a47c2ace6d4576804a4f5ad7c5104b57dc61) == 38, "Wrong size of locale's blob");
 
 /* BZip2 compressed bg_BG.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_7724f9126aa8dddea09d6ec9098fc199fa11d63f99b128826fb71bed3fbfcb60[] = {
@@ -854,31 +810,26 @@ static uint8_t  __crystax_locale_blob_eb974ed0a2c91380b75a6c5548bee9627cd3b5246e
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_eb974ed0a2c91380b75a6c5548bee9627cd3b5246ed216951d5daa9019c384bc) == 978, "Wrong size of locale's blob");
 
-/* BZip2 compressed ca_ES.ISO8859-1 LC_MESSAGES locale data */
+/* ca_ES.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_970b925cd8dc26204adf45288e33e902785358369575e1666381f7ce2f3ebefb[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x26,0x4B,0xA8,0xA4,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x08,0x2B,0x00,0x01,0x08,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x98,0x90,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x02,0x64,0xBA,0x8A,0x40
+    0x5E,0x5B,0x73,0x53,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_970b925cd8dc26204adf45288e33e902785358369575e1666381f7ce2f3ebefb) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_970b925cd8dc26204adf45288e33e902785358369575e1666381f7ce2f3ebefb) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed ca_ES.ISO8859-1 LC_MONETARY locale data */
+/* ca_ES.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_cee2ea78c539874d6590db391ba81a149b64594f7ddd3997a67bc41a7b43bd07[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x84,0x1A,0x25,0x2D,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x68,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0x8A,0x06,0xD4,0xD3,0xD4,0x20,0x1A,0x00,0xA9,0x8D,0x6E,0x83,0x21,0xA7,
-    0xEA,0x24,0x5A,0xB4,0x24,0x1F,0x17,0x72,0x45,0x38,0x50,0x90,0x84,0x1A,0x25,0x2D
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cee2ea78c539874d6590db391ba81a149b64594f7ddd3997a67bc41a7b43bd07) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cee2ea78c539874d6590db391ba81a149b64594f7ddd3997a67bc41a7b43bd07) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed ca_ES.ISO8859-1 LC_NUMERIC locale data */
+/* ca_ES.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_efe0d5320672e8d9deb80d8b738b64a644841ccdc6779fcdc923ff4a2b538837[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x70,0x2F,0xBC,0xC7,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x06,0x20,0x00,0x20,0x00,0x21,0x9A,0x68,0x33,0x4D,
-    0x07,0x57,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x38,0x17,0xDE,0x63,0x80
+    0x2C,0x0A,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_efe0d5320672e8d9deb80d8b738b64a644841ccdc6779fcdc923ff4a2b538837) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_efe0d5320672e8d9deb80d8b738b64a644841ccdc6779fcdc923ff4a2b538837) == 6, "Wrong size of locale's blob");
 
 /* BZip2 compressed ca_ES.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_5ecf773e99e390df85ce27b2fe40e8dae4381decb88d21664876f5feb5114aa5[] = {
@@ -971,15 +922,13 @@ static uint8_t  __crystax_locale_blob_967913fc34bbd60f89d096551a9e83c2fe96bcde5e
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_967913fc34bbd60f89d096551a9e83c2fe96bcde5e3964890e1685120f476625) == 1038, "Wrong size of locale's blob");
 
-/* BZip2 compressed ca_ES.UTF-8 LC_MONETARY locale data */
+/* ca_ES.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_83d0be7f8909feff174f2b3d1eebb560565992906d449f8678aa6ee01001f772[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1E,0x23,0x12,0x81,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x68,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x01,0x19,0x46,0x8D,0xA9,0xA6,0x9A,0x47,
-    0xB0,0xFA,0x86,0x41,0x91,0x5D,0x80,0x1A,0x4C,0x9A,0xAB,0xB7,0xF8,0xBB,0x92,0x29,
-    0xC2,0x84,0x80,0xF1,0x18,0x94,0x08
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_83d0be7f8909feff174f2b3d1eebb560565992906d449f8678aa6ee01001f772) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_83d0be7f8909feff174f2b3d1eebb560565992906d449f8678aa6ee01001f772) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed ca_ES.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_2b4620071699832976286b7417b626ed119efe20443a2e8ebaa3088897ead4ce[] = {
@@ -1068,32 +1017,26 @@ static uint8_t  __crystax_locale_blob_1ddd36758d49f9ef9a37db25557f37cd49b0f9b4b9
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1ddd36758d49f9ef9a37db25557f37cd49b0f9b4b9d3ebdbaf4e6d889322b8c1) == 972, "Wrong size of locale's blob");
 
-/* BZip2 compressed cs_CZ.ISO8859-2 LC_MESSAGES locale data */
+/* cs_CZ.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_00e4e594ea4653fadfc3756061517ff0ca14707de1781c786e6a1556a0bea5d7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x8D,0xEB,0xFE,0xB0,0x00,0x00,
-    0x07,0xD7,0x80,0x00,0x10,0x00,0x11,0x20,0x01,0x00,0x2B,0x22,0x01,0x80,0x20,0x20,
-    0x00,0x21,0xA9,0xB5,0x1A,0x1A,0x6C,0xA1,0x00,0x00,0x3C,0x42,0xD0,0xA1,0x69,0xB0,
-    0x95,0x87,0x1B,0x27,0x99,0x7F,0x17,0x72,0x45,0x38,0x50,0x90,0x8D,0xEB,0xFE,0xB0
+    0x5E,0x5B,0x61,0x41,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x61,0x6E,0x6F,0x0A,0x6E,0x65,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_00e4e594ea4653fadfc3756061517ff0ca14707de1781c786e6a1556a0bea5d7) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_00e4e594ea4653fadfc3756061517ff0ca14707de1781c786e6a1556a0bea5d7) == 25, "Wrong size of locale's blob");
 
-/* BZip2 compressed cs_CZ.ISO8859-2 LC_MONETARY locale data */
+/* cs_CZ.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_6229ccf6e93f362c13d659af89461794665bb5bca1e9c25c68f5dca8757a9548[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE0,0xD9,0xC1,0x5F,0x00,0x00,
-    0x0F,0x5E,0x01,0x00,0x10,0x40,0x06,0x78,0x08,0x08,0x08,0x00,0x10,0x00,0x40,0x20,
-    0x00,0x21,0xA9,0xEA,0x7A,0x9A,0x3D,0x4D,0x3D,0x42,0x01,0xA0,0x0E,0x28,0x9B,0x60,
-    0x8C,0xB6,0x8D,0x78,0x8C,0x0B,0x36,0x61,0x95,0xF1,0x77,0x24,0x53,0x85,0x09,0x0E,
-    0x0D,0x9C,0x15,0xF0
+    0x43,0x5A,0x4B,0x20,0x0A,0x4B,0xE8,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6229ccf6e93f362c13d659af89461794665bb5bca1e9c25c68f5dca8757a9548) == 68, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6229ccf6e93f362c13d659af89461794665bb5bca1e9c25c68f5dca8757a9548) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed cs_CZ.ISO8859-2 LC_NUMERIC locale data */
+/* cs_CZ.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_40766467c5194ea5315218b7450c72d5e5b1881193e90f455ea1b4b09ca11097[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_40766467c5194ea5315218b7450c72d5e5b1881193e90f455ea1b4b09ca11097) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_40766467c5194ea5315218b7450c72d5e5b1881193e90f455ea1b4b09ca11097) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed cs_CZ.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_3ab16ebac3e518f51212a37ea69165791a53d6e8fe87fbd39cde33c5c95bcfd1[] = {
@@ -1117,15 +1060,13 @@ static uint8_t  __crystax_locale_blob_3ab16ebac3e518f51212a37ea69165791a53d6e8fe
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3ab16ebac3e518f51212a37ea69165791a53d6e8fe87fbd39cde33c5c95bcfd1) == 262, "Wrong size of locale's blob");
 
-/* BZip2 compressed cs_CZ.UTF-8 LC_MONETARY locale data */
+/* cs_CZ.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_7ad2094f82b392f3bf157eb25c6eaa1d4ffe04ded220079c730a617091b3885c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x50,0x2B,0x4A,0x0A,0x00,0x00,
-    0x0F,0x5E,0x44,0x00,0x10,0x40,0x06,0x78,0x08,0x08,0x08,0x00,0x10,0x00,0x02,0x04,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x7A,0x83,0xD4,0xD3,0xD4,0x10,0x00,0x03,0x6A,0x26,
-    0xD8,0x22,0xED,0xA3,0x9E,0x91,0x61,0x46,0x8C,0x33,0xDA,0xF8,0xBB,0x92,0x29,0xC2,
-    0x84,0x82,0x81,0x5A,0x50,0x50
+    0x43,0x5A,0x4B,0x20,0x0A,0x4B,0xC4,0x8D,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7ad2094f82b392f3bf157eb25c6eaa1d4ffe04ded220079c730a617091b3885c) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7ad2094f82b392f3bf157eb25c6eaa1d4ffe04ded220079c730a617091b3885c) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed cs_CZ.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_733c7c74429dee467e39a555ccc2cd92e7e724ce13adcca1d5217a208fb0253a[] = {
@@ -1150,32 +1091,26 @@ static uint8_t  __crystax_locale_blob_733c7c74429dee467e39a555ccc2cd92e7e724ce13
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_733c7c74429dee467e39a555ccc2cd92e7e724ce13adcca1d5217a208fb0253a) == 279, "Wrong size of locale's blob");
 
-/* BZip2 compressed da_DK.ISO8859-1 LC_MESSAGES locale data */
+/* da_DK.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_7e144c39135d4f2e500bece1a00993dfafdb521c9198aead47266ee548c4d98b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7e144c39135d4f2e500bece1a00993dfafdb521c9198aead47266ee548c4d98b) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7e144c39135d4f2e500bece1a00993dfafdb521c9198aead47266ee548c4d98b) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed da_DK.ISO8859-1 LC_MONETARY locale data */
+/* da_DK.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_fa58867a51f3b815eee07d6aab477f6bc41e1a3959a43921da9c59a5210f113a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCC,0x67,0x7F,0x3D,0x00,0x00,
-    0x0F,0x5D,0x80,0x00,0x10,0x40,0x07,0x3C,0x08,0x04,0x08,0x00,0x08,0x10,0x00,0x20,
-    0x00,0x21,0xA0,0x86,0xD0,0x21,0x00,0x00,0x23,0x5B,0x85,0x0C,0x29,0x79,0x13,0x85,
-    0x00,0xB5,0x4B,0x57,0xC6,0xDF,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x66,0x33,0xBF,0x9E,
-    0x80
+    0x44,0x4B,0x4B,0x20,0x0A,0x6B,0x72,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x34,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fa58867a51f3b815eee07d6aab477f6bc41e1a3959a43921da9c59a5210f113a) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fa58867a51f3b815eee07d6aab477f6bc41e1a3959a43921da9c59a5210f113a) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed da_DK.ISO8859-1 LC_NUMERIC locale data */
+/* da_DK.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_970547e458204e1a538482b5f22e313bf57314f6c068e9e728989698e99e470c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_970547e458204e1a538482b5f22e313bf57314f6c068e9e728989698e99e470c) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_970547e458204e1a538482b5f22e313bf57314f6c068e9e728989698e99e470c) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed da_DK.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_148ac3536ffb3d9b9fdf2f76f08d4b6b0315eff2700d095cfa51ace434a416de[] = {
@@ -1217,15 +1152,13 @@ static uint8_t  __crystax_locale_blob_90e3d48c90f1c81e0e1c0684318fe071cf5b83e1d2
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_90e3d48c90f1c81e0e1c0684318fe071cf5b83e1d22312d806552c7e34ff0ef4) == 236, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_AT.ISO8859-1 LC_MONETARY locale data */
+/* de_AT.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_952295621414875749128b4b80ca4c5250305baf6d5defbf84d813cb3ee03019[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x86,0xD5,0xEE,0x11,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x06,0x38,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x1A,0x6A,0x7A,0x9A,0x7A,0x9A,0x7A,0x9C,0x51,0x37,0x40,
-    0xB6,0x8E,0xFC,0x45,0x0C,0x38,0x44,0x83,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x10,0xDA,
-    0xBD,0xC2,0x20
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_952295621414875749128b4b80ca4c5250305baf6d5defbf84d813cb3ee03019) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_952295621414875749128b4b80ca4c5250305baf6d5defbf84d813cb3ee03019) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed de_AT.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_ddf0fa675f110f08768f24c9f070f3a5571df31e483a3404e1a581b6caea9af2[] = {
@@ -1247,15 +1180,13 @@ static uint8_t  __crystax_locale_blob_ddf0fa675f110f08768f24c9f070f3a5571df31e48
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ddf0fa675f110f08768f24c9f070f3a5571df31e483a3404e1a581b6caea9af2) == 240, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_AT.UTF-8 LC_MONETARY locale data */
+/* de_AT.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b13737dd74851eb66d6a0e565f1460b365056dcddd0625bf4e304cc10d59ec1f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1C,0xEC,0xD9,0xBD,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x06,0x38,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x00,0x00,0x08,0x6A,0x7A,0x47,0xA9,0xA6,0x27,0x0D,
-    0x94,0x9D,0x82,0x44,0x47,0x83,0x3B,0x48,0x91,0x55,0x99,0x1F,0x17,0x72,0x45,0x38,
-    0x50,0x90,0x1C,0xEC,0xD9,0xBD
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b13737dd74851eb66d6a0e565f1460b365056dcddd0625bf4e304cc10d59ec1f) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b13737dd74851eb66d6a0e565f1460b365056dcddd0625bf4e304cc10d59ec1f) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed de_AT.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_a49331e7ff974558570ffd55cba825e0944c6dd79bbbb01a3007dd5d0c6f363f[] = {
@@ -1278,23 +1209,19 @@ static uint8_t  __crystax_locale_blob_a49331e7ff974558570ffd55cba825e0944c6dd79b
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a49331e7ff974558570ffd55cba825e0944c6dd79bbbb01a3007dd5d0c6f363f) == 250, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_CH.ISO8859-1 LC_MONETARY locale data */
+/* de_CH.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_c49ad9d2150bf3d5263dde317ce79c29c39d54f956b8fdfa7c52eb9aca823a3f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x69,0x26,0x5E,0x66,0x00,0x00,
-    0x0F,0xDC,0x80,0x00,0x10,0x40,0x83,0x3C,0x08,0x09,0x40,0x10,0x00,0x20,0x00,0x22,
-    0x32,0x86,0x9E,0x91,0xEA,0x68,0x40,0x00,0x05,0x38,0x29,0x02,0x96,0x6A,0x29,0xD0,
-    0xB3,0x01,0x90,0xCD,0x9B,0xDF,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x1A,0x49,0x97,0x99,
-    0x80
+    0x43,0x48,0x46,0x20,0x0A,0x46,0x72,0x2E,0x0A,0x2E,0x0A,0x27,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x34,0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c49ad9d2150bf3d5263dde317ce79c29c39d54f956b8fdfa7c52eb9aca823a3f) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c49ad9d2150bf3d5263dde317ce79c29c39d54f956b8fdfa7c52eb9aca823a3f) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_CH.ISO8859-1 LC_NUMERIC locale data */
+/* de_CH.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_364a3af76bba890612925743e9a916e709e7d9b1784c87d73b2674e45659b9f7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xED,0xD6,0xE0,0xF6,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x81,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x0E,0xDD,0x6E,0x0F,0x60
+    0x2E,0x0A,0x27,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_364a3af76bba890612925743e9a916e709e7d9b1784c87d73b2674e45659b9f7) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_364a3af76bba890612925743e9a916e709e7d9b1784c87d73b2674e45659b9f7) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed de_DE.ISO8859-1 LC_COLLATE locale data */
 static uint8_t  __crystax_locale_blob_29a0c70330c4f6c57695a577acd08473eca75113f82caab7f64c4970c1480eb9[] = {
@@ -1361,32 +1288,26 @@ static uint8_t  __crystax_locale_blob_29a0c70330c4f6c57695a577acd08473eca75113f8
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_29a0c70330c4f6c57695a577acd08473eca75113f82caab7f64c4970c1480eb9) == 950, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_DE.ISO8859-1 LC_MESSAGES locale data */
+/* de_DE.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_50bb629eb098299dd8608155e07388758bcdab11354cdf8834607b6114adbff8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_50bb629eb098299dd8608155e07388758bcdab11354cdf8834607b6114adbff8) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_50bb629eb098299dd8608155e07388758bcdab11354cdf8834607b6114adbff8) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_DE.ISO8859-1 LC_MONETARY locale data */
+/* de_DE.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_75f08c9a7c0da160115b03685b12134500dca476e0a1bda0e875f29053b77c76[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCF,0x22,0x6B,0xC4,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA3,0x50,0x3C,0xA6,0x9A,0x10,0x00,0x01,0x59,0xCA,0x0D,0x82,0x53,0xC3,
-    0xF2,0x88,0x15,0x35,0x22,0xEC,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x3C,0x89,0xAF,
-    0x10
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_75f08c9a7c0da160115b03685b12134500dca476e0a1bda0e875f29053b77c76) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_75f08c9a7c0da160115b03685b12134500dca476e0a1bda0e875f29053b77c76) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_DE.ISO8859-1 LC_NUMERIC locale data */
+/* de_DE.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_3fb1b4eef6d977af815b141f6216760413afc0713e7e1b223bdcfad686551fb1[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x70,0x2F,0xBC,0xC7,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x06,0x20,0x00,0x20,0x00,0x21,0x9A,0x68,0x33,0x4D,
-    0x07,0x57,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x38,0x17,0xDE,0x63,0x80
+    0x2C,0x0A,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3fb1b4eef6d977af815b141f6216760413afc0713e7e1b223bdcfad686551fb1) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3fb1b4eef6d977af815b141f6216760413afc0713e7e1b223bdcfad686551fb1) == 6, "Wrong size of locale's blob");
 
 /* BZip2 compressed de_DE.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_fc4e29abe3b12649bb411c4e84092f54369b917b2e6bd0917af73583b0deb674[] = {
@@ -1472,15 +1393,13 @@ static uint8_t  __crystax_locale_blob_77a9bfaffb3ca6dc25f65d02d6a4565fdbbe6ab63d
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_77a9bfaffb3ca6dc25f65d02d6a4565fdbbe6ab63d213158ac14a0969eb62fa5) == 939, "Wrong size of locale's blob");
 
-/* BZip2 compressed de_DE.UTF-8 LC_MONETARY locale data */
+/* de_DE.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_5c038f3fde6d343367decac38341816a8345abdc7a94756c384d179681b8b267[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x55,0x1B,0x5C,0x68,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x42,0x04,0xD0,0xF2,0x9A,0x69,0xA0,
-    0xF3,0xC0,0x42,0x51,0xDC,0x1C,0x1E,0x85,0x54,0x96,0x96,0xAA,0xBB,0x8F,0x8B,0xB9,
-    0x22,0x9C,0x28,0x48,0x2A,0x8D,0xAE,0x34,0x00
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5c038f3fde6d343367decac38341816a8345abdc7a94756c384d179681b8b267) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5c038f3fde6d343367decac38341816a8345abdc7a94756c384d179681b8b267) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed de_DE.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_7b95a43e74ad7132a87a519768c60adedb5c40f94f060b59b00d011e37ae1e4b[] = {
@@ -1619,33 +1538,26 @@ static uint8_t  __crystax_locale_blob_48923bb55f96eb45a955674edc02c10aebc645b832
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_48923bb55f96eb45a955674edc02c10aebc645b83243ccb7fdd773c3486cd7ac) == 837, "Wrong size of locale's blob");
 
-/* BZip2 compressed el_GR.ISO8859-7 LC_MESSAGES locale data */
+/* el_GR.ISO8859-7 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3b238907a52bdd43e82807ededba1e1b6f3c4801844ba543ece8594e8bd49afc[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x79,0x2D,0x74,0xDE,0x00,0x00,
-    0x07,0x57,0x87,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x20,
-    0x22,0x80,0x80,0x00,0x02,0xA0,0x00,0x21,0x2A,0x68,0x06,0x46,0x4D,0x0A,0x1A,0x69,
-    0x80,0x0E,0x54,0x4B,0x1A,0x15,0x98,0x55,0x51,0xDC,0x88,0xF6,0x25,0x33,0x27,0xC5,
-    0xDC,0x91,0x4E,0x14,0x24,0x1E,0x4B,0x5D,0x37,0x80
+    0x5E,0x5B,0xED,0xCD,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xEF,0xCF,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xCD,0xC1,0xC9,0x0A,0xCF,0xD7,0xC9,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3b238907a52bdd43e82807ededba1e1b6f3c4801844ba543ece8594e8bd49afc) == 74, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3b238907a52bdd43e82807ededba1e1b6f3c4801844ba543ece8594e8bd49afc) == 28, "Wrong size of locale's blob");
 
-/* BZip2 compressed el_GR.ISO8859-7 LC_MONETARY locale data */
+/* el_GR.ISO8859-7 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f8e5e92d9c927f4b1a56c4e39c7bfb3a1455d8dc32391f22de09416baa59ad45[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x08,0xCD,0xF9,0x17,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA6,0x90,0x3C,0xA6,0x9A,0x10,0x00,0x01,0x5C,0xE5,0xB6,0x08,0x94,0xF0,
-    0xFC,0xA2,0x05,0x1A,0x22,0xEC,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x23,0x37,0xE4,
-    0x5C
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f8e5e92d9c927f4b1a56c4e39c7bfb3a1455d8dc32391f22de09416baa59ad45) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f8e5e92d9c927f4b1a56c4e39c7bfb3a1455d8dc32391f22de09416baa59ad45) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed el_GR.ISO8859-7 LC_NUMERIC locale data */
+/* el_GR.ISO8859-7 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_084d8b31a527bb71d29a3bdf445ee7ad62569376f7f5e120c26497068ba15297[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_084d8b31a527bb71d29a3bdf445ee7ad62569376f7f5e120c26497068ba15297) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_084d8b31a527bb71d29a3bdf445ee7ad62569376f7f5e120c26497068ba15297) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed el_GR.ISO8859-7 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_533617556b631f58a3e1cc5fb4925d1e2dbc7db8e1ce45806f7091ac638c0d3d[] = {
@@ -1671,26 +1583,21 @@ static uint8_t  __crystax_locale_blob_533617556b631f58a3e1cc5fb4925d1e2dbc7db8e1
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_533617556b631f58a3e1cc5fb4925d1e2dbc7db8e1ce45806f7091ac638c0d3d) == 301, "Wrong size of locale's blob");
 
-/* BZip2 compressed el_GR.UTF-8 LC_MESSAGES locale data */
+/* el_GR.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_1c503746c4a9b4363fa298cfd560da81a776da0930560f7dd0a37cc340826900[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x48,0x27,0xBE,0x4A,0x00,0x00,
-    0x07,0x57,0xBC,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x20,
-    0x22,0x80,0x80,0x00,0x02,0x80,0x01,0x20,0x00,0x31,0x4D,0x32,0x31,0x31,0x31,0x06,
-    0xA6,0x81,0xA7,0xA4,0x69,0xA6,0x9B,0xA8,0x4B,0x05,0x05,0x98,0x12,0x43,0xBC,0x8A,
-    0x04,0x88,0xF6,0x65,0x16,0x47,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x12,0x09,0xEF,0x92,
-    0x80
+    0x5E,0x5B,0xCE,0xBD,0xCE,0x9D,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xCE,0xBF,
+    0xCE,0x9F,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xCE,0x9D,0xCE,0x91,0xCE,0x99,0x0A,0xCE,
+    0x9F,0xCE,0xA7,0xCE,0x99,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1c503746c4a9b4363fa298cfd560da81a776da0930560f7dd0a37cc340826900) == 81, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1c503746c4a9b4363fa298cfd560da81a776da0930560f7dd0a37cc340826900) == 38, "Wrong size of locale's blob");
 
-/* BZip2 compressed el_GR.UTF-8 LC_MONETARY locale data */
+/* el_GR.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_7376273af0af2348b1901745f44ee3e4dde10b86b2e985d87b48ec061bd63725[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x92,0xF4,0xCE,0xBB,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x42,0x1A,0x4D,0x0D,0xA9,0xA6,0x9A,
-    0x47,0x99,0xC9,0x28,0x11,0xA0,0xE0,0xF6,0x15,0x52,0x44,0x8A,0xAB,0xB7,0xF8,0xBB,
-    0x92,0x29,0xC2,0x84,0x84,0x97,0xA6,0x75,0xD8
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7376273af0af2348b1901745f44ee3e4dde10b86b2e985d87b48ec061bd63725) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7376273af0af2348b1901745f44ee3e4dde10b86b2e985d87b48ec061bd63725) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed el_GR.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_05f5c50bc74d8419c4d2fe78672134a882a674ae224d68a6a9fa516124334ce7[] = {
@@ -1717,52 +1624,42 @@ static uint8_t  __crystax_locale_blob_05f5c50bc74d8419c4d2fe78672134a882a674ae22
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_05f5c50bc74d8419c4d2fe78672134a882a674ae224d68a6a9fa516124334ce7) == 308, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_AU.ISO8859-1 LC_MONETARY locale data */
+/* en_AU.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_5b8eec40ea84283f4d83a536d072fdaf419975a7af1fc60e7d4ab32882a829b0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x61,0x28,0x22,0xA5,0x00,0x00,
-    0x15,0xDE,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x24,0x00,0x02,0x00,0x20,0x00,0x21,
-    0xA6,0x50,0x36,0xA6,0x9A,0x10,0x00,0x01,0xAD,0xE3,0x33,0x12,0x5A,0x40,0x82,0x9B,
-    0xC7,0xB8,0x20,0x0A,0x34,0x6E,0xFE,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0xC2,0x50,0x45,
-    0x4A
+    0x41,0x55,0x44,0x20,0x0A,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A,0x31,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5b8eec40ea84283f4d83a536d072fdaf419975a7af1fc60e7d4ab32882a829b0) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5b8eec40ea84283f4d83a536d072fdaf419975a7af1fc60e7d4ab32882a829b0) == 46, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_CA.ISO8859-1 LC_MESSAGES locale data */
+/* en_CA.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_a057067da93d43f5728b83d3b7ebdeb960728704ad96d4c60a21846af91c0cd6[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x78,0x66,0x85,0x11,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x80,0x2B,0x00,0x01,0x80,0x20,0x20,
-    0x00,0x21,0x2A,0x69,0x90,0xDA,0x9E,0x84,0x0D,0x03,0x42,0x0D,0x9E,0x17,0xDB,0x12,
-    0x43,0x71,0x82,0xEE,0x48,0xA7,0x0A,0x12,0x0F,0x0C,0xD0,0xA2,0x20
+    0x5E,0x5B,0x79,0x59,0x6F,0x4F,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a057067da93d43f5728b83d3b7ebdeb960728704ad96d4c60a21846af91c0cd6) == 61, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a057067da93d43f5728b83d3b7ebdeb960728704ad96d4c60a21846af91c0cd6) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_CA.ISO8859-1 LC_MONETARY locale data */
+/* en_CA.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_318f77b5d821cfdf005b0aefae83329b1a2d0e6eda494198fa821b89240341fc[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x8A,0xCB,0x5C,0x0D,0x00,0x00,
-    0x10,0x5C,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x2C,0x00,0x20,0x00,0x21,0xA8,0xF4,
-    0x83,0x6A,0x66,0xA1,0x00,0x00,0x11,0xE4,0x6A,0x42,0x40,0x94,0xA1,0xF4,0x0C,0x56,
-    0x69,0x97,0xF1,0x77,0x24,0x53,0x85,0x09,0x08,0xAC,0xB5,0xC0,0xD0
+    0x43,0x41,0x44,0x20,0x0A,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_318f77b5d821cfdf005b0aefae83329b1a2d0e6eda494198fa821b89240341fc) == 61, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_318f77b5d821cfdf005b0aefae83329b1a2d0e6eda494198fa821b89240341fc) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_GB.ISO8859-1 LC_MESSAGES locale data */
+/* en_GB.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_cd6e534cc9e27af465cf1cd0bde0148d6f5e55f264bb95ea9405aae51967813d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3A,0x29,0x9A,0x51,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x69,0x83,0x21,0x00,0x30,0x83,0xE6,0x09,0xB1,0x24,0x33,0x85,0xDC,
-    0x91,0x4E,0x14,0x24,0x0E,0x8A,0x66,0x94,0x40
+    0x5E,0x5B,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cd6e534cc9e27af465cf1cd0bde0148d6f5e55f264bb95ea9405aae51967813d) == 57, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cd6e534cc9e27af465cf1cd0bde0148d6f5e55f264bb95ea9405aae51967813d) == 16, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_GB.ISO8859-1 LC_MONETARY locale data */
+/* en_GB.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_4a9d8aaaf2957252300b14e07040e1def829b2b3b6d00b447e686a2a923bd716[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x18,0xF1,0xE7,0xA5,0x00,0x00,
-    0x0F,0xDE,0x10,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x80,0x40,0x00,0x08,0x00,0x20,
-    0x00,0x31,0x00,0x00,0x08,0x35,0x03,0xCA,0x69,0xEA,0x1D,0x06,0x61,0x28,0x01,0x2C,
-    0x26,0x66,0x62,0xEA,0xD8,0x75,0xF1,0x77,0x24,0x53,0x85,0x09,0x01,0x8F,0x1E,0x7A,
-    0x50
+    0x47,0x42,0x50,0x20,0x0A,0xA3,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_4a9d8aaaf2957252300b14e07040e1def829b2b3b6d00b447e686a2a923bd716) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_4a9d8aaaf2957252300b14e07040e1def829b2b3b6d00b447e686a2a923bd716) == 34, "Wrong size of locale's blob");
 
 /* BZip2 compressed en_GB.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_44f785d665a76f44d499f1d93f09027641556188e954a45cbc4acbc86f4e0f3c[] = {
@@ -1785,60 +1682,50 @@ static uint8_t  __crystax_locale_blob_44f785d665a76f44d499f1d93f09027641556188e9
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_44f785d665a76f44d499f1d93f09027641556188e954a45cbc4acbc86f4e0f3c) == 241, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_GB.UTF-8 LC_MONETARY locale data */
+/* en_GB.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_d9d3373c2cabf8bb855b6ce82bfe64c70574f79cc82ba5e02a543f34c6d5a659[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xFB,0xBE,0xE6,0x21,0x00,0x00,
-    0x0F,0xDE,0x14,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x80,0x40,0x00,0x08,0x00,0x10,
-    0x00,0x20,0x00,0x31,0x4C,0x00,0x01,0x09,0xEA,0x07,0x94,0xD3,0xD4,0x1C,0x86,0x61,
-    0x28,0x01,0x2B,0xA6,0x66,0x62,0xAD,0x4C,0x3F,0x0F,0x8B,0xB9,0x22,0x9C,0x28,0x48,
-    0x7D,0xDF,0x73,0x10,0x80
+    0x47,0x42,0x50,0x20,0x0A,0xC2,0xA3,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d9d3373c2cabf8bb855b6ce82bfe64c70574f79cc82ba5e02a543f34c6d5a659) == 69, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d9d3373c2cabf8bb855b6ce82bfe64c70574f79cc82ba5e02a543f34c6d5a659) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_IE.UTF-8 LC_MONETARY locale data */
+/* en_IE.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_7463067acfeef9fa906e275343566ac4a7697f98cf3a2d4faaaaa7c66edbc53d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x62,0x17,0x2D,0xF0,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0xA1,0x03,0x6A,0x62,0x68,0xFA,
-    0x6F,0x38,0x24,0x33,0x13,0x83,0x2E,0x88,0x21,0x61,0x6A,0xAE,0xF3,0xF1,0x77,0x24,
-    0x53,0x85,0x09,0x06,0x21,0x72,0xDF,0x00
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7463067acfeef9fa906e275343566ac4a7697f98cf3a2d4faaaaa7c66edbc53d) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7463067acfeef9fa906e275343566ac4a7697f98cf3a2d4faaaaa7c66edbc53d) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_NZ.ISO8859-1 LC_MONETARY locale data */
+/* en_NZ.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_a21e3b78c7fe292bb8f293f26be79187bdd8c487daa7c8556eaa3239a4abe5a0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0x0D,0x34,0x2C,0x00,0x00,
-    0x10,0x5E,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x04,0x01,0x00,0x10,0x20,0x00,0x21,
-    0xA9,0xB4,0x41,0xEA,0x7A,0x9A,0x10,0x00,0x01,0x1D,0x4D,0x70,0x24,0x09,0x4A,0x5E,
-    0xC0,0xC3,0x87,0x66,0xFE,0x2E,0xE4,0x8A,0x70,0xA1,0x21,0x30,0x1A,0x68,0x58
+    0x4E,0x5A,0x44,0x20,0x0A,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a21e3b78c7fe292bb8f293f26be79187bdd8c487daa7c8556eaa3239a4abe5a0) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a21e3b78c7fe292bb8f293f26be79187bdd8c487daa7c8556eaa3239a4abe5a0) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_US.ISO8859-1 LC_MESSAGES locale data */
+/* en_US.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_18f84e940a580920be7321247ec98d53ba6f18cff8d7e7e8073e177e613b12c2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x7B,0x40,0x2A,0xB2,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x08,0x2B,0x00,0x01,0x08,0x20,0x20,
-    0x00,0x21,0x2A,0x69,0x90,0xDA,0x9E,0x84,0x0D,0x03,0x42,0x0D,0x9E,0x17,0xDB,0x12,
-    0x43,0x71,0x82,0xEE,0x48,0xA7,0x0A,0x12,0x0F,0x68,0x05,0x56,0x40
+    0x5E,0x5B,0x79,0x59,0x73,0x53,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_18f84e940a580920be7321247ec98d53ba6f18cff8d7e7e8073e177e613b12c2) == 61, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_18f84e940a580920be7321247ec98d53ba6f18cff8d7e7e8073e177e613b12c2) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_US.ISO8859-1 LC_MONETARY locale data */
+/* en_US.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_42c5d1254969c9958ad364b939807311e67d905f2108b5f15d4ce3e7992b440a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9F,0x51,0x63,0xF4,0x00,0x00,
-    0x10,0xDE,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x04,0x00,0x0A,0x00,0x20,0x00,0x21,
-    0xA8,0xF2,0x9A,0x1E,0xA7,0xA8,0x10,0x00,0x01,0x9C,0xAC,0x6C,0x36,0x09,0x6D,0x4D,
-    0x01,0x69,0x79,0xDF,0x2F,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x4F,0xA8,0xB1,0xFA,0x00
+    0x55,0x53,0x44,0x20,0x0A,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_42c5d1254969c9958ad364b939807311e67d905f2108b5f15d4ce3e7992b440a) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_42c5d1254969c9958ad364b939807311e67d905f2108b5f15d4ce3e7992b440a) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed en_US.ISO8859-1 LC_NUMERIC locale data */
+/* en_US.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_cfb9a008a84956315792e9d73cc626e089d7432e80d87f65fb95c58c5d574508[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cfb9a008a84956315792e9d73cc626e089d7432e80d87f65fb95c58c5d574508) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cfb9a008a84956315792e9d73cc626e089d7432e80d87f65fb95c58c5d574508) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed en_US.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_6f0416f4e53000cb35060d9c639baa6fb8d8ebafd59806b0d5099e2f707a3387[] = {
@@ -1927,31 +1814,26 @@ static uint8_t  __crystax_locale_blob_8dac8c0bc923a2309ac59deebf58f1ca69030a1519
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8dac8c0bc923a2309ac59deebf58f1ca69030a1519db7e1d5b2459a3ada7c9e7) == 978, "Wrong size of locale's blob");
 
-/* BZip2 compressed es_ES.ISO8859-1 LC_MESSAGES locale data */
+/* es_ES.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_e4a3034b260453ada19cdc910c026fe44b680450a73654615267b28b4b7f9c1c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x26,0x4B,0xA8,0xA4,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x08,0x2B,0x00,0x01,0x08,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x98,0x90,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x02,0x64,0xBA,0x8A,0x40
+    0x5E,0x5B,0x73,0x53,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e4a3034b260453ada19cdc910c026fe44b680450a73654615267b28b4b7f9c1c) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e4a3034b260453ada19cdc910c026fe44b680450a73654615267b28b4b7f9c1c) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed es_ES.ISO8859-1 LC_MONETARY locale data */
+/* es_ES.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_411dea4743fbe9e2ba733e9d955348a19850931a9c1298c91af502e443177b8e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x54,0x9A,0xC6,0xDB,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x38,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0x8A,0x06,0xD4,0xD3,0xD4,0x20,0x1A,0x00,0xA9,0x8D,0x36,0x42,0xA7,0x97,
-    0xEA,0x24,0x5A,0xB4,0x24,0x1F,0x17,0x72,0x45,0x38,0x50,0x90,0x54,0x9A,0xC6,0xDB
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_411dea4743fbe9e2ba733e9d955348a19850931a9c1298c91af502e443177b8e) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_411dea4743fbe9e2ba733e9d955348a19850931a9c1298c91af502e443177b8e) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed es_ES.ISO8859-1 LC_NUMERIC locale data */
+/* es_ES.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_604c017df03b97325bd2b88745eb91f20632593207c3de09967a2eae7e57b999[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x70,0x2F,0xBC,0xC7,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x06,0x20,0x00,0x20,0x00,0x21,0x9A,0x68,0x33,0x4D,
-    0x07,0x57,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x38,0x17,0xDE,0x63,0x80
+    0x2C,0x0A,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_604c017df03b97325bd2b88745eb91f20632593207c3de09967a2eae7e57b999) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_604c017df03b97325bd2b88745eb91f20632593207c3de09967a2eae7e57b999) == 6, "Wrong size of locale's blob");
 
 /* BZip2 compressed es_ES.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_8c6e0e4029aef8b2b4c422b66cd230343cd2530a6efc6b2b312539ae385f0368[] = {
@@ -2044,15 +1926,13 @@ static uint8_t  __crystax_locale_blob_1616870bd2dd62823c53997242824d0bfc27744ed6
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1616870bd2dd62823c53997242824d0bfc27744ed6fb5522ab4006da01b02508) == 1038, "Wrong size of locale's blob");
 
-/* BZip2 compressed es_ES.UTF-8 LC_MONETARY locale data */
+/* es_ES.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_0e9d9259ac18798c53ef064e9c9bd15a7a6a5c08c6d5e2ef6ec511c026e852e2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCE,0xA3,0xF1,0x77,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x38,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x01,0x1A,0x46,0x8F,0x29,0xA6,0x9A,0x1F,
-    0x62,0x12,0x0C,0xE5,0x65,0x74,0x80,0xD2,0xF2,0xF5,0x57,0x71,0xF1,0x77,0x24,0x53,
-    0x85,0x09,0x0C,0xEA,0x3F,0x17,0x70
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0e9d9259ac18798c53ef064e9c9bd15a7a6a5c08c6d5e2ef6ec511c026e852e2) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0e9d9259ac18798c53ef064e9c9bd15a7a6a5c08c6d5e2ef6ec511c026e852e2) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed es_ES.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_bfe2fdef2cbc187f8b5fe55d9ef737a0b01d222d738dbfed106cd04bfe5726e5[] = {
@@ -2141,33 +2021,26 @@ static uint8_t  __crystax_locale_blob_69f1ad33fc86e4dc933737fbbf66efc63ca712ead6
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_69f1ad33fc86e4dc933737fbbf66efc63ca712ead6eafaa121de17ed1735f85d) == 969, "Wrong size of locale's blob");
 
-/* BZip2 compressed et_EE.ISO8859-15 LC_MESSAGES locale data */
+/* et_EE.ISO8859-15 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_016dfb3e92e2f22157e4b345594b3e16f12b506ae13f95a3c9808d227c907570[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x11,0x48,0x09,0x35,0x00,0x00,
-    0x08,0xDF,0x80,0x00,0x10,0x00,0x11,0x60,0x00,0x02,0x11,0x00,0x2B,0x02,0x11,0x00,
-    0x20,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0x2A,0x06,0x83,0x4D,0xA9,0xA5,0x4B,0x0E,
-    0x38,0xD9,0x84,0x89,0x9E,0x90,0xBD,0x3F,0x17,0x72,0x45,0x38,0x50,0x90,0x11,0x48,
-    0x09,0x35
+    0x5E,0x5B,0x31,0x4A,0x6A,0x59,0x79,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x30,0x45,0x65,
+    0x4E,0x6E,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_016dfb3e92e2f22157e4b345594b3e16f12b506ae13f95a3c9808d227c907570) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_016dfb3e92e2f22157e4b345594b3e16f12b506ae13f95a3c9808d227c907570) == 22, "Wrong size of locale's blob");
 
-/* BZip2 compressed et_EE.ISO8859-15 LC_MONETARY locale data */
+/* et_EE.ISO8859-15 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_1109cc12365fc18aac1289b5d2f451d30b19d31ed4e8a89558f775d937e17390[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3A,0x21,0xB3,0x78,0x00,0x00,
-    0x0F,0x5D,0x80,0x00,0x10,0x40,0x03,0x78,0x08,0x02,0x08,0x00,0x08,0x10,0x00,0x20,
-    0x00,0x21,0xA9,0xFA,0x90,0x3D,0x4C,0x42,0x01,0xA0,0x0E,0xEA,0x2D,0xB6,0x85,0x0D,
-    0xE4,0xE5,0x0B,0x0A,0x49,0x29,0x17,0xF1,0x77,0x24,0x53,0x85,0x09,0x03,0xA2,0x1B,
-    0x37,0x80
+    0x45,0x45,0x4B,0x20,0x0A,0x6B,0x72,0x0A,0x2E,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1109cc12365fc18aac1289b5d2f451d30b19d31ed4e8a89558f775d937e17390) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1109cc12365fc18aac1289b5d2f451d30b19d31ed4e8a89558f775d937e17390) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed et_EE.ISO8859-15 LC_NUMERIC locale data */
+/* et_EE.ISO8859-15 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_26f16ff45b0629f40b8a122a3ec46f245ea85f0c9dab1704c73511832e5bf00c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_26f16ff45b0629f40b8a122a3ec46f245ea85f0c9dab1704c73511832e5bf00c) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_26f16ff45b0629f40b8a122a3ec46f245ea85f0c9dab1704c73511832e5bf00c) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed et_EE.ISO8859-15 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_acf7048e458345b572e34581a699806b7c95659f28ca2b76616c03e2a987c131[] = {
@@ -2212,23 +2085,18 @@ static uint8_t  __crystax_locale_blob_5444e70cbcd8d2d7cf6801da717befdce8d19b12ca
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5444e70cbcd8d2d7cf6801da717befdce8d19b12ca64546fefba5c20a698d33c) == 257, "Wrong size of locale's blob");
 
-/* BZip2 compressed eu_ES.ISO8859-1 LC_MESSAGES locale data */
+/* eu_ES.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_253d190bc82c6a13dff85d9291b302e459e81212ed9d1c17e4b2a89bac2d72de[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xAB,0xC3,0x18,0x4E,0x00,0x00,
-    0x08,0x57,0x80,0x00,0x10,0x00,0x11,0x12,0x01,0x00,0x2B,0x32,0x21,0x00,0x30,0x20,
-    0x00,0x21,0xA9,0x90,0x03,0x4F,0x4D,0x42,0x86,0x9A,0x60,0x01,0x38,0x36,0x1C,0x1E,
-    0x32,0xA4,0x13,0x03,0x32,0xEC,0xC9,0x2E,0xFC,0x5D,0xC9,0x14,0xE1,0x42,0x42,0xAF,
-    0x0C,0x61,0x38
+    0x5E,0x5B,0x62,0x42,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x65,0x45,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0x62,0x61,0x69,0x0A,0x65,0x7A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_253d190bc82c6a13dff85d9291b302e459e81212ed9d1c17e4b2a89bac2d72de) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_253d190bc82c6a13dff85d9291b302e459e81212ed9d1c17e4b2a89bac2d72de) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed eu_ES.ISO8859-1 LC_NUMERIC locale data */
+/* eu_ES.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_94632c34889e8beb7e8d090ee6d790fa9d2c4ed6df96133ae389222242d5dbfa[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x58,0xF3,0xD9,0x2C,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x07,0x20,0x00,0x20,0x00,0x21,0x83,0x41,0x9A,0x00,
-    0xD9,0x9C,0x5D,0xC9,0x14,0xE1,0x42,0x41,0x63,0xCF,0x64,0xB0
+    0x2C,0x0A,0x2E,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_94632c34889e8beb7e8d090ee6d790fa9d2c4ed6df96133ae389222242d5dbfa) == 44, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_94632c34889e8beb7e8d090ee6d790fa9d2c4ed6df96133ae389222242d5dbfa) == 7, "Wrong size of locale's blob");
 
 /* BZip2 compressed eu_ES.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_a354b4dfe053b4b7fded780ce8bdcecd38a4aaaffd818ebba3e10963817f25ba[] = {
@@ -2253,32 +2121,26 @@ static uint8_t  __crystax_locale_blob_a354b4dfe053b4b7fded780ce8bdcecd38a4aaaffd
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a354b4dfe053b4b7fded780ce8bdcecd38a4aaaffd818ebba3e10963817f25ba) == 280, "Wrong size of locale's blob");
 
-/* BZip2 compressed fi_FI.ISO8859-1 LC_MESSAGES locale data */
+/* fi_FI.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_ea4d0ae2af69b08a500cc5730fd241228f7c2de4133034e84cf60e3199ece5b0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x8F,0x7D,0xD7,0x60,0x00,0x00,
-    0x07,0xD7,0x80,0x00,0x10,0x00,0x11,0x02,0x19,0x00,0x2B,0x02,0x19,0x00,0x20,0x20,
-    0x00,0x31,0x4C,0x00,0x13,0x41,0x2A,0x00,0x1A,0x3C,0xA4,0xCA,0x1B,0x23,0xBE,0x4D,
-    0x9C,0x50,0x24,0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x08,0xF7,0xDD,0x76,0x00
+    0x5E,0x5B,0x6B,0x4B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,
+    0x65,0x45,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ea4d0ae2af69b08a500cc5730fd241228f7c2de4133034e84cf60e3199ece5b0) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ea4d0ae2af69b08a500cc5730fd241228f7c2de4133034e84cf60e3199ece5b0) == 22, "Wrong size of locale's blob");
 
-/* BZip2 compressed fi_FI.ISO8859-1 LC_MONETARY locale data */
+/* fi_FI.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_8e9cab006170f6f2006602dc1d4ac88b4968f7dde439dc119e7017f0e67acc21[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xD2,0x2E,0x4C,0x52,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA2,0x34,0x3C,0xA6,0x9E,0xA1,0x00,0x00,0x0B,0xC5,0x20,0x08,0xE2,0x54,
-    0xBC,0x62,0x05,0xCD,0xC8,0x6C,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x48,0xB9,0x31,
-    0x48
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,0x31,
+    0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8e9cab006170f6f2006602dc1d4ac88b4968f7dde439dc119e7017f0e67acc21) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8e9cab006170f6f2006602dc1d4ac88b4968f7dde439dc119e7017f0e67acc21) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed fi_FI.ISO8859-1 LC_NUMERIC locale data */
+/* fi_FI.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_e1993751a7444566a5e0f2e06ba3e627c9cfdc71ea0b10a8b41b1d05a56e0753[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e1993751a7444566a5e0f2e06ba3e627c9cfdc71ea0b10a8b41b1d05a56e0753) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e1993751a7444566a5e0f2e06ba3e627c9cfdc71ea0b10a8b41b1d05a56e0753) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed fi_FI.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_5f5c656f39f18904353b8f6d4d509a19e46959f197bb519ea88fc55ed0111049[] = {
@@ -2301,15 +2163,13 @@ static uint8_t  __crystax_locale_blob_5f5c656f39f18904353b8f6d4d509a19e46959f197
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5f5c656f39f18904353b8f6d4d509a19e46959f197bb519ea88fc55ed0111049) == 250, "Wrong size of locale's blob");
 
-/* BZip2 compressed fi_FI.UTF-8 LC_MONETARY locale data */
+/* fi_FI.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_c0e4559b990ac539b1c1acd0cb9a3110b34292e9000b868cf4c43681257a5f9c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x48,0x17,0x7B,0xFE,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0xA2,0x34,0x36,0xA6,0x26,0x8F,
-    0xEC,0x31,0x01,0xC7,0x09,0x63,0x2E,0x88,0x21,0x61,0x6A,0xAE,0xDB,0xE2,0xEE,0x48,
-    0xA7,0x0A,0x12,0x09,0x02,0xEF,0x7F,0xC0
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,
+    0x31,0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c0e4559b990ac539b1c1acd0cb9a3110b34292e9000b868cf4c43681257a5f9c) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c0e4559b990ac539b1c1acd0cb9a3110b34292e9000b868cf4c43681257a5f9c) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed fi_FI.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_60d8af6bad1228fe508f475290efe2595da2b26b7d6ddf5f6104f7270910aec0[] = {
@@ -2332,87 +2192,70 @@ static uint8_t  __crystax_locale_blob_60d8af6bad1228fe508f475290efe2595da2b26b7d
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_60d8af6bad1228fe508f475290efe2595da2b26b7d6ddf5f6104f7270910aec0) == 254, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_BE.ISO8859-1 LC_MESSAGES locale data */
+/* fr_BE.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_b28a4d54db3c877322e105c468dd45309d285d1e964f22b04b053a9e39533404[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x22,0xD1,0x9F,0x22,0x00,0x00,
-    0x08,0x5F,0x80,0x00,0x10,0x00,0x11,0x20,0x00,0x00,0x11,0x80,0x2B,0x00,0x11,0x80,
-    0x20,0x20,0x00,0x21,0x2A,0x06,0x81,0xEA,0x6D,0x42,0x98,0x00,0x0A,0x96,0x38,0x42,
-    0xF4,0xB6,0x75,0x22,0x58,0xFE,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0x45,0xA3,0x3E,0x44
+    0x5E,0x5B,0x6F,0x4F,0x79,0x59,0x6A,0x4A,0x31,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,
+    0x4E,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b28a4d54db3c877322e105c468dd45309d285d1e964f22b04b053a9e39533404) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b28a4d54db3c877322e105c468dd45309d285d1e964f22b04b053a9e39533404) == 21, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_BE.ISO8859-1 LC_MONETARY locale data */
+/* fr_BE.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_be735750655b3a8e766b8d81aaf5ac92ac606a2370810f602449b3900754e855[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x08,0xCD,0xF9,0x17,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA6,0x90,0x3C,0xA6,0x9A,0x10,0x00,0x01,0x5C,0xE5,0xB6,0x08,0x94,0xF0,
-    0xFC,0xA2,0x05,0x1A,0x22,0xEC,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x23,0x37,0xE4,
-    0x5C
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_be735750655b3a8e766b8d81aaf5ac92ac606a2370810f602449b3900754e855) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_be735750655b3a8e766b8d81aaf5ac92ac606a2370810f602449b3900754e855) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_BE.ISO8859-1 LC_NUMERIC locale data */
+/* fr_BE.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_ce185a03fe4016f144409664a16d095edff8f8272cbaf22ee324e7ab51ceabb0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x58,0xF3,0xD9,0x2C,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x07,0x20,0x00,0x20,0x00,0x21,0x83,0x41,0x9A,0x00,
-    0xD9,0x9C,0x5D,0xC9,0x14,0xE1,0x42,0x41,0x63,0xCF,0x64,0xB0
+    0x2C,0x0A,0x2E,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ce185a03fe4016f144409664a16d095edff8f8272cbaf22ee324e7ab51ceabb0) == 44, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ce185a03fe4016f144409664a16d095edff8f8272cbaf22ee324e7ab51ceabb0) == 7, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_BE.UTF-8 LC_MONETARY locale data */
+/* fr_BE.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_2621cd115180d8b2bc4cf3d9373fa2cbba1659c3788f62913c475db5005df6b3[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x92,0xF4,0xCE,0xBB,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x42,0x1A,0x4D,0x0D,0xA9,0xA6,0x9A,
-    0x47,0x99,0xC9,0x28,0x11,0xA0,0xE0,0xF6,0x15,0x52,0x44,0x8A,0xAB,0xB7,0xF8,0xBB,
-    0x92,0x29,0xC2,0x84,0x84,0x97,0xA6,0x75,0xD8
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2621cd115180d8b2bc4cf3d9373fa2cbba1659c3788f62913c475db5005df6b3) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2621cd115180d8b2bc4cf3d9373fa2cbba1659c3788f62913c475db5005df6b3) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_CA.ISO8859-1 LC_MONETARY locale data */
+/* fr_CA.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_5dcdef1824af26599a6b4763432ede7583e247823be2d8e05f51def5f22ebde3[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xDA,0x8C,0xC8,0x5F,0x00,0x00,
-    0x10,0x5C,0x00,0x00,0x10,0x44,0x06,0x78,0x08,0x2C,0x00,0x20,0x00,0x31,0x00,0xD0,
-    0x00,0xD4,0xC6,0xA6,0x9E,0xA6,0x9E,0xA2,0x34,0x4A,0x48,0x44,0xA9,0xBA,0x76,0x06,
-    0xB2,0x31,0xCB,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x86,0xD4,0x66,0x42,0xF8
+    0x43,0x41,0x44,0x20,0x0A,0x24,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,
+    0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5dcdef1824af26599a6b4763432ede7583e247823be2d8e05f51def5f22ebde3) == 62, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5dcdef1824af26599a6b4763432ede7583e247823be2d8e05f51def5f22ebde3) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_CH.ISO8859-1 LC_MESSAGES locale data */
+/* fr_CH.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_0cc87a5f8313cb41808d6cc1b58be6cec7fe9de8a4abe442daec953d0e701627[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC5,0x73,0x53,0x8E,0x00,0x00,
-    0x08,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x88,0x2B,0x00,0x11,0x88,0x20,0x20,
-    0x00,0x21,0x2A,0x00,0x18,0x6A,0x14,0xC0,0x01,0x34,0xA9,0x63,0xA3,0x3C,0x4A,0x44,
-    0xBB,0x10,0x89,0x5F,0x17,0x72,0x45,0x38,0x50,0x90,0xC5,0x73,0x53,0x8E
+    0x5E,0x5B,0x6F,0x4F,0x6A,0x4A,0x73,0x53,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0cc87a5f8313cb41808d6cc1b58be6cec7fe9de8a4abe442daec953d0e701627) == 62, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0cc87a5f8313cb41808d6cc1b58be6cec7fe9de8a4abe442daec953d0e701627) == 22, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_FR.ISO8859-1 LC_MESSAGES locale data */
+/* fr_FR.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_c08edb61fbec3f1e57d053ec4a348007c5bdfb7982e78563094490d0093a528d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x79,0xA6,0x0C,0x25,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x80,0x2B,0x00,0x01,0x80,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x98,0x90,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x07,0x9A,0x60,0xC2,0x50
+    0x5E,0x5B,0x6F,0x4F,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c08edb61fbec3f1e57d053ec4a348007c5bdfb7982e78563094490d0093a528d) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c08edb61fbec3f1e57d053ec4a348007c5bdfb7982e78563094490d0093a528d) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_FR.ISO8859-1 LC_MONETARY locale data */
+/* fr_FR.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_03d88875b8d2f81feb8fc7c69251acc0f7afcdad02f611d7a5fd6aabb5a6dd30[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xA8,0x69,0x8E,0x0E,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x06,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x31,0x00,0xD0,0x00,0xD4,0xF4,0xD4,0x1E,0xA6,0x9E,0xA7,0x14,0x4D,0xB0,0x69,
-    0xD3,0x47,0x5E,0x23,0x02,0xCD,0x91,0x20,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x85,0x43,
-    0x4C,0x70,0x70
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_03d88875b8d2f81feb8fc7c69251acc0f7afcdad02f611d7a5fd6aabb5a6dd30) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_03d88875b8d2f81feb8fc7c69251acc0f7afcdad02f611d7a5fd6aabb5a6dd30) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_FR.ISO8859-1 LC_NUMERIC locale data */
+/* fr_FR.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_789724d65cd1a62c57494c4e1c1705bb3d60ecdb4f0ace3b8c9f2bb7ad6faf71[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x70,0x2F,0xBC,0xC7,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x06,0x20,0x00,0x20,0x00,0x21,0x9A,0x68,0x33,0x4D,
-    0x07,0x57,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x38,0x17,0xDE,0x63,0x80
+    0x2C,0x0A,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_789724d65cd1a62c57494c4e1c1705bb3d60ecdb4f0ace3b8c9f2bb7ad6faf71) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_789724d65cd1a62c57494c4e1c1705bb3d60ecdb4f0ace3b8c9f2bb7ad6faf71) == 6, "Wrong size of locale's blob");
 
 /* BZip2 compressed fr_FR.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_2c701918d4f7c71696d6805fabfc13d475ce1c834b65fefb8860a5b6bac47f82[] = {
@@ -2434,15 +2277,13 @@ static uint8_t  __crystax_locale_blob_2c701918d4f7c71696d6805fabfc13d475ce1c834b
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2c701918d4f7c71696d6805fabfc13d475ce1c834b65fefb8860a5b6bac47f82) == 229, "Wrong size of locale's blob");
 
-/* BZip2 compressed fr_FR.UTF-8 LC_MONETARY locale data */
+/* fr_FR.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_58f230bc82a01cf5c9f121c3cd40b5b7f927929e8e1b3217de6f3298b1660fda[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x32,0x50,0xB9,0xA2,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x06,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x4D,0x34,0xD0,0xA6,0x00,0x03,
-    0x6F,0xE7,0x49,0x02,0xC9,0x93,0x98,0xE9,0x18,0x12,0x64,0xD5,0x5D,0xE7,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x06,0x4A,0x17,0x34,0x40
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_58f230bc82a01cf5c9f121c3cd40b5b7f927929e8e1b3217de6f3298b1660fda) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_58f230bc82a01cf5c9f121c3cd40b5b7f927929e8e1b3217de6f3298b1660fda) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed fr_FR.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_87f00d4038a85ffcee3deb0303e6d7ce406a803202fd4efe453baaf834078550[] = {
@@ -2464,24 +2305,20 @@ static uint8_t  __crystax_locale_blob_87f00d4038a85ffcee3deb0303e6d7ce406a803202
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_87f00d4038a85ffcee3deb0303e6d7ce406a803202fd4efe453baaf834078550) == 235, "Wrong size of locale's blob");
 
-/* BZip2 compressed he_IL.UTF-8 LC_MESSAGES locale data */
+/* he_IL.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_9a621703ef3d07c264278e663e7a0c56c6c109b4fd73002b4fddb2d1145dc3e0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4E,0xCB,0x3F,0xCA,0x00,0x00,
-    0x06,0xD7,0xA2,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x0C,0x00,0x80,0x20,0x00,0x21,0x2A,0x06,0x03,0x50,0x80,0x68,0x03,0x67,0x07,0x26,
-    0xA8,0xBC,0x93,0x04,0x25,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xEC,0xB3,0xFC,0xA0
+    0x5E,0x5B,0x79,0x59,0xD7,0x9B,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0xD7,0x9C,
+    0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9a621703ef3d07c264278e663e7a0c56c6c109b4fd73002b4fddb2d1145dc3e0) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9a621703ef3d07c264278e663e7a0c56c6c109b4fd73002b4fddb2d1145dc3e0) == 20, "Wrong size of locale's blob");
 
-/* BZip2 compressed he_IL.UTF-8 LC_MONETARY locale data */
+/* he_IL.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_a9bca60af14aff9941c119abac8232416ce6fd6b2e87ad180924f429962a125e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x54,0x8E,0xBB,0x73,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x38,0x08,0x00,0x24,0x08,0x00,0x10,0x00,0x00,
-    0x10,0x10,0x00,0x20,0x00,0x22,0x32,0x86,0x9B,0x53,0x4D,0x34,0x29,0x80,0x00,0x87,
-    0xC7,0x92,0x0C,0x52,0xCA,0xA8,0x01,0xA4,0xC9,0xED,0x5D,0xEB,0xE2,0xEE,0x48,0xA7,
-    0x0A,0x12,0x0A,0x91,0xD7,0x6E,0x60
+    0x49,0x4C,0x53,0x20,0x0A,0xE2,0x82,0xAA,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a9bca60af14aff9941c119abac8232416ce6fd6b2e87ad180924f429962a125e) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a9bca60af14aff9941c119abac8232416ce6fd6b2e87ad180924f429962a125e) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed he_IL.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_f9bcac670c474daecc78bee1b72c246beebbc6eac5e4371e9ec3bb50074fddeb[] = {
@@ -2610,32 +2447,26 @@ static uint8_t  __crystax_locale_blob_6d8882c0e2606275327ce98439081f3330343587ba
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6d8882c0e2606275327ce98439081f3330343587ba0b89ffd8e0876c08c64b57) == 758, "Wrong size of locale's blob");
 
-/* BZip2 compressed hi_IN.ISCII-DEV LC_MESSAGES locale data */
+/* hi_IN.ISCII-DEV LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_448dc089f8ec07e034a19276e6053b0a40fe589fabca300aaf611fdc060c544d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3C,0x75,0x42,0xDA,0x00,0x00,
-    0x06,0xD7,0x86,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x01,
-    0x00,0x00,0x40,0x20,0x00,0x21,0x28,0x4C,0x8F,0x42,0x10,0x34,0x0D,0x07,0x20,0xE8,
-    0xAE,0xC4,0x91,0x9B,0xA7,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x0F,0x1D,0x50,0xB6,0x80
+    0x5E,0x5B,0xD8,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xC6,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_448dc089f8ec07e034a19276e6053b0a40fe589fabca300aaf611fdc060c544d) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_448dc089f8ec07e034a19276e6053b0a40fe589fabca300aaf611fdc060c544d) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed hi_IN.ISCII-DEV LC_MONETARY locale data */
+/* hi_IN.ISCII-DEV LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_9b37f70a24bc958fe35ce4ed321a99629649d3e76fb73e9fa38427a869fa4b4b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x5B,0x36,0x61,0xCD,0x00,0x00,
-    0x10,0xDE,0x16,0x00,0x10,0x40,0x07,0x78,0x08,0x00,0x21,0x10,0x00,0x00,0x04,0x00,
-    0x40,0x80,0x01,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x32,0x3D,0x4C,0x8D,0x34,
-    0x68,0x4A,0xDF,0x21,0x88,0x55,0x66,0xB9,0x99,0x7B,0x42,0x00,0x11,0x1E,0x17,0x93,
-    0xDA,0xC5,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x41,0x6C,0xD9,0x87,0x34
+    0x49,0x4E,0x52,0x20,0x0A,0xCF,0xDE,0xC8,0xAC,0x20,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,
+    0x3B,0x32,0x3B,0x30,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9b37f70a24bc958fe35ce4ed321a99629649d3e76fb73e9fa38427a869fa4b4b) == 77, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9b37f70a24bc958fe35ce4ed321a99629649d3e76fb73e9fa38427a869fa4b4b) == 40, "Wrong size of locale's blob");
 
-/* BZip2 compressed hi_IN.ISCII-DEV LC_NUMERIC locale data */
+/* hi_IN.ISCII-DEV LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_f14a7aea78e7fbc1ce4faebee7e0b977f3e2cb8b4a431306856bab9ab5802e1c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC5,0x83,0x06,0x09,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x18,0x08,0x20,0x00,0x21,0x80,0x0C,0x01,0xD9,
-    0x0E,0xDC,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x16,0x0C,0x18,0x24
+    0x2E,0x0A,0x2C,0x0A,0x32,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f14a7aea78e7fbc1ce4faebee7e0b977f3e2cb8b4a431306856bab9ab5802e1c) == 44, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f14a7aea78e7fbc1ce4faebee7e0b977f3e2cb8b4a431306856bab9ab5802e1c) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed hi_IN.ISCII-DEV LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_8bbca5babe0a2760b22f17affcba87848116282ba14711a012137ef4eb4a4bc9[] = {
@@ -2723,32 +2554,26 @@ static uint8_t  __crystax_locale_blob_1028a84a3f681eabb807c89c063ecb557cc7bcd3ab
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1028a84a3f681eabb807c89c063ecb557cc7bcd3ab6641cfe69fc2b69f1005e0) == 946, "Wrong size of locale's blob");
 
-/* BZip2 compressed hr_HR.ISO8859-2 LC_MESSAGES locale data */
+/* hr_HR.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_0cf974a55996aa089ef60e3fc615c6e92ba628169ec88470453175939fcaf12d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE1,0x2A,0x51,0x0F,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x04,0x01,0x00,0x2B,0x04,0x01,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x0E,0x12,0xA5,0x10,0xF0
+    0x5E,0x5B,0x64,0x44,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0cf974a55996aa089ef60e3fc615c6e92ba628169ec88470453175939fcaf12d) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0cf974a55996aa089ef60e3fc615c6e92ba628169ec88470453175939fcaf12d) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed hr_HR.ISO8859-2 LC_MONETARY locale data */
+/* hr_HR.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_bb330ae4df309592a6c8d0536f1d2075e388cecf0d233c2e81e1a8611c5d9b10[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x09,0x97,0xDE,0x9F,0x00,0x00,
-    0x0F,0x5F,0x00,0x00,0x10,0x40,0x06,0x68,0x08,0x00,0x48,0x10,0x00,0x00,0x01,0x20,
-    0x00,0x21,0xA7,0xAA,0x69,0x89,0xA6,0x10,0x34,0x0D,0x09,0x7C,0x78,0x95,0x4C,0xA8,
-    0x3B,0xF1,0x32,0xB2,0xCC,0x32,0x34,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x26,0x5F,0x7A,
-    0x7C
+    0x48,0x52,0x4B,0x20,0x0A,0x4B,0x6E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bb330ae4df309592a6c8d0536f1d2075e388cecf0d233c2e81e1a8611c5d9b10) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bb330ae4df309592a6c8d0536f1d2075e388cecf0d233c2e81e1a8611c5d9b10) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed hr_HR.ISO8859-2 LC_NUMERIC locale data */
+/* hr_HR.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_cc411e55bef1adc24469c642bfa21aaa822fb2d52ec358a578ee7267883b40f8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x09,0xD1,0x96,0xB7,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x40,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x00,0x9D,0x19,0x6B,0x70
+    0x2C,0x0A,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cc411e55bef1adc24469c642bfa21aaa822fb2d52ec358a578ee7267883b40f8) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cc411e55bef1adc24469c642bfa21aaa822fb2d52ec358a578ee7267883b40f8) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed hr_HR.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_0e8a2d6efe6c0be893e265ba963c9acd50193dc9acc49d143e95b56a67101f64[] = {
@@ -2794,33 +2619,26 @@ static uint8_t  __crystax_locale_blob_8ac59bd4d4f48af81b76c09f582e9892d6a4216ee7
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8ac59bd4d4f48af81b76c09f582e9892d6a4216ee73fd540bd249db8df9499c0) == 267, "Wrong size of locale's blob");
 
-/* BZip2 compressed hu_HU.ISO8859-2 LC_MESSAGES locale data */
+/* hu_HU.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_cffc5a88e5eea4e9594dcc2fe4bcbb9daa4eec23453d98883b97ef679b5fd2c9[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x2B,0x4A,0x23,0x4F,0x00,0x00,
-    0x07,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x21,0x00,0x2B,0x02,0xA3,0x00,0x20,0x20,
-    0x00,0x21,0xA8,0xF5,0x34,0x06,0x65,0x0A,0x60,0x00,0x28,0x85,0x03,0xA1,0x61,0xD0,
-    0x99,0xF0,0xCB,0xDA,0x86,0x09,0x7F,0x17,0x72,0x45,0x38,0x50,0x90,0x2B,0x4A,0x23,
-    0x4F
+    0x5E,0x5B,0x69,0x49,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x69,0x67,0x65,0x6E,0x0A,0x6E,0x65,0x6D,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cffc5a88e5eea4e9594dcc2fe4bcbb9daa4eec23453d98883b97ef679b5fd2c9) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cffc5a88e5eea4e9594dcc2fe4bcbb9daa4eec23453d98883b97ef679b5fd2c9) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed hu_HU.ISO8859-2 LC_MONETARY locale data */
+/* hu_HU.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_9d922be19508524b95a6a7735359475135b5d4a2a6d434cbb9720569d9c59826[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xEA,0xB8,0x84,0x00,0x00,0x00,
-    0x10,0x5E,0x80,0x00,0x10,0x40,0x06,0x3C,0x08,0x01,0x40,0x02,0x00,0x04,0x00,0x20,
-    0x00,0x21,0xA6,0x89,0xA7,0xA8,0xF5,0x34,0x20,0x1A,0x00,0xDD,0x65,0x28,0x48,0xAA,
-    0xE4,0x9B,0x64,0x00,0xCC,0x3C,0x91,0x97,0xF1,0x77,0x24,0x53,0x85,0x09,0x0E,0xAB,
-    0x88,0x40,0x00
+    0x48,0x55,0x46,0x20,0x0A,0x46,0x74,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x34,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9d922be19508524b95a6a7735359475135b5d4a2a6d434cbb9720569d9c59826) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9d922be19508524b95a6a7735359475135b5d4a2a6d434cbb9720569d9c59826) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed hu_HU.ISO8859-2 LC_NUMERIC locale data */
+/* hu_HU.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_39616be9abbfdf567cf1d757eec064b1078e99d6dee9bd21b5db06dc31888692[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_39616be9abbfdf567cf1d757eec064b1078e99d6dee9bd21b5db06dc31888692) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_39616be9abbfdf567cf1d757eec064b1078e99d6dee9bd21b5db06dc31888692) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed hu_HU.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_c5a005fd75b7365afb371ecdc1f894eafaf2d70e492ec0b9060f60602db87832[] = {
@@ -2983,33 +2801,26 @@ static uint8_t  __crystax_locale_blob_b091706d1d0998e7c268579fde8fd8b08dd96b1e41
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b091706d1d0998e7c268579fde8fd8b08dd96b1e412714c393229260f9617465) == 879, "Wrong size of locale's blob");
 
-/* BZip2 compressed hy_AM.ARMSCII-8 LC_MESSAGES locale data */
+/* hy_AM.ARMSCII-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_ec36f3d997d51b9dd411839a730d4e8e9367a3b31c376372e71ebd08465ef457[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF1,0xEC,0xA7,0x92,0x00,0x00,
-    0x07,0x57,0x8B,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x18,
-    0x00,0x00,0x08,0x68,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0xA8,0x64,0x0F,0x44,
-    0xDA,0x8B,0x01,0x38,0xE0,0x31,0x00,0x92,0x17,0xA9,0xA9,0xA5,0x93,0xEB,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x1E,0x3D,0x94,0xF2,0x40
+    0x5E,0x5B,0xB3,0xB2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xE1,0xE0,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xB2,0xDB,0xE1,0x0A,0xE0,0xE3,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ec36f3d997d51b9dd411839a730d4e8e9367a3b31c376372e71ebd08465ef457) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ec36f3d997d51b9dd411839a730d4e8e9367a3b31c376372e71ebd08465ef457) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed hy_AM.ARMSCII-8 LC_MONETARY locale data */
+/* hy_AM.ARMSCII-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_fcb0442d560d78be724af437ed3aad3c69ca0d4c72ff130f386fadd1aa3765ef[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF0,0x51,0x3C,0xE4,0x00,0x00,
-    0x10,0x5C,0x08,0x80,0x10,0x40,0x07,0x78,0x08,0x24,0x02,0x00,0x40,0x40,0x00,0x20,
-    0x00,0x31,0x4C,0x00,0x00,0xD0,0x4D,0x1E,0xA3,0x08,0x61,0x9C,0x92,0x14,0x31,0x2F,
-    0x02,0x70,0xA2,0x09,0x59,0x5B,0xB6,0xCF,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x78,0x28,
-    0x9E,0x72,0x00
+    0x41,0x4D,0x44,0x20,0x0A,0xB8,0xF0,0x20,0x20,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fcb0442d560d78be724af437ed3aad3c69ca0d4c72ff130f386fadd1aa3765ef) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fcb0442d560d78be724af437ed3aad3c69ca0d4c72ff130f386fadd1aa3765ef) == 37, "Wrong size of locale's blob");
 
-/* BZip2 compressed hy_AM.ARMSCII-8 LC_NUMERIC locale data */
+/* hy_AM.ARMSCII-8 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_55e9c02258f7df5c075916da9786cf148ab6c7c70779ec81f482551b25a8b079[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_55e9c02258f7df5c075916da9786cf148ab6c7c70779ec81f482551b25a8b079) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_55e9c02258f7df5c075916da9786cf148ab6c7c70779ec81f482551b25a8b079) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed hy_AM.ARMSCII-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_f44d305707f7682749f7fbf20f9435fce82283ce20d541c3051a29450d92e494[] = {
@@ -3034,26 +2845,21 @@ static uint8_t  __crystax_locale_blob_f44d305707f7682749f7fbf20f9435fce82283ce20
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f44d305707f7682749f7fbf20f9435fce82283ce20d541c3051a29450d92e494) == 285, "Wrong size of locale's blob");
 
-/* BZip2 compressed hy_AM.UTF-8 LC_MESSAGES locale data */
+/* hy_AM.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_871c51ab52ada53ea23d2bae728a727402c146861902440f800e5ee6419235f3[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x2D,0x51,0x27,0x36,0x00,0x00,
-    0x07,0x57,0xDA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x40,0x20,0x00,0x22,0x60,0x06,0x00,0x20,0x00,0x31,0x4D,0x32,0x31,0x31,0x31,0x06,
-    0xA6,0x40,0xD3,0xD2,0x0C,0x9E,0x51,0xEB,0x06,0x05,0xDC,0x12,0x46,0xFB,0x34,0x90,
-    0x80,0x45,0xF8,0x91,0x89,0x56,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x81,0x6A,0x89,0x39,
-    0xB0
+    0x5E,0x5B,0xD5,0xA1,0xD4,0xB1,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD5,0xB8,
+    0xD5,0x88,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD4,0xB1,0xD5,0xB5,0xD5,0xB8,0x0A,0xD5,
+    0x88,0xD5,0xB9,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_871c51ab52ada53ea23d2bae728a727402c146861902440f800e5ee6419235f3) == 81, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_871c51ab52ada53ea23d2bae728a727402c146861902440f800e5ee6419235f3) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed hy_AM.UTF-8 LC_MONETARY locale data */
+/* hy_AM.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_cbb757b111049855b60ec5ee1a121a25493c3ecb1974c270b6274bd17d86f6e4[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3A,0x10,0x8A,0xBE,0x00,0x00,
-    0x10,0x5C,0x2A,0x00,0x10,0x40,0x07,0x78,0x08,0x24,0x02,0x40,0x00,0x04,0x00,0x06,
-    0x00,0x20,0x00,0x21,0xA2,0x69,0xA3,0xD4,0x69,0xA3,0x42,0x86,0x9A,0x60,0x00,0xBD,
-    0x98,0x92,0x14,0x58,0x96,0x71,0x12,0x51,0x04,0x2C,0x2C,0xCD,0x55,0xEB,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x07,0x42,0x11,0x57,0xC0
+    0x41,0x4D,0x44,0x20,0x0A,0xD4,0xB4,0xD5,0x90,0x20,0x20,0x0A,0x2E,0x0A,0x2C,0x0A,
+    0x33,0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,
+    0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cbb757b111049855b60ec5ee1a121a25493c3ecb1974c270b6274bd17d86f6e4) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cbb757b111049855b60ec5ee1a121a25493c3ecb1974c270b6274bd17d86f6e4) == 39, "Wrong size of locale's blob");
 
 /* BZip2 compressed hy_AM.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_5bf1e6d04889b0dce3bbc276699449f9657e7aec5839b4dede17ab6a18633eee[] = {
@@ -3141,32 +2947,26 @@ static uint8_t  __crystax_locale_blob_7f28340d0569c1e37737aa7e4af0e20c58f291c78d
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7f28340d0569c1e37737aa7e4af0e20c58f291c78d75091438a64e946acdea91) == 921, "Wrong size of locale's blob");
 
-/* BZip2 compressed is_IS.ISO8859-1 LC_MESSAGES locale data */
+/* is_IS.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_53888f22e342caa61e90b6f9d7c78007da83289e71e1d62501781b52b8a29ef0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_53888f22e342caa61e90b6f9d7c78007da83289e71e1d62501781b52b8a29ef0) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_53888f22e342caa61e90b6f9d7c78007da83289e71e1d62501781b52b8a29ef0) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed is_IS.ISO8859-1 LC_MONETARY locale data */
+/* is_IS.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_9fe49e7c783fbdf372e2170c007a7a78e6b5ae0d756620e0ac8cc3c2e4680ceb[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x27,0xD3,0xC5,0xB8,0x00,0x00,
-    0x0F,0x5F,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x00,0x28,0x08,0x00,0x00,0x08,0x10,
-    0x00,0x20,0x00,0x31,0x4C,0x00,0x01,0x06,0xA0,0x79,0x4D,0x32,0x1B,0x19,0x49,0x34,
-    0x30,0x2B,0x0B,0xC5,0xDD,0xA6,0x26,0x2A,0x85,0xFC,0x5D,0xC9,0x14,0xE1,0x42,0x40,
-    0x9F,0x4F,0x16,0xE0
+    0x49,0x53,0x4B,0x20,0x0A,0x6B,0x72,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9fe49e7c783fbdf372e2170c007a7a78e6b5ae0d756620e0ac8cc3c2e4680ceb) == 68, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9fe49e7c783fbdf372e2170c007a7a78e6b5ae0d756620e0ac8cc3c2e4680ceb) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed is_IS.ISO8859-1 LC_NUMERIC locale data */
+/* is_IS.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_da634129866919e015cf9e204b69e7a90bf35c73936adadd872be6ca5948317b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_da634129866919e015cf9e204b69e7a90bf35c73936adadd872be6ca5948317b) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_da634129866919e015cf9e204b69e7a90bf35c73936adadd872be6ca5948317b) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed is_IS.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_ed66888d1d4842ad62764d24e414e53d8fb359105572da56cf47ea211f2cb488[] = {
@@ -3276,31 +3076,26 @@ static uint8_t  __crystax_locale_blob_ade4730ac907c1e16cb7c214ea8f5e9306d76261fb
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ade4730ac907c1e16cb7c214ea8f5e9306d76261fb69619dc813b44c8ae0e0df) == 257, "Wrong size of locale's blob");
 
-/* BZip2 compressed it_IT.ISO8859-1 LC_MESSAGES locale data */
+/* it_IT.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3e14359421ae11d0bef7f831838dc3fed2ad0142590584f74d29c1172f3dc789[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x26,0x4B,0xA8,0xA4,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x08,0x2B,0x00,0x01,0x08,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x98,0x90,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x02,0x64,0xBA,0x8A,0x40
+    0x5E,0x5B,0x73,0x53,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3e14359421ae11d0bef7f831838dc3fed2ad0142590584f74d29c1172f3dc789) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3e14359421ae11d0bef7f831838dc3fed2ad0142590584f74d29c1172f3dc789) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed it_IT.ISO8859-1 LC_MONETARY locale data */
+/* it_IT.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_e64a073fe39f4aa21f39fd2031592ae1c521548b20df5fbd004ad5e5ad4bd746[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x84,0x1A,0x25,0x2D,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x68,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0x8A,0x06,0xD4,0xD3,0xD4,0x20,0x1A,0x00,0xA9,0x8D,0x6E,0x83,0x21,0xA7,
-    0xEA,0x24,0x5A,0xB4,0x24,0x1F,0x17,0x72,0x45,0x38,0x50,0x90,0x84,0x1A,0x25,0x2D
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e64a073fe39f4aa21f39fd2031592ae1c521548b20df5fbd004ad5e5ad4bd746) == 64, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e64a073fe39f4aa21f39fd2031592ae1c521548b20df5fbd004ad5e5ad4bd746) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed it_IT.ISO8859-1 LC_NUMERIC locale data */
+/* it_IT.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_af622b4ce84764bb23ac752b6aefcd3150cbdafbcd78991421c69e82f1885cc7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE2,0x46,0x33,0x4E,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x05,0x40,0x08,0x20,0x00,0x30,0xC0,0x08,0x63,0x41,
-    0x20,0x75,0x57,0x0B,0xB9,0x22,0x9C,0x28,0x48,0x71,0x23,0x19,0xA7,0x00
+    0x2C,0x0A,0x2E,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_af622b4ce84764bb23ac752b6aefcd3150cbdafbcd78991421c69e82f1885cc7) == 46, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_af622b4ce84764bb23ac752b6aefcd3150cbdafbcd78991421c69e82f1885cc7) == 9, "Wrong size of locale's blob");
 
 /* BZip2 compressed it_IT.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_32714c116fb5280b9c99b8ad4134fa7c5ef034a023599e5edff6b2f4f3a8ed37[] = {
@@ -3323,15 +3118,13 @@ static uint8_t  __crystax_locale_blob_32714c116fb5280b9c99b8ad4134fa7c5ef034a023
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_32714c116fb5280b9c99b8ad4134fa7c5ef034a023599e5edff6b2f4f3a8ed37) == 250, "Wrong size of locale's blob");
 
-/* BZip2 compressed it_IT.UTF-8 LC_MONETARY locale data */
+/* it_IT.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_66ee59e005279f7f056ae269f2847d13b3752e3d54676dfe4e06d68228f82126[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1E,0x23,0x12,0x81,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x68,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x01,0x19,0x46,0x8D,0xA9,0xA6,0x9A,0x47,
-    0xB0,0xFA,0x86,0x41,0x91,0x5D,0x80,0x1A,0x4C,0x9A,0xAB,0xB7,0xF8,0xBB,0x92,0x29,
-    0xC2,0x84,0x80,0xF1,0x18,0x94,0x08
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_66ee59e005279f7f056ae269f2847d13b3752e3d54676dfe4e06d68228f82126) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_66ee59e005279f7f056ae269f2847d13b3752e3d54676dfe4e06d68228f82126) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed it_IT.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_cb417ec979d1145d6576357e17cace678e68447e37d928b63c7236a15536e97f[] = {
@@ -3439,33 +3232,26 @@ static uint8_t  __crystax_locale_blob_6979dc6ac909fa32f675b9ed20d885c2b6eb145aa5
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6979dc6ac909fa32f675b9ed20d885c2b6eb145aa577001e790138df46e18af1) == 1279, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.eucJP LC_MESSAGES locale data */
+/* ja_JP.eucJP LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_baad646dbefbdabb7ae1afd81bdf4604ce79297966a8cb2f0902c95c71914450[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x14,0x84,0x73,0xEB,0x00,0x00,
-    0x06,0xD7,0x97,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x0E,
-    0x00,0x00,0x01,0x80,0x20,0x00,0x01,0x00,0x20,0x20,0x00,0x31,0x4D,0x32,0x31,0x31,
-    0x31,0x06,0xA6,0x40,0xC8,0xD0,0xDA,0x88,0x14,0x60,0x33,0xB8,0xEC,0x30,0xD8,0x93,
-    0x1C,0xF4,0xB1,0x4D,0x1B,0xD5,0x69,0xF1,0x77,0x24,0x53,0x85,0x09,0x01,0x48,0x47,
-    0x3E,0xB0
+    0x5E,0x5B,0x79,0x59,0xA3,0xF9,0xA3,0xD9,0xA4,0xCF,0xA5,0xCF,0x5D,0x2E,0x2A,0x0A,
+    0x5E,0x5B,0x6E,0x4E,0xA3,0xEE,0xA3,0xCE,0xA4,0xA4,0xA5,0xA4,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_baad646dbefbdabb7ae1afd81bdf4604ce79297966a8cb2f0902c95c71914450) == 82, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_baad646dbefbdabb7ae1afd81bdf4604ce79297966a8cb2f0902c95c71914450) == 32, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.eucJP LC_MONETARY locale data */
+/* ja_JP.eucJP LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_fb96dc8e1dcd442c10b73096d0a099b5ac9b889090dec6200a630b46cbcfb4ad[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3A,0xEA,0x23,0x84,0x00,0x00,
-    0x0F,0x5E,0x00,0x00,0x10,0x40,0x07,0x6C,0x08,0x00,0x10,0x40,0x24,0x20,0x00,0x21,
-    0xA6,0x50,0x62,0x62,0x10,0x00,0x01,0xF8,0xB3,0xAF,0x00,0xB4,0x29,0x9C,0x80,0xC2,
-    0x88,0xA3,0x78,0xBE,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0x75,0xD4,0x47,0x08
+    0x4A,0x50,0x59,0x20,0x0A,0x5C,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fb96dc8e1dcd442c10b73096d0a099b5ac9b889090dec6200a630b46cbcfb4ad) == 62, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_fb96dc8e1dcd442c10b73096d0a099b5ac9b889090dec6200a630b46cbcfb4ad) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.eucJP LC_NUMERIC locale data */
+/* ja_JP.eucJP LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_5afb2e4b577f1f6a7df332e8ada33ecafaf8a5881eabda4824789cd012626e75[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5afb2e4b577f1f6a7df332e8ada33ecafaf8a5881eabda4824789cd012626e75) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_5afb2e4b577f1f6a7df332e8ada33ecafaf8a5881eabda4824789cd012626e75) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed ja_JP.eucJP LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_6ecb76fde77933b775526de8e42de7666d8d34e3ca9ce9c4fc79581c3d1a6785[] = {
@@ -3583,14 +3369,11 @@ static uint8_t  __crystax_locale_blob_0423f813f097effc84d09c626a72dd01cf4c00b0fe
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0423f813f097effc84d09c626a72dd01cf4c00b0fe411ced951b5503f7d88465) == 1442, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.SJIS LC_MESSAGES locale data */
+/* ja_JP.SJIS LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_8ec02775913952b4e695f35a48e9e091ca170da3d36f405b8de2870674263658[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x3A,0x29,0x9A,0x51,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x69,0x83,0x21,0x00,0x30,0x83,0xE6,0x09,0xB1,0x24,0x33,0x85,0xDC,
-    0x91,0x4E,0x14,0x24,0x0E,0x8A,0x66,0x94,0x40
+    0x5E,0x5B,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8ec02775913952b4e695f35a48e9e091ca170da3d36f405b8de2870674263658) == 57, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8ec02775913952b4e695f35a48e9e091ca170da3d36f405b8de2870674263658) == 16, "Wrong size of locale's blob");
 
 /* BZip2 compressed ja_JP.SJIS LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_a4379490b8f27ee0b9c596e19526173c6233697a021bb566eb7d1b78325afbb1[] = {
@@ -3611,26 +3394,21 @@ static uint8_t  __crystax_locale_blob_a4379490b8f27ee0b9c596e19526173c6233697a02
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a4379490b8f27ee0b9c596e19526173c6233697a021bb566eb7d1b78325afbb1) == 218, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.UTF-8 LC_MESSAGES locale data */
+/* ja_JP.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_c387552dbafd257a01bbdd4c8930917b6c6d742c69c8a6a8b80d8f6667fcdc96[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x03,0xF0,0xC2,0xC6,0x00,0x00,
-    0x06,0xD7,0xF9,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x3C,
-    0x01,0x80,0x20,0x04,0x01,0x80,0x26,0x08,0x00,0xA0,0x00,0x31,0x40,0x00,0xD0,0x32,
-    0x64,0x09,0x54,0xF5,0x01,0x88,0x1A,0x06,0xF2,0xA4,0x17,0x99,0x92,0x9C,0xCE,0x7A,
-    0x91,0xA8,0x83,0x75,0x58,0xAA,0xC6,0x18,0x59,0xFC,0xD3,0x4F,0xF1,0x77,0x24,0x53,
-    0x85,0x09,0x00,0x3F,0x0C,0x2C,0x60
+    0x5E,0x5B,0x79,0x59,0xEF,0xBD,0x99,0xEF,0xBC,0xB9,0xE3,0x81,0xAF,0xE3,0x83,0x8F,
+    0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0xEF,0xBD,0x8E,0xEF,0xBC,0xAE,0xE3,0x81,
+    0x84,0xE3,0x82,0xA4,0x5D,0x2E,0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c387552dbafd257a01bbdd4c8930917b6c6d742c69c8a6a8b80d8f6667fcdc96) == 87, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c387552dbafd257a01bbdd4c8930917b6c6d742c69c8a6a8b80d8f6667fcdc96) == 40, "Wrong size of locale's blob");
 
-/* BZip2 compressed ja_JP.UTF-8 LC_MONETARY locale data */
+/* ja_JP.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b9e92f69c1a4034998f85c17e5900390a3ac10a640240f8f7c61599146484ee5[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBF,0x77,0x24,0xF7,0x00,0x00,
-    0x0F,0x5E,0x14,0x00,0x10,0x40,0x07,0x6C,0x08,0x00,0x10,0x40,0x20,0x02,0x00,0x10,
-    0x00,0x20,0x00,0x21,0xA6,0x90,0x6D,0x26,0x9A,0x0A,0x60,0x00,0x23,0x4F,0x7B,0x84,
-    0x0B,0x27,0x99,0xB4,0x18,0x51,0x14,0x7B,0x7E,0xC7,0xC5,0xDC,0x91,0x4E,0x14,0x24,
-    0x2F,0xDD,0xC9,0x3D,0xC0
+    0x4A,0x50,0x59,0x20,0x0A,0xC2,0xA5,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b9e92f69c1a4034998f85c17e5900390a3ac10a640240f8f7c61599146484ee5) == 69, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b9e92f69c1a4034998f85c17e5900390a3ac10a640240f8f7c61599146484ee5) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed ja_JP.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_1bb43203161e2d90a8ffeb422ef0c4120098652686bf2d00ee63b0067b70dc5d[] = {
@@ -3770,33 +3548,26 @@ static uint8_t  __crystax_locale_blob_e1702606c580ccf707cad2759e3922bad1b56c6aa5
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e1702606c580ccf707cad2759e3922bad1b56c6aa53bcd055ffb0d1f747349b8) == 870, "Wrong size of locale's blob");
 
-/* BZip2 compressed kk_KZ.PT154 LC_MESSAGES locale data */
+/* kk_KZ.PT154 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_dc7e12e9d2dd3fe9119815e93056ad34969d5756b8ae4db96f8174f8c0ba07a1[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF1,0x84,0x6B,0x8E,0x00,0x00,
-    0x07,0xD7,0x85,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x01,
-    0x40,0x01,0x51,0x00,0x00,0xA0,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x34,0x68,0x1E,
-    0x93,0x08,0x91,0x57,0x51,0xC0,0x59,0x81,0x24,0x79,0xE2,0x67,0x28,0x94,0xAB,0xF1,
-    0x77,0x24,0x53,0x85,0x09,0x0F,0x18,0x46,0xB8,0xE0
+    0x5E,0x5B,0xE8,0xC8,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xE6,0xC6,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE8,0xFF,0x0A,0xE6,0xEE,0xEA,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dc7e12e9d2dd3fe9119815e93056ad34969d5756b8ae4db96f8174f8c0ba07a1) == 74, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dc7e12e9d2dd3fe9119815e93056ad34969d5756b8ae4db96f8174f8c0ba07a1) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed kk_KZ.PT154 LC_MONETARY locale data */
+/* kk_KZ.PT154 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_cfb04be52a3ce71403b44f84d4948ab9cb037451e4068734e6a479f94c888bcc[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xB6,0x9A,0x98,0x26,0x00,0x00,
-    0x0F,0xDE,0x01,0x80,0x10,0x40,0x07,0x78,0x08,0x00,0x08,0x04,0x10,0x08,0x00,0x10,
-    0x00,0x20,0x00,0x31,0x4C,0x00,0x00,0xD4,0xF5,0x3D,0x4D,0x1E,0xA3,0x4D,0x0D,0x42,
-    0x6D,0x82,0x2E,0xDA,0x31,0x24,0x51,0x00,0x49,0x93,0x55,0xE5,0xF1,0x77,0x24,0x53,
-    0x85,0x09,0x0B,0x69,0xA9,0x82,0x60
+    0x4B,0x5A,0x54,0x20,0x0A,0xF2,0xE3,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cfb04be52a3ce71403b44f84d4948ab9cb037451e4068734e6a479f94c888bcc) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cfb04be52a3ce71403b44f84d4948ab9cb037451e4068734e6a479f94c888bcc) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed kk_KZ.PT154 LC_NUMERIC locale data */
+/* kk_KZ.PT154 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_65a3825a40520325fc9fea09e4bf84421b147668c2f0d0fc1ee1d72d42a0d2c7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_65a3825a40520325fc9fea09e4bf84421b147668c2f0d0fc1ee1d72d42a0d2c7) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_65a3825a40520325fc9fea09e4bf84421b147668c2f0d0fc1ee1d72d42a0d2c7) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed kk_KZ.PT154 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_1cbd102dbb81e066ce6d26ec4cef1753152eb3802f12733596f49822062aeda4[] = {
@@ -3819,25 +3590,21 @@ static uint8_t  __crystax_locale_blob_1cbd102dbb81e066ce6d26ec4cef1753152eb3802f
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1cbd102dbb81e066ce6d26ec4cef1753152eb3802f12733596f49822062aeda4) == 248, "Wrong size of locale's blob");
 
-/* BZip2 compressed kk_KZ.UTF-8 LC_MESSAGES locale data */
+/* kk_KZ.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_bdc9320009ebd118363bf63f6eef0d611d7418975549e122d687217b23f57074[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x33,0x60,0xE9,0xA8,0x00,0x00,
-    0x07,0xD7,0xEA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x00,0x81,0x40,0x01,0x51,0x60,0x00,0x20,0x00,0x21,0xA9,0xA3,0x40,0xF4,0x81,0x90,
-    0xA6,0x4C,0x4C,0x83,0x23,0x13,0xAD,0x35,0x18,0x05,0x98,0x12,0x46,0xB7,0x10,0x00,
-    0xF3,0xBD,0xD1,0x21,0x57,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x06,0x6C,0x1D,0x35,0x00
+    0x5E,0x5B,0xD0,0xB8,0xD0,0x98,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xB6,
+    0xD0,0x96,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD0,0xB8,0xD1,0x8F,0x0A,0xD0,0xB6,0xD0,
+    0xBE,0xD0,0xBA,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bdc9320009ebd118363bf63f6eef0d611d7418975549e122d687217b23f57074) == 80, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bdc9320009ebd118363bf63f6eef0d611d7418975549e122d687217b23f57074) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed kk_KZ.UTF-8 LC_MONETARY locale data */
+/* kk_KZ.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_a405fb46549f8bc0538c49753bced6be7e2d82dbde9d34c192ea4465f452603d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x50,0xCD,0x7A,0x8F,0x00,0x00,
-    0x0F,0xDE,0x4A,0x00,0x10,0x40,0x07,0x78,0x08,0x00,0x08,0x04,0x10,0x10,0x00,0x08,
-    0x00,0x60,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x3D,0x4D,0x34,0x7A,0x8D,
-    0x06,0x89,0x9D,0x92,0x40,0x8A,0xA4,0xC5,0xE0,0x8E,0x90,0x04,0x18,0x3C,0xE4,0xCC,
-    0xBF,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x14,0x33,0x5E,0xA3,0xC0
+    0x4B,0x5A,0x54,0x20,0x0A,0xD1,0x82,0xD0,0xB3,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,
+    0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a405fb46549f8bc0538c49753bced6be7e2d82dbde9d34c192ea4465f452603d) == 76, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a405fb46549f8bc0538c49753bced6be7e2d82dbde9d34c192ea4465f452603d) == 38, "Wrong size of locale's blob");
 
 /* BZip2 compressed kk_KZ.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_eb39f91e20a7240ec584cdca5b21e6c62e04cbed88eb5dd4a51e5dd925977481[] = {
@@ -4008,33 +3775,27 @@ static uint8_t  __crystax_locale_blob_e6704f509433cd9bf3e4518af729571fb6efa861ca
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e6704f509433cd9bf3e4518af729571fb6efa861ca163dea3ffe54b2cd1f413a) == 1065, "Wrong size of locale's blob");
 
-/* BZip2 compressed ko_KR.eucKR LC_MESSAGES locale data */
+/* ko_KR.eucKR LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_34cd7acba95723b021bbe727423d7ea05130163af77bd080a23b10b774b0518b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC4,0xA0,0xAE,0xFF,0x00,0x00,
-    0x07,0xD7,0x9F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x08,
-    0x00,0x04,0x21,0xC1,0x01,0x80,0x20,0x00,0x01,0x00,0x20,0x20,0x00,0x21,0xA9,0xA0,
-    0x06,0x80,0x1E,0xA1,0x46,0x8C,0x81,0xA3,0x4C,0x8D,0x13,0x37,0x6B,0xC4,0xC5,0x55,
-    0x44,0x75,0x41,0x61,0xE3,0x7C,0x47,0x83,0xB3,0x04,0xBC,0x8F,0x14,0x67,0xC5,0xDC,
-    0x91,0x4E,0x14,0x24,0x31,0x28,0x2B,0xBF,0xC0
+    0x5E,0x5B,0x79,0x59,0xA3,0xF9,0xA3,0xD9,0xBF,0xB9,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0xA3,0xEE,0xA3,0xCE,0xBE,0xC6,0x5D,0x2E,0x2A,0x0A,0xBF,0xB9,0x0A,0xBE,
+    0xC6,0xB4,0xCF,0xBF,0xC0,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_34cd7acba95723b021bbe727423d7ea05130163af77bd080a23b10b774b0518b) == 89, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_34cd7acba95723b021bbe727423d7ea05130163af77bd080a23b10b774b0518b) == 38, "Wrong size of locale's blob");
 
-/* BZip2 compressed ko_KR.eucKR LC_MONETARY locale data */
+/* ko_KR.eucKR LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_80f99494567b7c2a14e9d92b2a17c24982a5fae161fac32f13fa18bee14cb290[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x0B,0x69,0xA2,0x2A,0x00,0x00,
-    0x0F,0x5E,0x00,0x00,0x10,0x40,0x07,0x6C,0x08,0x00,0x08,0x10,0x84,0x20,0x00,0x21,
-    0xA6,0x50,0x62,0x62,0x10,0x00,0x01,0xF8,0xB3,0xAF,0x00,0xB4,0x29,0x9C,0x80,0xC2,
-    0x88,0xA3,0x78,0xBE,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0x16,0xD3,0x44,0x54
+    0x4B,0x52,0x57,0x20,0x0A,0x5C,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_80f99494567b7c2a14e9d92b2a17c24982a5fae161fac32f13fa18bee14cb290) == 62, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_80f99494567b7c2a14e9d92b2a17c24982a5fae161fac32f13fa18bee14cb290) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed ko_KR.eucKR LC_NUMERIC locale data */
+/* ko_KR.eucKR LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_9995741a3c8dd33b16df815bfe03c638d773e1323660e3efea3076912387a2da[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9995741a3c8dd33b16df815bfe03c638d773e1323660e3efea3076912387a2da) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9995741a3c8dd33b16df815bfe03c638d773e1323660e3efea3076912387a2da) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed ko_KR.eucKR LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_dec6835afddce2309171817a7b57a6bebefdd36741a81d41ed580b8398a5efb1[] = {
@@ -4055,26 +3816,21 @@ static uint8_t  __crystax_locale_blob_dec6835afddce2309171817a7b57a6bebefdd36741
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dec6835afddce2309171817a7b57a6bebefdd36741a81d41ed580b8398a5efb1) == 213, "Wrong size of locale's blob");
 
-/* BZip2 compressed ko_KR.UTF-8 LC_MESSAGES locale data */
+/* ko_KR.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_8bde8f1ef0ae42bae830f17808d0ef6d0a32e2806108ba43acf6e0dc14032c5d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x25,0x28,0xD3,0x76,0x00,0x00,
-    0x07,0xD7,0xF9,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x49,0x02,0x60,0x04,0x01,0x00,0x26,0x00,0x0C,0xA0,0x00,0x21,0x2A,0x9A,0x34,0x0D,
-    0x92,0x68,0x0D,0xE9,0x42,0x80,0x01,0xA0,0x64,0xC8,0x97,0x4F,0x8C,0xCD,0x8A,0x33,
-    0x1A,0x3E,0xE3,0x96,0x39,0x2D,0x7B,0xAC,0x09,0x4D,0x10,0x14,0x4C,0x45,0x54,0x28,
-    0xFC,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x94,0xA3,0x4D,0xD8
+    0x5E,0x5B,0x79,0x59,0xEF,0xBD,0x99,0xEF,0xBC,0xB9,0xEC,0x98,0x88,0x5D,0x2E,0x2A,
+    0x0A,0x5E,0x5B,0x6E,0x4E,0xEF,0xBD,0x8E,0xEF,0xBC,0xAE,0xEC,0x95,0x84,0x5D,0x2E,
+    0x2A,0x0A,0xEC,0x98,0x88,0x0A,0xEC,0x95,0x84,0xEB,0x8B,0x88,0xEC,0x98,0xA4,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8bde8f1ef0ae42bae830f17808d0ef6d0a32e2806108ba43acf6e0dc14032c5d) == 91, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8bde8f1ef0ae42bae830f17808d0ef6d0a32e2806108ba43acf6e0dc14032c5d) == 48, "Wrong size of locale's blob");
 
-/* BZip2 compressed ko_KR.UTF-8 LC_MONETARY locale data */
+/* ko_KR.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_abda46ce90a8643472bf2eed512a9db0037fca3e527ab7da53b86efe5f2aae05[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x96,0x7A,0xC4,0x57,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x6C,0x08,0x00,0x08,0x10,0x80,0x10,0x00,0x00,
-    0x20,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0xA1,0x06,0xD2,0x69,0xA6,0x8F,
-    0xA6,0xF6,0xDC,0x85,0x42,0xD1,0x14,0x42,0x09,0x51,0x2B,0xDA,0xBB,0xCF,0xC5,0xDC,
-    0x91,0x4E,0x14,0x24,0x25,0x9E,0xB1,0x15,0xC0
+    0x4B,0x52,0x57,0x20,0x0A,0xE2,0x82,0xA9,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abda46ce90a8643472bf2eed512a9db0037fca3e527ab7da53b86efe5f2aae05) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abda46ce90a8643472bf2eed512a9db0037fca3e527ab7da53b86efe5f2aae05) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed ko_KR.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_704b4558eac83e6ba3c386f028da6f3c03f6dfbcc1d585059a9726faf9ecf518[] = {
@@ -4831,33 +4587,26 @@ static uint8_t  __crystax_locale_blob_807402b05baef7fc0fc949c9b199d05a375b4b7a4f
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_807402b05baef7fc0fc949c9b199d05a375b4b7a4fb04360730ffafa10898daa) == 775, "Wrong size of locale's blob");
 
-/* BZip2 compressed lt_LT.ISO8859-13 LC_MESSAGES locale data */
+/* lt_LT.ISO8859-13 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_cf14ef208ba01df59bf65bc5f63d3d5bd6d7e06398f5edeeabf5ac52a9427455[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBC,0xCC,0xF9,0xAD,0x00,0x00,
-    0x08,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x04,0x2B,0x22,0x21,0x44,0x20,0x20,
-    0x00,0x21,0xA8,0xD3,0x40,0x66,0x9A,0x85,0x30,0x00,0x4D,0x2F,0xE2,0xCE,0x3A,0x0D,
-    0x22,0x26,0x20,0x67,0x55,0x4E,0x99,0x97,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x2F,0x33,
-    0x3E,0x6B,0x40
+    0x5E,0x5B,0x74,0x54,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x74,0x61,0x69,0x70,0x0A,0x6E,0x65,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cf14ef208ba01df59bf65bc5f63d3d5bd6d7e06398f5edeeabf5ac52a9427455) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cf14ef208ba01df59bf65bc5f63d3d5bd6d7e06398f5edeeabf5ac52a9427455) == 26, "Wrong size of locale's blob");
 
-/* BZip2 compressed lt_LT.ISO8859-13 LC_MONETARY locale data */
+/* lt_LT.ISO8859-13 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_23971c491515b02abeb5309807b70859dcea0e3ae550bc4dd62c8ce81c039f72[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x17,0x53,0xDF,0x0D,0x00,0x00,
-    0x0F,0xDE,0x80,0x00,0x10,0x40,0x06,0x78,0x08,0x00,0x04,0x04,0x00,0x04,0x00,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x1A,0x9E,0x9A,0x9A,0x3D,0x4F,0x49,0xD5,0x89,0xB6,0x08,
-    0xA6,0xD1,0xB8,0x46,0x84,0x33,0x28,0x6C,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x5D,
-    0x4F,0x7C,0x34
+    0x4C,0x54,0x4C,0x20,0x0A,0x4C,0x74,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_23971c491515b02abeb5309807b70859dcea0e3ae550bc4dd62c8ce81c039f72) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_23971c491515b02abeb5309807b70859dcea0e3ae550bc4dd62c8ce81c039f72) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed lt_LT.ISO8859-13 LC_NUMERIC locale data */
+/* lt_LT.ISO8859-13 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_abaaedfb90acf9df5aa113cd2480412dc5a6590c502d9973038d86496c516a20[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abaaedfb90acf9df5aa113cd2480412dc5a6590c502d9973038d86496c516a20) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abaaedfb90acf9df5aa113cd2480412dc5a6590c502d9973038d86496c516a20) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed lt_LT.ISO8859-13 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_879f7eeafb653a5daddcc4b6d6bfe53057dd6b9b6b2da57a898d60b7d9725f8c[] = {
@@ -5000,25 +4749,20 @@ static uint8_t  __crystax_locale_blob_ebb42615fb12c7dee1757c7913482ef9de94d05a08
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ebb42615fb12c7dee1757c7913482ef9de94d05a081e121d43ab79addf7211c0) == 314, "Wrong size of locale's blob");
 
-/* BZip2 compressed lv_LV.ISO8859-13 LC_MESSAGES locale data */
+/* lv_LV.ISO8859-13 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3aa7255b1b174b1243be5d38b4a17e6d155321434caa29489f0c010947c31b8a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xD7,0x10,0x70,0x5A,0x00,0x00,
-    0x07,0xD7,0x81,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x10,
-    0x80,0x20,0x00,0x21,0xA9,0xEA,0x03,0x46,0x7A,0xA1,0x00,0x00,0x0B,0xA3,0x2B,0xAA,
-    0x68,0x15,0x54,0xA1,0xB6,0x44,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x5C,0x41,0xC1,
-    0x68
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x6A,0xE2,0x0A,0x6E,0xE7,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3aa7255b1b174b1243be5d38b4a17e6d155321434caa29489f0c010947c31b8a) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3aa7255b1b174b1243be5d38b4a17e6d155321434caa29489f0c010947c31b8a) == 24, "Wrong size of locale's blob");
 
-/* BZip2 compressed lv_LV.ISO8859-13 LC_MONETARY locale data */
+/* lv_LV.ISO8859-13 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_6953d03a468e540fe4c3066657115ba05cfc6cc8c85c8e1519c53af24587610e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x6A,0xCF,0x08,0xD6,0x00,0x00,
-    0x0F,0xDE,0x80,0x00,0x10,0x40,0x06,0x78,0x08,0x00,0x04,0x01,0x00,0x08,0x00,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x1A,0x9E,0x9A,0x9A,0x3D,0x4F,0x49,0xD5,0x89,0xB6,0x08,
-    0xA6,0xD1,0xB8,0x46,0x84,0x33,0x28,0x6C,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x41,0xAB,
-    0x3C,0x23,0x58
+    0x4C,0x56,0x4C,0x20,0x0A,0x4C,0x73,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6953d03a468e540fe4c3066657115ba05cfc6cc8c85c8e1519c53af24587610e) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6953d03a468e540fe4c3066657115ba05cfc6cc8c85c8e1519c53af24587610e) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed lv_LV.ISO8859-13 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_1e4311057a5dd209d021e2c020e191f05fa9f685bc52a675de7a5f28f1f9b2e8[] = {
@@ -5043,15 +4787,12 @@ static uint8_t  __crystax_locale_blob_1e4311057a5dd209d021e2c020e191f05fa9f685bc
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1e4311057a5dd209d021e2c020e191f05fa9f685bc52a675de7a5f28f1f9b2e8) == 279, "Wrong size of locale's blob");
 
-/* BZip2 compressed lv_LV.UTF-8 LC_MESSAGES locale data */
+/* lv_LV.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3ec39f053d03943d21cc22175978d79273488ba587b81f6fdd55056e1b10f7c8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE0,0x5F,0x51,0x1C,0x00,0x00,
-    0x07,0xD7,0xE4,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x08,0x00,0x04,0x00,0x20,0x00,0x31,0x4C,0x00,0x00,0xD4,0xF5,0x0D,0x0D,0x36,
-    0x50,0xEE,0x1E,0x44,0x8A,0x4D,0x84,0xA8,0x32,0x4B,0xF0,0x99,0xF8,0xBB,0x92,0x29,
-    0xC2,0x84,0x87,0x02,0xFA,0x88,0xE0
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x6A,0xC4,0x81,0x0A,0x6E,0xC4,0x93,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3ec39f053d03943d21cc22175978d79273488ba587b81f6fdd55056e1b10f7c8) == 71, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3ec39f053d03943d21cc22175978d79273488ba587b81f6fdd55056e1b10f7c8) == 26, "Wrong size of locale's blob");
 
 /* BZip2 compressed lv_LV.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_c55ee584ad52d88b1dbaa6f99c8076b966953d98b998844ab73c1203adf2a58c[] = {
@@ -5076,34 +4817,27 @@ static uint8_t  __crystax_locale_blob_c55ee584ad52d88b1dbaa6f99c8076b966953d98b9
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c55ee584ad52d88b1dbaa6f99c8076b966953d98b998844ab73c1203adf2a58c) == 286, "Wrong size of locale's blob");
 
-/* BZip2 compressed mn_MN.UTF-8 LC_MESSAGES locale data */
+/* mn_MN.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3ac8244e6944407217d6dd5c223ed686927e5abc17f41d82740027bfe41c9c8b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x49,0xB8,0x17,0x98,0x00,0x00,
-    0x07,0x57,0xDA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x10,
-    0x00,0x10,0x01,0x88,0x64,0x70,0x00,0x20,0x00,0x31,0x40,0xD3,0x43,0x23,0x26,0x20,
-    0x95,0x4F,0x53,0x21,0x9E,0xA4,0xC9,0x8C,0xA6,0x79,0x35,0x32,0x82,0xB5,0x84,0x91,
-    0x8C,0x38,0xF0,0x0D,0xC1,0xAD,0xB3,0x46,0xDD,0x4D,0xA2,0x5F,0x8B,0xB9,0x22,0x9C,
-    0x28,0x48,0x24,0xDC,0x0B,0xCC,0x00
+    0x5E,0x5B,0xD1,0x82,0xD0,0xA2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD2,0xAF,
+    0xD2,0xAE,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD1,0x82,0xD0,0xB8,0xD0,0xB9,0xD0,0xBC,
+    0x0A,0xD2,0xAF,0xD0,0xB3,0xD2,0xAF,0xD0,0xB9,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3ac8244e6944407217d6dd5c223ed686927e5abc17f41d82740027bfe41c9c8b) == 87, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3ac8244e6944407217d6dd5c223ed686927e5abc17f41d82740027bfe41c9c8b) == 42, "Wrong size of locale's blob");
 
-/* BZip2 compressed mn_MN.UTF-8 LC_MONETARY locale data */
+/* mn_MN.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_9ef80248706566c98532d2f83ba4b7f927910ac6144140f1a7183d580111e587[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xFD,0xDC,0x69,0x6C,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x00,0x03,0x04,0x00,0x10,0x00,0x00,
-    0x01,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x41,0xA1,0x03,0x6A,0x62,0x68,0xFA,
-    0x6F,0x38,0x24,0x33,0x13,0x83,0x4E,0x88,0x21,0x61,0x66,0xAE,0xF3,0xF1,0x77,0x24,
-    0x53,0x85,0x09,0x0F,0xDD,0xC6,0x96,0xC0
+    0x4D,0x4E,0x54,0x20,0x0A,0xE2,0x82,0xAE,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9ef80248706566c98532d2f83ba4b7f927910ac6144140f1a7183d580111e587) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9ef80248706566c98532d2f83ba4b7f927910ac6144140f1a7183d580111e587) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed mn_MN.UTF-8 LC_NUMERIC locale data */
+/* mn_MN.UTF-8 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_419688ce771142a7fb9691484a336b732ea8335813cbcda5774584693c490c90[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_419688ce771142a7fb9691484a336b732ea8335813cbcda5774584693c490c90) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_419688ce771142a7fb9691484a336b732ea8335813cbcda5774584693c490c90) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed mn_MN.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_cebfb38b7e0427d7a4af03351be9420184094b78eb1b0f03c79e85ffe22bb1bc[] = {
@@ -5171,52 +4905,42 @@ static uint8_t  __crystax_locale_blob_db87d44a5458d0def9b68efc5ed58c79d78017a526
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_db87d44a5458d0def9b68efc5ed58c79d78017a52691075c95d83ecd52864fd3) == 230, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_BE.ISO8859-1 LC_MONETARY locale data */
+/* nl_BE.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_9e50b42fdaab19543d9fbef49c1e72ee219e95305edc621b38954eef674e3782[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x08,0xCD,0xF9,0x17,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA6,0x90,0x3C,0xA6,0x9A,0x10,0x00,0x01,0x5C,0xE5,0xB6,0x08,0x94,0xF0,
-    0xFC,0xA2,0x05,0x1A,0x22,0xEC,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x23,0x37,0xE4,
-    0x5C
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9e50b42fdaab19543d9fbef49c1e72ee219e95305edc621b38954eef674e3782) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_9e50b42fdaab19543d9fbef49c1e72ee219e95305edc621b38954eef674e3782) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_BE.UTF-8 LC_MONETARY locale data */
+/* nl_BE.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_95b5bc8f48c28fbe922ad1a09d0c0904fdf8d562127eb5bfdf8a80389f6aff76[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x92,0xF4,0xCE,0xBB,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x42,0x1A,0x4D,0x0D,0xA9,0xA6,0x9A,
-    0x47,0x99,0xC9,0x28,0x11,0xA0,0xE0,0xF6,0x15,0x52,0x44,0x8A,0xAB,0xB7,0xF8,0xBB,
-    0x92,0x29,0xC2,0x84,0x84,0x97,0xA6,0x75,0xD8
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_95b5bc8f48c28fbe922ad1a09d0c0904fdf8d562127eb5bfdf8a80389f6aff76) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_95b5bc8f48c28fbe922ad1a09d0c0904fdf8d562127eb5bfdf8a80389f6aff76) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_NL.ISO8859-1 LC_MESSAGES locale data */
+/* nl_NL.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_2e022e9f9d6cb099cafbcf237e2d40ed3181664c2eabd7faf9c44cf3f51de316[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2e022e9f9d6cb099cafbcf237e2d40ed3181664c2eabd7faf9c44cf3f51de316) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2e022e9f9d6cb099cafbcf237e2d40ed3181664c2eabd7faf9c44cf3f51de316) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_NL.ISO8859-1 LC_MONETARY locale data */
+/* nl_NL.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f23ac40d94f0053beb84938dc0c1df45a23dd05dfdae6c9c9d166e4f36fb6762[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF4,0x3E,0xB1,0xC2,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x06,0x38,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x12,0xA7,0xA9,0xEA,0x1E,0xA6,0x9A,0x71,0xDB,0x90,0x14,
-    0xCC,0x6B,0x5E,0x46,0x0A,0x54,0x8B,0xB3,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x1E,0x87,
-    0xD6,0x38,0x40
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,
+    0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f23ac40d94f0053beb84938dc0c1df45a23dd05dfdae6c9c9d166e4f36fb6762) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f23ac40d94f0053beb84938dc0c1df45a23dd05dfdae6c9c9d166e4f36fb6762) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_NL.ISO8859-1 LC_NUMERIC locale data */
+/* nl_NL.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_462453d2bf4a3bb28c91b3cfcd1891191841bf175c3e1f14b3d2644605846935[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x70,0x2F,0xBC,0xC7,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x06,0x20,0x00,0x20,0x00,0x21,0x9A,0x68,0x33,0x4D,
-    0x07,0x57,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x38,0x17,0xDE,0x63,0x80
+    0x2C,0x0A,0x0A,0x2D,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_462453d2bf4a3bb28c91b3cfcd1891191841bf175c3e1f14b3d2644605846935) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_462453d2bf4a3bb28c91b3cfcd1891191841bf175c3e1f14b3d2644605846935) == 6, "Wrong size of locale's blob");
 
 /* BZip2 compressed nl_NL.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_7be039adcf02f254418be107645d35bc666534b10feed6977fb8c2eaa01b4e2c[] = {
@@ -5238,15 +4962,13 @@ static uint8_t  __crystax_locale_blob_7be039adcf02f254418be107645d35bc666534b10f
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7be039adcf02f254418be107645d35bc666534b10feed6977fb8c2eaa01b4e2c) == 239, "Wrong size of locale's blob");
 
-/* BZip2 compressed nl_NL.UTF-8 LC_MONETARY locale data */
+/* nl_NL.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b50adb3eb20b6ad79f7c76a25d27470cd9bc1c40690105f58ef264cfc3ad7935[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x6E,0x07,0x86,0x6E,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x06,0x38,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x00,0x00,0x06,0xA7,0xA9,0xE9,0x1E,0xA6,0x9A,0x69,
-    0xB5,0xE4,0xD8,0x05,0xE5,0xA3,0x1D,0x23,0x02,0x4C,0x9A,0xAB,0xB8,0xF8,0xBB,0x92,
-    0x29,0xC2,0x84,0x83,0x70,0x3C,0x33,0x70
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b50adb3eb20b6ad79f7c76a25d27470cd9bc1c40690105f58ef264cfc3ad7935) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b50adb3eb20b6ad79f7c76a25d27470cd9bc1c40690105f58ef264cfc3ad7935) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed nn_NO.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_bf19ba829ec0e13d6fa57d8e31602841fa1a7aa3b9a8c8bc68dfdcf1e431d3ee[] = {
@@ -5352,32 +5074,26 @@ static uint8_t  __crystax_locale_blob_42e45ca981f5b896af43f0c5a5fc8acfd41417d3cf
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_42e45ca981f5b896af43f0c5a5fc8acfd41417d3cf7f9416c67192fe6c7a68c6) == 936, "Wrong size of locale's blob");
 
-/* BZip2 compressed no_NO.ISO8859-1 LC_MESSAGES locale data */
+/* no_NO.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_230b009bd74a34aed8a3a40a747930e47e19c5552d67d563c6dbaa68a7a64ff3[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_230b009bd74a34aed8a3a40a747930e47e19c5552d67d563c6dbaa68a7a64ff3) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_230b009bd74a34aed8a3a40a747930e47e19c5552d67d563c6dbaa68a7a64ff3) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed no_NO.ISO8859-1 LC_MONETARY locale data */
+/* no_NO.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_596d560785b4e76d66aed8c45ae200e2d1529766f80bcc850fa377b2fe4b2bc2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF9,0xD1,0x48,0xB3,0x00,0x00,
-    0x0F,0xDD,0x80,0x00,0x10,0x40,0x07,0x7C,0x08,0x00,0x09,0x80,0x08,0x10,0x00,0x20,
-    0x00,0x31,0x4C,0x00,0x13,0x41,0xA1,0x03,0x69,0x34,0xC8,0xF6,0xD9,0x70,0x4A,0xB9,
-    0xC4,0x08,0x92,0x80,0x4A,0xA4,0xD3,0x52,0xDF,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x3E,
-    0x74,0x52,0x2C,0xC0
+    0x4E,0x4F,0x4B,0x20,0x0A,0x6B,0x72,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x34,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_596d560785b4e76d66aed8c45ae200e2d1529766f80bcc850fa377b2fe4b2bc2) == 68, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_596d560785b4e76d66aed8c45ae200e2d1529766f80bcc850fa377b2fe4b2bc2) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed no_NO.ISO8859-1 LC_NUMERIC locale data */
+/* no_NO.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_24d6193a3a5027fe94454bdb58f9e5b244abbb4bb54e8939611e59faeef00e67[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_24d6193a3a5027fe94454bdb58f9e5b244abbb4bb54e8939611e59faeef00e67) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_24d6193a3a5027fe94454bdb58f9e5b244abbb4bb54e8939611e59faeef00e67) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed no_NO.ISO8859-15 LC_COLLATE locale data */
 static uint8_t  __crystax_locale_blob_dc5b7a0d5c465997e190eedf369c12652dd2984e1d3058d8730f8a0d8b9d9b19[] = {
@@ -5508,33 +5224,26 @@ static uint8_t  __crystax_locale_blob_edd3496b25a8220395915699e108d1d84dc8bb2b05
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_edd3496b25a8220395915699e108d1d84dc8bb2b059b5c686b47eeccb62cbd03) == 928, "Wrong size of locale's blob");
 
-/* BZip2 compressed pl_PL.ISO8859-2 LC_MESSAGES locale data */
+/* pl_PL.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_f0e3b03897bfe700c56e2a8938782cb400aac1da33b8fe7bd252330497fbc23b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9D,0x16,0xFA,0x88,0x00,0x00,
-    0x08,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x04,0x2B,0x22,0x29,0x04,0x20,0x20,
-    0x00,0x21,0xA9,0xEA,0x1A,0x0C,0x27,0xA8,0x53,0x00,0x04,0xD0,0xBC,0xDF,0x23,0xA2,
-    0xBC,0xA8,0x4C,0x40,0x65,0xB4,0x98,0x95,0xF1,0x77,0x24,0x53,0x85,0x09,0x09,0xD1,
-    0x6F,0xA8,0x80
+    0x5E,0x5B,0x74,0x54,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A,0x74,0x61,0x6B,0x0A,0x6E,0x69,0x65,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f0e3b03897bfe700c56e2a8938782cb400aac1da33b8fe7bd252330497fbc23b) == 67, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f0e3b03897bfe700c56e2a8938782cb400aac1da33b8fe7bd252330497fbc23b) == 26, "Wrong size of locale's blob");
 
-/* BZip2 compressed pl_PL.ISO8859-2 LC_MONETARY locale data */
+/* pl_PL.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_04bd11dbc1948c0fce59ae9684dc5ecd70736f2c6464963763c7394e751f880c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9B,0x22,0xDD,0x03,0x00,0x00,
-    0x10,0x5E,0x88,0x00,0x10,0x40,0x06,0x3C,0x08,0x00,0x05,0x40,0x00,0x00,0x10,0x08,
-    0x00,0x20,0x00,0x21,0xA6,0xA7,0xA8,0x7A,0x8D,0x32,0x10,0x00,0x03,0x6A,0xD3,0x86,
-    0xCB,0x5C,0x18,0xD7,0x88,0x02,0x4C,0x4D,0x52,0x17,0xF1,0x77,0x24,0x53,0x85,0x09,
-    0x09,0xB2,0x2D,0xD0,0x30
+    0x50,0x4C,0x4E,0x20,0x0A,0x7A,0xB3,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x34,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_04bd11dbc1948c0fce59ae9684dc5ecd70736f2c6464963763c7394e751f880c) == 69, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_04bd11dbc1948c0fce59ae9684dc5ecd70736f2c6464963763c7394e751f880c) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed pl_PL.ISO8859-2 LC_NUMERIC locale data */
+/* pl_PL.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_a94defbefcd5688c9d92260928b63853f7da6a4ec5fbf191e62444faa64cfa16[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a94defbefcd5688c9d92260928b63853f7da6a4ec5fbf191e62444faa64cfa16) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a94defbefcd5688c9d92260928b63853f7da6a4ec5fbf191e62444faa64cfa16) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed pl_PL.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_044c09e7b1b039cda2baf572360f5c6c811692a73b3d45d3d49f43e713e22154[] = {
@@ -5558,15 +5267,13 @@ static uint8_t  __crystax_locale_blob_044c09e7b1b039cda2baf572360f5c6c811692a73b
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_044c09e7b1b039cda2baf572360f5c6c811692a73b3d45d3d49f43e713e22154) == 269, "Wrong size of locale's blob");
 
-/* BZip2 compressed pl_PL.UTF-8 LC_MONETARY locale data */
+/* pl_PL.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_8a8280b9ba6e218267889e798285941cf8ce4be7316faee62fb17fd91f628fab[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBF,0x1B,0x8E,0x96,0x00,0x00,
-    0x10,0x5E,0xC4,0x00,0x10,0x40,0x06,0x3C,0x08,0x00,0x05,0x40,0x00,0x00,0x10,0x10,
-    0x00,0x02,0x00,0x20,0x00,0x21,0xA2,0x7A,0x9A,0x7A,0x8D,0x34,0xD0,0xA6,0x00,0x03,
-    0x47,0xC5,0x32,0x4E,0x8E,0xC6,0x23,0xAE,0x00,0x97,0x69,0xAA,0x22,0xEF,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x17,0xE3,0x71,0xD2,0xC0
+    0x50,0x4C,0x4E,0x20,0x0A,0x7A,0xC5,0x82,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,
+    0x34,0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8a8280b9ba6e218267889e798285941cf8ce4be7316faee62fb17fd91f628fab) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8a8280b9ba6e218267889e798285941cf8ce4be7316faee62fb17fd91f628fab) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed pl_PL.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_bbca7d747ff01a5635a5469dbb6ec69558734b0ec070068a21261d27526659ef[] = {
@@ -5591,22 +5298,19 @@ static uint8_t  __crystax_locale_blob_bbca7d747ff01a5635a5469dbb6ec69558734b0ec0
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bbca7d747ff01a5635a5469dbb6ec69558734b0ec070068a21261d27526659ef) == 280, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_BR.ISO8859-1 LC_MONETARY locale data */
+/* pt_BR.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_e1d0bf174e0649df79922610491ef983506c05bf9edbb9a5e2a2f44c8cf4e226[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBE,0xB6,0xB9,0xCB,0x00,0x00,
-    0x0F,0xDE,0x00,0x00,0x10,0x44,0x07,0x78,0x08,0x10,0x04,0x10,0x00,0x20,0x00,0x22,
-    0x1A,0x20,0x7E,0xA8,0xC8,0x40,0x00,0x02,0x63,0x00,0x32,0x68,0xE1,0x25,0x58,0xEE,
-    0xD4,0xA9,0x4A,0xBF,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x5F,0x5B,0x5C,0xE5,0x80
+    0x42,0x52,0x4C,0x20,0x0A,0x52,0x24,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e1d0bf174e0649df79922610491ef983506c05bf9edbb9a5e2a2f44c8cf4e226) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e1d0bf174e0649df79922610491ef983506c05bf9edbb9a5e2a2f44c8cf4e226) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_BR.ISO8859-1 LC_NUMERIC locale data */
+/* pt_BR.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_dc5d319d959204180c09dece76be1c2e1250e771e0724751b1c28919e716b6bb[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x98,0xFD,0x3F,0xDA,0x00,0x00,
-    0x01,0xD8,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x41,
-    0x41,0x69,0xB8,0xBB,0x92,0x29,0xC2,0x84,0x84,0xC7,0xE9,0xFE,0xD0
+    0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dc5d319d959204180c09dece76be1c2e1250e771e0724751b1c28919e716b6bb) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dc5d319d959204180c09dece76be1c2e1250e771e0724751b1c28919e716b6bb) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed pt_BR.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_9fd3a984765d7c46c8caf874aba082866abc0d554cd8bd246552ea25603deb48[] = {
@@ -5650,32 +5354,26 @@ static uint8_t  __crystax_locale_blob_b52f0c4c16fea8179e7e962a38af1154d264595ee0
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b52f0c4c16fea8179e7e962a38af1154d264595ee02f7688806a463fb5650944) == 248, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_PT.ISO8859-1 LC_MESSAGES locale data */
+/* pt_PT.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_e7a817c936fbd7e6e1dd055cf8f69ea7c6bf2b28821da7b647b63ba8835c2bd6[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x26,0x4B,0xA8,0xA4,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x01,0x08,0x2B,0x00,0x01,0x08,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x98,0x90,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x02,0x64,0xBA,0x8A,0x40
+    0x5E,0x5B,0x73,0x53,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e7a817c936fbd7e6e1dd055cf8f69ea7c6bf2b28821da7b647b63ba8835c2bd6) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e7a817c936fbd7e6e1dd055cf8f69ea7c6bf2b28821da7b647b63ba8835c2bd6) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_PT.ISO8859-1 LC_MONETARY locale data */
+/* pt_PT.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_bc4573b3d45ddc9ac6bede1a3c6892b875ae7eeb06ad97bbaab69d44d2431329[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x08,0xCD,0xF9,0x17,0x00,0x00,
-    0x0F,0x5E,0x80,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x02,0x00,0x20,
-    0x00,0x21,0xA6,0x90,0x3C,0xA6,0x9A,0x10,0x00,0x01,0x5C,0xE5,0xB6,0x08,0x94,0xF0,
-    0xFC,0xA2,0x05,0x1A,0x22,0xEC,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x23,0x37,0xE4,
-    0x5C
+    0x45,0x55,0x52,0x20,0x0A,0x45,0x75,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bc4573b3d45ddc9ac6bede1a3c6892b875ae7eeb06ad97bbaab69d44d2431329) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bc4573b3d45ddc9ac6bede1a3c6892b875ae7eeb06ad97bbaab69d44d2431329) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_PT.ISO8859-1 LC_NUMERIC locale data */
+/* pt_PT.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_281fa1b1c2d58e14644313b0b819a1112ddb4e59c9c9c8a6c5bb365badf4cc1b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x09,0xD1,0x96,0xB7,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x40,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x00,0x9D,0x19,0x6B,0x70
+    0x2C,0x0A,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_281fa1b1c2d58e14644313b0b819a1112ddb4e59c9c9c8a6c5bb365badf4cc1b) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_281fa1b1c2d58e14644313b0b819a1112ddb4e59c9c9c8a6c5bb365badf4cc1b) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed pt_PT.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_e11aae4171ca53cb05e472cc5f9cf959fb384398c3ae300d9a08bc073b9dd5e4[] = {
@@ -5698,25 +5396,21 @@ static uint8_t  __crystax_locale_blob_e11aae4171ca53cb05e472cc5f9cf959fb384398c3
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e11aae4171ca53cb05e472cc5f9cf959fb384398c3ae300d9a08bc073b9dd5e4) == 248, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_PT.ISO8859-15 LC_MONETARY locale data */
+/* pt_PT.ISO8859-15 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_61fdf1f09b1501328a04478a6ee18de17ae59146110ea60fc2dda842023437f0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x76,0x52,0xF1,0x2E,0x00,0x00,
-    0x0F,0x5E,0x10,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x04,0x00,0x20,
-    0x00,0x31,0x00,0x00,0x06,0x84,0x0F,0x29,0xA7,0xA8,0x5D,0x65,0x24,0x24,0x51,0x58,
-    0x5E,0x31,0x02,0xE6,0xE5,0xBA,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x83,0xB2,0x97,0x89,
-    0x70
+    0x45,0x55,0x52,0x20,0x0A,0xA4,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_61fdf1f09b1501328a04478a6ee18de17ae59146110ea60fc2dda842023437f0) == 65, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_61fdf1f09b1501328a04478a6ee18de17ae59146110ea60fc2dda842023437f0) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed pt_PT.UTF-8 LC_MONETARY locale data */
+/* pt_PT.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_1f45103359b5c71181265ce514607b2b544e82371304285db28200ced39c2621[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x92,0xF4,0xCE,0xBB,0x00,0x00,
-    0x0F,0x5E,0x51,0x00,0x10,0x40,0x07,0x78,0x08,0x02,0x00,0x12,0x00,0x10,0x00,0x00,
-    0x04,0x10,0x00,0x20,0x00,0x31,0x4C,0x00,0x13,0x42,0x1A,0x4D,0x0D,0xA9,0xA6,0x9A,
-    0x47,0x99,0xC9,0x28,0x11,0xA0,0xE0,0xF6,0x15,0x52,0x44,0x8A,0xAB,0xB7,0xF8,0xBB,
-    0x92,0x29,0xC2,0x84,0x84,0x97,0xA6,0x75,0xD8
+    0x45,0x55,0x52,0x20,0x0A,0xE2,0x82,0xAC,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1f45103359b5c71181265ce514607b2b544e82371304285db28200ced39c2621) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1f45103359b5c71181265ce514607b2b544e82371304285db28200ced39c2621) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed pt_PT.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_7fb889cbfb627eab458d9f807b43e90ece60ce33c8269afbc950904b0b84e774[] = {
@@ -5739,32 +5433,26 @@ static uint8_t  __crystax_locale_blob_7fb889cbfb627eab458d9f807b43e90ece60ce33c8
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7fb889cbfb627eab458d9f807b43e90ece60ce33c8269afbc950904b0b84e774) == 253, "Wrong size of locale's blob");
 
-/* BZip2 compressed ro_RO.ISO8859-2 LC_MESSAGES locale data */
+/* ro_RO.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_e7ffe885619d0ee73b9fe45c1e333f5f232dc51775a35681c8630bc08fd988f2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE1,0x2A,0x51,0x0F,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x04,0x01,0x00,0x2B,0x04,0x01,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x0E,0x12,0xA5,0x10,0xF0
+    0x5E,0x5B,0x64,0x44,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e7ffe885619d0ee73b9fe45c1e333f5f232dc51775a35681c8630bc08fd988f2) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e7ffe885619d0ee73b9fe45c1e333f5f232dc51775a35681c8630bc08fd988f2) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed ro_RO.ISO8859-2 LC_MONETARY locale data */
+/* ro_RO.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_6040811540d3adc0457822b0cc6e273390bcd5bdc5909ed79f513697c98baee0[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x0C,0x4C,0x5F,0xA7,0x00,0x00,
-    0x10,0xDF,0x00,0x00,0x10,0x40,0x06,0x78,0x08,0x00,0x04,0x90,0x00,0x02,0x20,0x20,
-    0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x4F,0x51,0xA1,0x00,0x00,0x37,0x37,0x29,0x20,0x44,
-    0x24,0x26,0x99,0x18,0x0C,0xBE,0xC7,0x8D,0x5F,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x03,
-    0x13,0x17,0xE9,0xC0
+    0x52,0x4F,0x4C,0x20,0x0A,0x4C,0x65,0x69,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6040811540d3adc0457822b0cc6e273390bcd5bdc5909ed79f513697c98baee0) == 68, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6040811540d3adc0457822b0cc6e273390bcd5bdc5909ed79f513697c98baee0) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed ro_RO.ISO8859-2 LC_NUMERIC locale data */
+/* ro_RO.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_57e3b9b67a82983255de750d3a6adc45958c16c6c3a3e7a3991304c770271b06[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_57e3b9b67a82983255de750d3a6adc45958c16c6c3a3e7a3991304c770271b06) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_57e3b9b67a82983255de750d3a6adc45958c16c6c3a3e7a3991304c770271b06) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed ro_RO.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_a3cacb04fd781aeefad7bdb671dad99572bdb1bdae848a3b85f73a96e556c43e[] = {
@@ -5863,25 +5551,20 @@ static uint8_t  __crystax_locale_blob_f91843d74c2b738ca8324e75715feea75b5927a913
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f91843d74c2b738ca8324e75715feea75b5927a913db0cf7c6d28ebe7f82a228) == 803, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.CP1251 LC_MESSAGES locale data */
+/* ru_RU.CP1251 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_e51c5fb2e12085b5291cf9f4310f6a57c259b7f75e39aa3651e886b2f19d81d1[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x5A,0xCB,0x0A,0x20,0x00,0x00,
-    0x07,0x57,0x85,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x1E,0xA0,0x1E,
-    0x84,0x69,0x24,0x45,0xC6,0xC2,0x66,0x09,0x21,0x11,0xD9,0xAF,0xB1,0x62,0x67,0xE2,
-    0xEE,0x48,0xA7,0x0A,0x12,0x0B,0x59,0x61,0x44,0x00
+    0x5E,0x5B,0xE4,0xC4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xED,0xCD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE4,0xE0,0x0A,0xED,0xE5,0xF2,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e51c5fb2e12085b5291cf9f4310f6a57c259b7f75e39aa3651e886b2f19d81d1) == 74, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e51c5fb2e12085b5291cf9f4310f6a57c259b7f75e39aa3651e886b2f19d81d1) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.CP1251 LC_MONETARY locale data */
+/* ru_RU.CP1251 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_7c5a63e19fc73050e5c6866c108bc4b28d10c5ff8d2329867dfa770bd1e03995[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x94,0x1E,0x40,0x13,0x00,0x00,
-    0x10,0x5E,0x01,0x80,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x12,0x00,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x46,0x9A,0x05,0x30,0x00,0x4D,0x13,0xC3,
-    0xA4,0x81,0x0C,0x93,0x98,0xD9,0x14,0x40,0x12,0x66,0x9A,0xBC,0xDE,0xF8,0xBB,0x92,
-    0x29,0xC2,0x84,0x84,0xA0,0xF2,0x00,0x98
+    0x52,0x55,0x42,0x20,0x0A,0xF0,0xF3,0xE1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7c5a63e19fc73050e5c6866c108bc4b28d10c5ff8d2329867dfa770bd1e03995) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7c5a63e19fc73050e5c6866c108bc4b28d10c5ff8d2329867dfa770bd1e03995) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed ru_RU.CP1251 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_3d169b82d55d7ff3e947a735270760709e0d6c87813c3e167538668161099b4d[] = {
@@ -6015,25 +5698,20 @@ static uint8_t  __crystax_locale_blob_72ba0094e98ff807c64b5c69b62efeef665500f40a
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_72ba0094e98ff807c64b5c69b62efeef665500f40add020c23317fee1211551a) == 832, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.CP866 LC_MESSAGES locale data */
+/* ru_RU.CP866 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_bc4b2af896c93afca111628ccd2123fcb7133943cec0ad8c681ae21f35ac23ef[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCC,0x19,0xCB,0xB5,0x00,0x00,
-    0x07,0x57,0xD9,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x44,0x02,0x00,0x02,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x3D,
-    0x40,0x1E,0x93,0x4C,0x93,0x50,0xF7,0x1B,0x09,0x98,0x24,0x83,0xBF,0xA0,0xC6,0x09,
-    0xB4,0xFC,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x30,0x67,0x2E,0xD4
+    0x5E,0x5B,0xA4,0x84,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xAD,0x8D,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xA4,0xA0,0x0A,0xAD,0xBD,0xE2,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bc4b2af896c93afca111628ccd2123fcb7133943cec0ad8c681ae21f35ac23ef) == 76, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bc4b2af896c93afca111628ccd2123fcb7133943cec0ad8c681ae21f35ac23ef) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.CP866 LC_MONETARY locale data */
+/* ru_RU.CP866 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f2e8befe9044f2ede26fe5e1c730baf0cfb46cb73c6eec2bbcb4c4ff4e18e854[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xA7,0x33,0x17,0x24,0x00,0x00,
-    0x10,0x5E,0x11,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x12,0x00,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x46,0x9A,0x05,0x30,0x00,0x4D,0x13,0xC3,
-    0xA4,0x81,0x0C,0x93,0x98,0xD9,0x14,0x40,0x12,0x66,0x9A,0xBC,0xDE,0xF8,0xBB,0x92,
-    0x29,0xC2,0x84,0x85,0x39,0x98,0xB9,0x20
+    0x52,0x55,0x42,0x20,0x0A,0xE0,0xE3,0xA1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f2e8befe9044f2ede26fe5e1c730baf0cfb46cb73c6eec2bbcb4c4ff4e18e854) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f2e8befe9044f2ede26fe5e1c730baf0cfb46cb73c6eec2bbcb4c4ff4e18e854) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed ru_RU.CP866 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_05dc9cc347defcad87971fda523a5531b67dcd7b76a5891167813a2f81e9cfda[] = {
@@ -6169,25 +5847,20 @@ static uint8_t  __crystax_locale_blob_0c7892c9bd84a90d22d7a709c856be8528c261eb3e
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0c7892c9bd84a90d22d7a709c856be8528c261eb3ed030dd397fd43d19e089d0) == 852, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.ISO8859-5 LC_MESSAGES locale data */
+/* ru_RU.ISO8859-5 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_00177aa413cbf53e520ef83cd417cf0e8d64ffb19d503bf2ad192dc39c184805[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE2,0x7F,0xF3,0x20,0x00,0x00,
-    0x07,0x57,0x8B,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x1E,0xA0,0x1E,
-    0x84,0x69,0x24,0x45,0xC6,0xC2,0x66,0x09,0x21,0x11,0xD9,0xAF,0xB1,0x62,0x67,0xE2,
-    0xEE,0x48,0xA7,0x0A,0x12,0x1C,0x4F,0xFE,0x64,0x00
+    0x5E,0x5B,0xD4,0xB4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xDD,0xBD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xD4,0xD0,0x0A,0xDD,0xD5,0xE2,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_00177aa413cbf53e520ef83cd417cf0e8d64ffb19d503bf2ad192dc39c184805) == 74, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_00177aa413cbf53e520ef83cd417cf0e8d64ffb19d503bf2ad192dc39c184805) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.ISO8859-5 LC_MONETARY locale data */
+/* ru_RU.ISO8859-5 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_aa1b81cefedfe011dcd3275c84149f1112c56028fe4939fbb6eb5052dd62e116[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x2B,0x19,0x3B,0xA9,0x00,0x00,
-    0x10,0x5E,0x03,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x12,0x00,0x20,0x00,0x48,
-    0x00,0x20,0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x46,0x9A,0x05,0x30,0x00,0x4D,0x13,0xC3,
-    0xA4,0x81,0x0C,0x93,0x98,0xD9,0x14,0x40,0x12,0x66,0x9A,0xBC,0xDE,0xF8,0xBB,0x92,
-    0x29,0xC2,0x84,0x81,0x58,0xC9,0xDD,0x48
+    0x52,0x55,0x42,0x20,0x0A,0xE0,0xE3,0xD1,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_aa1b81cefedfe011dcd3275c84149f1112c56028fe4939fbb6eb5052dd62e116) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_aa1b81cefedfe011dcd3275c84149f1112c56028fe4939fbb6eb5052dd62e116) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed ru_RU.ISO8859-5 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_ec4f3ec135f87d291c72c870d203cc6f1e128ef1ae314766416dbb0d5ed828e1[] = {
@@ -6325,33 +5998,26 @@ static uint8_t  __crystax_locale_blob_6e1a3e6a095ccafd23b41aa0f6d8008d6dd8f53458
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6e1a3e6a095ccafd23b41aa0f6d8008d6dd8f534582309112808a487b927ca5b) == 822, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.KOI8-R LC_MESSAGES locale data */
+/* ru_RU.KOI8-R LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_a2214ae95a73934815e6904389a4463a5fb87f8f8f5e06cd823ced85555c0e0e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x05,0xCE,0x2A,0xB3,0x00,0x00,
-    0x07,0x57,0x87,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x26,
-    0x01,0x04,0x00,0x04,0x01,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,0x35,0x1A,0x68,0x1E,
-    0x91,0xA7,0xA9,0x2C,0x21,0xC6,0x81,0x88,0x04,0x90,0x94,0xDA,0x53,0x32,0x77,0xF8,
-    0xBB,0x92,0x29,0xC2,0x84,0x80,0x2E,0x71,0x55,0x98
+    0x5E,0x5B,0xC4,0xE4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xCE,0xEE,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xC4,0xC1,0x0A,0xCE,0xC5,0xD4,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a2214ae95a73934815e6904389a4463a5fb87f8f8f5e06cd823ced85555c0e0e) == 74, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a2214ae95a73934815e6904389a4463a5fb87f8f8f5e06cd823ced85555c0e0e) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.KOI8-R LC_MONETARY locale data */
+/* ru_RU.KOI8-R LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_10ba237a75a0f28120b25cd365f4dd01fea4adf1c6fc25dcd975579173bf2bae[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xDD,0x13,0xE4,0xE4,0x00,0x00,
-    0x10,0x5E,0x06,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x12,0x00,0x10,0x00,0x12,
-    0x00,0x20,0x00,0x21,0xA9,0xE8,0x9A,0x3D,0x46,0x9A,0x05,0x30,0x00,0x4D,0x13,0xC3,
-    0xA4,0x81,0x0C,0x93,0x98,0xD9,0x14,0x40,0x12,0x66,0x9A,0xBC,0xDE,0xF8,0xBB,0x92,
-    0x29,0xC2,0x84,0x86,0xE8,0x9F,0x27,0x20
+    0x52,0x55,0x42,0x20,0x0A,0xD2,0xD5,0xC2,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_10ba237a75a0f28120b25cd365f4dd01fea4adf1c6fc25dcd975579173bf2bae) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_10ba237a75a0f28120b25cd365f4dd01fea4adf1c6fc25dcd975579173bf2bae) == 37, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.KOI8-R LC_NUMERIC locale data */
+/* ru_RU.KOI8-R LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_d8c54fdf9d0f95be9f2db0bfa7d0316ae817f8d61dc57683269bbcb69dd52501[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d8c54fdf9d0f95be9f2db0bfa7d0316ae817f8d61dc57683269bbcb69dd52501) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d8c54fdf9d0f95be9f2db0bfa7d0316ae817f8d61dc57683269bbcb69dd52501) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed ru_RU.KOI8-R LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_37b3bbfd206c427bc31f238171a92eb188bda768539b833b05e741bd467a4a70[] = {
@@ -6375,25 +6041,21 @@ static uint8_t  __crystax_locale_blob_37b3bbfd206c427bc31f238171a92eb188bda76853
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_37b3bbfd206c427bc31f238171a92eb188bda768539b833b05e741bd467a4a70) == 264, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.UTF-8 LC_MESSAGES locale data */
+/* ru_RU.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_47f495c68cfbc58f8795861f7bf19e19e02c2ac94c2b21ca899b316a5054410a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x78,0x93,0x84,0x91,0x00,0x00,
-    0x07,0x57,0xEA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x10,
-    0x00,0x04,0x02,0x46,0x02,0x60,0x00,0x20,0x00,0x21,0xA8,0xD0,0x0F,0x51,0xA0,0xF5,
-    0x0A,0x64,0xC4,0xC8,0x32,0x30,0xB0,0x79,0x8B,0x83,0x9C,0x82,0x48,0x77,0x48,0x01,
-    0xD5,0x1F,0x5A,0x4C,0xCB,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x0F,0x12,0x70,0x92,0x20
+    0x5E,0x5B,0xD0,0xB4,0xD0,0x94,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xBD,
+    0xD0,0x9D,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD0,0xB4,0xD0,0xB0,0x0A,0xD0,0xBD,0xD0,
+    0xB5,0xD1,0x82,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_47f495c68cfbc58f8795861f7bf19e19e02c2ac94c2b21ca899b316a5054410a) == 80, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_47f495c68cfbc58f8795861f7bf19e19e02c2ac94c2b21ca899b316a5054410a) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed ru_RU.UTF-8 LC_MONETARY locale data */
+/* ru_RU.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_b09cf6590a9edb0ca4581fe6192039457180bdbf0e04a026e2833ea12c1dcfef[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xB8,0xA4,0x5D,0x50,0x00,0x00,
-    0x10,0x5E,0x4A,0x00,0x10,0x40,0x07,0x78,0x08,0x10,0x00,0x12,0x00,0x48,0x00,0x20,
-    0x00,0x60,0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x01,0xA1,0x4D,0x32,0x31,
-    0x31,0x31,0x13,0x3B,0x24,0x81,0x13,0x49,0x8B,0xE0,0x8E,0x90,0x06,0x4E,0x77,0x3D,
-    0xC0,0x88,0xA4,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x42,0xE2,0x91,0x75,0x40
+    0x52,0x55,0x42,0x20,0x0A,0xD1,0x80,0xD1,0x83,0xD0,0xB1,0x2E,0x0A,0x2C,0x0A,0x20,
+    0x0A,0x33,0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,
+    0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b09cf6590a9edb0ca4581fe6192039457180bdbf0e04a026e2833ea12c1dcfef) == 78, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b09cf6590a9edb0ca4581fe6192039457180bdbf0e04a026e2833ea12c1dcfef) == 40, "Wrong size of locale's blob");
 
 /* BZip2 compressed ru_RU.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_07fbf62a98bb9cab95629eea926bf5be27610653a135de6bb56fc8a2f2a01755[] = {
@@ -6418,23 +6080,19 @@ static uint8_t  __crystax_locale_blob_07fbf62a98bb9cab95629eea926bf5be27610653a1
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_07fbf62a98bb9cab95629eea926bf5be27610653a135de6bb56fc8a2f2a01755) == 273, "Wrong size of locale's blob");
 
-/* BZip2 compressed sk_SK.ISO8859-2 LC_MONETARY locale data */
+/* sk_SK.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f0574badeea8be125e536f231c6152f15a1c753a553e9398859c80c9a2f90466[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x06,0x6C,0x1B,0x88,0x00,0x00,
-    0x0F,0xDF,0x00,0x00,0x10,0x40,0x06,0x3C,0x08,0x00,0x08,0x08,0x00,0x00,0x08,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x1A,0x6A,0x7A,0x8D,0xA8,0xF4,0x96,0xB1,0x3A,0x6C,0xB5,
-    0xD1,0x2E,0x80,0x86,0xA2,0xC4,0x0F,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x01,0x9B,0x06,
-    0xE2,0x00
+    0x53,0x4B,0x4B,0x0A,0x53,0x6B,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x31,0x0A,0x32,0x0A,0x34,0x0A,
+    0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f0574badeea8be125e536f231c6152f15a1c753a553e9398859c80c9a2f90466) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f0574badeea8be125e536f231c6152f15a1c753a553e9398859c80c9a2f90466) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed sk_SK.ISO8859-2 LC_NUMERIC locale data */
+/* sk_SK.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_b1720b14d22bf813caae80bcb22d812429a01b50aa8d850353267f1c3fb44838[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b1720b14d22bf813caae80bcb22d812429a01b50aa8d850353267f1c3fb44838) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b1720b14d22bf813caae80bcb22d812429a01b50aa8d850353267f1c3fb44838) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed sk_SK.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_2990e52cdbc1d040c5b26835f93fb3adebbd440e5223ac9eae91e866fde13614[] = {
@@ -6542,31 +6200,26 @@ static uint8_t  __crystax_locale_blob_d945ce35f9c10b35e5da6dc4925bfe67f5eebe796a
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d945ce35f9c10b35e5da6dc4925bfe67f5eebe796aaae0baddd1b9c5aa0aa982) == 946, "Wrong size of locale's blob");
 
-/* BZip2 compressed sl_SI.ISO8859-2 LC_MESSAGES locale data */
+/* sl_SI.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_e5c68597b20c5551f244dfade51c21d097a465147c799ee423bd2306655ad728[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9E,0xED,0xD7,0x3C,0x00,0x00,
-    0x07,0x57,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x1A,0x60,0x68,0x40,0xD0,0x34,0x3A,0x78,0x91,0x51,0x66,0x2A,0x2F,
-    0x16,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x4F,0x76,0xEB,0x9E,0x00
+    0x5E,0x5B,0x59,0x79,0x4A,0x6A,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x4E,0x6E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e5c68597b20c5551f244dfade51c21d097a465147c799ee423bd2306655ad728) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_e5c68597b20c5551f244dfade51c21d097a465147c799ee423bd2306655ad728) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed sl_SI.ISO8859-2 LC_MONETARY locale data */
+/* sl_SI.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_f609eecbfc7cd30cdc21b3246325679df543b68de3d40f172698088b2b9d077d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x54,0x20,0x63,0x3A,0x00,0x00,
-    0x10,0xDE,0x00,0x00,0x10,0x40,0x06,0x58,0x08,0x00,0x20,0x0C,0x00,0x20,0x00,0x21,
-    0x29,0xA2,0x1E,0x93,0x08,0x06,0x9A,0x68,0xF5,0x65,0x38,0x6D,0x48,0xC5,0xCE,0xA2,
-    0x0B,0x57,0x84,0x98,0x68,0xBB,0x92,0x29,0xC2,0x84,0x82,0xA1,0x03,0x19,0xD0
+    0x53,0x49,0x54,0x20,0x0A,0x53,0x49,0x54,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,
+    0x32,0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f609eecbfc7cd30cdc21b3246325679df543b68de3d40f172698088b2b9d077d) == 63, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f609eecbfc7cd30cdc21b3246325679df543b68de3d40f172698088b2b9d077d) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed sl_SI.ISO8859-2 LC_NUMERIC locale data */
+/* sl_SI.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_c9a2485078b1c44fdddaaf88ab4277dcdadbd99b501d47e876e55a03d4affb45[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x36,0x4D,0x25,0x79,0x00,0x00,
-    0x02,0xD8,0x00,0x00,0x10,0x40,0x04,0x40,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x04,0x2D,0x0E,0x2E,0xE4,0x8A,0x70,0xA1,0x20,0x6C,0x9A,0x4A,0xF2
+    0x2C,0x0A,0x20,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c9a2485078b1c44fdddaaf88ab4277dcdadbd99b501d47e876e55a03d4affb45) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c9a2485078b1c44fdddaaf88ab4277dcdadbd99b501d47e876e55a03d4affb45) == 9, "Wrong size of locale's blob");
 
 /* BZip2 compressed sl_SI.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_229b26b1185a74b14e58301da32490f9aef09166d3b7ece6d2dd67b31f1ad1ef[] = {
@@ -6608,32 +6261,26 @@ static uint8_t  __crystax_locale_blob_cc9157f4e13d1a5080920f3d33c6439f19df53b1a4
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cc9157f4e13d1a5080920f3d33c6439f19df53b1a4855f4f748ba4a90dc378f4) == 238, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-2 LC_MESSAGES locale data */
+/* sr_YU.ISO8859-2 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_8c9e5ab0b14669dfaff0dde1332b13ce887bc2f4e6724effe5d149dcc7f1c00e[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE1,0x2A,0x51,0x0F,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x04,0x01,0x00,0x2B,0x04,0x01,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x0E,0x12,0xA5,0x10,0xF0
+    0x5E,0x5B,0x64,0x44,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8c9e5ab0b14669dfaff0dde1332b13ce887bc2f4e6724effe5d149dcc7f1c00e) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8c9e5ab0b14669dfaff0dde1332b13ce887bc2f4e6724effe5d149dcc7f1c00e) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-2 LC_MONETARY locale data */
+/* sr_YU.ISO8859-2 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_683b15b96a403a9933c8591814cb74dfbc97c7a5e1237be25fa3edd8c1e2de6a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE3,0x94,0x20,0x93,0x00,0x00,
-    0x10,0x5F,0x00,0x00,0x10,0x40,0x06,0x58,0x08,0x04,0x00,0x02,0x20,0x04,0x21,0x20,
-    0x00,0x21,0xA6,0xA7,0xA9,0xA7,0xA9,0xA1,0xA1,0x00,0x00,0x34,0xAD,0x38,0x6C,0xE0,
-    0x32,0x73,0x44,0x40,0xA3,0x5C,0xEA,0x1E,0xBF,0x8B,0xB9,0x22,0x9C,0x28,0x48,0x71,
-    0xCA,0x10,0x49,0x80
+    0x59,0x55,0x44,0x20,0x0A,0x64,0x69,0x6E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,0x30,0x0A,0x32,0x0A,
+    0x32,0x0A,0x32,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_683b15b96a403a9933c8591814cb74dfbc97c7a5e1237be25fa3edd8c1e2de6a) == 68, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_683b15b96a403a9933c8591814cb74dfbc97c7a5e1237be25fa3edd8c1e2de6a) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-2 LC_NUMERIC locale data */
+/* sr_YU.ISO8859-2 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_b87e229987219c0c89e95d6ea02942af19e5a33db9618fab497b7a742be91957[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x09,0xD1,0x96,0xB7,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x40,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x00,0x9D,0x19,0x6B,0x70
+    0x2C,0x0A,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b87e229987219c0c89e95d6ea02942af19e5a33db9618fab497b7a742be91957) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b87e229987219c0c89e95d6ea02942af19e5a33db9618fab497b7a742be91957) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed sr_YU.ISO8859-2 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_3d63b59e119323f0a518574a76b40e9dfd86c9e665c994502b6cda10c1026717[] = {
@@ -6710,33 +6357,26 @@ static uint8_t  __crystax_locale_blob_173a23edbd724fef42c3dcbda73ba1160b34980c64
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_173a23edbd724fef42c3dcbda73ba1160b34980c64ef8fa48ab82d611bbf6a72) == 796, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-5 LC_MESSAGES locale data */
+/* sr_YU.ISO8859-5 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_dd4708aded39fbc9470b79735328680b8234ebd52030a44659167b8cdad00a89[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xEC,0xE5,0x86,0x19,0x00,0x00,
-    0x07,0x57,0x8A,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x20,0x00,0x21,0xA8,0xF5,0x00,0xF4,0x08,0x53,0x00,0x04,0xD2,0x48,
-    0x8C,0x8E,0x84,0xCC,0x12,0x42,0x22,0x6A,0xF5,0xAC,0x13,0xF1,0x77,0x24,0x53,0x85,
-    0x09,0x0E,0xCE,0x58,0x61,0x90
+    0x5E,0x5B,0xD4,0xB4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xDD,0xBD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xD4,0xD0,0x0A,0xDD,0xD5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dd4708aded39fbc9470b79735328680b8234ebd52030a44659167b8cdad00a89) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_dd4708aded39fbc9470b79735328680b8234ebd52030a44659167b8cdad00a89) == 26, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-5 LC_MONETARY locale data */
+/* sr_YU.ISO8859-5 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_abc5bcfbdcca1864995dcf76a9b96084a801e9c37eadb461c18ea0514cc9f737[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x48,0xB5,0xCB,0x59,0x00,0x00,
-    0x10,0x5E,0x02,0x00,0x10,0x40,0x06,0x78,0x08,0x04,0x00,0x02,0x20,0x04,0x42,0x20,
-    0x00,0x21,0xA9,0xEA,0x7A,0x9A,0x3D,0x4D,0x0D,0x0A,0x60,0x00,0x34,0xA9,0x36,0xC1,
-    0x17,0x6D,0x18,0x92,0x2C,0x24,0xCF,0x3A,0x87,0xAB,0xE2,0xEE,0x48,0xA7,0x0A,0x12,
-    0x09,0x16,0xB9,0x6B,0x20
+    0x59,0x55,0x44,0x20,0x0A,0xD4,0xD8,0xDD,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,
+    0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abc5bcfbdcca1864995dcf76a9b96084a801e9c37eadb461c18ea0514cc9f737) == 69, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_abc5bcfbdcca1864995dcf76a9b96084a801e9c37eadb461c18ea0514cc9f737) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.ISO8859-5 LC_NUMERIC locale data */
+/* sr_YU.ISO8859-5 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_37a5f564b471f28a5b51f49481160c35b9002ae192d968774e766c83a71f755b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_37a5f564b471f28a5b51f49481160c35b9002ae192d968774e766c83a71f755b) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_37a5f564b471f28a5b51f49481160c35b9002ae192d968774e766c83a71f755b) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed sr_YU.ISO8859-5 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_386c20c2f55b86c63a7f635504a4a193733f71cff59cdf14fdc94801e6fbe2d7[] = {
@@ -6758,25 +6398,21 @@ static uint8_t  __crystax_locale_blob_386c20c2f55b86c63a7f635504a4a193733f71cff5
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_386c20c2f55b86c63a7f635504a4a193733f71cff59cdf14fdc94801e6fbe2d7) == 233, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.UTF-8 LC_MESSAGES locale data */
+/* sr_YU.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_c6fcefb4582f864ead717931436c750ad12f2e16e611017908d8f17f34824825[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x84,0x77,0x38,0x2F,0x00,0x00,
-    0x07,0x57,0xAA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x04,
-    0x02,0x46,0x02,0x40,0x00,0x20,0x00,0x21,0x2A,0x34,0x03,0xD4,0x68,0xD0,0xA1,0xA6,
-    0x98,0x00,0xEB,0x0F,0x53,0x22,0xDE,0xC4,0x90,0xEF,0x00,0x7A,0x27,0x17,0xA3,0x37,
-    0xC5,0xDC,0x91,0x4E,0x14,0x24,0x21,0x1D,0xCE,0x0B,0xC0
+    0x5E,0x5B,0xD0,0xB4,0xD0,0x94,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xBD,
+    0xD0,0x9D,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD0,0xB4,0xD0,0xB0,0x0A,0xD0,0xBD,0xD0,
+    0xB5,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c6fcefb4582f864ead717931436c750ad12f2e16e611017908d8f17f34824825) == 75, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c6fcefb4582f864ead717931436c750ad12f2e16e611017908d8f17f34824825) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed sr_YU.UTF-8 LC_MONETARY locale data */
+/* sr_YU.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_51a600f2e8b549e4e82a116e687aa4a607b649a5d8c014ba2d15c58d2c63d2cf[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x52,0xD3,0x22,0x35,0x00,0x00,
-    0x10,0x5E,0x0A,0x00,0x10,0x40,0x06,0x78,0x08,0x04,0x00,0x02,0x20,0x04,0x42,0x40,
-    0x00,0x20,0x00,0x22,0x1A,0x9E,0xA0,0xF5,0x34,0x32,0x14,0xC0,0x01,0x34,0xD1,0x92,
-    0x92,0x60,0xD6,0x48,0x8C,0x40,0x67,0x68,0x11,0xCE,0x9A,0x71,0x35,0xF1,0x77,0x24,
-    0x53,0x85,0x09,0x05,0x2D,0x32,0x23,0x50
+    0x59,0x55,0x44,0x20,0x0A,0xD0,0xB4,0xD0,0xB8,0xD0,0xBD,0x0A,0x2C,0x0A,0x20,0x0A,
+    0x33,0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,
+    0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_51a600f2e8b549e4e82a116e687aa4a607b649a5d8c014ba2d15c58d2c63d2cf) == 72, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_51a600f2e8b549e4e82a116e687aa4a607b649a5d8c014ba2d15c58d2c63d2cf) == 39, "Wrong size of locale's blob");
 
 /* BZip2 compressed sr_YU.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_070850dfbb3cd94cdf7adc7be019a4ad8701422e5df10bd0e768e0d23fd3de72[] = {
@@ -6863,32 +6499,26 @@ static uint8_t  __crystax_locale_blob_11c1e8905413bef99a2fde568389e78698c50ff348
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_11c1e8905413bef99a2fde568389e78698c50ff348438fc59d72b08e743d3bc1) == 931, "Wrong size of locale's blob");
 
-/* BZip2 compressed sv_SE.ISO8859-1 LC_MESSAGES locale data */
+/* sv_SE.ISO8859-1 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_52e61555bb139b652f3513202a90c613e02dd44598c5f3430c6f35f39de809cc[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4C,0xBC,0x0D,0x94,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x11,0x00,0x2B,0x00,0x11,0x00,0x20,0x20,
-    0x00,0x21,0x2A,0x0C,0x27,0xA6,0xA1,0x03,0x40,0xD0,0xD9,0xC2,0xC5,0x8D,0x8B,0x10,
-    0xC7,0xF1,0x77,0x24,0x53,0x85,0x09,0x04,0xCB,0xC0,0xD9,0x40
+    0x5E,0x5B,0x6A,0x4A,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_52e61555bb139b652f3513202a90c613e02dd44598c5f3430c6f35f39de809cc) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_52e61555bb139b652f3513202a90c613e02dd44598c5f3430c6f35f39de809cc) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed sv_SE.ISO8859-1 LC_MONETARY locale data */
+/* sv_SE.ISO8859-1 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_2b7b57acce761af6545a25f199c595182a9a86e2786e7cf9558f24c0b995f44b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xED,0x88,0xE2,0xB0,0x00,0x00,
-    0x10,0x5F,0x80,0x00,0x10,0x40,0x06,0x78,0x08,0x02,0x08,0x08,0x00,0x00,0x08,0x10,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x7A,0x9A,0x3D,0x4D,0x32,0x10,0x00,0x03,0x8A,0xD3,
-    0x6C,0x11,0x96,0xD1,0x8F,0x11,0x81,0x26,0x6A,0x90,0xBF,0x8B,0xB9,0x22,0x9C,0x28,
-    0x48,0x76,0xC4,0x71,0x58,0x00
+    0x53,0x45,0x4B,0x20,0x0A,0x6B,0x72,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x31,
+    0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2b7b57acce761af6545a25f199c595182a9a86e2786e7cf9558f24c0b995f44b) == 70, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2b7b57acce761af6545a25f199c595182a9a86e2786e7cf9558f24c0b995f44b) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed sv_SE.ISO8859-1 LC_NUMERIC locale data */
+/* sv_SE.ISO8859-1 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_f981cd2521f39ed88d9ef445b2d7f12ff9d1576159ffef50838fd15bd286a50c[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f981cd2521f39ed88d9ef445b2d7f12ff9d1576159ffef50838fd15bd286a50c) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_f981cd2521f39ed88d9ef445b2d7f12ff9d1576159ffef50838fd15bd286a50c) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed sv_SE.ISO8859-1 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_f9111513ae9083b7cf6caf228518890710c521c9079dba21f2ab291e08e32eae[] = {
@@ -7120,31 +6750,26 @@ static uint8_t  __crystax_locale_blob_14d6c1f5d34d28ee09f5abb61083e5b9a43099b7bb
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_14d6c1f5d34d28ee09f5abb61083e5b9a43099b7bb11d6fc72fee5f061e83d8e) == 842, "Wrong size of locale's blob");
 
-/* BZip2 compressed tr_TR.ISO8859-9 LC_MESSAGES locale data */
+/* tr_TR.ISO8859-9 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_0eb4631d11d84ef38e7a8f9420f716ff4dd6c7b7ae18b898844ba7a7620843a6[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC9,0x86,0xE8,0x1A,0x00,0x00,
-    0x06,0xD7,0x80,0x00,0x10,0x00,0x11,0x00,0x21,0x00,0x2B,0x00,0x21,0x00,0x20,0x20,
-    0x00,0x31,0x03,0x40,0xD0,0x12,0x93,0x46,0x9E,0xA6,0xD2,0x68,0x91,0x09,0xB6,0x5E,
-    0x58,0xD6,0x7C,0x5D,0xC9,0x14,0xE1,0x42,0x43,0x26,0x1B,0xA0,0x68
+    0x5E,0x5B,0x49,0x69,0x59,0x79,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0x6E,0x4E,0x5D,0x2E,
+    0x2A,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0eb4631d11d84ef38e7a8f9420f716ff4dd6c7b7ae18b898844ba7a7620843a6) == 61, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_0eb4631d11d84ef38e7a8f9420f716ff4dd6c7b7ae18b898844ba7a7620843a6) == 18, "Wrong size of locale's blob");
 
-/* BZip2 compressed tr_TR.ISO8859-9 LC_MONETARY locale data */
+/* tr_TR.ISO8859-9 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_8c6885d4db4211425b95764025f96dcfefb79ef18eb53453ffdc4f6cba68a27d[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xAC,0xBA,0x84,0x52,0x00,0x00,
-    0x10,0xDE,0x00,0x00,0x10,0x40,0x07,0x38,0x08,0x00,0x04,0x14,0x00,0x20,0x00,0x31,
-    0x03,0x40,0xD0,0x23,0x24,0xD1,0xE2,0x82,0x97,0x8D,0x8A,0x29,0xBC,0x48,0x0A,0x86,
-    0x1E,0xFA,0xFE,0x2E,0xE4,0x8A,0x70,0xA1,0x21,0x59,0x75,0x08,0xA4
+    0x54,0x52,0x4C,0x20,0x0A,0x4C,0x0A,0x2C,0x0A,0x2E,0x0A,0x33,0x3B,0x33,0x0A,0x0A,
+    0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A,
+    0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8c6885d4db4211425b95764025f96dcfefb79ef18eb53453ffdc4f6cba68a27d) == 61, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_8c6885d4db4211425b95764025f96dcfefb79ef18eb53453ffdc4f6cba68a27d) == 34, "Wrong size of locale's blob");
 
-/* BZip2 compressed tr_TR.ISO8859-9 LC_NUMERIC locale data */
+/* tr_TR.ISO8859-9 LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_d4ca44d3089c52da756f340987185bbd3217a68eb49cf0ac3e9f0706d497d851[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x09,0xD1,0x96,0xB7,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x40,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x00,0x9D,0x19,0x6B,0x70
+    0x2C,0x0A,0x20,0x0A,0x30,0x3B,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d4ca44d3089c52da756f340987185bbd3217a68eb49cf0ac3e9f0706d497d851) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_d4ca44d3089c52da756f340987185bbd3217a68eb49cf0ac3e9f0706d497d851) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed tr_TR.ISO8859-9 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_c612b4f42f8652c8026f35571b5bf7110e5c8ee8968a2095ee4bcb55df6848e6[] = {
@@ -7247,25 +6872,20 @@ static uint8_t  __crystax_locale_blob_db9cb102f9f13ff9a6c0ec007ab24c35a22c3a7b8c
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_db9cb102f9f13ff9a6c0ec007ab24c35a22c3a7b8ce6094d7d3487e5e2538135) == 844, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.CP1251 LC_MESSAGES locale data */
+/* uk_UA.CP1251 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_bfab068d2cebe49810a878a5d82cd5650a1d107c1c279787869ed8734a5444c8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xC8,0xCA,0xB8,0xBE,0x00,0x00,
-    0x07,0xD7,0x8F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x08,
-    0x00,0x00,0x02,0x10,0x00,0x40,0x12,0x10,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,
-    0x25,0x4D,0x00,0x7A,0x41,0xA3,0x2E,0xCE,0xA6,0x44,0xEE,0x24,0x8D,0xF3,0xC4,0x11,
-    0x68,0x1B,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x19,0x19,0x57,0x17,0xC0
+    0x5E,0x5B,0xF2,0xD2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xED,0xCD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xF2,0xE0,0xEA,0x0A,0xED,0xB3,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bfab068d2cebe49810a878a5d82cd5650a1d107c1c279787869ed8734a5444c8) == 77, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_bfab068d2cebe49810a878a5d82cd5650a1d107c1c279787869ed8734a5444c8) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.CP1251 LC_MONETARY locale data */
+/* uk_UA.CP1251 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_1296b9141ed6f2f90058fbdbc654f9093104cf72d89fde4bc671656889786f0f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xA1,0x91,0xB6,0x63,0x00,0x00,
-    0x10,0xDE,0x01,0x80,0x10,0x40,0x07,0x78,0x08,0x20,0x40,0x02,0x00,0x08,0x02,0x40,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x1E,0x20,0x08,0x31,0x32,0xC2,0xAB,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x14,0x32,0x36,0xCC,0x60
+    0x55,0x41,0x48,0x20,0x0A,0xE3,0xF0,0xED,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1296b9141ed6f2f90058fbdbc654f9093104cf72d89fde4bc671656889786f0f) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1296b9141ed6f2f90058fbdbc654f9093104cf72d89fde4bc671656889786f0f) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed uk_UA.CP1251 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_e7709234d2edab817b6e1731e3487b2a2f546d6b5131b63f99c55cc6acd39131[] = {
@@ -7344,25 +6964,20 @@ static uint8_t  __crystax_locale_blob_255db582e3484146454bb4fba72fb912ec5ee1c254
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_255db582e3484146454bb4fba72fb912ec5ee1c2547afd40595a0493c872fb1f) == 791, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.ISO8859-5 LC_MESSAGES locale data */
+/* uk_UA.ISO8859-5 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_cd2fa9ec3c3251855b142166d7c120756501bf0f49bb0d893770853d1eed7ab2[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x36,0x22,0xC1,0x98,0x00,0x00,
-    0x07,0xD7,0x8F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x02,0x10,0x00,0x40,0x12,0x10,0x00,0x01,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,
-    0x35,0x34,0x68,0x1E,0x88,0x7A,0x8C,0xBB,0x57,0x1A,0x06,0x20,0x12,0x44,0xF3,0xC8,
-    0x25,0x86,0x67,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x81,0xB1,0x16,0x0C,0xC0
+    0x5E,0x5B,0xE2,0xC2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xDD,0xBD,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xE2,0xD0,0xDA,0x0A,0xDD,0xF6,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cd2fa9ec3c3251855b142166d7c120756501bf0f49bb0d893770853d1eed7ab2) == 78, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cd2fa9ec3c3251855b142166d7c120756501bf0f49bb0d893770853d1eed7ab2) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.ISO8859-5 LC_MONETARY locale data */
+/* uk_UA.ISO8859-5 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_110ae53ac66cbc3d00efc44ed59bbc2553be8de749e83de2ad3c1facd865dbd9[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x4A,0xCE,0x9C,0x57,0x00,0x00,
-    0x10,0xDE,0x03,0x00,0x10,0x40,0x07,0x78,0x08,0x20,0x40,0x02,0x00,0x08,0x02,0x40,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x1E,0x20,0x08,0x31,0x32,0xC2,0xAB,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x09,0x59,0xD3,0x8A,0xE0
+    0x55,0x41,0x48,0x20,0x0A,0xD3,0xE0,0xDD,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_110ae53ac66cbc3d00efc44ed59bbc2553be8de749e83de2ad3c1facd865dbd9) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_110ae53ac66cbc3d00efc44ed59bbc2553be8de749e83de2ad3c1facd865dbd9) == 37, "Wrong size of locale's blob");
 
 /* BZip2 compressed uk_UA.ISO8859-5 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_5655454c98944b71a0acb8cfe60ced5569a28571bdf04c36b84f053f6f0f8387[] = {
@@ -7503,33 +7118,26 @@ static uint8_t  __crystax_locale_blob_c40e28a3a770a916e2894e1cc5198fc8878c60552e
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c40e28a3a770a916e2894e1cc5198fc8878c60552e84fe4c2238b75a0609d208) == 864, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.KOI8-U LC_MESSAGES locale data */
+/* uk_UA.KOI8-U LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_7e0ae12ba9dc86da05411a449ed19abff05f5cff5bcffddf22e74867b3551dab[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xE7,0xF0,0xF0,0xE5,0x00,0x00,
-    0x07,0xD7,0x97,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x01,
-    0x00,0x20,0x09,0x04,0x00,0x00,0x01,0x04,0x00,0x20,0x00,0x31,0x43,0x4D,0x30,0x00,
-    0x35,0x34,0x68,0x1E,0x90,0xDA,0x8C,0x79,0x57,0x1A,0x06,0x20,0x12,0x44,0xA9,0x4A,
-    0xE9,0x99,0xDF,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x1C,0xFE,0x1E,0x1C,0xA0
+    0x5E,0x5B,0xD4,0xF4,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xCE,0xEE,0x6E,0x4E,
+    0x5D,0x2E,0x2A,0x0A,0xD4,0xC1,0xCB,0x0A,0xCE,0xA6,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7e0ae12ba9dc86da05411a449ed19abff05f5cff5bcffddf22e74867b3551dab) == 78, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_7e0ae12ba9dc86da05411a449ed19abff05f5cff5bcffddf22e74867b3551dab) == 27, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.KOI8-U LC_MONETARY locale data */
+/* uk_UA.KOI8-U LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_c78ad82f20f2103ef664ce49f965a355d4848dfc63ed5bd29dfe13e8ab90f089[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x00,0xC2,0xC8,0x86,0x00,0x00,
-    0x10,0xDE,0x06,0x00,0x10,0x40,0x07,0x78,0x08,0x20,0x40,0x02,0x00,0x00,0x81,0x10,
-    0x00,0x20,0x00,0x21,0xA9,0xEA,0x69,0xA3,0xD4,0x69,0xA6,0x85,0x30,0x00,0x4D,0x13,
-    0x3B,0x24,0x81,0x17,0x49,0x8B,0xC1,0x1E,0x20,0x08,0x31,0x32,0xC2,0xAB,0xE2,0xEE,
-    0x48,0xA7,0x0A,0x12,0x00,0x18,0x59,0x10,0xC0
+    0x55,0x41,0x48,0x20,0x0A,0xC7,0xD2,0xCE,0x2E,0x0A,0x2C,0x0A,0x20,0x0A,0x33,0x3B,
+    0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c78ad82f20f2103ef664ce49f965a355d4848dfc63ed5bd29dfe13e8ab90f089) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c78ad82f20f2103ef664ce49f965a355d4848dfc63ed5bd29dfe13e8ab90f089) == 37, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.KOI8-U LC_NUMERIC locale data */
+/* uk_UA.KOI8-U LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_35990dc1b6693c99e462b2b2c1db312a047fb813a5bfb7b95d1d53e218f60ce8[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x1B,0x4D,0x7B,0x0A,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x40,0x04,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0xB4,0xD7,0xB0,0xA0
+    0x2C,0x0A,0x20,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_35990dc1b6693c99e462b2b2c1db312a047fb813a5bfb7b95d1d53e218f60ce8) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_35990dc1b6693c99e462b2b2c1db312a047fb813a5bfb7b95d1d53e218f60ce8) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed uk_UA.KOI8-U LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_6ee7a2ce04692b0426827325666da0e3154591c17dc52267eeb8c4a8d4738d33[] = {
@@ -7553,26 +7161,21 @@ static uint8_t  __crystax_locale_blob_6ee7a2ce04692b0426827325666da0e3154591c17d
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6ee7a2ce04692b0426827325666da0e3154591c17dc52267eeb8c4a8d4738d33) == 257, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.UTF-8 LC_MESSAGES locale data */
+/* uk_UA.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_6fd23494054372b686dbd44182fa5ed4699d02eea52e366fc4d969cf3f739be7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9C,0xD5,0x30,0x07,0x00,0x00,
-    0x07,0xD7,0xFA,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x10,
-    0x00,0x01,0x02,0x10,0x00,0x40,0x12,0x60,0x00,0x20,0x00,0x21,0xA2,0x34,0x0C,0x80,
-    0xF5,0x0A,0x64,0xC4,0xC8,0x32,0x31,0x63,0x92,0x61,0x70,0xF1,0x01,0xDD,0xC6,0xB6,
-    0x50,0x84,0x3E,0x04,0xDD,0x55,0xBE,0x2E,0xE4,0x8A,0x70,0xA1,0x21,0x39,0xAA,0x60,
-    0x0E
+    0x5E,0x5B,0xD1,0x82,0xD0,0xA2,0x79,0x59,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,0xD0,0xBD,
+    0xD0,0x9D,0x6E,0x4E,0x5D,0x2E,0x2A,0x0A,0xD1,0x82,0xD0,0xB0,0xD0,0xBA,0x0A,0xD0,
+    0xBD,0xD1,0x96,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6fd23494054372b686dbd44182fa5ed4699d02eea52e366fc4d969cf3f739be7) == 81, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6fd23494054372b686dbd44182fa5ed4699d02eea52e366fc4d969cf3f739be7) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed uk_UA.UTF-8 LC_MONETARY locale data */
+/* uk_UA.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_a8ede73fe7d1c900cf578d9140cf2e4c1085c97a5fe0970adaf449afdcb581bc[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x78,0x5B,0xCE,0x6F,0x00,0x00,
-    0x10,0xDE,0x4A,0x00,0x10,0x40,0x07,0x78,0x08,0x20,0x40,0x02,0x00,0x40,0x00,0x08,
-    0x02,0x60,0x00,0x20,0x00,0x21,0xA9,0xEA,0x68,0x3D,0x46,0x81,0xA1,0x4D,0x32,0x31,
-    0x31,0x31,0x13,0x55,0x92,0x40,0x89,0xA4,0xC6,0xAE,0x47,0x48,0x01,0xCB,0xEF,0x6D,
-    0x10,0x27,0xE8,0xF8,0xBB,0x92,0x29,0xC2,0x84,0x83,0xC2,0xDE,0x73,0x78
+    0x55,0x41,0x48,0x20,0x0A,0xD0,0xB3,0xD1,0x80,0xD0,0xBD,0x2E,0x0A,0x2C,0x0A,0x20,
+    0x0A,0x33,0x3B,0x33,0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x30,0x0A,0x31,0x0A,
+    0x30,0x0A,0x31,0x0A,0x31,0x0A,0x31,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a8ede73fe7d1c900cf578d9140cf2e4c1085c97a5fe0970adaf449afdcb581bc) == 78, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a8ede73fe7d1c900cf578d9140cf2e4c1085c97a5fe0970adaf449afdcb581bc) == 40, "Wrong size of locale's blob");
 
 /* BZip2 compressed uk_UA.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_523dff2db1ff7a05052508ff4d6ab9974a3efe237435eaeba398f47a4d18e235[] = {
@@ -8070,34 +7673,27 @@ static uint8_t  __crystax_locale_blob_cf1c57b81fb6879ba0ac169c279109f41800d93b76
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_cf1c57b81fb6879ba0ac169c279109f41800d93b768bb34ee033d0eeba456d8c) == 1290, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.eucCN LC_MESSAGES locale data */
+/* zh_CN.eucCN LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_2cfa8c31af882a925362429ddd0da3fcb33d49b1b3328b115f5eec8fb4c18fe3[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF5,0x95,0xFF,0x0F,0x00,0x00,
-    0x07,0xD7,0x9F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x08,
-    0x00,0x10,0x88,0x00,0x91,0x00,0x20,0x00,0x01,0x20,0x20,0x20,0x00,0x21,0xA9,0xA0,
-    0x06,0x80,0x7A,0x42,0x81,0xA6,0x86,0x46,0x4C,0x44,0x3B,0x7C,0x45,0x45,0xD5,0x44,
-    0xE9,0x50,0xA0,0xB6,0x32,0x67,0xEE,0x91,0x06,0x2E,0x60,0x9F,0x17,0x72,0x45,0x38,
-    0x50,0x90,0xF5,0x95,0xFF,0x0F
+    0x5E,0x5B,0x79,0x59,0xA3,0xF9,0xA3,0xD9,0xCA,0xC7,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0xA3,0xEE,0xA3,0xCE,0xB2,0xBB,0xB7,0xF1,0x5D,0x2E,0x2A,0x0A,0xCA,0xC7,
+    0x0A,0xB7,0xF1,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2cfa8c31af882a925362429ddd0da3fcb33d49b1b3328b115f5eec8fb4c18fe3) == 86, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_2cfa8c31af882a925362429ddd0da3fcb33d49b1b3328b115f5eec8fb4c18fe3) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.eucCN LC_MONETARY locale data */
+/* zh_CN.eucCN LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_61290c7172e811525a8900e61f8eba85025dfb07a1e3ba76b42b4bc4452c2078[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9D,0x59,0xBA,0x07,0x00,0x00,
-    0x0F,0x5E,0x10,0x00,0x10,0x40,0x07,0x6C,0x08,0x08,0x01,0x00,0x20,0x0C,0x00,0x20,
-    0x00,0x21,0xA3,0x50,0x62,0x61,0x0A,0x60,0x00,0x1B,0x87,0x3A,0xCE,0x15,0x1C,0xC4,
-    0x5B,0x84,0x12,0xA2,0x56,0xAC,0xE7,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x27,0x56,0x6E,
-    0x81,0xC0
+    0x43,0x4E,0x59,0x20,0x0A,0xA3,0xA4,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_61290c7172e811525a8900e61f8eba85025dfb07a1e3ba76b42b4bc4452c2078) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_61290c7172e811525a8900e61f8eba85025dfb07a1e3ba76b42b4bc4452c2078) == 35, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.eucCN LC_NUMERIC locale data */
+/* zh_CN.eucCN LC_NUMERIC locale data */
 static uint8_t  __crystax_locale_blob_b9ef9bd75ff7a6ee96c49a78d24591391efa1c4b11cee8f9772975d5bae3a876[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x19,0xEE,0x9C,0xBE,0x00,0x00,
-    0x02,0x58,0x00,0x00,0x10,0x00,0x05,0x08,0x08,0x20,0x00,0x30,0xCD,0x00,0xC3,0x45,
-    0x01,0x68,0x71,0x77,0x24,0x53,0x85,0x09,0x01,0x9E,0xE9,0xCB,0xE0
+    0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b9ef9bd75ff7a6ee96c49a78d24591391efa1c4b11cee8f9772975d5bae3a876) == 45, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_b9ef9bd75ff7a6ee96c49a78d24591391efa1c4b11cee8f9772975d5bae3a876) == 8, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_CN.eucCN LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_8be49ac2f61e6c86ec72e959310f665024455533c263702efd58ce6ee8259e3e[] = {
@@ -9199,26 +8795,21 @@ static uint8_t  __crystax_locale_blob_a0c8a2aef4c14b17288aa20f1f40bf5e4b0a6fce85
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_a0c8a2aef4c14b17288aa20f1f40bf5e4b0a6fce85656af225970ef4cb6887c7) == 17198, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.GB18030 LC_MESSAGES locale data */
+/* zh_CN.GB18030 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_524a5acc4e77a82c0eaf48d52ff2e69d3533829a187e1d52f76000ec430eee2f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF5,0x95,0xFF,0x0F,0x00,0x00,
-    0x07,0xD7,0x9F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x08,
-    0x00,0x10,0x88,0x00,0x91,0x00,0x20,0x00,0x01,0x20,0x20,0x20,0x00,0x21,0xA9,0xA0,
-    0x06,0x80,0x7A,0x42,0x81,0xA6,0x86,0x46,0x4C,0x44,0x3B,0x7C,0x45,0x45,0xD5,0x44,
-    0xE9,0x50,0xA0,0xB6,0x32,0x67,0xEE,0x91,0x06,0x2E,0x60,0x9F,0x17,0x72,0x45,0x38,
-    0x50,0x90,0xF5,0x95,0xFF,0x0F
+    0x5E,0x5B,0x79,0x59,0xA3,0xF9,0xA3,0xD9,0xCA,0xC7,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0xA3,0xEE,0xA3,0xCE,0xB2,0xBB,0xB7,0xF1,0x5D,0x2E,0x2A,0x0A,0xCA,0xC7,
+    0x0A,0xB7,0xF1,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_524a5acc4e77a82c0eaf48d52ff2e69d3533829a187e1d52f76000ec430eee2f) == 86, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_524a5acc4e77a82c0eaf48d52ff2e69d3533829a187e1d52f76000ec430eee2f) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.GB18030 LC_MONETARY locale data */
+/* zh_CN.GB18030 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_832fb156d79a90e895db6462acb91bf7502cc696051884c528c8ac36a87021d7[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9D,0x59,0xBA,0x07,0x00,0x00,
-    0x0F,0x5E,0x10,0x00,0x10,0x40,0x07,0x6C,0x08,0x08,0x01,0x00,0x20,0x0C,0x00,0x20,
-    0x00,0x21,0xA3,0x50,0x62,0x61,0x0A,0x60,0x00,0x1B,0x87,0x3A,0xCE,0x15,0x1C,0xC4,
-    0x5B,0x84,0x12,0xA2,0x56,0xAC,0xE7,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x27,0x56,0x6E,
-    0x81,0xC0
+    0x43,0x4E,0x59,0x20,0x0A,0xA3,0xA4,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_832fb156d79a90e895db6462acb91bf7502cc696051884c528c8ac36a87021d7) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_832fb156d79a90e895db6462acb91bf7502cc696051884c528c8ac36a87021d7) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_CN.GB18030 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_65806b2b8bceb79c42313705ed31797501b2c7d43c27a4adf0384d2c5221d40c[] = {
@@ -9341,26 +8932,21 @@ static uint8_t  __crystax_locale_blob_222cd6c83d3325f93e25cbee51b996d0a6bb59ecc6
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_222cd6c83d3325f93e25cbee51b996d0a6bb59ecc6da4a8283635004538449e6) == 1524, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.GB2312 LC_MESSAGES locale data */
+/* zh_CN.GB2312 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_1f32346cbd33236b721ad979b06245f0fdc8f15f32635b5cef18e4a34704e59f[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xF5,0x95,0xFF,0x0F,0x00,0x00,
-    0x07,0xD7,0x9F,0x80,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x08,
-    0x00,0x10,0x88,0x00,0x91,0x00,0x20,0x00,0x01,0x20,0x20,0x20,0x00,0x21,0xA9,0xA0,
-    0x06,0x80,0x7A,0x42,0x81,0xA6,0x86,0x46,0x4C,0x44,0x3B,0x7C,0x45,0x45,0xD5,0x44,
-    0xE9,0x50,0xA0,0xB6,0x32,0x67,0xEE,0x91,0x06,0x2E,0x60,0x9F,0x17,0x72,0x45,0x38,
-    0x50,0x90,0xF5,0x95,0xFF,0x0F
+    0x5E,0x5B,0x79,0x59,0xA3,0xF9,0xA3,0xD9,0xCA,0xC7,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0xA3,0xEE,0xA3,0xCE,0xB2,0xBB,0xB7,0xF1,0x5D,0x2E,0x2A,0x0A,0xCA,0xC7,
+    0x0A,0xB7,0xF1,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1f32346cbd33236b721ad979b06245f0fdc8f15f32635b5cef18e4a34704e59f) == 86, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1f32346cbd33236b721ad979b06245f0fdc8f15f32635b5cef18e4a34704e59f) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.GB2312 LC_MONETARY locale data */
+/* zh_CN.GB2312 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_76f94e7cc6650bc618bd90b434d11ee9e6cd7ee6f1a06dcdb682d4a08d290047[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x9D,0x59,0xBA,0x07,0x00,0x00,
-    0x0F,0x5E,0x10,0x00,0x10,0x40,0x07,0x6C,0x08,0x08,0x01,0x00,0x20,0x0C,0x00,0x20,
-    0x00,0x21,0xA3,0x50,0x62,0x61,0x0A,0x60,0x00,0x1B,0x87,0x3A,0xCE,0x15,0x1C,0xC4,
-    0x5B,0x84,0x12,0xA2,0x56,0xAC,0xE7,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x27,0x56,0x6E,
-    0x81,0xC0
+    0x43,0x4E,0x59,0x20,0x0A,0xA3,0xA4,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_76f94e7cc6650bc618bd90b434d11ee9e6cd7ee6f1a06dcdb682d4a08d290047) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_76f94e7cc6650bc618bd90b434d11ee9e6cd7ee6f1a06dcdb682d4a08d290047) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_CN.GB2312 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_611433737a61e3be7c37c681f2124e01841e0e5eec39663a290173d57eb974a7[] = {
@@ -9499,26 +9085,21 @@ static uint8_t  __crystax_locale_blob_ca7f98a878eec151fa4408de704ce87ad100d5dc34
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_ca7f98a878eec151fa4408de704ce87ad100d5dc3466e3aa0801d62c578ec402) == 1778, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.UTF-8 LC_MESSAGES locale data */
+/* zh_CN.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_3d238dc41bbac672ff5a98aa96a451cfe8bb22b2b10bbd86795abaa20e71a7ce[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBD,0x4C,0xB5,0x0C,0x00,0x00,
-    0x07,0xD7,0xF9,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x03,0x40,0x60,0x01,0x01,0x80,0x66,0x07,0x00,0xA0,0x00,0x21,0x2A,0x9B,0x50,0x34,
-    0x7A,0x9A,0x0D,0x06,0xF4,0xA1,0x40,0x00,0x01,0x93,0x22,0x5C,0x74,0xD8,0x13,0x35,
-    0x77,0x32,0xCE,0x63,0x95,0xF6,0xC2,0x1A,0xA5,0xBC,0x13,0x40,0x27,0xFA,0x50,0xA1,
-    0x47,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x17,0xA9,0x96,0xA1,0x80
+    0x5E,0x5B,0x79,0x59,0xEF,0xBD,0x99,0xEF,0xBC,0xB9,0xE6,0x98,0xAF,0x5D,0x2E,0x2A,
+    0x0A,0x5E,0x5B,0x6E,0x4E,0xEF,0xBD,0x8E,0xEF,0xBC,0xAE,0xE4,0xB8,0x8D,0xE5,0x90,
+    0xA6,0x5D,0x2E,0x2A,0x0A,0xE6,0x98,0xAF,0x0A,0xE5,0x90,0xA6,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3d238dc41bbac672ff5a98aa96a451cfe8bb22b2b10bbd86795abaa20e71a7ce) == 92, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_3d238dc41bbac672ff5a98aa96a451cfe8bb22b2b10bbd86795abaa20e71a7ce) == 45, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_CN.UTF-8 LC_MONETARY locale data */
+/* zh_CN.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_6c70369490f26127e3f8367e439444b7fef90dc6142148daebb2e4523907e1be[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x81,0xEA,0x22,0x12,0x00,0x00,
-    0x0F,0x5E,0x19,0x00,0x10,0x40,0x07,0x7C,0x08,0x08,0x01,0x00,0x20,0x02,0x00,0x00,
-    0x00,0x80,0x00,0xA0,0x00,0x21,0xA9,0xA3,0x43,0x69,0x31,0x02,0x86,0x9A,0x60,0x01,
-    0xB3,0x7A,0x60,0x48,0x42,0x55,0xDE,0x88,0xB0,0x84,0x10,0x93,0x5D,0xF2,0xFC,0x5D,
-    0xC9,0x14,0xE1,0x42,0x42,0x07,0xA8,0x88,0x48
+    0x43,0x4E,0x59,0x20,0x0A,0xEF,0xBF,0xA5,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6c70369490f26127e3f8367e439444b7fef90dc6142148daebb2e4523907e1be) == 73, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_6c70369490f26127e3f8367e439444b7fef90dc6142148daebb2e4523907e1be) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_CN.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_ed2278729ad67a859319cad187ba49174c50eeaff35d42ddd68cc3385647062d[] = {
@@ -9699,14 +9280,13 @@ static uint8_t  __crystax_locale_blob_c2778b61f3c9060eaeb17510cb20ccb9a1f0e9478d
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c2778b61f3c9060eaeb17510cb20ccb9a1f0e9478d05374d551650d53939e09f) == 2463, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_HK.UTF-8 LC_MONETARY locale data */
+/* zh_HK.UTF-8 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_90bcae322be4fc25f62458de5c5f964fb95dad22fc3ebfa303b946643156dd3b[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x0C,0xEB,0x38,0x68,0x00,0x00,
-    0x10,0x5C,0x00,0x00,0x10,0x04,0x07,0x78,0x08,0x04,0x48,0x20,0x00,0x21,0xA0,0x83,
-    0xF5,0x46,0x08,0x06,0x80,0x0D,0xC4,0xF5,0x81,0x38,0x7F,0x56,0x33,0x2A,0x7A,0x98,
-    0x56,0xB0,0x5D,0xC9,0x14,0xE1,0x42,0x40,0x33,0xAC,0xE1,0xA0
+    0x48,0x4B,0x44,0x0A,0x48,0x4B,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,0x0A,
+    0x0A,0x2D,0x0A,0x32,0x0A,0x32,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,
+    0x0A,0x30,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_90bcae322be4fc25f62458de5c5f964fb95dad22fc3ebfa303b946643156dd3b) == 60, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_90bcae322be4fc25f62458de5c5f964fb95dad22fc3ebfa303b946643156dd3b) == 35, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_TW.Big5 LC_CTYPE locale data */
 static uint8_t  __crystax_locale_blob_448c0eba0835903f00cc41035ca89265ec030906f6b589c48eb52f20bb90ca85[] = {
@@ -9809,26 +9389,21 @@ static uint8_t  __crystax_locale_blob_448c0eba0835903f00cc41035ca89265ec030906f6
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_448c0eba0835903f00cc41035ca89265ec030906f6b589c48eb52f20bb90ca85) == 1524, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_TW.Big5 LC_MESSAGES locale data */
+/* zh_TW.Big5 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_1ad95ca39935fab98f4fb80fdaca9a27dce499933e86df2a536f3bc6ac5a217a[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xCB,0x6A,0x17,0x33,0x00,0x00,
-    0x09,0x57,0x93,0x80,0x10,0x00,0x11,0x10,0x01,0x80,0x2B,0x80,0x01,0x00,0x20,0x1C,
-    0x84,0x00,0x04,0x00,0x80,0x01,0x00,0x20,0x00,0x31,0x40,0xD3,0x43,0x23,0x26,0x20,
-    0xD4,0xD0,0x0D,0x06,0x4D,0x1A,0x16,0x2B,0x19,0x83,0x09,0xA6,0x08,0x82,0xE7,0x80,
-    0xC1,0x43,0xA2,0xF3,0xBE,0xBA,0x93,0xBC,0x3E,0x2E,0xE4,0x8A,0x70,0xA1,0x21,0x96,
-    0xD4,0x2E,0x66
+    0x5E,0x5B,0x79,0x59,0xA3,0x42,0xA2,0xE7,0xAC,0x4F,0x5D,0x2E,0x2A,0x0A,0x5E,0x5B,
+    0x6E,0x4E,0xA2,0xF6,0xA2,0xDC,0xA4,0xA3,0xA7,0x5F,0x5D,0x2E,0x2A,0x0A,0xAC,0x4F,
+    0x0A,0xA7,0x5F,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1ad95ca39935fab98f4fb80fdaca9a27dce499933e86df2a536f3bc6ac5a217a) == 83, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1ad95ca39935fab98f4fb80fdaca9a27dce499933e86df2a536f3bc6ac5a217a) == 36, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_TW.Big5 LC_MONETARY locale data */
+/* zh_TW.Big5 LC_MONETARY locale data */
 static uint8_t  __crystax_locale_blob_1baf7da8e616156fdca37cdb579caa2635e3bdf984dd3cdd02301a604a94dbda[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0x95,0x98,0xFB,0xC5,0x00,0x00,
-    0x11,0x5E,0x00,0x00,0x10,0x44,0x07,0x6C,0x08,0x04,0x01,0x04,0x80,0x20,0x00,0x31,
-    0x4C,0x00,0x00,0xD3,0x48,0x69,0xE9,0x1A,0x68,0xA1,0xF3,0x1B,0x40,0xB2,0x75,0x3D,
-    0xF4,0x86,0x14,0x45,0x5B,0xD9,0xD7,0xC5,0xDC,0x91,0x4E,0x14,0x24,0x25,0x66,0x3E,
-    0xF1,0x40
+    0x54,0x57,0x44,0x20,0x0A,0x4E,0x54,0x24,0x0A,0x2E,0x0A,0x2C,0x0A,0x33,0x3B,0x33,
+    0x0A,0x0A,0x2D,0x0A,0x30,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,0x31,0x0A,0x30,0x0A,
+    0x31,0x0A,0x34,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1baf7da8e616156fdca37cdb579caa2635e3bdf984dd3cdd02301a604a94dbda) == 66, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_1baf7da8e616156fdca37cdb579caa2635e3bdf984dd3cdd02301a604a94dbda) == 36, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_TW.Big5 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_c4e4dbb1bd6053ebd05f23f3e5cc9781d1d6c9c73807bc3c86a70601889c28f3[] = {
@@ -9848,16 +9423,13 @@ static uint8_t  __crystax_locale_blob_c4e4dbb1bd6053ebd05f23f3e5cc9781d1d6c9c738
 };
 __CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_c4e4dbb1bd6053ebd05f23f3e5cc9781d1d6c9c73807bc3c86a70601889c28f3) == 204, "Wrong size of locale's blob");
 
-/* BZip2 compressed zh_TW.UTF-8 LC_MESSAGES locale data */
+/* zh_TW.UTF-8 LC_MESSAGES locale data */
 static uint8_t  __crystax_locale_blob_77ef729a45e7b1c8e0c23a85100b42e760913b636d79d91be72731c3d7797273[] = {
-    0x42,0x5A,0x68,0x39,0x31,0x41,0x59,0x26,0x53,0x59,0xBD,0x4C,0xB5,0x0C,0x00,0x00,
-    0x07,0xD7,0xF9,0x00,0x10,0x00,0x11,0x00,0x01,0x00,0x2B,0x00,0x01,0x00,0x20,0x00,
-    0x03,0x40,0x60,0x01,0x01,0x80,0x66,0x07,0x00,0xA0,0x00,0x21,0x2A,0x9B,0x50,0x34,
-    0x7A,0x9A,0x0D,0x06,0xF4,0xA1,0x40,0x00,0x01,0x93,0x22,0x5C,0x74,0xD8,0x13,0x35,
-    0x77,0x32,0xCE,0x63,0x95,0xF6,0xC2,0x1A,0xA5,0xBC,0x13,0x40,0x27,0xFA,0x50,0xA1,
-    0x47,0xE2,0xEE,0x48,0xA7,0x0A,0x12,0x17,0xA9,0x96,0xA1,0x80
+    0x5E,0x5B,0x79,0x59,0xEF,0xBD,0x99,0xEF,0xBC,0xB9,0xE6,0x98,0xAF,0x5D,0x2E,0x2A,
+    0x0A,0x5E,0x5B,0x6E,0x4E,0xEF,0xBD,0x8E,0xEF,0xBC,0xAE,0xE4,0xB8,0x8D,0xE5,0x90,
+    0xA6,0x5D,0x2E,0x2A,0x0A,0xE6,0x98,0xAF,0x0A,0xE5,0x90,0xA6,0x0A
 };
-__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_77ef729a45e7b1c8e0c23a85100b42e760913b636d79d91be72731c3d7797273) == 92, "Wrong size of locale's blob");
+__CRYSTAX_STATIC_ASSERT(sizeof(__crystax_locale_blob_77ef729a45e7b1c8e0c23a85100b42e760913b636d79d91be72731c3d7797273) == 45, "Wrong size of locale's blob");
 
 /* BZip2 compressed zh_TW.UTF-8 LC_TIME locale data */
 static uint8_t  __crystax_locale_blob_c50e595ced0bf44d64945e175d822ee34ea83ce222d961bacb6a41d79f7d11d9[] = {
@@ -9909,15 +9481,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[1].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[1].data[LC_MESSAGES].blob.data = __crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd;
     __crystax_locale_data_array[1].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_90738d86bf29dc39d971c19f444d9ba9ff572e95d6e4f1144741f1df399200cd);
-    __crystax_locale_data_array[1].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[1].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[1].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[1].data[LC_MONETARY].blob.data = __crystax_locale_blob_e77de040f5f7a8474db16baec9a524791f03815b969fc406975d33977ef0ca5c;
     __crystax_locale_data_array[1].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_e77de040f5f7a8474db16baec9a524791f03815b969fc406975d33977ef0ca5c);
-    __crystax_locale_data_array[1].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[1].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[1].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[1].data[LC_NUMERIC].blob.data = __crystax_locale_blob_b62cc548fd428ed75d0bb84710ac6a27bea4cf00823aba3d89955c63cf280f48;
     __crystax_locale_data_array[1].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_b62cc548fd428ed75d0bb84710ac6a27bea4cf00823aba3d89955c63cf280f48);
-    __crystax_locale_data_array[1].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[1].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[1].data[LC_TIME].alias = "en_US.ISO8859-1";
 
     __crystax_locale_data_array[2].encoding = "af_ZA.ISO8859-15";
@@ -9945,15 +9517,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[4].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[4].data[LC_MESSAGES].blob.data = __crystax_locale_blob_7933b309a0b751aa45fe67cd9234225cda9927c7f41fd3f64f2edf3607ca7fd4;
     __crystax_locale_data_array[4].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_7933b309a0b751aa45fe67cd9234225cda9927c7f41fd3f64f2edf3607ca7fd4);
-    __crystax_locale_data_array[4].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[4].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[4].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[4].data[LC_MONETARY].blob.data = __crystax_locale_blob_fb4794bd5b713e95c5005257777d1645ca584853723fdf5bb3725ac159ef5784;
     __crystax_locale_data_array[4].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_fb4794bd5b713e95c5005257777d1645ca584853723fdf5bb3725ac159ef5784);
-    __crystax_locale_data_array[4].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[4].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[4].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[4].data[LC_NUMERIC].blob.data = __crystax_locale_blob_c80301ce26dcaa16da8f976d564b242a4bedb016d88ab2c630c5cc5b40a5d662;
     __crystax_locale_data_array[4].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_c80301ce26dcaa16da8f976d564b242a4bedb016d88ab2c630c5cc5b40a5d662);
-    __crystax_locale_data_array[4].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[4].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[4].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[4].data[LC_TIME].blob.data = __crystax_locale_blob_dd17b3f3f5335e56d2c8f5a65e0596720ebf66c9d8c014b80b0746acd802ad8f;
     __crystax_locale_data_array[4].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_dd17b3f3f5335e56d2c8f5a65e0596720ebf66c9d8c014b80b0746acd802ad8f);
@@ -9971,11 +9543,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[5].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[5].data[LC_MESSAGES].blob.data = __crystax_locale_blob_115f88e876207067e1abb1cca5616254c96bfa80638c76470b1af7411dd06ddf;
     __crystax_locale_data_array[5].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_115f88e876207067e1abb1cca5616254c96bfa80638c76470b1af7411dd06ddf);
-    __crystax_locale_data_array[5].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[5].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[5].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[5].data[LC_MONETARY].blob.data = __crystax_locale_blob_cac1e34dfdc6569c8897ea6bc7cacaccdab7c22f850766e6e1d57d3c4e2ee8f8;
     __crystax_locale_data_array[5].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_cac1e34dfdc6569c8897ea6bc7cacaccdab7c22f850766e6e1d57d3c4e2ee8f8);
-    __crystax_locale_data_array[5].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[5].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[5].data[LC_NUMERIC].alias = "be_BY.CP1251";
     __crystax_locale_data_array[5].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[5].data[LC_TIME].blob.data = __crystax_locale_blob_468c22abad44e99854a1dc74bb8838c90006a5a13bec83069d89d04b7a025b18;
@@ -9991,15 +9563,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[6].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[6].data[LC_MESSAGES].blob.data = __crystax_locale_blob_eb3a423ecc2cc7c7893ee48d239842d61597634ce2a2f8e5784be4d44747ac7f;
     __crystax_locale_data_array[6].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_eb3a423ecc2cc7c7893ee48d239842d61597634ce2a2f8e5784be4d44747ac7f);
-    __crystax_locale_data_array[6].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[6].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[6].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[6].data[LC_MONETARY].blob.data = __crystax_locale_blob_b2e1949aa0823f3515284a27bafcc6754b41966db0ebbce38a234f9a80524f55;
     __crystax_locale_data_array[6].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b2e1949aa0823f3515284a27bafcc6754b41966db0ebbce38a234f9a80524f55);
-    __crystax_locale_data_array[6].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[6].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[6].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[6].data[LC_NUMERIC].blob.data = __crystax_locale_blob_eb031fdf489e8b1c7565475b064767a7252f7d48a1f7405e290f0d898d2dddb2;
     __crystax_locale_data_array[6].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_eb031fdf489e8b1c7565475b064767a7252f7d48a1f7405e290f0d898d2dddb2);
-    __crystax_locale_data_array[6].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[6].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[6].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[6].data[LC_TIME].blob.data = __crystax_locale_blob_159b5768e14e294358f661602773514fc0d18fc9cc2a3e66a1f9d8d5cce0a89d;
     __crystax_locale_data_array[6].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_159b5768e14e294358f661602773514fc0d18fc9cc2a3e66a1f9d8d5cce0a89d);
@@ -10014,11 +9586,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[7].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[7].data[LC_MESSAGES].blob.data = __crystax_locale_blob_0c4d5c9808f5b43e43ce27f3bc46c388012e8fb46a76d210f1fdef98061920cb;
     __crystax_locale_data_array[7].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_0c4d5c9808f5b43e43ce27f3bc46c388012e8fb46a76d210f1fdef98061920cb);
-    __crystax_locale_data_array[7].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[7].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[7].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[7].data[LC_MONETARY].blob.data = __crystax_locale_blob_f54039248098acd0614b50b48a477da224b7f3670c70c9bc9a0ac0758bc90e0f;
     __crystax_locale_data_array[7].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f54039248098acd0614b50b48a477da224b7f3670c70c9bc9a0ac0758bc90e0f);
-    __crystax_locale_data_array[7].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[7].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[7].data[LC_NUMERIC].alias = "be_BY.CP1251";
     __crystax_locale_data_array[7].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[7].data[LC_TIME].blob.data = __crystax_locale_blob_cb3ae5dca75b7c9ae157001748bc6d822c4858fd609bdb53cf88e4f67ced6fea;
@@ -10031,11 +9603,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[8].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[8].data[LC_MESSAGES].blob.data = __crystax_locale_blob_d0e72dfb43490f8187fc6cd4f3dc28dbf3dde32840fcd3a390150c1291304668;
     __crystax_locale_data_array[8].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_d0e72dfb43490f8187fc6cd4f3dc28dbf3dde32840fcd3a390150c1291304668);
-    __crystax_locale_data_array[8].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[8].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[8].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[8].data[LC_MONETARY].blob.data = __crystax_locale_blob_52efdde10ea62a67946e4e4d44be3ff44883b355af157ef14cd7c245a4a6d37b;
     __crystax_locale_data_array[8].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_52efdde10ea62a67946e4e4d44be3ff44883b355af157ef14cd7c245a4a6d37b);
-    __crystax_locale_data_array[8].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[8].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[8].data[LC_NUMERIC].alias = "be_BY.CP1251";
     __crystax_locale_data_array[8].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[8].data[LC_TIME].blob.data = __crystax_locale_blob_22162ef6b8b722f6bec0452a7109590c8fd403a97d0ccf30c096dbe7b3a86e52;
@@ -10054,15 +9626,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[9].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[9].data[LC_MESSAGES].blob.data = __crystax_locale_blob_78899c7f7f8b53cc2ed3edeb2b8eaaeb2e3ae55f86cba862780fd4c27f77c734;
     __crystax_locale_data_array[9].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_78899c7f7f8b53cc2ed3edeb2b8eaaeb2e3ae55f86cba862780fd4c27f77c734);
-    __crystax_locale_data_array[9].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[9].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[9].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[9].data[LC_MONETARY].blob.data = __crystax_locale_blob_b58113b68d5850f2da8b8a52f36a9fbc410495900474f6363bd59452f1298aa7;
     __crystax_locale_data_array[9].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b58113b68d5850f2da8b8a52f36a9fbc410495900474f6363bd59452f1298aa7);
-    __crystax_locale_data_array[9].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[9].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[9].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[9].data[LC_NUMERIC].blob.data = __crystax_locale_blob_3cb596d30b5b86a45b379afb6dc6a8ab18631dee1adace0c17e59247b720483e;
     __crystax_locale_data_array[9].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_3cb596d30b5b86a45b379afb6dc6a8ab18631dee1adace0c17e59247b720483e);
-    __crystax_locale_data_array[9].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[9].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[9].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[9].data[LC_TIME].blob.data = __crystax_locale_blob_4a60886611ae386874df841ce054dc38f4e1628c4942e649c9113372580b91a3;
     __crystax_locale_data_array[9].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_4a60886611ae386874df841ce054dc38f4e1628c4942e649c9113372580b91a3);
@@ -10074,11 +9646,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[10].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[10].data[LC_MESSAGES].blob.data = __crystax_locale_blob_daf87376ffe7540fd6f59f8c8807c102d37a3b6a4d54af7e91e7e872fd853672;
     __crystax_locale_data_array[10].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_daf87376ffe7540fd6f59f8c8807c102d37a3b6a4d54af7e91e7e872fd853672);
-    __crystax_locale_data_array[10].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[10].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[10].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[10].data[LC_MONETARY].blob.data = __crystax_locale_blob_59abcff540d2355a60968c6d60f1a47c2ace6d4576804a4f5ad7c5104b57dc61;
     __crystax_locale_data_array[10].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_59abcff540d2355a60968c6d60f1a47c2ace6d4576804a4f5ad7c5104b57dc61);
-    __crystax_locale_data_array[10].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[10].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[10].data[LC_NUMERIC].alias = "bg_BG.CP1251";
     __crystax_locale_data_array[10].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[10].data[LC_TIME].blob.data = __crystax_locale_blob_7724f9126aa8dddea09d6ec9098fc199fa11d63f99b128826fb71bed3fbfcb60;
@@ -10118,15 +9690,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[14].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[14].data[LC_MESSAGES].blob.data = __crystax_locale_blob_970b925cd8dc26204adf45288e33e902785358369575e1666381f7ce2f3ebefb;
     __crystax_locale_data_array[14].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_970b925cd8dc26204adf45288e33e902785358369575e1666381f7ce2f3ebefb);
-    __crystax_locale_data_array[14].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[14].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[14].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[14].data[LC_MONETARY].blob.data = __crystax_locale_blob_cee2ea78c539874d6590db391ba81a149b64594f7ddd3997a67bc41a7b43bd07;
     __crystax_locale_data_array[14].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_cee2ea78c539874d6590db391ba81a149b64594f7ddd3997a67bc41a7b43bd07);
-    __crystax_locale_data_array[14].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[14].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[14].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[14].data[LC_NUMERIC].blob.data = __crystax_locale_blob_efe0d5320672e8d9deb80d8b738b64a644841ccdc6779fcdc923ff4a2b538837;
     __crystax_locale_data_array[14].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_efe0d5320672e8d9deb80d8b738b64a644841ccdc6779fcdc923ff4a2b538837);
-    __crystax_locale_data_array[14].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[14].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[14].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[14].data[LC_TIME].blob.data = __crystax_locale_blob_5ecf773e99e390df85ce27b2fe40e8dae4381decb88d21664876f5feb5114aa5;
     __crystax_locale_data_array[14].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_5ecf773e99e390df85ce27b2fe40e8dae4381decb88d21664876f5feb5114aa5);
@@ -10150,7 +9722,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[16].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[16].data[LC_MONETARY].blob.data = __crystax_locale_blob_83d0be7f8909feff174f2b3d1eebb560565992906d449f8678aa6ee01001f772;
     __crystax_locale_data_array[16].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_83d0be7f8909feff174f2b3d1eebb560565992906d449f8678aa6ee01001f772);
-    __crystax_locale_data_array[16].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[16].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[16].data[LC_NUMERIC].alias = "ca_ES.ISO8859-1";
     __crystax_locale_data_array[16].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[16].data[LC_TIME].blob.data = __crystax_locale_blob_2b4620071699832976286b7417b626ed119efe20443a2e8ebaa3088897ead4ce;
@@ -10214,15 +9786,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[23].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[23].data[LC_MESSAGES].blob.data = __crystax_locale_blob_00e4e594ea4653fadfc3756061517ff0ca14707de1781c786e6a1556a0bea5d7;
     __crystax_locale_data_array[23].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_00e4e594ea4653fadfc3756061517ff0ca14707de1781c786e6a1556a0bea5d7);
-    __crystax_locale_data_array[23].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[23].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[23].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[23].data[LC_MONETARY].blob.data = __crystax_locale_blob_6229ccf6e93f362c13d659af89461794665bb5bca1e9c25c68f5dca8757a9548;
     __crystax_locale_data_array[23].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_6229ccf6e93f362c13d659af89461794665bb5bca1e9c25c68f5dca8757a9548);
-    __crystax_locale_data_array[23].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[23].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[23].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[23].data[LC_NUMERIC].blob.data = __crystax_locale_blob_40766467c5194ea5315218b7450c72d5e5b1881193e90f455ea1b4b09ca11097;
     __crystax_locale_data_array[23].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_40766467c5194ea5315218b7450c72d5e5b1881193e90f455ea1b4b09ca11097);
-    __crystax_locale_data_array[23].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[23].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[23].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[23].data[LC_TIME].blob.data = __crystax_locale_blob_3ab16ebac3e518f51212a37ea69165791a53d6e8fe87fbd39cde33c5c95bcfd1;
     __crystax_locale_data_array[23].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_3ab16ebac3e518f51212a37ea69165791a53d6e8fe87fbd39cde33c5c95bcfd1);
@@ -10235,7 +9807,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[24].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[24].data[LC_MONETARY].blob.data = __crystax_locale_blob_7ad2094f82b392f3bf157eb25c6eaa1d4ffe04ded220079c730a617091b3885c;
     __crystax_locale_data_array[24].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_7ad2094f82b392f3bf157eb25c6eaa1d4ffe04ded220079c730a617091b3885c);
-    __crystax_locale_data_array[24].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[24].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[24].data[LC_NUMERIC].alias = "cs_CZ.ISO8859-2";
     __crystax_locale_data_array[24].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[24].data[LC_TIME].blob.data = __crystax_locale_blob_733c7c74429dee467e39a555ccc2cd92e7e724ce13adcca1d5217a208fb0253a;
@@ -10248,15 +9820,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[25].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[25].data[LC_MESSAGES].blob.data = __crystax_locale_blob_7e144c39135d4f2e500bece1a00993dfafdb521c9198aead47266ee548c4d98b;
     __crystax_locale_data_array[25].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_7e144c39135d4f2e500bece1a00993dfafdb521c9198aead47266ee548c4d98b);
-    __crystax_locale_data_array[25].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[25].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[25].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[25].data[LC_MONETARY].blob.data = __crystax_locale_blob_fa58867a51f3b815eee07d6aab477f6bc41e1a3959a43921da9c59a5210f113a;
     __crystax_locale_data_array[25].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_fa58867a51f3b815eee07d6aab477f6bc41e1a3959a43921da9c59a5210f113a);
-    __crystax_locale_data_array[25].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[25].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[25].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[25].data[LC_NUMERIC].blob.data = __crystax_locale_blob_970547e458204e1a538482b5f22e313bf57314f6c068e9e728989698e99e470c;
     __crystax_locale_data_array[25].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_970547e458204e1a538482b5f22e313bf57314f6c068e9e728989698e99e470c);
-    __crystax_locale_data_array[25].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[25].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[25].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[25].data[LC_TIME].blob.data = __crystax_locale_blob_148ac3536ffb3d9b9fdf2f76f08d4b6b0315eff2700d095cfa51ace434a416de;
     __crystax_locale_data_array[25].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_148ac3536ffb3d9b9fdf2f76f08d4b6b0315eff2700d095cfa51ace434a416de);
@@ -10288,7 +9860,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[28].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[28].data[LC_MONETARY].blob.data = __crystax_locale_blob_952295621414875749128b4b80ca4c5250305baf6d5defbf84d813cb3ee03019;
     __crystax_locale_data_array[28].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_952295621414875749128b4b80ca4c5250305baf6d5defbf84d813cb3ee03019);
-    __crystax_locale_data_array[28].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[28].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[28].data[LC_NUMERIC].alias = "de_DE.ISO8859-1";
     __crystax_locale_data_array[28].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[28].data[LC_TIME].blob.data = __crystax_locale_blob_ddf0fa675f110f08768f24c9f070f3a5571df31e483a3404e1a581b6caea9af2;
@@ -10310,7 +9882,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[30].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[30].data[LC_MONETARY].blob.data = __crystax_locale_blob_b13737dd74851eb66d6a0e565f1460b365056dcddd0625bf4e304cc10d59ec1f;
     __crystax_locale_data_array[30].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b13737dd74851eb66d6a0e565f1460b365056dcddd0625bf4e304cc10d59ec1f);
-    __crystax_locale_data_array[30].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[30].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[30].data[LC_NUMERIC].alias = "de_DE.ISO8859-1";
     __crystax_locale_data_array[30].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[30].data[LC_TIME].blob.data = __crystax_locale_blob_a49331e7ff974558570ffd55cba825e0944c6dd79bbbb01a3007dd5d0c6f363f;
@@ -10324,11 +9896,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[31].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[31].data[LC_MONETARY].blob.data = __crystax_locale_blob_c49ad9d2150bf3d5263dde317ce79c29c39d54f956b8fdfa7c52eb9aca823a3f;
     __crystax_locale_data_array[31].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_c49ad9d2150bf3d5263dde317ce79c29c39d54f956b8fdfa7c52eb9aca823a3f);
-    __crystax_locale_data_array[31].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[31].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[31].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[31].data[LC_NUMERIC].blob.data = __crystax_locale_blob_364a3af76bba890612925743e9a916e709e7d9b1784c87d73b2674e45659b9f7;
     __crystax_locale_data_array[31].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_364a3af76bba890612925743e9a916e709e7d9b1784c87d73b2674e45659b9f7);
-    __crystax_locale_data_array[31].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[31].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[31].data[LC_TIME].alias = "de_DE.ISO8859-1";
 
     __crystax_locale_data_array[32].encoding = "de_CH.ISO8859-15";
@@ -10356,15 +9928,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[34].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[34].data[LC_MESSAGES].blob.data = __crystax_locale_blob_50bb629eb098299dd8608155e07388758bcdab11354cdf8834607b6114adbff8;
     __crystax_locale_data_array[34].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_50bb629eb098299dd8608155e07388758bcdab11354cdf8834607b6114adbff8);
-    __crystax_locale_data_array[34].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[34].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[34].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[34].data[LC_MONETARY].blob.data = __crystax_locale_blob_75f08c9a7c0da160115b03685b12134500dca476e0a1bda0e875f29053b77c76;
     __crystax_locale_data_array[34].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_75f08c9a7c0da160115b03685b12134500dca476e0a1bda0e875f29053b77c76);
-    __crystax_locale_data_array[34].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[34].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[34].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[34].data[LC_NUMERIC].blob.data = __crystax_locale_blob_3fb1b4eef6d977af815b141f6216760413afc0713e7e1b223bdcfad686551fb1;
     __crystax_locale_data_array[34].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_3fb1b4eef6d977af815b141f6216760413afc0713e7e1b223bdcfad686551fb1);
-    __crystax_locale_data_array[34].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[34].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[34].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[34].data[LC_TIME].blob.data = __crystax_locale_blob_fc4e29abe3b12649bb411c4e84092f54369b917b2e6bd0917af73583b0deb674;
     __crystax_locale_data_array[34].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_fc4e29abe3b12649bb411c4e84092f54369b917b2e6bd0917af73583b0deb674);
@@ -10388,7 +9960,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[36].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[36].data[LC_MONETARY].blob.data = __crystax_locale_blob_5c038f3fde6d343367decac38341816a8345abdc7a94756c384d179681b8b267;
     __crystax_locale_data_array[36].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_5c038f3fde6d343367decac38341816a8345abdc7a94756c384d179681b8b267);
-    __crystax_locale_data_array[36].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[36].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[36].data[LC_NUMERIC].alias = "de_DE.ISO8859-1";
     __crystax_locale_data_array[36].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[36].data[LC_TIME].blob.data = __crystax_locale_blob_7b95a43e74ad7132a87a519768c60adedb5c40f94f060b59b00d011e37ae1e4b;
@@ -10407,15 +9979,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[37].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[37].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3b238907a52bdd43e82807ededba1e1b6f3c4801844ba543ece8594e8bd49afc;
     __crystax_locale_data_array[37].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3b238907a52bdd43e82807ededba1e1b6f3c4801844ba543ece8594e8bd49afc);
-    __crystax_locale_data_array[37].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[37].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[37].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[37].data[LC_MONETARY].blob.data = __crystax_locale_blob_f8e5e92d9c927f4b1a56c4e39c7bfb3a1455d8dc32391f22de09416baa59ad45;
     __crystax_locale_data_array[37].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f8e5e92d9c927f4b1a56c4e39c7bfb3a1455d8dc32391f22de09416baa59ad45);
-    __crystax_locale_data_array[37].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[37].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[37].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[37].data[LC_NUMERIC].blob.data = __crystax_locale_blob_084d8b31a527bb71d29a3bdf445ee7ad62569376f7f5e120c26497068ba15297;
     __crystax_locale_data_array[37].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_084d8b31a527bb71d29a3bdf445ee7ad62569376f7f5e120c26497068ba15297);
-    __crystax_locale_data_array[37].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[37].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[37].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[37].data[LC_TIME].blob.data = __crystax_locale_blob_533617556b631f58a3e1cc5fb4925d1e2dbc7db8e1ce45806f7091ac638c0d3d;
     __crystax_locale_data_array[37].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_533617556b631f58a3e1cc5fb4925d1e2dbc7db8e1ce45806f7091ac638c0d3d);
@@ -10427,11 +9999,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[38].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[38].data[LC_MESSAGES].blob.data = __crystax_locale_blob_1c503746c4a9b4363fa298cfd560da81a776da0930560f7dd0a37cc340826900;
     __crystax_locale_data_array[38].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_1c503746c4a9b4363fa298cfd560da81a776da0930560f7dd0a37cc340826900);
-    __crystax_locale_data_array[38].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[38].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[38].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[38].data[LC_MONETARY].blob.data = __crystax_locale_blob_7376273af0af2348b1901745f44ee3e4dde10b86b2e985d87b48ec061bd63725;
     __crystax_locale_data_array[38].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_7376273af0af2348b1901745f44ee3e4dde10b86b2e985d87b48ec061bd63725);
-    __crystax_locale_data_array[38].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[38].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[38].data[LC_NUMERIC].alias = "el_GR.ISO8859-7";
     __crystax_locale_data_array[38].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[38].data[LC_TIME].blob.data = __crystax_locale_blob_05f5c50bc74d8419c4d2fe78672134a882a674ae224d68a6a9fa516124334ce7;
@@ -10445,7 +10017,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[39].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[39].data[LC_MONETARY].blob.data = __crystax_locale_blob_5b8eec40ea84283f4d83a536d072fdaf419975a7af1fc60e7d4ab32882a829b0;
     __crystax_locale_data_array[39].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_5b8eec40ea84283f4d83a536d072fdaf419975a7af1fc60e7d4ab32882a829b0);
-    __crystax_locale_data_array[39].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[39].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[39].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[39].data[LC_TIME].alias = "en_GB.ISO8859-1";
 
@@ -10479,11 +10051,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[43].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[43].data[LC_MESSAGES].blob.data = __crystax_locale_blob_a057067da93d43f5728b83d3b7ebdeb960728704ad96d4c60a21846af91c0cd6;
     __crystax_locale_data_array[43].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_a057067da93d43f5728b83d3b7ebdeb960728704ad96d4c60a21846af91c0cd6);
-    __crystax_locale_data_array[43].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[43].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[43].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[43].data[LC_MONETARY].blob.data = __crystax_locale_blob_318f77b5d821cfdf005b0aefae83329b1a2d0e6eda494198fa821b89240341fc;
     __crystax_locale_data_array[43].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_318f77b5d821cfdf005b0aefae83329b1a2d0e6eda494198fa821b89240341fc);
-    __crystax_locale_data_array[43].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[43].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[43].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[43].data[LC_TIME].alias = "en_GB.ISO8859-1";
 
@@ -10517,11 +10089,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[47].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[47].data[LC_MESSAGES].blob.data = __crystax_locale_blob_cd6e534cc9e27af465cf1cd0bde0148d6f5e55f264bb95ea9405aae51967813d;
     __crystax_locale_data_array[47].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_cd6e534cc9e27af465cf1cd0bde0148d6f5e55f264bb95ea9405aae51967813d);
-    __crystax_locale_data_array[47].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[47].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[47].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[47].data[LC_MONETARY].blob.data = __crystax_locale_blob_4a9d8aaaf2957252300b14e07040e1def829b2b3b6d00b447e686a2a923bd716;
     __crystax_locale_data_array[47].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_4a9d8aaaf2957252300b14e07040e1def829b2b3b6d00b447e686a2a923bd716);
-    __crystax_locale_data_array[47].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[47].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[47].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[47].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[47].data[LC_TIME].blob.data = __crystax_locale_blob_44f785d665a76f44d499f1d93f09027641556188e954a45cbc4acbc86f4e0f3c;
@@ -10551,7 +10123,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[50].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[50].data[LC_MONETARY].blob.data = __crystax_locale_blob_d9d3373c2cabf8bb855b6ce82bfe64c70574f79cc82ba5e02a543f34c6d5a659;
     __crystax_locale_data_array[50].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_d9d3373c2cabf8bb855b6ce82bfe64c70574f79cc82ba5e02a543f34c6d5a659);
-    __crystax_locale_data_array[50].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[50].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[50].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[50].data[LC_TIME].alias = "en_GB.ISO8859-1";
 
@@ -10562,7 +10134,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[51].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[51].data[LC_MONETARY].blob.data = __crystax_locale_blob_7463067acfeef9fa906e275343566ac4a7697f98cf3a2d4faaaaa7c66edbc53d;
     __crystax_locale_data_array[51].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_7463067acfeef9fa906e275343566ac4a7697f98cf3a2d4faaaaa7c66edbc53d);
-    __crystax_locale_data_array[51].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[51].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[51].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[51].data[LC_TIME].alias = "en_GB.ISO8859-1";
 
@@ -10573,7 +10145,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[52].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[52].data[LC_MONETARY].blob.data = __crystax_locale_blob_a21e3b78c7fe292bb8f293f26be79187bdd8c487daa7c8556eaa3239a4abe5a0;
     __crystax_locale_data_array[52].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_a21e3b78c7fe292bb8f293f26be79187bdd8c487daa7c8556eaa3239a4abe5a0);
-    __crystax_locale_data_array[52].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[52].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[52].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[52].data[LC_TIME].alias = "en_GB.ISO8859-1";
 
@@ -10607,15 +10179,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[56].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[56].data[LC_MESSAGES].blob.data = __crystax_locale_blob_18f84e940a580920be7321247ec98d53ba6f18cff8d7e7e8073e177e613b12c2;
     __crystax_locale_data_array[56].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_18f84e940a580920be7321247ec98d53ba6f18cff8d7e7e8073e177e613b12c2);
-    __crystax_locale_data_array[56].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[56].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[56].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[56].data[LC_MONETARY].blob.data = __crystax_locale_blob_42c5d1254969c9958ad364b939807311e67d905f2108b5f15d4ce3e7992b440a;
     __crystax_locale_data_array[56].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_42c5d1254969c9958ad364b939807311e67d905f2108b5f15d4ce3e7992b440a);
-    __crystax_locale_data_array[56].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[56].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[56].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[56].data[LC_NUMERIC].blob.data = __crystax_locale_blob_cfb9a008a84956315792e9d73cc626e089d7432e80d87f65fb95c58c5d574508;
     __crystax_locale_data_array[56].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_cfb9a008a84956315792e9d73cc626e089d7432e80d87f65fb95c58c5d574508);
-    __crystax_locale_data_array[56].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[56].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[56].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[56].data[LC_TIME].blob.data = __crystax_locale_blob_6f0416f4e53000cb35060d9c639baa6fb8d8ebafd59806b0d5099e2f707a3387;
     __crystax_locale_data_array[56].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_6f0416f4e53000cb35060d9c639baa6fb8d8ebafd59806b0d5099e2f707a3387);
@@ -10654,15 +10226,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[60].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[60].data[LC_MESSAGES].blob.data = __crystax_locale_blob_e4a3034b260453ada19cdc910c026fe44b680450a73654615267b28b4b7f9c1c;
     __crystax_locale_data_array[60].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_e4a3034b260453ada19cdc910c026fe44b680450a73654615267b28b4b7f9c1c);
-    __crystax_locale_data_array[60].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[60].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[60].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[60].data[LC_MONETARY].blob.data = __crystax_locale_blob_411dea4743fbe9e2ba733e9d955348a19850931a9c1298c91af502e443177b8e;
     __crystax_locale_data_array[60].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_411dea4743fbe9e2ba733e9d955348a19850931a9c1298c91af502e443177b8e);
-    __crystax_locale_data_array[60].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[60].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[60].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[60].data[LC_NUMERIC].blob.data = __crystax_locale_blob_604c017df03b97325bd2b88745eb91f20632593207c3de09967a2eae7e57b999;
     __crystax_locale_data_array[60].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_604c017df03b97325bd2b88745eb91f20632593207c3de09967a2eae7e57b999);
-    __crystax_locale_data_array[60].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[60].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[60].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[60].data[LC_TIME].blob.data = __crystax_locale_blob_8c6e0e4029aef8b2b4c422b66cd230343cd2530a6efc6b2b312539ae385f0368;
     __crystax_locale_data_array[60].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_8c6e0e4029aef8b2b4c422b66cd230343cd2530a6efc6b2b312539ae385f0368);
@@ -10686,7 +10258,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[62].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[62].data[LC_MONETARY].blob.data = __crystax_locale_blob_0e9d9259ac18798c53ef064e9c9bd15a7a6a5c08c6d5e2ef6ec511c026e852e2;
     __crystax_locale_data_array[62].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_0e9d9259ac18798c53ef064e9c9bd15a7a6a5c08c6d5e2ef6ec511c026e852e2);
-    __crystax_locale_data_array[62].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[62].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[62].data[LC_NUMERIC].alias = "es_ES.ISO8859-1";
     __crystax_locale_data_array[62].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[62].data[LC_TIME].blob.data = __crystax_locale_blob_bfe2fdef2cbc187f8b5fe55d9ef737a0b01d222d738dbfed106cd04bfe5726e5;
@@ -10702,15 +10274,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[63].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[63].data[LC_MESSAGES].blob.data = __crystax_locale_blob_016dfb3e92e2f22157e4b345594b3e16f12b506ae13f95a3c9808d227c907570;
     __crystax_locale_data_array[63].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_016dfb3e92e2f22157e4b345594b3e16f12b506ae13f95a3c9808d227c907570);
-    __crystax_locale_data_array[63].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[63].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[63].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[63].data[LC_MONETARY].blob.data = __crystax_locale_blob_1109cc12365fc18aac1289b5d2f451d30b19d31ed4e8a89558f775d937e17390;
     __crystax_locale_data_array[63].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_1109cc12365fc18aac1289b5d2f451d30b19d31ed4e8a89558f775d937e17390);
-    __crystax_locale_data_array[63].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[63].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[63].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[63].data[LC_NUMERIC].blob.data = __crystax_locale_blob_26f16ff45b0629f40b8a122a3ec46f245ea85f0c9dab1704c73511832e5bf00c;
     __crystax_locale_data_array[63].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_26f16ff45b0629f40b8a122a3ec46f245ea85f0c9dab1704c73511832e5bf00c);
-    __crystax_locale_data_array[63].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[63].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[63].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[63].data[LC_TIME].blob.data = __crystax_locale_blob_acf7048e458345b572e34581a699806b7c95659f28ca2b76616c03e2a987c131;
     __crystax_locale_data_array[63].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_acf7048e458345b572e34581a699806b7c95659f28ca2b76616c03e2a987c131);
@@ -10733,12 +10305,12 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[65].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[65].data[LC_MESSAGES].blob.data = __crystax_locale_blob_253d190bc82c6a13dff85d9291b302e459e81212ed9d1c17e4b2a89bac2d72de;
     __crystax_locale_data_array[65].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_253d190bc82c6a13dff85d9291b302e459e81212ed9d1c17e4b2a89bac2d72de);
-    __crystax_locale_data_array[65].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[65].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[65].data[LC_MONETARY].alias = "es_ES.ISO8859-1";
     __crystax_locale_data_array[65].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[65].data[LC_NUMERIC].blob.data = __crystax_locale_blob_94632c34889e8beb7e8d090ee6d790fa9d2c4ed6df96133ae389222242d5dbfa;
     __crystax_locale_data_array[65].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_94632c34889e8beb7e8d090ee6d790fa9d2c4ed6df96133ae389222242d5dbfa);
-    __crystax_locale_data_array[65].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[65].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[65].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[65].data[LC_TIME].blob.data = __crystax_locale_blob_a354b4dfe053b4b7fded780ce8bdcecd38a4aaaffd818ebba3e10963817f25ba;
     __crystax_locale_data_array[65].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_a354b4dfe053b4b7fded780ce8bdcecd38a4aaaffd818ebba3e10963817f25ba);
@@ -10766,15 +10338,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[68].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[68].data[LC_MESSAGES].blob.data = __crystax_locale_blob_ea4d0ae2af69b08a500cc5730fd241228f7c2de4133034e84cf60e3199ece5b0;
     __crystax_locale_data_array[68].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_ea4d0ae2af69b08a500cc5730fd241228f7c2de4133034e84cf60e3199ece5b0);
-    __crystax_locale_data_array[68].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[68].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[68].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[68].data[LC_MONETARY].blob.data = __crystax_locale_blob_8e9cab006170f6f2006602dc1d4ac88b4968f7dde439dc119e7017f0e67acc21;
     __crystax_locale_data_array[68].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_8e9cab006170f6f2006602dc1d4ac88b4968f7dde439dc119e7017f0e67acc21);
-    __crystax_locale_data_array[68].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[68].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[68].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[68].data[LC_NUMERIC].blob.data = __crystax_locale_blob_e1993751a7444566a5e0f2e06ba3e627c9cfdc71ea0b10a8b41b1d05a56e0753;
     __crystax_locale_data_array[68].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_e1993751a7444566a5e0f2e06ba3e627c9cfdc71ea0b10a8b41b1d05a56e0753);
-    __crystax_locale_data_array[68].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[68].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[68].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[68].data[LC_TIME].blob.data = __crystax_locale_blob_5f5c656f39f18904353b8f6d4d509a19e46959f197bb519ea88fc55ed0111049;
     __crystax_locale_data_array[68].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_5f5c656f39f18904353b8f6d4d509a19e46959f197bb519ea88fc55ed0111049);
@@ -10795,7 +10367,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[70].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[70].data[LC_MONETARY].blob.data = __crystax_locale_blob_c0e4559b990ac539b1c1acd0cb9a3110b34292e9000b868cf4c43681257a5f9c;
     __crystax_locale_data_array[70].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_c0e4559b990ac539b1c1acd0cb9a3110b34292e9000b868cf4c43681257a5f9c);
-    __crystax_locale_data_array[70].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[70].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[70].data[LC_NUMERIC].alias = "fi_FI.ISO8859-1";
     __crystax_locale_data_array[70].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[70].data[LC_TIME].blob.data = __crystax_locale_blob_60d8af6bad1228fe508f475290efe2595da2b26b7d6ddf5f6104f7270910aec0;
@@ -10808,15 +10380,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[71].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[71].data[LC_MESSAGES].blob.data = __crystax_locale_blob_b28a4d54db3c877322e105c468dd45309d285d1e964f22b04b053a9e39533404;
     __crystax_locale_data_array[71].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_b28a4d54db3c877322e105c468dd45309d285d1e964f22b04b053a9e39533404);
-    __crystax_locale_data_array[71].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[71].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[71].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[71].data[LC_MONETARY].blob.data = __crystax_locale_blob_be735750655b3a8e766b8d81aaf5ac92ac606a2370810f602449b3900754e855;
     __crystax_locale_data_array[71].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_be735750655b3a8e766b8d81aaf5ac92ac606a2370810f602449b3900754e855);
-    __crystax_locale_data_array[71].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[71].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[71].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[71].data[LC_NUMERIC].blob.data = __crystax_locale_blob_ce185a03fe4016f144409664a16d095edff8f8272cbaf22ee324e7ab51ceabb0;
     __crystax_locale_data_array[71].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_ce185a03fe4016f144409664a16d095edff8f8272cbaf22ee324e7ab51ceabb0);
-    __crystax_locale_data_array[71].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[71].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[71].data[LC_TIME].alias = "fr_FR.ISO8859-1";
 
     __crystax_locale_data_array[72].encoding = "fr_BE.ISO8859-15";
@@ -10834,7 +10406,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[73].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[73].data[LC_MONETARY].blob.data = __crystax_locale_blob_2621cd115180d8b2bc4cf3d9373fa2cbba1659c3788f62913c475db5005df6b3;
     __crystax_locale_data_array[73].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_2621cd115180d8b2bc4cf3d9373fa2cbba1659c3788f62913c475db5005df6b3);
-    __crystax_locale_data_array[73].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[73].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[73].data[LC_NUMERIC].alias = "fr_BE.ISO8859-1";
     __crystax_locale_data_array[73].data[LC_TIME].alias = "fr_FR.UTF-8";
 
@@ -10845,7 +10417,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[74].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[74].data[LC_MONETARY].blob.data = __crystax_locale_blob_5dcdef1824af26599a6b4763432ede7583e247823be2d8e05f51def5f22ebde3;
     __crystax_locale_data_array[74].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_5dcdef1824af26599a6b4763432ede7583e247823be2d8e05f51def5f22ebde3);
-    __crystax_locale_data_array[74].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[74].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[74].data[LC_NUMERIC].alias = "fr_FR.ISO8859-1";
     __crystax_locale_data_array[74].data[LC_TIME].alias = "fr_FR.ISO8859-1";
 
@@ -10871,7 +10443,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[77].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[77].data[LC_MESSAGES].blob.data = __crystax_locale_blob_0cc87a5f8313cb41808d6cc1b58be6cec7fe9de8a4abe442daec953d0e701627;
     __crystax_locale_data_array[77].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_0cc87a5f8313cb41808d6cc1b58be6cec7fe9de8a4abe442daec953d0e701627);
-    __crystax_locale_data_array[77].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[77].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[77].data[LC_MONETARY].alias = "de_CH.ISO8859-1";
     __crystax_locale_data_array[77].data[LC_NUMERIC].alias = "fr_FR.ISO8859-1";
     __crystax_locale_data_array[77].data[LC_TIME].alias = "fr_FR.ISO8859-1";
@@ -10898,15 +10470,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[80].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[80].data[LC_MESSAGES].blob.data = __crystax_locale_blob_c08edb61fbec3f1e57d053ec4a348007c5bdfb7982e78563094490d0093a528d;
     __crystax_locale_data_array[80].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_c08edb61fbec3f1e57d053ec4a348007c5bdfb7982e78563094490d0093a528d);
-    __crystax_locale_data_array[80].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[80].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[80].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[80].data[LC_MONETARY].blob.data = __crystax_locale_blob_03d88875b8d2f81feb8fc7c69251acc0f7afcdad02f611d7a5fd6aabb5a6dd30;
     __crystax_locale_data_array[80].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_03d88875b8d2f81feb8fc7c69251acc0f7afcdad02f611d7a5fd6aabb5a6dd30);
-    __crystax_locale_data_array[80].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[80].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[80].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[80].data[LC_NUMERIC].blob.data = __crystax_locale_blob_789724d65cd1a62c57494c4e1c1705bb3d60ecdb4f0ace3b8c9f2bb7ad6faf71;
     __crystax_locale_data_array[80].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_789724d65cd1a62c57494c4e1c1705bb3d60ecdb4f0ace3b8c9f2bb7ad6faf71);
-    __crystax_locale_data_array[80].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[80].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[80].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[80].data[LC_TIME].blob.data = __crystax_locale_blob_2c701918d4f7c71696d6805fabfc13d475ce1c834b65fefb8860a5b6bac47f82;
     __crystax_locale_data_array[80].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_2c701918d4f7c71696d6805fabfc13d475ce1c834b65fefb8860a5b6bac47f82);
@@ -10927,7 +10499,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[82].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[82].data[LC_MONETARY].blob.data = __crystax_locale_blob_58f230bc82a01cf5c9f121c3cd40b5b7f927929e8e1b3217de6f3298b1660fda;
     __crystax_locale_data_array[82].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_58f230bc82a01cf5c9f121c3cd40b5b7f927929e8e1b3217de6f3298b1660fda);
-    __crystax_locale_data_array[82].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[82].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[82].data[LC_NUMERIC].alias = "fr_FR.ISO8859-1";
     __crystax_locale_data_array[82].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[82].data[LC_TIME].blob.data = __crystax_locale_blob_87f00d4038a85ffcee3deb0303e6d7ce406a803202fd4efe453baaf834078550;
@@ -10940,11 +10512,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[83].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[83].data[LC_MESSAGES].blob.data = __crystax_locale_blob_9a621703ef3d07c264278e663e7a0c56c6c109b4fd73002b4fddb2d1145dc3e0;
     __crystax_locale_data_array[83].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_9a621703ef3d07c264278e663e7a0c56c6c109b4fd73002b4fddb2d1145dc3e0);
-    __crystax_locale_data_array[83].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[83].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[83].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[83].data[LC_MONETARY].blob.data = __crystax_locale_blob_a9bca60af14aff9941c119abac8232416ce6fd6b2e87ad180924f429962a125e;
     __crystax_locale_data_array[83].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_a9bca60af14aff9941c119abac8232416ce6fd6b2e87ad180924f429962a125e);
-    __crystax_locale_data_array[83].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[83].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[83].data[LC_NUMERIC].alias = "en_US.ISO8859-1";
     __crystax_locale_data_array[83].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[83].data[LC_TIME].blob.data = __crystax_locale_blob_f9bcac670c474daecc78bee1b72c246beebbc6eac5e4371e9ec3bb50074fddeb;
@@ -10963,15 +10535,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[84].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[84].data[LC_MESSAGES].blob.data = __crystax_locale_blob_448dc089f8ec07e034a19276e6053b0a40fe589fabca300aaf611fdc060c544d;
     __crystax_locale_data_array[84].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_448dc089f8ec07e034a19276e6053b0a40fe589fabca300aaf611fdc060c544d);
-    __crystax_locale_data_array[84].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[84].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[84].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[84].data[LC_MONETARY].blob.data = __crystax_locale_blob_9b37f70a24bc958fe35ce4ed321a99629649d3e76fb73e9fa38427a869fa4b4b;
     __crystax_locale_data_array[84].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_9b37f70a24bc958fe35ce4ed321a99629649d3e76fb73e9fa38427a869fa4b4b);
-    __crystax_locale_data_array[84].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[84].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[84].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[84].data[LC_NUMERIC].blob.data = __crystax_locale_blob_f14a7aea78e7fbc1ce4faebee7e0b977f3e2cb8b4a431306856bab9ab5802e1c;
     __crystax_locale_data_array[84].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_f14a7aea78e7fbc1ce4faebee7e0b977f3e2cb8b4a431306856bab9ab5802e1c);
-    __crystax_locale_data_array[84].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[84].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[84].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[84].data[LC_TIME].blob.data = __crystax_locale_blob_8bbca5babe0a2760b22f17affcba87848116282ba14711a012137ef4eb4a4bc9;
     __crystax_locale_data_array[84].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_8bbca5babe0a2760b22f17affcba87848116282ba14711a012137ef4eb4a4bc9);
@@ -10986,15 +10558,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[85].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[85].data[LC_MESSAGES].blob.data = __crystax_locale_blob_0cf974a55996aa089ef60e3fc615c6e92ba628169ec88470453175939fcaf12d;
     __crystax_locale_data_array[85].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_0cf974a55996aa089ef60e3fc615c6e92ba628169ec88470453175939fcaf12d);
-    __crystax_locale_data_array[85].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[85].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[85].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[85].data[LC_MONETARY].blob.data = __crystax_locale_blob_bb330ae4df309592a6c8d0536f1d2075e388cecf0d233c2e81e1a8611c5d9b10;
     __crystax_locale_data_array[85].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_bb330ae4df309592a6c8d0536f1d2075e388cecf0d233c2e81e1a8611c5d9b10);
-    __crystax_locale_data_array[85].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[85].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[85].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[85].data[LC_NUMERIC].blob.data = __crystax_locale_blob_cc411e55bef1adc24469c642bfa21aaa822fb2d52ec358a578ee7267883b40f8;
     __crystax_locale_data_array[85].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_cc411e55bef1adc24469c642bfa21aaa822fb2d52ec358a578ee7267883b40f8);
-    __crystax_locale_data_array[85].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[85].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[85].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[85].data[LC_TIME].blob.data = __crystax_locale_blob_0e8a2d6efe6c0be893e265ba963c9acd50193dc9acc49d143e95b56a67101f64;
     __crystax_locale_data_array[85].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_0e8a2d6efe6c0be893e265ba963c9acd50193dc9acc49d143e95b56a67101f64);
@@ -11017,15 +10589,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[87].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[87].data[LC_MESSAGES].blob.data = __crystax_locale_blob_cffc5a88e5eea4e9594dcc2fe4bcbb9daa4eec23453d98883b97ef679b5fd2c9;
     __crystax_locale_data_array[87].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_cffc5a88e5eea4e9594dcc2fe4bcbb9daa4eec23453d98883b97ef679b5fd2c9);
-    __crystax_locale_data_array[87].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[87].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[87].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[87].data[LC_MONETARY].blob.data = __crystax_locale_blob_9d922be19508524b95a6a7735359475135b5d4a2a6d434cbb9720569d9c59826;
     __crystax_locale_data_array[87].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_9d922be19508524b95a6a7735359475135b5d4a2a6d434cbb9720569d9c59826);
-    __crystax_locale_data_array[87].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[87].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[87].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[87].data[LC_NUMERIC].blob.data = __crystax_locale_blob_39616be9abbfdf567cf1d757eec064b1078e99d6dee9bd21b5db06dc31888692;
     __crystax_locale_data_array[87].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_39616be9abbfdf567cf1d757eec064b1078e99d6dee9bd21b5db06dc31888692);
-    __crystax_locale_data_array[87].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[87].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[87].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[87].data[LC_TIME].blob.data = __crystax_locale_blob_c5a005fd75b7365afb371ecdc1f894eafaf2d70e492ec0b9060f60602db87832;
     __crystax_locale_data_array[87].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_c5a005fd75b7365afb371ecdc1f894eafaf2d70e492ec0b9060f60602db87832);
@@ -11054,15 +10626,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[89].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[89].data[LC_MESSAGES].blob.data = __crystax_locale_blob_ec36f3d997d51b9dd411839a730d4e8e9367a3b31c376372e71ebd08465ef457;
     __crystax_locale_data_array[89].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_ec36f3d997d51b9dd411839a730d4e8e9367a3b31c376372e71ebd08465ef457);
-    __crystax_locale_data_array[89].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[89].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[89].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[89].data[LC_MONETARY].blob.data = __crystax_locale_blob_fcb0442d560d78be724af437ed3aad3c69ca0d4c72ff130f386fadd1aa3765ef;
     __crystax_locale_data_array[89].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_fcb0442d560d78be724af437ed3aad3c69ca0d4c72ff130f386fadd1aa3765ef);
-    __crystax_locale_data_array[89].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[89].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[89].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[89].data[LC_NUMERIC].blob.data = __crystax_locale_blob_55e9c02258f7df5c075916da9786cf148ab6c7c70779ec81f482551b25a8b079;
     __crystax_locale_data_array[89].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_55e9c02258f7df5c075916da9786cf148ab6c7c70779ec81f482551b25a8b079);
-    __crystax_locale_data_array[89].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[89].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[89].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[89].data[LC_TIME].blob.data = __crystax_locale_blob_f44d305707f7682749f7fbf20f9435fce82283ce20d541c3051a29450d92e494;
     __crystax_locale_data_array[89].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_f44d305707f7682749f7fbf20f9435fce82283ce20d541c3051a29450d92e494);
@@ -11074,11 +10646,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[90].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[90].data[LC_MESSAGES].blob.data = __crystax_locale_blob_871c51ab52ada53ea23d2bae728a727402c146861902440f800e5ee6419235f3;
     __crystax_locale_data_array[90].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_871c51ab52ada53ea23d2bae728a727402c146861902440f800e5ee6419235f3);
-    __crystax_locale_data_array[90].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[90].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[90].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[90].data[LC_MONETARY].blob.data = __crystax_locale_blob_cbb757b111049855b60ec5ee1a121a25493c3ecb1974c270b6274bd17d86f6e4;
     __crystax_locale_data_array[90].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_cbb757b111049855b60ec5ee1a121a25493c3ecb1974c270b6274bd17d86f6e4);
-    __crystax_locale_data_array[90].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[90].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[90].data[LC_NUMERIC].alias = "hy_AM.ARMSCII-8";
     __crystax_locale_data_array[90].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[90].data[LC_TIME].blob.data = __crystax_locale_blob_5bf1e6d04889b0dce3bbc276699449f9657e7aec5839b4dede17ab6a18633eee;
@@ -11094,15 +10666,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[91].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[91].data[LC_MESSAGES].blob.data = __crystax_locale_blob_53888f22e342caa61e90b6f9d7c78007da83289e71e1d62501781b52b8a29ef0;
     __crystax_locale_data_array[91].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_53888f22e342caa61e90b6f9d7c78007da83289e71e1d62501781b52b8a29ef0);
-    __crystax_locale_data_array[91].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[91].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[91].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[91].data[LC_MONETARY].blob.data = __crystax_locale_blob_9fe49e7c783fbdf372e2170c007a7a78e6b5ae0d756620e0ac8cc3c2e4680ceb;
     __crystax_locale_data_array[91].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_9fe49e7c783fbdf372e2170c007a7a78e6b5ae0d756620e0ac8cc3c2e4680ceb);
-    __crystax_locale_data_array[91].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[91].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[91].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[91].data[LC_NUMERIC].blob.data = __crystax_locale_blob_da634129866919e015cf9e204b69e7a90bf35c73936adadd872be6ca5948317b;
     __crystax_locale_data_array[91].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_da634129866919e015cf9e204b69e7a90bf35c73936adadd872be6ca5948317b);
-    __crystax_locale_data_array[91].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[91].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[91].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[91].data[LC_TIME].blob.data = __crystax_locale_blob_ed66888d1d4842ad62764d24e414e53d8fb359105572da56cf47ea211f2cb488;
     __crystax_locale_data_array[91].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_ed66888d1d4842ad62764d24e414e53d8fb359105572da56cf47ea211f2cb488);
@@ -11160,15 +10732,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[97].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[97].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3e14359421ae11d0bef7f831838dc3fed2ad0142590584f74d29c1172f3dc789;
     __crystax_locale_data_array[97].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3e14359421ae11d0bef7f831838dc3fed2ad0142590584f74d29c1172f3dc789);
-    __crystax_locale_data_array[97].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[97].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[97].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[97].data[LC_MONETARY].blob.data = __crystax_locale_blob_e64a073fe39f4aa21f39fd2031592ae1c521548b20df5fbd004ad5e5ad4bd746;
     __crystax_locale_data_array[97].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_e64a073fe39f4aa21f39fd2031592ae1c521548b20df5fbd004ad5e5ad4bd746);
-    __crystax_locale_data_array[97].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[97].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[97].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[97].data[LC_NUMERIC].blob.data = __crystax_locale_blob_af622b4ce84764bb23ac752b6aefcd3150cbdafbcd78991421c69e82f1885cc7;
     __crystax_locale_data_array[97].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_af622b4ce84764bb23ac752b6aefcd3150cbdafbcd78991421c69e82f1885cc7);
-    __crystax_locale_data_array[97].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[97].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[97].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[97].data[LC_TIME].blob.data = __crystax_locale_blob_32714c116fb5280b9c99b8ad4134fa7c5ef034a023599e5edff6b2f4f3a8ed37;
     __crystax_locale_data_array[97].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_32714c116fb5280b9c99b8ad4134fa7c5ef034a023599e5edff6b2f4f3a8ed37);
@@ -11189,7 +10761,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[99].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[99].data[LC_MONETARY].blob.data = __crystax_locale_blob_66ee59e005279f7f056ae269f2847d13b3752e3d54676dfe4e06d68228f82126;
     __crystax_locale_data_array[99].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_66ee59e005279f7f056ae269f2847d13b3752e3d54676dfe4e06d68228f82126);
-    __crystax_locale_data_array[99].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[99].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[99].data[LC_NUMERIC].alias = "it_IT.ISO8859-1";
     __crystax_locale_data_array[99].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[99].data[LC_TIME].blob.data = __crystax_locale_blob_cb417ec979d1145d6576357e17cace678e68447e37d928b63c7236a15536e97f;
@@ -11205,7 +10777,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[100].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[100].data[LC_MESSAGES].blob.data = __crystax_locale_blob_8ec02775913952b4e695f35a48e9e091ca170da3d36f405b8de2870674263658;
     __crystax_locale_data_array[100].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_8ec02775913952b4e695f35a48e9e091ca170da3d36f405b8de2870674263658);
-    __crystax_locale_data_array[100].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[100].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[100].data[LC_MONETARY].alias = "ja_JP.eucJP";
     __crystax_locale_data_array[100].data[LC_NUMERIC].alias = "ja_JP.eucJP";
     __crystax_locale_data_array[100].data[LC_TIME].alias = NULL;
@@ -11219,11 +10791,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[101].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[101].data[LC_MESSAGES].blob.data = __crystax_locale_blob_c387552dbafd257a01bbdd4c8930917b6c6d742c69c8a6a8b80d8f6667fcdc96;
     __crystax_locale_data_array[101].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_c387552dbafd257a01bbdd4c8930917b6c6d742c69c8a6a8b80d8f6667fcdc96);
-    __crystax_locale_data_array[101].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[101].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[101].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[101].data[LC_MONETARY].blob.data = __crystax_locale_blob_b9e92f69c1a4034998f85c17e5900390a3ac10a640240f8f7c61599146484ee5;
     __crystax_locale_data_array[101].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b9e92f69c1a4034998f85c17e5900390a3ac10a640240f8f7c61599146484ee5);
-    __crystax_locale_data_array[101].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[101].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[101].data[LC_NUMERIC].alias = "ja_JP.eucJP";
     __crystax_locale_data_array[101].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[101].data[LC_TIME].blob.data = __crystax_locale_blob_1bb43203161e2d90a8ffeb422ef0c4120098652686bf2d00ee63b0067b70dc5d;
@@ -11239,15 +10811,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[102].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[102].data[LC_MESSAGES].blob.data = __crystax_locale_blob_baad646dbefbdabb7ae1afd81bdf4604ce79297966a8cb2f0902c95c71914450;
     __crystax_locale_data_array[102].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_baad646dbefbdabb7ae1afd81bdf4604ce79297966a8cb2f0902c95c71914450);
-    __crystax_locale_data_array[102].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[102].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[102].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[102].data[LC_MONETARY].blob.data = __crystax_locale_blob_fb96dc8e1dcd442c10b73096d0a099b5ac9b889090dec6200a630b46cbcfb4ad;
     __crystax_locale_data_array[102].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_fb96dc8e1dcd442c10b73096d0a099b5ac9b889090dec6200a630b46cbcfb4ad);
-    __crystax_locale_data_array[102].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[102].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[102].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[102].data[LC_NUMERIC].blob.data = __crystax_locale_blob_5afb2e4b577f1f6a7df332e8ada33ecafaf8a5881eabda4824789cd012626e75;
     __crystax_locale_data_array[102].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_5afb2e4b577f1f6a7df332e8ada33ecafaf8a5881eabda4824789cd012626e75);
-    __crystax_locale_data_array[102].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[102].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[102].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[102].data[LC_TIME].blob.data = __crystax_locale_blob_6ecb76fde77933b775526de8e42de7666d8d34e3ca9ce9c4fc79581c3d1a6785;
     __crystax_locale_data_array[102].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_6ecb76fde77933b775526de8e42de7666d8d34e3ca9ce9c4fc79581c3d1a6785);
@@ -11265,15 +10837,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[103].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[103].data[LC_MESSAGES].blob.data = __crystax_locale_blob_dc7e12e9d2dd3fe9119815e93056ad34969d5756b8ae4db96f8174f8c0ba07a1;
     __crystax_locale_data_array[103].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_dc7e12e9d2dd3fe9119815e93056ad34969d5756b8ae4db96f8174f8c0ba07a1);
-    __crystax_locale_data_array[103].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[103].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[103].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[103].data[LC_MONETARY].blob.data = __crystax_locale_blob_cfb04be52a3ce71403b44f84d4948ab9cb037451e4068734e6a479f94c888bcc;
     __crystax_locale_data_array[103].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_cfb04be52a3ce71403b44f84d4948ab9cb037451e4068734e6a479f94c888bcc);
-    __crystax_locale_data_array[103].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[103].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[103].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[103].data[LC_NUMERIC].blob.data = __crystax_locale_blob_65a3825a40520325fc9fea09e4bf84421b147668c2f0d0fc1ee1d72d42a0d2c7;
     __crystax_locale_data_array[103].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_65a3825a40520325fc9fea09e4bf84421b147668c2f0d0fc1ee1d72d42a0d2c7);
-    __crystax_locale_data_array[103].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[103].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[103].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[103].data[LC_TIME].blob.data = __crystax_locale_blob_1cbd102dbb81e066ce6d26ec4cef1753152eb3802f12733596f49822062aeda4;
     __crystax_locale_data_array[103].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_1cbd102dbb81e066ce6d26ec4cef1753152eb3802f12733596f49822062aeda4);
@@ -11285,11 +10857,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[104].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[104].data[LC_MESSAGES].blob.data = __crystax_locale_blob_bdc9320009ebd118363bf63f6eef0d611d7418975549e122d687217b23f57074;
     __crystax_locale_data_array[104].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_bdc9320009ebd118363bf63f6eef0d611d7418975549e122d687217b23f57074);
-    __crystax_locale_data_array[104].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[104].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[104].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[104].data[LC_MONETARY].blob.data = __crystax_locale_blob_a405fb46549f8bc0538c49753bced6be7e2d82dbde9d34c192ea4465f452603d;
     __crystax_locale_data_array[104].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_a405fb46549f8bc0538c49753bced6be7e2d82dbde9d34c192ea4465f452603d);
-    __crystax_locale_data_array[104].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[104].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[104].data[LC_NUMERIC].alias = "kk_KZ.PT154";
     __crystax_locale_data_array[104].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[104].data[LC_TIME].blob.data = __crystax_locale_blob_eb39f91e20a7240ec584cdca5b21e6c62e04cbed88eb5dd4a51e5dd925977481;
@@ -11313,11 +10885,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[106].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[106].data[LC_MESSAGES].blob.data = __crystax_locale_blob_8bde8f1ef0ae42bae830f17808d0ef6d0a32e2806108ba43acf6e0dc14032c5d;
     __crystax_locale_data_array[106].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_8bde8f1ef0ae42bae830f17808d0ef6d0a32e2806108ba43acf6e0dc14032c5d);
-    __crystax_locale_data_array[106].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[106].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[106].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[106].data[LC_MONETARY].blob.data = __crystax_locale_blob_abda46ce90a8643472bf2eed512a9db0037fca3e527ab7da53b86efe5f2aae05;
     __crystax_locale_data_array[106].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_abda46ce90a8643472bf2eed512a9db0037fca3e527ab7da53b86efe5f2aae05);
-    __crystax_locale_data_array[106].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[106].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[106].data[LC_NUMERIC].alias = "ko_KR.eucKR";
     __crystax_locale_data_array[106].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[106].data[LC_TIME].blob.data = __crystax_locale_blob_704b4558eac83e6ba3c386f028da6f3c03f6dfbcc1d585059a9726faf9ecf518;
@@ -11333,15 +10905,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[107].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[107].data[LC_MESSAGES].blob.data = __crystax_locale_blob_34cd7acba95723b021bbe727423d7ea05130163af77bd080a23b10b774b0518b;
     __crystax_locale_data_array[107].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_34cd7acba95723b021bbe727423d7ea05130163af77bd080a23b10b774b0518b);
-    __crystax_locale_data_array[107].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[107].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[107].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[107].data[LC_MONETARY].blob.data = __crystax_locale_blob_80f99494567b7c2a14e9d92b2a17c24982a5fae161fac32f13fa18bee14cb290;
     __crystax_locale_data_array[107].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_80f99494567b7c2a14e9d92b2a17c24982a5fae161fac32f13fa18bee14cb290);
-    __crystax_locale_data_array[107].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[107].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[107].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[107].data[LC_NUMERIC].blob.data = __crystax_locale_blob_9995741a3c8dd33b16df815bfe03c638d773e1323660e3efea3076912387a2da;
     __crystax_locale_data_array[107].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_9995741a3c8dd33b16df815bfe03c638d773e1323660e3efea3076912387a2da);
-    __crystax_locale_data_array[107].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[107].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[107].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[107].data[LC_TIME].blob.data = __crystax_locale_blob_dec6835afddce2309171817a7b57a6bebefdd36741a81d41ed580b8398a5efb1;
     __crystax_locale_data_array[107].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_dec6835afddce2309171817a7b57a6bebefdd36741a81d41ed580b8398a5efb1);
@@ -11421,15 +10993,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[114].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[114].data[LC_MESSAGES].blob.data = __crystax_locale_blob_cf14ef208ba01df59bf65bc5f63d3d5bd6d7e06398f5edeeabf5ac52a9427455;
     __crystax_locale_data_array[114].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_cf14ef208ba01df59bf65bc5f63d3d5bd6d7e06398f5edeeabf5ac52a9427455);
-    __crystax_locale_data_array[114].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[114].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[114].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[114].data[LC_MONETARY].blob.data = __crystax_locale_blob_23971c491515b02abeb5309807b70859dcea0e3ae550bc4dd62c8ce81c039f72;
     __crystax_locale_data_array[114].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_23971c491515b02abeb5309807b70859dcea0e3ae550bc4dd62c8ce81c039f72);
-    __crystax_locale_data_array[114].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[114].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[114].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[114].data[LC_NUMERIC].blob.data = __crystax_locale_blob_abaaedfb90acf9df5aa113cd2480412dc5a6590c502d9973038d86496c516a20;
     __crystax_locale_data_array[114].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_abaaedfb90acf9df5aa113cd2480412dc5a6590c502d9973038d86496c516a20);
-    __crystax_locale_data_array[114].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[114].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[114].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[114].data[LC_TIME].blob.data = __crystax_locale_blob_879f7eeafb653a5daddcc4b6d6bfe53057dd6b9b6b2da57a898d60b7d9725f8c;
     __crystax_locale_data_array[114].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_879f7eeafb653a5daddcc4b6d6bfe53057dd6b9b6b2da57a898d60b7d9725f8c);
@@ -11466,11 +11038,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[117].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[117].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3aa7255b1b174b1243be5d38b4a17e6d155321434caa29489f0c010947c31b8a;
     __crystax_locale_data_array[117].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3aa7255b1b174b1243be5d38b4a17e6d155321434caa29489f0c010947c31b8a);
-    __crystax_locale_data_array[117].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[117].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[117].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[117].data[LC_MONETARY].blob.data = __crystax_locale_blob_6953d03a468e540fe4c3066657115ba05cfc6cc8c85c8e1519c53af24587610e;
     __crystax_locale_data_array[117].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_6953d03a468e540fe4c3066657115ba05cfc6cc8c85c8e1519c53af24587610e);
-    __crystax_locale_data_array[117].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[117].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[117].data[LC_NUMERIC].alias = "lt_LT.ISO8859-13";
     __crystax_locale_data_array[117].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[117].data[LC_TIME].blob.data = __crystax_locale_blob_1e4311057a5dd209d021e2c020e191f05fa9f685bc52a675de7a5f28f1f9b2e8;
@@ -11483,7 +11055,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[118].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[118].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3ec39f053d03943d21cc22175978d79273488ba587b81f6fdd55056e1b10f7c8;
     __crystax_locale_data_array[118].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3ec39f053d03943d21cc22175978d79273488ba587b81f6fdd55056e1b10f7c8);
-    __crystax_locale_data_array[118].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[118].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[118].data[LC_MONETARY].alias = "lv_LV.ISO8859-13";
     __crystax_locale_data_array[118].data[LC_NUMERIC].alias = "lt_LT.ISO8859-13";
     __crystax_locale_data_array[118].data[LC_TIME].alias = NULL;
@@ -11497,15 +11069,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[119].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[119].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3ac8244e6944407217d6dd5c223ed686927e5abc17f41d82740027bfe41c9c8b;
     __crystax_locale_data_array[119].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3ac8244e6944407217d6dd5c223ed686927e5abc17f41d82740027bfe41c9c8b);
-    __crystax_locale_data_array[119].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[119].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[119].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[119].data[LC_MONETARY].blob.data = __crystax_locale_blob_9ef80248706566c98532d2f83ba4b7f927910ac6144140f1a7183d580111e587;
     __crystax_locale_data_array[119].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_9ef80248706566c98532d2f83ba4b7f927910ac6144140f1a7183d580111e587);
-    __crystax_locale_data_array[119].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[119].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[119].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[119].data[LC_NUMERIC].blob.data = __crystax_locale_blob_419688ce771142a7fb9691484a336b732ea8335813cbcda5774584693c490c90;
     __crystax_locale_data_array[119].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_419688ce771142a7fb9691484a336b732ea8335813cbcda5774584693c490c90);
-    __crystax_locale_data_array[119].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[119].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[119].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[119].data[LC_TIME].blob.data = __crystax_locale_blob_cebfb38b7e0427d7a4af03351be9420184094b78eb1b0f03c79e85ffe22bb1bc;
     __crystax_locale_data_array[119].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_cebfb38b7e0427d7a4af03351be9420184094b78eb1b0f03c79e85ffe22bb1bc);
@@ -11548,7 +11120,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[123].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[123].data[LC_MONETARY].blob.data = __crystax_locale_blob_9e50b42fdaab19543d9fbef49c1e72ee219e95305edc621b38954eef674e3782;
     __crystax_locale_data_array[123].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_9e50b42fdaab19543d9fbef49c1e72ee219e95305edc621b38954eef674e3782);
-    __crystax_locale_data_array[123].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[123].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[123].data[LC_NUMERIC].alias = "fr_BE.ISO8859-1";
     __crystax_locale_data_array[123].data[LC_TIME].alias = "nl_NL.ISO8859-1";
 
@@ -11567,7 +11139,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[125].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[125].data[LC_MONETARY].blob.data = __crystax_locale_blob_95b5bc8f48c28fbe922ad1a09d0c0904fdf8d562127eb5bfdf8a80389f6aff76;
     __crystax_locale_data_array[125].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_95b5bc8f48c28fbe922ad1a09d0c0904fdf8d562127eb5bfdf8a80389f6aff76);
-    __crystax_locale_data_array[125].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[125].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[125].data[LC_NUMERIC].alias = "fr_BE.ISO8859-1";
     __crystax_locale_data_array[125].data[LC_TIME].alias = "nl_NL.ISO8859-1";
 
@@ -11577,15 +11149,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[126].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[126].data[LC_MESSAGES].blob.data = __crystax_locale_blob_2e022e9f9d6cb099cafbcf237e2d40ed3181664c2eabd7faf9c44cf3f51de316;
     __crystax_locale_data_array[126].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_2e022e9f9d6cb099cafbcf237e2d40ed3181664c2eabd7faf9c44cf3f51de316);
-    __crystax_locale_data_array[126].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[126].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[126].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[126].data[LC_MONETARY].blob.data = __crystax_locale_blob_f23ac40d94f0053beb84938dc0c1df45a23dd05dfdae6c9c9d166e4f36fb6762;
     __crystax_locale_data_array[126].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f23ac40d94f0053beb84938dc0c1df45a23dd05dfdae6c9c9d166e4f36fb6762);
-    __crystax_locale_data_array[126].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[126].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[126].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[126].data[LC_NUMERIC].blob.data = __crystax_locale_blob_462453d2bf4a3bb28c91b3cfcd1891191841bf175c3e1f14b3d2644605846935;
     __crystax_locale_data_array[126].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_462453d2bf4a3bb28c91b3cfcd1891191841bf175c3e1f14b3d2644605846935);
-    __crystax_locale_data_array[126].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[126].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[126].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[126].data[LC_TIME].blob.data = __crystax_locale_blob_7be039adcf02f254418be107645d35bc666534b10feed6977fb8c2eaa01b4e2c;
     __crystax_locale_data_array[126].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_7be039adcf02f254418be107645d35bc666534b10feed6977fb8c2eaa01b4e2c);
@@ -11606,7 +11178,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[128].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[128].data[LC_MONETARY].blob.data = __crystax_locale_blob_b50adb3eb20b6ad79f7c76a25d27470cd9bc1c40690105f58ef264cfc3ad7935;
     __crystax_locale_data_array[128].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b50adb3eb20b6ad79f7c76a25d27470cd9bc1c40690105f58ef264cfc3ad7935);
-    __crystax_locale_data_array[128].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[128].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[128].data[LC_NUMERIC].alias = "nl_NL.ISO8859-1";
     __crystax_locale_data_array[128].data[LC_TIME].alias = "nl_NL.ISO8859-1";
 
@@ -11649,15 +11221,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[132].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[132].data[LC_MESSAGES].blob.data = __crystax_locale_blob_230b009bd74a34aed8a3a40a747930e47e19c5552d67d563c6dbaa68a7a64ff3;
     __crystax_locale_data_array[132].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_230b009bd74a34aed8a3a40a747930e47e19c5552d67d563c6dbaa68a7a64ff3);
-    __crystax_locale_data_array[132].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[132].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[132].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[132].data[LC_MONETARY].blob.data = __crystax_locale_blob_596d560785b4e76d66aed8c45ae200e2d1529766f80bcc850fa377b2fe4b2bc2;
     __crystax_locale_data_array[132].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_596d560785b4e76d66aed8c45ae200e2d1529766f80bcc850fa377b2fe4b2bc2);
-    __crystax_locale_data_array[132].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[132].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[132].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[132].data[LC_NUMERIC].blob.data = __crystax_locale_blob_24d6193a3a5027fe94454bdb58f9e5b244abbb4bb54e8939611e59faeef00e67;
     __crystax_locale_data_array[132].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_24d6193a3a5027fe94454bdb58f9e5b244abbb4bb54e8939611e59faeef00e67);
-    __crystax_locale_data_array[132].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[132].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[132].data[LC_TIME].alias = "nb_NO.ISO8859-1";
 
     __crystax_locale_data_array[133].encoding = "no_NO.ISO8859-15";
@@ -11688,15 +11260,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[135].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[135].data[LC_MESSAGES].blob.data = __crystax_locale_blob_f0e3b03897bfe700c56e2a8938782cb400aac1da33b8fe7bd252330497fbc23b;
     __crystax_locale_data_array[135].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_f0e3b03897bfe700c56e2a8938782cb400aac1da33b8fe7bd252330497fbc23b);
-    __crystax_locale_data_array[135].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[135].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[135].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[135].data[LC_MONETARY].blob.data = __crystax_locale_blob_04bd11dbc1948c0fce59ae9684dc5ecd70736f2c6464963763c7394e751f880c;
     __crystax_locale_data_array[135].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_04bd11dbc1948c0fce59ae9684dc5ecd70736f2c6464963763c7394e751f880c);
-    __crystax_locale_data_array[135].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[135].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[135].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[135].data[LC_NUMERIC].blob.data = __crystax_locale_blob_a94defbefcd5688c9d92260928b63853f7da6a4ec5fbf191e62444faa64cfa16;
     __crystax_locale_data_array[135].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_a94defbefcd5688c9d92260928b63853f7da6a4ec5fbf191e62444faa64cfa16);
-    __crystax_locale_data_array[135].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[135].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[135].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[135].data[LC_TIME].blob.data = __crystax_locale_blob_044c09e7b1b039cda2baf572360f5c6c811692a73b3d45d3d49f43e713e22154;
     __crystax_locale_data_array[135].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_044c09e7b1b039cda2baf572360f5c6c811692a73b3d45d3d49f43e713e22154);
@@ -11709,7 +11281,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[136].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[136].data[LC_MONETARY].blob.data = __crystax_locale_blob_8a8280b9ba6e218267889e798285941cf8ce4be7316faee62fb17fd91f628fab;
     __crystax_locale_data_array[136].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_8a8280b9ba6e218267889e798285941cf8ce4be7316faee62fb17fd91f628fab);
-    __crystax_locale_data_array[136].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[136].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[136].data[LC_NUMERIC].alias = "pl_PL.ISO8859-2";
     __crystax_locale_data_array[136].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[136].data[LC_TIME].blob.data = __crystax_locale_blob_bbca7d747ff01a5635a5469dbb6ec69558734b0ec070068a21261d27526659ef;
@@ -11723,11 +11295,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[137].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[137].data[LC_MONETARY].blob.data = __crystax_locale_blob_e1d0bf174e0649df79922610491ef983506c05bf9edbb9a5e2a2f44c8cf4e226;
     __crystax_locale_data_array[137].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_e1d0bf174e0649df79922610491ef983506c05bf9edbb9a5e2a2f44c8cf4e226);
-    __crystax_locale_data_array[137].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[137].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[137].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[137].data[LC_NUMERIC].blob.data = __crystax_locale_blob_dc5d319d959204180c09dece76be1c2e1250e771e0724751b1c28919e716b6bb;
     __crystax_locale_data_array[137].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_dc5d319d959204180c09dece76be1c2e1250e771e0724751b1c28919e716b6bb);
-    __crystax_locale_data_array[137].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[137].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[137].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[137].data[LC_TIME].blob.data = __crystax_locale_blob_9fd3a984765d7c46c8caf874aba082866abc0d554cd8bd246552ea25603deb48;
     __crystax_locale_data_array[137].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_9fd3a984765d7c46c8caf874aba082866abc0d554cd8bd246552ea25603deb48);
@@ -11750,15 +11322,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[139].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[139].data[LC_MESSAGES].blob.data = __crystax_locale_blob_e7a817c936fbd7e6e1dd055cf8f69ea7c6bf2b28821da7b647b63ba8835c2bd6;
     __crystax_locale_data_array[139].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_e7a817c936fbd7e6e1dd055cf8f69ea7c6bf2b28821da7b647b63ba8835c2bd6);
-    __crystax_locale_data_array[139].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[139].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[139].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[139].data[LC_MONETARY].blob.data = __crystax_locale_blob_bc4573b3d45ddc9ac6bede1a3c6892b875ae7eeb06ad97bbaab69d44d2431329;
     __crystax_locale_data_array[139].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_bc4573b3d45ddc9ac6bede1a3c6892b875ae7eeb06ad97bbaab69d44d2431329);
-    __crystax_locale_data_array[139].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[139].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[139].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[139].data[LC_NUMERIC].blob.data = __crystax_locale_blob_281fa1b1c2d58e14644313b0b819a1112ddb4e59c9c9c8a6c5bb365badf4cc1b;
     __crystax_locale_data_array[139].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_281fa1b1c2d58e14644313b0b819a1112ddb4e59c9c9c8a6c5bb365badf4cc1b);
-    __crystax_locale_data_array[139].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[139].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[139].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[139].data[LC_TIME].blob.data = __crystax_locale_blob_e11aae4171ca53cb05e472cc5f9cf959fb384398c3ae300d9a08bc073b9dd5e4;
     __crystax_locale_data_array[139].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_e11aae4171ca53cb05e472cc5f9cf959fb384398c3ae300d9a08bc073b9dd5e4);
@@ -11771,7 +11343,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[140].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[140].data[LC_MONETARY].blob.data = __crystax_locale_blob_61fdf1f09b1501328a04478a6ee18de17ae59146110ea60fc2dda842023437f0;
     __crystax_locale_data_array[140].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_61fdf1f09b1501328a04478a6ee18de17ae59146110ea60fc2dda842023437f0);
-    __crystax_locale_data_array[140].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[140].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[140].data[LC_NUMERIC].alias = "pt_PT.ISO8859-1";
     __crystax_locale_data_array[140].data[LC_TIME].alias = "pt_PT.ISO8859-1";
 
@@ -11782,7 +11354,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[141].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[141].data[LC_MONETARY].blob.data = __crystax_locale_blob_1f45103359b5c71181265ce514607b2b544e82371304285db28200ced39c2621;
     __crystax_locale_data_array[141].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_1f45103359b5c71181265ce514607b2b544e82371304285db28200ced39c2621);
-    __crystax_locale_data_array[141].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[141].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[141].data[LC_NUMERIC].alias = "pt_PT.ISO8859-1";
     __crystax_locale_data_array[141].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[141].data[LC_TIME].blob.data = __crystax_locale_blob_7fb889cbfb627eab458d9f807b43e90ece60ce33c8269afbc950904b0b84e774;
@@ -11795,15 +11367,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[142].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[142].data[LC_MESSAGES].blob.data = __crystax_locale_blob_e7ffe885619d0ee73b9fe45c1e333f5f232dc51775a35681c8630bc08fd988f2;
     __crystax_locale_data_array[142].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_e7ffe885619d0ee73b9fe45c1e333f5f232dc51775a35681c8630bc08fd988f2);
-    __crystax_locale_data_array[142].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[142].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[142].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[142].data[LC_MONETARY].blob.data = __crystax_locale_blob_6040811540d3adc0457822b0cc6e273390bcd5bdc5909ed79f513697c98baee0;
     __crystax_locale_data_array[142].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_6040811540d3adc0457822b0cc6e273390bcd5bdc5909ed79f513697c98baee0);
-    __crystax_locale_data_array[142].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[142].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[142].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[142].data[LC_NUMERIC].blob.data = __crystax_locale_blob_57e3b9b67a82983255de750d3a6adc45958c16c6c3a3e7a3991304c770271b06;
     __crystax_locale_data_array[142].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_57e3b9b67a82983255de750d3a6adc45958c16c6c3a3e7a3991304c770271b06);
-    __crystax_locale_data_array[142].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[142].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[142].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[142].data[LC_TIME].blob.data = __crystax_locale_blob_a3cacb04fd781aeefad7bdb671dad99572bdb1bdae848a3b85f73a96e556c43e;
     __crystax_locale_data_array[142].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_a3cacb04fd781aeefad7bdb671dad99572bdb1bdae848a3b85f73a96e556c43e);
@@ -11829,11 +11401,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[144].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[144].data[LC_MESSAGES].blob.data = __crystax_locale_blob_e51c5fb2e12085b5291cf9f4310f6a57c259b7f75e39aa3651e886b2f19d81d1;
     __crystax_locale_data_array[144].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_e51c5fb2e12085b5291cf9f4310f6a57c259b7f75e39aa3651e886b2f19d81d1);
-    __crystax_locale_data_array[144].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[144].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[144].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[144].data[LC_MONETARY].blob.data = __crystax_locale_blob_7c5a63e19fc73050e5c6866c108bc4b28d10c5ff8d2329867dfa770bd1e03995;
     __crystax_locale_data_array[144].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_7c5a63e19fc73050e5c6866c108bc4b28d10c5ff8d2329867dfa770bd1e03995);
-    __crystax_locale_data_array[144].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[144].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[144].data[LC_NUMERIC].alias = "ru_RU.KOI8-R";
     __crystax_locale_data_array[144].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[144].data[LC_TIME].blob.data = __crystax_locale_blob_3d169b82d55d7ff3e947a735270760709e0d6c87813c3e167538668161099b4d;
@@ -11852,11 +11424,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[145].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[145].data[LC_MESSAGES].blob.data = __crystax_locale_blob_bc4b2af896c93afca111628ccd2123fcb7133943cec0ad8c681ae21f35ac23ef;
     __crystax_locale_data_array[145].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_bc4b2af896c93afca111628ccd2123fcb7133943cec0ad8c681ae21f35ac23ef);
-    __crystax_locale_data_array[145].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[145].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[145].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[145].data[LC_MONETARY].blob.data = __crystax_locale_blob_f2e8befe9044f2ede26fe5e1c730baf0cfb46cb73c6eec2bbcb4c4ff4e18e854;
     __crystax_locale_data_array[145].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f2e8befe9044f2ede26fe5e1c730baf0cfb46cb73c6eec2bbcb4c4ff4e18e854);
-    __crystax_locale_data_array[145].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[145].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[145].data[LC_NUMERIC].alias = "ru_RU.KOI8-R";
     __crystax_locale_data_array[145].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[145].data[LC_TIME].blob.data = __crystax_locale_blob_05dc9cc347defcad87971fda523a5531b67dcd7b76a5891167813a2f81e9cfda;
@@ -11875,11 +11447,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[146].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[146].data[LC_MESSAGES].blob.data = __crystax_locale_blob_00177aa413cbf53e520ef83cd417cf0e8d64ffb19d503bf2ad192dc39c184805;
     __crystax_locale_data_array[146].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_00177aa413cbf53e520ef83cd417cf0e8d64ffb19d503bf2ad192dc39c184805);
-    __crystax_locale_data_array[146].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[146].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[146].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[146].data[LC_MONETARY].blob.data = __crystax_locale_blob_aa1b81cefedfe011dcd3275c84149f1112c56028fe4939fbb6eb5052dd62e116;
     __crystax_locale_data_array[146].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_aa1b81cefedfe011dcd3275c84149f1112c56028fe4939fbb6eb5052dd62e116);
-    __crystax_locale_data_array[146].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[146].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[146].data[LC_NUMERIC].alias = "ru_RU.KOI8-R";
     __crystax_locale_data_array[146].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[146].data[LC_TIME].blob.data = __crystax_locale_blob_ec4f3ec135f87d291c72c870d203cc6f1e128ef1ae314766416dbb0d5ed828e1;
@@ -11898,15 +11470,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[147].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[147].data[LC_MESSAGES].blob.data = __crystax_locale_blob_a2214ae95a73934815e6904389a4463a5fb87f8f8f5e06cd823ced85555c0e0e;
     __crystax_locale_data_array[147].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_a2214ae95a73934815e6904389a4463a5fb87f8f8f5e06cd823ced85555c0e0e);
-    __crystax_locale_data_array[147].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[147].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[147].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[147].data[LC_MONETARY].blob.data = __crystax_locale_blob_10ba237a75a0f28120b25cd365f4dd01fea4adf1c6fc25dcd975579173bf2bae;
     __crystax_locale_data_array[147].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_10ba237a75a0f28120b25cd365f4dd01fea4adf1c6fc25dcd975579173bf2bae);
-    __crystax_locale_data_array[147].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[147].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[147].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[147].data[LC_NUMERIC].blob.data = __crystax_locale_blob_d8c54fdf9d0f95be9f2db0bfa7d0316ae817f8d61dc57683269bbcb69dd52501;
     __crystax_locale_data_array[147].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_d8c54fdf9d0f95be9f2db0bfa7d0316ae817f8d61dc57683269bbcb69dd52501);
-    __crystax_locale_data_array[147].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[147].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[147].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[147].data[LC_TIME].blob.data = __crystax_locale_blob_37b3bbfd206c427bc31f238171a92eb188bda768539b833b05e741bd467a4a70;
     __crystax_locale_data_array[147].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_37b3bbfd206c427bc31f238171a92eb188bda768539b833b05e741bd467a4a70);
@@ -11918,11 +11490,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[148].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[148].data[LC_MESSAGES].blob.data = __crystax_locale_blob_47f495c68cfbc58f8795861f7bf19e19e02c2ac94c2b21ca899b316a5054410a;
     __crystax_locale_data_array[148].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_47f495c68cfbc58f8795861f7bf19e19e02c2ac94c2b21ca899b316a5054410a);
-    __crystax_locale_data_array[148].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[148].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[148].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[148].data[LC_MONETARY].blob.data = __crystax_locale_blob_b09cf6590a9edb0ca4581fe6192039457180bdbf0e04a026e2833ea12c1dcfef;
     __crystax_locale_data_array[148].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_b09cf6590a9edb0ca4581fe6192039457180bdbf0e04a026e2833ea12c1dcfef);
-    __crystax_locale_data_array[148].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[148].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[148].data[LC_NUMERIC].alias = "ru_RU.KOI8-R";
     __crystax_locale_data_array[148].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[148].data[LC_TIME].blob.data = __crystax_locale_blob_07fbf62a98bb9cab95629eea926bf5be27610653a135de6bb56fc8a2f2a01755;
@@ -11936,11 +11508,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[149].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[149].data[LC_MONETARY].blob.data = __crystax_locale_blob_f0574badeea8be125e536f231c6152f15a1c753a553e9398859c80c9a2f90466;
     __crystax_locale_data_array[149].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f0574badeea8be125e536f231c6152f15a1c753a553e9398859c80c9a2f90466);
-    __crystax_locale_data_array[149].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[149].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[149].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[149].data[LC_NUMERIC].blob.data = __crystax_locale_blob_b1720b14d22bf813caae80bcb22d812429a01b50aa8d850353267f1c3fb44838;
     __crystax_locale_data_array[149].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_b1720b14d22bf813caae80bcb22d812429a01b50aa8d850353267f1c3fb44838);
-    __crystax_locale_data_array[149].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[149].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[149].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[149].data[LC_TIME].blob.data = __crystax_locale_blob_2990e52cdbc1d040c5b26835f93fb3adebbd440e5223ac9eae91e866fde13614;
     __crystax_locale_data_array[149].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_2990e52cdbc1d040c5b26835f93fb3adebbd440e5223ac9eae91e866fde13614);
@@ -11966,15 +11538,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[151].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[151].data[LC_MESSAGES].blob.data = __crystax_locale_blob_e5c68597b20c5551f244dfade51c21d097a465147c799ee423bd2306655ad728;
     __crystax_locale_data_array[151].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_e5c68597b20c5551f244dfade51c21d097a465147c799ee423bd2306655ad728);
-    __crystax_locale_data_array[151].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[151].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[151].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[151].data[LC_MONETARY].blob.data = __crystax_locale_blob_f609eecbfc7cd30cdc21b3246325679df543b68de3d40f172698088b2b9d077d;
     __crystax_locale_data_array[151].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_f609eecbfc7cd30cdc21b3246325679df543b68de3d40f172698088b2b9d077d);
-    __crystax_locale_data_array[151].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[151].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[151].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[151].data[LC_NUMERIC].blob.data = __crystax_locale_blob_c9a2485078b1c44fdddaaf88ab4277dcdadbd99b501d47e876e55a03d4affb45;
     __crystax_locale_data_array[151].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_c9a2485078b1c44fdddaaf88ab4277dcdadbd99b501d47e876e55a03d4affb45);
-    __crystax_locale_data_array[151].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[151].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[151].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[151].data[LC_TIME].blob.data = __crystax_locale_blob_229b26b1185a74b14e58301da32490f9aef09166d3b7ece6d2dd67b31f1ad1ef;
     __crystax_locale_data_array[151].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_229b26b1185a74b14e58301da32490f9aef09166d3b7ece6d2dd67b31f1ad1ef);
@@ -11997,15 +11569,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[153].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[153].data[LC_MESSAGES].blob.data = __crystax_locale_blob_8c9e5ab0b14669dfaff0dde1332b13ce887bc2f4e6724effe5d149dcc7f1c00e;
     __crystax_locale_data_array[153].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_8c9e5ab0b14669dfaff0dde1332b13ce887bc2f4e6724effe5d149dcc7f1c00e);
-    __crystax_locale_data_array[153].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[153].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[153].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[153].data[LC_MONETARY].blob.data = __crystax_locale_blob_683b15b96a403a9933c8591814cb74dfbc97c7a5e1237be25fa3edd8c1e2de6a;
     __crystax_locale_data_array[153].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_683b15b96a403a9933c8591814cb74dfbc97c7a5e1237be25fa3edd8c1e2de6a);
-    __crystax_locale_data_array[153].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[153].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[153].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[153].data[LC_NUMERIC].blob.data = __crystax_locale_blob_b87e229987219c0c89e95d6ea02942af19e5a33db9618fab497b7a742be91957;
     __crystax_locale_data_array[153].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_b87e229987219c0c89e95d6ea02942af19e5a33db9618fab497b7a742be91957);
-    __crystax_locale_data_array[153].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[153].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[153].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[153].data[LC_TIME].blob.data = __crystax_locale_blob_3d63b59e119323f0a518574a76b40e9dfd86c9e665c994502b6cda10c1026717;
     __crystax_locale_data_array[153].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_3d63b59e119323f0a518574a76b40e9dfd86c9e665c994502b6cda10c1026717);
@@ -12020,15 +11592,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[154].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[154].data[LC_MESSAGES].blob.data = __crystax_locale_blob_dd4708aded39fbc9470b79735328680b8234ebd52030a44659167b8cdad00a89;
     __crystax_locale_data_array[154].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_dd4708aded39fbc9470b79735328680b8234ebd52030a44659167b8cdad00a89);
-    __crystax_locale_data_array[154].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[154].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[154].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[154].data[LC_MONETARY].blob.data = __crystax_locale_blob_abc5bcfbdcca1864995dcf76a9b96084a801e9c37eadb461c18ea0514cc9f737;
     __crystax_locale_data_array[154].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_abc5bcfbdcca1864995dcf76a9b96084a801e9c37eadb461c18ea0514cc9f737);
-    __crystax_locale_data_array[154].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[154].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[154].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[154].data[LC_NUMERIC].blob.data = __crystax_locale_blob_37a5f564b471f28a5b51f49481160c35b9002ae192d968774e766c83a71f755b;
     __crystax_locale_data_array[154].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_37a5f564b471f28a5b51f49481160c35b9002ae192d968774e766c83a71f755b);
-    __crystax_locale_data_array[154].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[154].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[154].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[154].data[LC_TIME].blob.data = __crystax_locale_blob_386c20c2f55b86c63a7f635504a4a193733f71cff59cdf14fdc94801e6fbe2d7;
     __crystax_locale_data_array[154].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_386c20c2f55b86c63a7f635504a4a193733f71cff59cdf14fdc94801e6fbe2d7);
@@ -12040,11 +11612,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[155].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[155].data[LC_MESSAGES].blob.data = __crystax_locale_blob_c6fcefb4582f864ead717931436c750ad12f2e16e611017908d8f17f34824825;
     __crystax_locale_data_array[155].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_c6fcefb4582f864ead717931436c750ad12f2e16e611017908d8f17f34824825);
-    __crystax_locale_data_array[155].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[155].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[155].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[155].data[LC_MONETARY].blob.data = __crystax_locale_blob_51a600f2e8b549e4e82a116e687aa4a607b649a5d8c014ba2d15c58d2c63d2cf;
     __crystax_locale_data_array[155].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_51a600f2e8b549e4e82a116e687aa4a607b649a5d8c014ba2d15c58d2c63d2cf);
-    __crystax_locale_data_array[155].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[155].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[155].data[LC_NUMERIC].alias = "sr_YU.ISO8859-5";
     __crystax_locale_data_array[155].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[155].data[LC_TIME].blob.data = __crystax_locale_blob_070850dfbb3cd94cdf7adc7be019a4ad8701422e5df10bd0e768e0d23fd3de72;
@@ -12060,15 +11632,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[156].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[156].data[LC_MESSAGES].blob.data = __crystax_locale_blob_52e61555bb139b652f3513202a90c613e02dd44598c5f3430c6f35f39de809cc;
     __crystax_locale_data_array[156].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_52e61555bb139b652f3513202a90c613e02dd44598c5f3430c6f35f39de809cc);
-    __crystax_locale_data_array[156].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[156].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[156].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[156].data[LC_MONETARY].blob.data = __crystax_locale_blob_2b7b57acce761af6545a25f199c595182a9a86e2786e7cf9558f24c0b995f44b;
     __crystax_locale_data_array[156].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_2b7b57acce761af6545a25f199c595182a9a86e2786e7cf9558f24c0b995f44b);
-    __crystax_locale_data_array[156].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[156].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[156].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[156].data[LC_NUMERIC].blob.data = __crystax_locale_blob_f981cd2521f39ed88d9ef445b2d7f12ff9d1576159ffef50838fd15bd286a50c;
     __crystax_locale_data_array[156].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_f981cd2521f39ed88d9ef445b2d7f12ff9d1576159ffef50838fd15bd286a50c);
-    __crystax_locale_data_array[156].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[156].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[156].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[156].data[LC_TIME].blob.data = __crystax_locale_blob_f9111513ae9083b7cf6caf228518890710c521c9079dba21f2ab291e08e32eae;
     __crystax_locale_data_array[156].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_f9111513ae9083b7cf6caf228518890710c521c9079dba21f2ab291e08e32eae);
@@ -12108,15 +11680,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[159].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[159].data[LC_MESSAGES].blob.data = __crystax_locale_blob_0eb4631d11d84ef38e7a8f9420f716ff4dd6c7b7ae18b898844ba7a7620843a6;
     __crystax_locale_data_array[159].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_0eb4631d11d84ef38e7a8f9420f716ff4dd6c7b7ae18b898844ba7a7620843a6);
-    __crystax_locale_data_array[159].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[159].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[159].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[159].data[LC_MONETARY].blob.data = __crystax_locale_blob_8c6885d4db4211425b95764025f96dcfefb79ef18eb53453ffdc4f6cba68a27d;
     __crystax_locale_data_array[159].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_8c6885d4db4211425b95764025f96dcfefb79ef18eb53453ffdc4f6cba68a27d);
-    __crystax_locale_data_array[159].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[159].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[159].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[159].data[LC_NUMERIC].blob.data = __crystax_locale_blob_d4ca44d3089c52da756f340987185bbd3217a68eb49cf0ac3e9f0706d497d851;
     __crystax_locale_data_array[159].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_d4ca44d3089c52da756f340987185bbd3217a68eb49cf0ac3e9f0706d497d851);
-    __crystax_locale_data_array[159].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[159].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[159].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[159].data[LC_TIME].blob.data = __crystax_locale_blob_c612b4f42f8652c8026f35571b5bf7110e5c8ee8968a2095ee4bcb55df6848e6;
     __crystax_locale_data_array[159].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_c612b4f42f8652c8026f35571b5bf7110e5c8ee8968a2095ee4bcb55df6848e6);
@@ -12142,11 +11714,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[161].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[161].data[LC_MESSAGES].blob.data = __crystax_locale_blob_bfab068d2cebe49810a878a5d82cd5650a1d107c1c279787869ed8734a5444c8;
     __crystax_locale_data_array[161].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_bfab068d2cebe49810a878a5d82cd5650a1d107c1c279787869ed8734a5444c8);
-    __crystax_locale_data_array[161].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[161].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[161].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[161].data[LC_MONETARY].blob.data = __crystax_locale_blob_1296b9141ed6f2f90058fbdbc654f9093104cf72d89fde4bc671656889786f0f;
     __crystax_locale_data_array[161].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_1296b9141ed6f2f90058fbdbc654f9093104cf72d89fde4bc671656889786f0f);
-    __crystax_locale_data_array[161].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[161].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[161].data[LC_NUMERIC].alias = "uk_UA.KOI8-U";
     __crystax_locale_data_array[161].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[161].data[LC_TIME].blob.data = __crystax_locale_blob_e7709234d2edab817b6e1731e3487b2a2f546d6b5131b63f99c55cc6acd39131;
@@ -12162,11 +11734,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[162].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[162].data[LC_MESSAGES].blob.data = __crystax_locale_blob_cd2fa9ec3c3251855b142166d7c120756501bf0f49bb0d893770853d1eed7ab2;
     __crystax_locale_data_array[162].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_cd2fa9ec3c3251855b142166d7c120756501bf0f49bb0d893770853d1eed7ab2);
-    __crystax_locale_data_array[162].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[162].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[162].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[162].data[LC_MONETARY].blob.data = __crystax_locale_blob_110ae53ac66cbc3d00efc44ed59bbc2553be8de749e83de2ad3c1facd865dbd9;
     __crystax_locale_data_array[162].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_110ae53ac66cbc3d00efc44ed59bbc2553be8de749e83de2ad3c1facd865dbd9);
-    __crystax_locale_data_array[162].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[162].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[162].data[LC_NUMERIC].alias = "uk_UA.KOI8-U";
     __crystax_locale_data_array[162].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[162].data[LC_TIME].blob.data = __crystax_locale_blob_5655454c98944b71a0acb8cfe60ced5569a28571bdf04c36b84f053f6f0f8387;
@@ -12185,15 +11757,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[163].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[163].data[LC_MESSAGES].blob.data = __crystax_locale_blob_7e0ae12ba9dc86da05411a449ed19abff05f5cff5bcffddf22e74867b3551dab;
     __crystax_locale_data_array[163].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_7e0ae12ba9dc86da05411a449ed19abff05f5cff5bcffddf22e74867b3551dab);
-    __crystax_locale_data_array[163].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[163].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[163].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[163].data[LC_MONETARY].blob.data = __crystax_locale_blob_c78ad82f20f2103ef664ce49f965a355d4848dfc63ed5bd29dfe13e8ab90f089;
     __crystax_locale_data_array[163].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_c78ad82f20f2103ef664ce49f965a355d4848dfc63ed5bd29dfe13e8ab90f089);
-    __crystax_locale_data_array[163].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[163].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[163].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[163].data[LC_NUMERIC].blob.data = __crystax_locale_blob_35990dc1b6693c99e462b2b2c1db312a047fb813a5bfb7b95d1d53e218f60ce8;
     __crystax_locale_data_array[163].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_35990dc1b6693c99e462b2b2c1db312a047fb813a5bfb7b95d1d53e218f60ce8);
-    __crystax_locale_data_array[163].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[163].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[163].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[163].data[LC_TIME].blob.data = __crystax_locale_blob_6ee7a2ce04692b0426827325666da0e3154591c17dc52267eeb8c4a8d4738d33;
     __crystax_locale_data_array[163].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_6ee7a2ce04692b0426827325666da0e3154591c17dc52267eeb8c4a8d4738d33);
@@ -12205,11 +11777,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[164].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[164].data[LC_MESSAGES].blob.data = __crystax_locale_blob_6fd23494054372b686dbd44182fa5ed4699d02eea52e366fc4d969cf3f739be7;
     __crystax_locale_data_array[164].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_6fd23494054372b686dbd44182fa5ed4699d02eea52e366fc4d969cf3f739be7);
-    __crystax_locale_data_array[164].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[164].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[164].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[164].data[LC_MONETARY].blob.data = __crystax_locale_blob_a8ede73fe7d1c900cf578d9140cf2e4c1085c97a5fe0970adaf449afdcb581bc;
     __crystax_locale_data_array[164].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_a8ede73fe7d1c900cf578d9140cf2e4c1085c97a5fe0970adaf449afdcb581bc);
-    __crystax_locale_data_array[164].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[164].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[164].data[LC_NUMERIC].alias = "uk_UA.KOI8-U";
     __crystax_locale_data_array[164].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[164].data[LC_TIME].blob.data = __crystax_locale_blob_523dff2db1ff7a05052508ff4d6ab9974a3efe237435eaeba398f47a4d18e235;
@@ -12225,11 +11797,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[165].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[165].data[LC_MESSAGES].blob.data = __crystax_locale_blob_524a5acc4e77a82c0eaf48d52ff2e69d3533829a187e1d52f76000ec430eee2f;
     __crystax_locale_data_array[165].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_524a5acc4e77a82c0eaf48d52ff2e69d3533829a187e1d52f76000ec430eee2f);
-    __crystax_locale_data_array[165].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[165].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[165].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[165].data[LC_MONETARY].blob.data = __crystax_locale_blob_832fb156d79a90e895db6462acb91bf7502cc696051884c528c8ac36a87021d7;
     __crystax_locale_data_array[165].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_832fb156d79a90e895db6462acb91bf7502cc696051884c528c8ac36a87021d7);
-    __crystax_locale_data_array[165].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[165].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[165].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[165].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[165].data[LC_TIME].blob.data = __crystax_locale_blob_65806b2b8bceb79c42313705ed31797501b2c7d43c27a4adf0384d2c5221d40c;
@@ -12245,11 +11817,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[166].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[166].data[LC_MESSAGES].blob.data = __crystax_locale_blob_1f32346cbd33236b721ad979b06245f0fdc8f15f32635b5cef18e4a34704e59f;
     __crystax_locale_data_array[166].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_1f32346cbd33236b721ad979b06245f0fdc8f15f32635b5cef18e4a34704e59f);
-    __crystax_locale_data_array[166].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[166].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[166].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[166].data[LC_MONETARY].blob.data = __crystax_locale_blob_76f94e7cc6650bc618bd90b434d11ee9e6cd7ee6f1a06dcdb682d4a08d290047;
     __crystax_locale_data_array[166].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_76f94e7cc6650bc618bd90b434d11ee9e6cd7ee6f1a06dcdb682d4a08d290047);
-    __crystax_locale_data_array[166].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[166].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[166].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[166].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[166].data[LC_TIME].blob.data = __crystax_locale_blob_611433737a61e3be7c37c681f2124e01841e0e5eec39663a290173d57eb974a7;
@@ -12273,11 +11845,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[168].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[168].data[LC_MESSAGES].blob.data = __crystax_locale_blob_3d238dc41bbac672ff5a98aa96a451cfe8bb22b2b10bbd86795abaa20e71a7ce;
     __crystax_locale_data_array[168].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_3d238dc41bbac672ff5a98aa96a451cfe8bb22b2b10bbd86795abaa20e71a7ce);
-    __crystax_locale_data_array[168].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[168].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[168].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[168].data[LC_MONETARY].blob.data = __crystax_locale_blob_6c70369490f26127e3f8367e439444b7fef90dc6142148daebb2e4523907e1be;
     __crystax_locale_data_array[168].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_6c70369490f26127e3f8367e439444b7fef90dc6142148daebb2e4523907e1be);
-    __crystax_locale_data_array[168].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[168].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[168].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[168].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[168].data[LC_TIME].blob.data = __crystax_locale_blob_ed2278729ad67a859319cad187ba49174c50eeaff35d42ddd68cc3385647062d;
@@ -12293,15 +11865,15 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[169].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[169].data[LC_MESSAGES].blob.data = __crystax_locale_blob_2cfa8c31af882a925362429ddd0da3fcb33d49b1b3328b115f5eec8fb4c18fe3;
     __crystax_locale_data_array[169].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_2cfa8c31af882a925362429ddd0da3fcb33d49b1b3328b115f5eec8fb4c18fe3);
-    __crystax_locale_data_array[169].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[169].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[169].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[169].data[LC_MONETARY].blob.data = __crystax_locale_blob_61290c7172e811525a8900e61f8eba85025dfb07a1e3ba76b42b4bc4452c2078;
     __crystax_locale_data_array[169].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_61290c7172e811525a8900e61f8eba85025dfb07a1e3ba76b42b4bc4452c2078);
-    __crystax_locale_data_array[169].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[169].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[169].data[LC_NUMERIC].alias = NULL;
     __crystax_locale_data_array[169].data[LC_NUMERIC].blob.data = __crystax_locale_blob_b9ef9bd75ff7a6ee96c49a78d24591391efa1c4b11cee8f9772975d5bae3a876;
     __crystax_locale_data_array[169].data[LC_NUMERIC].blob.size = sizeof(__crystax_locale_blob_b9ef9bd75ff7a6ee96c49a78d24591391efa1c4b11cee8f9772975d5bae3a876);
-    __crystax_locale_data_array[169].data[LC_NUMERIC].blob.compressed = 1;
+    __crystax_locale_data_array[169].data[LC_NUMERIC].blob.compressed = 0;
     __crystax_locale_data_array[169].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[169].data[LC_TIME].blob.data = __crystax_locale_blob_8be49ac2f61e6c86ec72e959310f665024455533c263702efd58ce6ee8259e3e;
     __crystax_locale_data_array[169].data[LC_TIME].blob.size = sizeof(__crystax_locale_blob_8be49ac2f61e6c86ec72e959310f665024455533c263702efd58ce6ee8259e3e);
@@ -12325,7 +11897,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[171].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[171].data[LC_MONETARY].blob.data = __crystax_locale_blob_90bcae322be4fc25f62458de5c5f964fb95dad22fc3ebfa303b946643156dd3b;
     __crystax_locale_data_array[171].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_90bcae322be4fc25f62458de5c5f964fb95dad22fc3ebfa303b946643156dd3b);
-    __crystax_locale_data_array[171].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[171].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[171].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[171].data[LC_TIME].alias = "zh_TW.UTF-8";
 
@@ -12338,11 +11910,11 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[172].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[172].data[LC_MESSAGES].blob.data = __crystax_locale_blob_1ad95ca39935fab98f4fb80fdaca9a27dce499933e86df2a536f3bc6ac5a217a;
     __crystax_locale_data_array[172].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_1ad95ca39935fab98f4fb80fdaca9a27dce499933e86df2a536f3bc6ac5a217a);
-    __crystax_locale_data_array[172].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[172].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[172].data[LC_MONETARY].alias = NULL;
     __crystax_locale_data_array[172].data[LC_MONETARY].blob.data = __crystax_locale_blob_1baf7da8e616156fdca37cdb579caa2635e3bdf984dd3cdd02301a604a94dbda;
     __crystax_locale_data_array[172].data[LC_MONETARY].blob.size = sizeof(__crystax_locale_blob_1baf7da8e616156fdca37cdb579caa2635e3bdf984dd3cdd02301a604a94dbda);
-    __crystax_locale_data_array[172].data[LC_MONETARY].blob.compressed = 1;
+    __crystax_locale_data_array[172].data[LC_MONETARY].blob.compressed = 0;
     __crystax_locale_data_array[172].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[172].data[LC_TIME].alias = NULL;
     __crystax_locale_data_array[172].data[LC_TIME].blob.data = __crystax_locale_blob_c4e4dbb1bd6053ebd05f23f3e5cc9781d1d6c9c73807bc3c86a70601889c28f3;
@@ -12355,7 +11927,7 @@ static void __crystax_locale_init_impl()
     __crystax_locale_data_array[173].data[LC_MESSAGES].alias = NULL;
     __crystax_locale_data_array[173].data[LC_MESSAGES].blob.data = __crystax_locale_blob_77ef729a45e7b1c8e0c23a85100b42e760913b636d79d91be72731c3d7797273;
     __crystax_locale_data_array[173].data[LC_MESSAGES].blob.size = sizeof(__crystax_locale_blob_77ef729a45e7b1c8e0c23a85100b42e760913b636d79d91be72731c3d7797273);
-    __crystax_locale_data_array[173].data[LC_MESSAGES].blob.compressed = 1;
+    __crystax_locale_data_array[173].data[LC_MESSAGES].blob.compressed = 0;
     __crystax_locale_data_array[173].data[LC_MONETARY].alias = "zh_TW.Big5";
     __crystax_locale_data_array[173].data[LC_NUMERIC].alias = "zh_CN.eucCN";
     __crystax_locale_data_array[173].data[LC_TIME].alias = NULL;

@@ -190,6 +190,9 @@ typedef __wint_t __wchar_t;
 #endif
 __CRYSTAX_STATIC_ASSERT(sizeof(__wint_t) == sizeof(__wchar_t), "size of __wchar_t must be the same as of __wint_t");
 
+/* This type needed in newest FreeBSD sources */
+typedef __wchar_t ___wchar_t;
+
 #if __ARM_EABI__ || __aarch64__
 #define __WCHAR_MIN 0
 #define __WCHAR_MAX __UINT_MAX

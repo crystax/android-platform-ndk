@@ -19,7 +19,8 @@ for OPT; do
     esac
 done
 
-INTERNAL_HEADERS="sys/_errdefs.h sys/_sigdefs.h sys/_system_properties.h sys/_null.h sys/_stdint.h sys/_types.h"
+INTERNAL_HEADERS="sys/_errdefs.h sys/_sigdefs.h sys/_system_properties.h"
+INTERNAL_HEADERS="$INTERNAL_HEADERS sys/_null.h sys/_stdint.h sys/_types.h ieeefp.h"
 INVALID_HEADERS_FOR_64BIT="time64.h sys/user.h"  # ToDo: remove sys/user.h later once __u64 and __u32 are defined for x86_64
 
 # This header doesn't compile unless included from C++ with

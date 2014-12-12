@@ -31,7 +31,19 @@
 #include <float.h>
 #include <math.h>
 
-#define BF(name)  long double complex name ## l (long double complex x) { return name((double complex)x); }
+#if !defined(__LDBL_MANT_DIG__)
+#error __LDBL_MANT_DIG__ not defined
+#endif
+
+#if __LDBL_MANT_DIG__ <= 53
+#define WARN_IMPRECISE(x)
+#else
+#define WARN_IMPRECISE(x) __warn_references(x, # x " has lower than advertised precision");
+#endif
+
+#define BF(name) \
+    long double complex name ## l (long double complex x) { return name((double complex)x); }; \
+    WARN_IMPRECISE(name)
 
 BF(cacos);
 BF(cacosh);
@@ -44,7 +56,6 @@ BF(ccosh);
 BF(cexp);
 BF(csin);
 BF(csinh);
-BF(csqrt);
 BF(ctan);
 BF(ctanh);
 

@@ -35,6 +35,8 @@
 #include <locale.h>
 #include <stdint.h>
 
+__BEGIN_DECLS
+
 typedef struct {
     uint8_t *data;
     size_t size;
@@ -56,5 +58,7 @@ __crystax_locale_data_t * __crystax_locale_data(size_t idx);
 
 int __crystax_locale_load(const char *encoding, int type, void **buf, size_t *bufsize);
 int __crystax_locale_loads(const char *encoding, const char *type, void **buf, size_t *bufsize);
+
+__END_DECLS
 
 #endif /* __CRYSTAX_LOCALEIMPL_H_6A027653796D422F8D10248B5E30AD39 */

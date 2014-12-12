@@ -27,10 +27,26 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <strings.h>
-#include <string.h>
+#include <math.h>
 
-void bcopy(const void *s1, void *s2, size_t n)
-{
-    memmove(s2, s1, n);
-}
+#if !defined(__LDBL_MANT_DIG__)
+#error __LDBL_MANT_DIG__ not defined
+#endif
+
+#if __LDBL_MANT_DIG__ <= 53
+#define WARN_IMPRECISE(x)
+#else
+#define WARN_IMPRECISE(x) __warn_references(x, # x " has lower than advertised precision");
+#endif
+
+#define BF(name) \
+    long double name ## l (long double x) { return name((double)x); }; \
+    WARN_IMPRECISE(name)
+
+#define BF2(name) \
+    long double name ## l (long double x, long double y) { return name((double)x, (double)y); }; \
+    WARN_IMPRECISE(name)
+
+BF(lgamma);
+BF(tgamma);
+BF2(pow);

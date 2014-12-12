@@ -163,6 +163,9 @@ CXXFLAGS += -stdlib=libc++
 LDFLAGS  += -stdlib=libc++
 endif
 
+OBJCFLAGS := -f$(objc-runtime)-runtime
+OBJCFLAGS += $(if $(call is-clang,$(CC)),-fblocks)
+
 OBJDIR := obj/$(CC)
 OBJFILES := $(strip $(addprefix $(OBJDIR)/,\
     $(patsubst   %.c,%.o,$(filter   %.c,$(SRCFILES)))\
@@ -214,6 +217,9 @@ $(TARGET): $(OBJFILES) | $(TARGETDIR)
 			$(if $(filter next,$(objc-runtime)),\
 				-framework CoreFoundation \
 			)\
+			$(if $(and $(call is-clang,$(CC)),$(filter gnu,$(objc-runtime))),\
+				-lBlocksRuntime \
+			)\
 			-lobjc \
 		)\
 		-lm -ldl \
@@ -230,7 +236,7 @@ $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CC) -x c++  $(CXXFLAGS) -c -o $@ $^
 
 $(OBJDIR)/%.o: %.m | $(OBJDIR)
-	$(CC) -x objective-c -f$(objc-runtime)-runtime $(CFLAGS) -c -o $@ $^
+	$(CC) -x objective-c $(OBJCFLAGS) $(CFLAGS) -c -o $@ $^
 
 $(OBJDIR)/%.o: %.mm | $(OBJDIR)
-	$(CC) -x objective-c++ -f$(objc-runtime)-runtime $(CXXFLAGS) -c -o $@ $^
+	$(CC) -x objective-c++ $(OBJCFLAGS) $(CXXFLAGS) -c -o $@ $^

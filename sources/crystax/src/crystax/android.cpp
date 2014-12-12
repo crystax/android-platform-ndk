@@ -34,7 +34,8 @@
 #define CRYSTAX_DEBUG 1
 #endif
 
-#include "crystax/private.h"
+#include <crystax/private.h>
+#include <crystax/localeimpl.h>
 
 #include <stdlib.h>
 
@@ -43,7 +44,8 @@ namespace crystax
 
 static JavaVM *s_jvm = NULL;
 static pthread_key_t s_jnienv_key;
-static pthread_once_t s_jnienv_key_once = PTHREAD_ONCE_INIT;
+static pthread_once_t s_jnienv_key_create_once = PTHREAD_ONCE_INIT;
+static pthread_once_t s_jnienv_key_delete_once = PTHREAD_ONCE_INIT;
 
 namespace jni
 {
@@ -67,11 +69,17 @@ static void jnienv_key_create()
         ::abort();
 }
 
+static void jnienv_key_delete()
+{
+    if (::pthread_key_delete(s_jnienv_key) != 0)
+        ::abort();
+}
+
 static bool save_jnienv(JNIEnv *env)
 {
     TRACE;
 
-    ::pthread_once(&s_jnienv_key_once, &jnienv_key_create);
+    ::pthread_once(&s_jnienv_key_create_once, &jnienv_key_create);
 
     if (::pthread_setspecific(s_jnienv_key, env) != 0)
         return false;
@@ -80,7 +88,7 @@ static bool save_jnienv(JNIEnv *env)
 
 JNIEnv *jnienv()
 {
-    ::pthread_once(&s_jnienv_key_once, &jnienv_key_create);
+    ::pthread_once(&s_jnienv_key_create_once, &jnienv_key_create);
 
     JNIEnv *env = reinterpret_cast<JNIEnv *>(::pthread_getspecific(s_jnienv_key));
     if (!env && jni::jvm())
@@ -100,14 +108,13 @@ JNIEnv *jnienv()
 static bool __crystax_init()
 {
 #define NEXT_MODULE_INIT(x) \
-    DBG("initialize " #x); \
     if (__crystax_ ## x ## _init() < 0) \
     { \
         ERR(#x " initialization failed"); \
         return false; \
     }
 
-    //NEXT_MODULE_INIT(locale);
+    NEXT_MODULE_INIT(locale);
 
 #undef NEXT_MODULE_INIT
 
@@ -117,7 +124,7 @@ static bool __crystax_init()
 CRYSTAX_GLOBAL __attribute__((constructor))
 void __crystax_on_load()
 {
-    ::pthread_once(&::crystax::s_jnienv_key_once, &::crystax::jni::jnienv_key_create);
+    ::pthread_once(&::crystax::s_jnienv_key_create_once, &::crystax::jni::jnienv_key_create);
 
     if (!__crystax_init())
         PANIC("libcrystax initialization failed");
@@ -126,7 +133,7 @@ void __crystax_on_load()
 CRYSTAX_GLOBAL __attribute__((destructor))
 void __crystax_on_unload()
 {
-    ::pthread_key_delete(::crystax::s_jnienv_key);
+    ::pthread_once(&::crystax::s_jnienv_key_delete_once, &::crystax::jni::jnienv_key_delete);
 }
 
 CRYSTAX_GLOBAL

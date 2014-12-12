@@ -75,19 +75,20 @@ Dir.glob(File.join(ROOTDIR, "**/*")).each do |e|
     abort "Wrong locale file found: #{e}" if le.split('/').size != 2
     locale = {encoding: le.split('/')[0], type: le.split('/')[1]}
 
+    puts "Generating locale #{le} ..."
+
     if File.symlink?(e)
         sl = File.realpath(e).sub("#{ROOTDIR}/", '')
         abort "Wrong symlink found: #{le} -> #{sl}" if sl.split('/').size != 2
         abort "Alias point to another locale type: #{le} -> #{sl}" if locale[:type] != sl.split('/')[1]
         locale[:alias] = sl.split('/')[0]
+    else
+        bo, be, bs = Open3.capture3("bzip2 -9 -c #{e}")
+        abort "Can't compress #{e}:\n#{be}" unless bs.success?
+        locale[:compressed] = bo.size < File.size?(e)
+        locale[:data] = locale[:compressed] ? bo : File.read(e)
     end
 
-    puts "Generating locale #{le} ..."
-
-    bo, be, bs = Open3.capture3("bzip2 -9 -c #{e}")
-    abort "Can't compress #{e}:\n#{be}" unless bs.success?
-
-    locale[:data] = bo
     locales << locale
 end
 
@@ -110,7 +111,7 @@ File.open(options[:out], "w") do |f|
     locales.each do |ll|
         next unless ll[:alias].nil?
         bname = blobname(ll)
-        f.puts "/* BZip2 compressed #{ll[:encoding]} #{ll[:type]} locale data */"
+        f.puts "/* #{"BZip2 compressed " if ll[:compressed]}#{ll[:encoding]} #{ll[:type]} locale data */"
         f.puts "static uint8_t  #{bname}[] = {"
         idx = 0
         linesize = 16
@@ -152,7 +153,7 @@ File.open(options[:out], "w") do |f|
                 f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].alias = NULL;"
                 f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].blob.data = #{bname};"
                 f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].blob.size = sizeof(#{bname});"
-                f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].blob.compressed = 1;"
+                f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].blob.compressed = #{ll[:compressed] ? 1 : 0};"
             else
                 f.puts "    __crystax_locale_data_array[#{idx}].data[#{ll[:type]}].alias = \"#{ll[:alias]}\";"
             end

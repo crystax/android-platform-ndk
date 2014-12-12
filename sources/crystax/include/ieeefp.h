@@ -1,4 +1,9 @@
 /*
+ * This library contains code from libc library of FreeBSD project which by-turn contains
+ * code from other projects. To see specific authors and/or licenses, look into appropriate
+ * source file. Here is license for those parts which are not derived from any other projects
+ * but written by CrystaX .NET.
+ *
  * Copyright (c) 2011-2014 CrystaX .NET.
  * All rights reserved.
  *
@@ -27,48 +32,13 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <fenv.h>
+#ifndef __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E
+#define __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E
 
-#if __SOFTFP__
+#ifndef __i386__
+#error "Target architecture is not i386!"
+#endif
 
-int __softfloat_float_rounding_mode = 0;
-int __softfloat_float_exception_mask = 0;
-int __softfloat_float_exception_flags = 0;
-const fenv_t __crystax_softfloat_fe_dfl_env = 0;
+#include <machine/ieeefp.h>
 
-void __softfloat_float_raise(int e)
-{
-    (void)e;
-    abort();
-}
-
-#endif /* __SOFTFP__ */
-
-#define BF(name)  long double name ## l (long double x) { return name((double)x); }
-#define BF2(name) long double name ## l (long double x, long double y) { return name((double)x, (double)y); }
-
-BF(cosh);
-BF(erf);
-BF(erfc);
-BF(lgamma);
-BF(sinh);
-BF(tanh);
-BF(tgamma);
-BF2(pow);
-
-void sincos(double x, double *s, double *c)
-{
-    return __builtin_sincos(x, s, c);
-}
-
-void sincosf(float x, float *s, float *c)
-{
-    return __builtin_sincosf(x, s, c);
-}
-
-void sincosl(long double x, long double *s, long double *c)
-{
-    return __builtin_sincosl(x, s, c);
-}
+#endif /* __CRYSTAX_INCLUDE_IEEEFP_H_4B4DAD0CC78D43EEA244522CF49E509E */

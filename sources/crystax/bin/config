@@ -19,6 +19,7 @@ usage()
     echo "  --abis                   Print all ABI variants"
     echo "  --multilibs              Print multilibs variants for specific ABI"
     echo "  --sources                Print all source files"
+    echo "  --abiflags               Print flags used for choosing target ABI"
     echo "  --cflags                 Print flags for C compiler"
     echo "  --c++flags               Print flags for C++ compiler"
     echo "  --asmflags               Print flags for ASM compiler"
@@ -142,13 +143,28 @@ sources_for_abi()
         exit 1
     fi
 
-    find src -name '*.c' -print | sort
+    find src -name '*.c' -a -not -name 'fenv.c' -print | sort
 
     find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print | sort
 
     if [ "$t" = "shared" ]; then
         echo "src/crystax/android_jni.cpp"
     fi
+
+    case $a in
+        arm64*)
+            echo "src/math/arm64/fenv.c"
+            ;;
+        x86)
+            echo "src/math/i386/fenv.c"
+            ;;
+        x86_64)
+            echo "src/math/x86_64/fenv.c"
+            ;;
+        mips64)
+            echo "src/math/mips64/fenv.c"
+            ;;
+    esac
 
     case $a in
         x86)
@@ -287,7 +303,11 @@ common_cflags_for_abi()
     echo "-I$freebsd/lib/libc/stdio"
     echo "-I$freebsd/lib/libc/stdlib"
     echo "-I$freebsd/lib/libc/stdtime"
+
     echo "-I$freebsd/lib/msun/src"
+    if [ "${abi%%64*}" != "{abi}" ]; then
+        echo "-I$freebsd/lib/msun/ld128"
+    fi
 
     case $abi in
         armeabi*)
@@ -382,24 +402,26 @@ ldflags_for_abi()
         exit 1
     fi
 
-    arch_flags_for_abi $a $m
-
-    echo "-fPIC"
-
     if [ "$a" = "armeabi-v7a" -o "$a" = "armeabi-v7a-hard" ]; then
-        echo "-march=armv7-a -Wl,--fix-cortex-a8"
+        echo "-Wl,--fix-cortex-a8"
+    fi
+
+    # This is needed to link with libc, compiled with soft float ABI
+    # Please note this is dangerous option and it's easy to miss real
+    # mismatch when it enabled.
+    # Unfortunately, right now we just have no other option beside this one.
+    # TODO: implement own libc stub built with proper float ABI.
+    if [ "$a" = "armeabi-v7a-hard" ]; then
+        echo "-Wl,--no-warn-mismatch"
     fi
 
     echo "-Wl,--no-undefined"
     echo "-Wl,-z,noexecstack"
     echo "-Wl,-z,muldefs"
 
-    echo "-lstdc++ -ldl"
-    if [ "$a" = "armeabi-v7a-hard" ]; then
-        echo "-Wl,--no-warn-mismatch -lm_hard"
-    else
-        echo "-lm"
-    fi
+    echo "-lgcc"
+    echo "-lstdc++"
+    echo "-ldl"
     echo "-lc"
     is_debug_mode && echo "-llog"
 }
@@ -618,7 +640,7 @@ while [ "x$1" != "x" ]; do
             usage
             exit 0
             ;;
-        --abis|--multilibs|--sources|--cflags|--c++flags|--asmflags|--ldflags|--libpath|--sysroot-libpath)
+        --abis|--multilibs|--sources|--abiflags|--cflags|--c++flags|--asmflags|--ldflags|--libpath|--sysroot-libpath)
             set_request $(expr "x$arg" : "^x--\(.*\)$")
             ;;
         --abi)
@@ -697,6 +719,14 @@ if [ "$REQUEST" = "multilibs" -a -n "$MULTILIB" ]; then
     exit 1
 fi
 
+if [ "$REQUEST" = "abiflags" ]; then
+    if [ -z "$ABI" -o -z "$MULTILIB" ]; then
+        echo "ERROR: Both --abi=ABI and --multilib=MLIB should be specified for 'abiflags' request" 1>&2
+        usage 1>&2
+        exit 1
+    fi
+fi
+
 case $REQUEST in
     abis)
         all_abis
@@ -706,6 +736,9 @@ case $REQUEST in
         ;;
     sources)
         sources_for_abi $ABI $LIBTYPE
+        ;;
+    abiflags)
+        arch_flags_for_abi $ABI $MULTILIB
         ;;
     cflags)
         cflags_for_abi $ABI $MULTILIB

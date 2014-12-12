@@ -28,9 +28,9 @@
  */
 
 #include <stdlib.h>
+#include <crystax/private.h>
 
 int issetugid()
 {
-    /* NOT IMPLEMENTED */
-    abort();
+    PANIC("issetugid() not implemented!!!");
 }

@@ -6,7 +6,6 @@ $(eval LOCAL_MODULE := test_gabixx_static_$1)\
 $(eval LOCAL_SRC_FILES := $2)\
 $(eval LOCAL_CFLAGS := $3)\
 $(eval LOCAL_STATIC_LIBRARIES := gabi++_static)\
-$(eval LOCAL_STATIC_LIBRARIES += crystax_static)\
 $(eval include $$(BUILD_EXECUTABLE))\
 \
 $(eval include $$(CLEAR_VARS))\
@@ -14,7 +13,6 @@ $(eval LOCAL_MODULE := test_gabixx_shared_$1)\
 $(eval LOCAL_SRC_FILES := $2)\
 $(eval LOCAL_CFLAGS := $3)\
 $(eval LOCAL_SHARED_LIBRARIES := gabi++_shared)\
-$(eval LOCAL_SHARED_LIBRARIES += crystax_shared)\
 $(eval include $$(BUILD_EXECUTABLE))\
 
 do_test_simple = $(call do_test,$1,$1.cpp,$2)
@@ -56,14 +54,11 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libtest_malloc_lockup
 LOCAL_SRC_FILES := libtest_malloc_lockup.cpp
 LOCAL_STATIC_LIBRARIES := gabi++_static
-LOCAL_STATIC_LIBRARIES += crystax_static
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := malloc_lockup
 LOCAL_SRC_FILES := malloc_lockup.cpp
-LOCAL_STATIC_LIBRARIES := crystax_static
 include $(BUILD_EXECUTABLE)
 
 $(call import-module,cxx-stl/gabi++)
-$(call import-module,crystax)

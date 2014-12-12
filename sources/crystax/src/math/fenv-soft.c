@@ -27,33 +27,20 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <pthread.h>
+#include <fenv.h>
 #include <stdlib.h>
-#include <errno.h>
 
-#ifndef ELAST
-#define ELAST ENOTRECOVERABLE
-#endif
+#if __SOFTFP__
 
-int __crystax_isthreaded()
+int __softfloat_float_rounding_mode = 0;
+int __softfloat_float_exception_mask = 0;
+int __softfloat_float_exception_flags = 0;
+const fenv_t __crystax_softfloat_fe_dfl_env = 0;
+
+void __softfloat_float_raise(int e)
 {
-    return 1;
+    (void)e;
+    abort();
 }
 
-int const __hidden_sys_nerr = ELAST;
-
-int __crystax_freebsd__thread_autoinit_dummy_decl = 0;
-
-static pthread_mutex_t __crystax_stdio_thread_lock_var = PTHREAD_MUTEX_INITIALIZER;
-
-void __crystax_stdio_thread_lock()
-{
-    if (pthread_mutex_lock(&__crystax_stdio_thread_lock_var) != 0)
-        abort();
-}
-
-void __crystax_stdio_thread_unlock()
-{
-    if (pthread_mutex_unlock(&__crystax_stdio_thread_lock_var) != 0)
-        abort();
-}
+#endif /* __SOFTFP__ */

@@ -9,5 +9,3 @@ APP_ABI := all
 #       the GAbi++ libraries in our modules.
 #
 APP_STL := none
-
-APP_CRYSTAX := none

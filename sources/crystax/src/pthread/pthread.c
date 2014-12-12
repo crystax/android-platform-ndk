@@ -67,9 +67,6 @@ static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct 
     long long msecs = 0;
     struct timespec curtime;
 
-    if (!mutex)
-        return EINVAL;
-
     /* See http://pubs.opengroup.org/onlinepubs/009695399/functions/pthread_mutex_timedlock.html:
      * Under no circumstance shall the function fail with a timeout if the mutex can be locked immediately.
      * The validity of the abs_timeout parameter need not be checked if the mutex can be locked immediately.
@@ -103,6 +100,9 @@ static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct 
 
 int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
 {
+    if (!mutex)
+        return EINVAL;
+
     if (crystax_atomic_fetch(&initialized) == 0)
     {
         void *pc;
