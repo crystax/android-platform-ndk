@@ -1,2 +1,2 @@
 APP_ABI := all
-APP_CRYSTAX := static
+APP_LIBCRYSTAX := static
