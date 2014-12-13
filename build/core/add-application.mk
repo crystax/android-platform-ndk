@@ -278,13 +278,13 @@ APP_RENDERSCRIPT_FLAGS := $(strip $(APP_RENDERSCRIPT_FLAGS))
 APP_ASMFLAGS := $(strip $(APP_ASMFLAGS))
 APP_LDFLAGS  := $(strip $(APP_LDFLAGS))
 
-ifndef APP_CRYSTAX
-    APP_CRYSTAX := shared
+ifndef APP_LIBCRYSTAX
+    APP_LIBCRYSTAX := shared
 else
-    APP_CRYSTAX := $(strip $(APP_CRYSTAX))
-    $(call ndk-crystax-check,$(APP_CRYSTAX))
+    APP_LIBCRYSTAX := $(strip $(APP_LIBCRYSTAX))
+    $(call ndk-libcrystax-check,$(APP_LIBCRYSTAX))
 endif
-$(call ndk_log,Using APP_CRYSTAX: $(APP_CRYSTAX))
+$(call ndk_log,Using APP_LIBCRYSTAX: $(APP_LIBCRYSTAX))
 
 ifndef APP_OBJC
     APP_OBJC := $(DEFAULT_LIBOBJC)_shared

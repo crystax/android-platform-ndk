@@ -552,7 +552,7 @@ endif
 TARGET_LIBCRYSTAX := -Wl,-z,muldefs
 
 ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
-NDK_APP_CRYSTAX := static
+NDK_APP_LIBCRYSTAX := static
 endif
 
 # Force inclusion of libcrystax constructor/destructor functions
@@ -560,7 +560,7 @@ TARGET_LIBCRYSTAX += -u __crystax_on_load
 TARGET_LIBCRYSTAX += -u __crystax_on_unload
 
 # Ensure -lcrystax is _always_ before -lc and -lm
-TARGET_LIBCRYSTAX += -Wl,-B$(if $(filter static,$(NDK_APP_CRYSTAX)),static,dynamic),-lcrystax
+TARGET_LIBCRYSTAX += -Wl,-B$(if $(filter static,$(NDK_APP_LIBCRYSTAX)),static,dynamic),-lcrystax
 
 ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
 # Link other libraries statically

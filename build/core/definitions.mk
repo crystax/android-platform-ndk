@@ -1326,7 +1326,7 @@ NDK_APP_VARS_OPTIONAL := APP_OPTIM APP_CPPFLAGS APP_CFLAGS APP_CONLY_FLAGS APP_C
                          APP_LDFLAGS APP_PLATFORM APP_BUILD_SCRIPT APP_ABI APP_MODULES \
                          APP_PROJECT_PATH APP_STL APP_SHORT_COMMANDS \
                          APP_PIE APP_THIN_ARCHIVE \
-                         APP_CRYSTAX APP_OBJC APP_CXX_STANDARD
+                         APP_LIBCRYSTAX APP_OBJC APP_CXX_STANDARD
 
 # the list of all variables that may appear in an Application.mk file
 # or defined by the build scripts.
@@ -2329,44 +2329,44 @@ $(call ndk-stl-register,\
     cxx-stl/system,\
     )
 
-NDK_CRYSTAX_LIST :=
+NDK_LIBCRYSTAX_LIST :=
 
-ndk-crystax-check = \
-    $(if $(call set_is_member,$(NDK_CRYSTAX_LIST),$1),,\
-        $(call __ndk_info,Invalid APP_CRYSTAX value: $1)\
-        $(call __ndk_info,Please use one of the following instead: $(NDK_CRYSTAX_LIST))\
+ndk-libcrystax-check = \
+    $(if $(call set_is_member,$(NDK_LIBCRYSTAX_LIST),$1),,\
+        $(call __ndk_info,Invalid APP_LIBCRYSTAX value: $1)\
+        $(call __ndk_info,Please use one of the following instead: $(NDK_LIBCRYSTAX_LIST))\
         $(call __ndk_error,Aborting))
 
-ndk-crystax-register = \
-    $(eval __ndk_crystax := $(strip $1)) \
-    $(eval NDK_CRYSTAX_LIST += $(__ndk_crystax)) \
-    $(eval NDK_CRYSTAX.$(__ndk_crystax).IMPORT_MODULE := $(strip $2)) \
-    $(eval NDK_CRYSTAX.$(__ndk_crystax).STATIC_LIBS := $(strip $3)) \
-    $(eval NDK_CRYSTAX.$(__ndk_crystax).SHARED_LIBS := $(strip $4))
+ndk-libcrystax-register = \
+    $(eval __ndk_libcrystax := $(strip $1)) \
+    $(eval NDK_LIBCRYSTAX_LIST += $(__ndk_libcrystax)) \
+    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).IMPORT_MODULE := $(strip $2)) \
+    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).STATIC_LIBS := $(strip $3)) \
+    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).SHARED_LIBS := $(strip $4))
 
-ndk-crystax-select = \
-    $(call import-module,$(NDK_CRYSTAX.$1.IMPORT_MODULE))
+ndk-libcrystax-select = \
+    $(call import-module,$(NDK_LIBCRYSTAX.$1.IMPORT_MODULE))
 
-ndk-crystax-add-dependencies = \
+ndk-libcrystax-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
-        $(call module-add-deps,$(__module),$(NDK_CRYSTAX.$1.STATIC_LIBS),$(NDK_CRYSTAX.$1.SHARED_LIBS))\
+        $(call module-add-deps,$(__module),$(NDK_LIBCRYSTAX.$1.STATIC_LIBS),$(NDK_LIBCRYSTAX.$1.SHARED_LIBS))\
     )
 
-$(call ndk-crystax-register,\
+$(call ndk-libcrystax-register,\
     static,\
     crystax,\
     crystax_static,\
     \
     )
 
-$(call ndk-crystax-register,\
+$(call ndk-libcrystax-register,\
     shared,\
     crystax,\
     ,\
     crystax_shared\
     )
 
-$(call ndk-crystax-register,\
+$(call ndk-libcrystax-register,\
     none,\
     crystax\
     )
