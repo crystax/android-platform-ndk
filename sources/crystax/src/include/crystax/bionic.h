@@ -27,10 +27,24 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <string.h>
+#ifndef __CRYSTAX_SRC_INCLUDE_CRYSTAX_BIONIC_H_C7D22771D0CD4A0A8216224C8F11D1DD
+#define __CRYSTAX_SRC_INCLUDE_CRYSTAX_BIONIC_H_C7D22771D0CD4A0A8216224C8F11D1DD
 
-char *strerror_l(int e, locale_t l)
-{
-    (void)l;
-    return strerror(e);
-}
+#include <sys/cdefs.h>
+
+__BEGIN_DECLS
+
+typedef enum {
+#ifdef DEF
+#error Macro DEF is already defined
+#endif
+#define DEF(x, y) __CRYSTAX_BIONIC_SYMBOL_ ## x ,
+#include "crystax/details/bionic.inc"
+#undef DEF
+} __crystax_bionic_symbol_t;
+
+void * __crystax_bionic_symbol(__crystax_bionic_symbol_t sym, int maynotexist);
+
+__END_DECLS
+
+#endif /* __CRYSTAX_SRC_INCLUDE_CRYSTAX_BIONIC_H_C7D22771D0CD4A0A8216224C8F11D1DD */

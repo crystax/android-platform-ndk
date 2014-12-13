@@ -1,0 +1,1229 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+require 'pathname'
+require 'open3'
+require 'digest'
+require 'stringio'
+
+$options = {verbose: true}
+parser = OptionParser.new do |o|
+    o.on("-v", "--verbose", "Enable verbose mode") do |v|
+        $options[:verbose] = v
+    end
+
+    o.on("-q", "--quiet", "Disable verbose mode") do |q|
+        $options[:verbose] = !q
+    end
+
+    o.on("-n", "--dry-run", "Don't do actual changes, just print out what intend to do") do |n|
+        $options[:dryrun] = n
+    end
+end
+parser.parse(ARGV)
+
+class Object
+    def to_b
+        self ? true : false
+    end
+end
+
+class Generator
+
+    class SrcFile
+        def initialize(fpath)
+            @file = fpath
+        end
+
+        def path
+            @file
+        end
+
+        def header?
+            @header = (path =~ /\.h$/).to_b if @header.nil?
+            @header
+        end
+
+        def public?
+            @public = lambda do
+                return false unless header?
+                return true if path == "lib/msun/src/math.h"
+                return true if path == "lib/msun/src/fenv-softfloat.h"
+                return true if path =~ /^(include|sys)\b/
+                false
+            end.call if @public.nil?
+            @public
+        end
+
+        def dstpath
+            @dstpath = lambda do
+                if header? && path == "lib/msun/src/math.h"
+                    return "math.h"
+                end
+                if header? && path == "lib/msun/src/fenv-softfloat.h"
+                    return File.join("crystax/freebsd", path)
+                end
+                if header? && !sarch.nil? && path.split('/')[0..2] == ['sys', sarch, 'include']
+                    return (['machine'] + path.split('/')[3..-1]).join('/')
+                end
+                if header? && path.split('/')[0] == 'include'
+                    return path.split('/')[1..-1].join('/')
+                end
+                if header? && path.split('/')[0..1] == ['sys', 'sys']
+                    return path.split('/')[1..-1].join('/')
+                end
+                path
+            end.call if @dstpath.nil?
+            @dstpath
+        end
+
+        def sarch
+            archs = ['arm', 'arm64', 'amd64', 'i386', 'x86', 'mips', 'mips64']
+            @sarch = $1 if @sarch_detected.nil? && path =~ /^sys\/(#{archs.join('|')})\b/
+            @sarch_detected = true
+            @sarch
+        end
+        private :sarch
+
+        def archs
+            @archs = case sarch
+            when 'i386'
+                ['x86']
+            when 'amd64'
+                ['x86_64']
+            when 'x86'
+                ['x86', 'x86_64']
+            when 'arm', 'arm64', 'mips', 'mips64'
+                [sarch]
+            when nil
+                nil
+            else
+                raise "Uknown source architecture for file #{path}: #{sarch}"
+            end if @archs.nil?
+            @archs
+        end
+    end
+
+    class TargetFile
+        def initialize(sf, options = {})
+            @path    = sf.dstpath
+            @public  = sf.public?
+            @header  = sf.header?
+            @guard   = !(options[:noguard].to_b)
+            @sources = []
+        end
+
+        attr_reader :path, :sources
+
+        def public?
+            @public
+        end
+
+        def header?
+            @header
+        end
+
+        def has_guard?
+            @guard
+        end
+    end
+
+    def initialize(options)
+        @files = []
+        @has_file = {}
+        @fixups = {}
+
+        @dryrun  = options[:dryrun]
+        # Force verbosity if 'dry run' option enabled
+        @verbose = @dryrun || options[:verbose]
+
+        @topdir = File.realpath(File.join(File.dirname(__FILE__), '..'))
+        @srcdir = File.join(@topdir, 'vendor/freebsd')
+    end
+
+    private
+
+    def verbose
+        @verbose
+    end
+
+    def dryrun
+        @dryrun
+    end
+
+    def srcdir
+        @srcdir
+    end
+
+    def topdir
+        @topdir
+    end
+
+    def relpath(path, from)
+        Pathname.new(path).relative_path_from(Pathname.new(from)).to_s
+    end
+
+    def license
+        @license = File.read(File.join(topdir, 'LICENSE')).split("\n").map(&:chomp) if @license.nil?
+        @license
+    end
+
+    def archmacros(arch)
+        case arch
+        when 'arm'
+            '__arm__'
+        when 'x86'
+            '__i386__'
+        when 'mips'
+            '__mips__ && !__mips64'
+        when 'arm64'
+            '__aarch64__'
+        when 'x86_64'
+            '__x86_64__'
+        when 'mips64'
+            '__mips64'
+        else
+            raise "Unknown architecture: #{arch.inspect}"
+        end
+    end
+
+    def genbody(f, body, options)
+        fixups = options[:fixup] || []
+        fixups = [fixups] unless fixups.is_a?(Array)
+        fixups.each do |fxname|
+            fx = @fixups[fxname.to_sym]
+            raise "Unknown fixup '#{fxname}'" if fx.nil?
+            f.puts ""
+            fx.call(f)
+        end
+
+        warnings = options[:warnings] || []
+        warnings = [warnings] unless warnings.is_a?(Array)
+        unless warnings.empty?
+            f.puts ""
+            f.puts "#pragma GCC diagnostic push"
+            warnings.sort.each do |w|
+                f.puts "#pragma GCC diagnostic ignored \"-W#{w}\""
+            end
+        end
+
+        f.write body
+
+        unless warnings.empty?
+            f.puts ""
+            f.puts "#pragma GCC diagnostic pop"
+        end
+
+        fixups = options[:postfixup] || []
+        fixups = [fixups] unless fixups.is_a?(Array)
+        fixups.each do |fxname|
+            fx = @fixups[fxname.to_sym]
+            raise "Unknown fixup '#{fxname}'" if fx.nil?
+            f.puts ""
+            fx.call(f)
+        end
+    end
+
+    public
+
+    def fixup(name, &block)
+        raise "Fixup with name #{name} already exist" if @fixups.has_key?(name)
+        raise "Code block not provided" unless block_given?
+        @fixups[name] = lambda { |f| block.call(f) }
+    end
+
+    def add(file, options = {}, &block)
+        raise "File #{file} already added" if @has_file[file]
+        @files << {sf: SrcFile.new(file), options: options, generator: block}
+        @has_file[file] = true
+    end
+
+    def generate
+        targets = []
+        @files.each do |e|
+            target = targets.select { |x| x.path == e[:sf].dstpath }.first
+            targets << (target = TargetFile.new(e[:sf], e[:options])) if target.nil?
+
+            if target.public? != e[:sf].public? ||
+                    target.header? != e[:sf].header? ||
+                    target.has_guard? != !(e[:options][:noguard].to_b)
+                raise "Multiple sources pointing to the same destinations, but having different type"
+            end
+            target.sources << e
+        end
+
+        total = targets.size
+        current = 0
+
+        targets.sort_by(&:path).each do |target|
+            current += 1
+            dstpath = File.join(topdir, target.public? ? 'include' : "gen/freebsd", target.path)
+            archs = {}
+
+            srcmtime = File.mtime(__FILE__)
+
+            target.sources.each do |e|
+                srcarchs = e[:sf].archs
+                srcarchs = [srcarchs] unless srcarchs.is_a?(Array)
+                srcarchs.each do |sa|
+                    raise "Source for '#{sa}' CPU architecture is already included" if archs.has_key?(sa)
+                end
+
+                srcpath = File.join(srcdir, e[:sf].path)
+                if File.basename(srcpath) == "string.h"
+                    srcdbg = true
+                else
+                    srcdbg = false
+                end
+                srcreader = e[:generator] || proc do |f|
+                    unless e[:options][:empty]
+                        mtime = File.mtime(srcpath)
+                        srcmtime = mtime if srcmtime < mtime
+
+                        unless dryrun
+                            if target.public?
+                                cpath = File.join(topdir, "include/crystax/freebsd", File.dirname(e[:sf].path), "mangled-#{File.basename(e[:sf].path)}")
+                            else
+                                cpath = File.join(File.dirname(dstpath), "mangled-#{File.basename(dstpath)}")
+                            end
+                            if !File.exists?(cpath) || File.mtime(cpath) < File.mtime(srcpath)
+                                FileUtils.mkdir_p File.dirname(cpath)
+                                FileUtils.rm_f cpath
+                                FileUtils.cp srcpath, cpath
+                            end
+                            if target.public?
+                                f.puts "" if e[:sf].archs.nil?
+                                f.puts "#include <#{relpath(cpath, File.join(topdir, 'include'))}>"
+                            else
+                                f.puts ""
+                                f.puts "#include \"#{File.basename(cpath)}\""
+                            end
+                        end
+                    end
+                end
+
+                body = ''
+                StringIO.open(body) do |f|
+                    srcreader.call(f)
+                end
+                body = "#{body}\n" unless body[-1] == "\n"
+
+                srcarchs.each do |sa|
+                    archs[sa] = {body: body, options: e[:options]}
+                end
+            end
+
+            if File.exists?(dstpath) && File.mtime(dstpath) >= srcmtime
+                #puts "SKIP [#{current}/#{total}] #{relpath(dstpath, topdir)} [NOT MODIFIED]" if verbose
+                next
+            end
+
+            puts "GEN  [#{current}/#{total}] #{relpath(dstpath, topdir)}" if verbose
+            next if dryrun
+
+            FileUtils.mkdir_p File.dirname(dstpath)
+            File.open(dstpath, "w") do |f|
+                f.puts "/* WARNING!!! THIS IS AUTO-GENERATED FILE!!! DO NOT MODIFY IT MANUALLY!!! */"
+                f.puts "/* GENERATED BY: #{$0} #{ARGV.select { |x| x !~ /^(-v|--verbose|--no-verbose)\b/ }.join(' ')} */"
+                f.puts ""
+
+                f.puts "/*"
+                license.each do |line|
+                    f.puts " * #{line}".rstrip
+                end
+                f.puts " */"
+
+                if target.header? && target.has_guard?
+                    guard = "__CRYSTAX_INCLUDE_#{Digest::SHA256.new.update(relpath(dstpath, topdir)).hexdigest}".upcase
+                    f.puts ""
+                    f.puts "#ifndef #{guard}"
+                    f.puts "#define #{guard}"
+                end
+
+                f.puts ""
+                f.puts "#include <crystax/id.h>"
+                f.puts "#include <crystax/freebsd.h>"
+                f.puts "#include <crystax/internal.h>" unless target.header?
+
+                common = archs.delete(nil)
+                genbody(f, common[:body], common[:options]) unless common.nil?
+
+                unless archs.empty?
+                    archs.keys.sort.each do |arch|
+                        f.puts "##{"el" unless arch == archs.keys.sort.first}if #{archmacros(arch)}"
+                        v = archs[arch]
+                        genbody(f, v[:body], v[:options])
+                    end
+                    f.puts "#else"
+                    f.puts "#error Not defined for this ABI"
+                    f.puts "#endif"
+                end
+
+                if target.header? && target.has_guard?
+                    f.puts ""
+                    f.puts "#endif /* #{guard} */"
+                end
+            end
+        end
+    end
+end
+
+g = Generator.new $options
+
+g.fixup :include_wctype_h do |f|
+    f.puts "#include <wctype.h>"
+end
+
+g.fixup :collate_fixwarnings do |f|
+    f.puts "#define __collate_substitute __crystax_freebsd___collate_substitute"
+    f.puts "#define __collate_lookup __crystax_freebsd___collate_lookup"
+    f.puts "#include \"collate.h\""
+    f.puts "#undef __collate_substitute"
+    f.puts "#define __collate_substitute(c, p) (char *)__crystax_freebsd___collate_substitute(c, (const u_char *)p)"
+    f.puts "#undef __collate_lookup"
+    f.puts "#define __collate_lookup(c, p, x, y, z) __crystax_freebsd___collate_lookup(c, (const u_char *)p, x, y, z)"
+end
+
+g.fixup :collate_rename do |f|
+    f.puts "#define __collate_substitute __crystax_freebsd___collate_substitute"
+    f.puts "#define __collate_lookup __crystax_freebsd___collate_lookup"
+end
+
+g.fixup :mutex_initializer do |f|
+    f.puts "#include <pthread.h>"
+    f.puts ""
+    f.puts "typedef pthread_mutex_t spinlock_t;"
+    f.puts "#define _SPINLOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER"
+end
+
+g.fixup :isthreaded do |f|
+    f.puts "#undef  __isthreaded"
+    f.puts "#define __isthreaded __crystax_freebsd___isthreaded"
+    f.puts "#define _thread_autoinit_dummy_decl __crystax_freebsd__thread_autoinit_dummy_decl"
+end
+
+g.fixup :include_stdarg_h do |f|
+    f.puts "#include <stdarg.h>"
+end
+
+g.fixup :include_stdint_h do |f|
+    f.puts "#include <stdint.h>"
+end
+
+g.fixup :include_stdio_h do |f|
+    f.puts "#include <stdio.h>"
+end
+
+g.fixup :include_sys_types_h do |f|
+    f.puts "#include <sys/types.h>"
+end
+
+g.fixup :include_sys_wait_h do |f|
+    f.puts "#include <sys/wait.h>"
+end
+
+g.fixup :include_crystax_sys_ctype_h do |f|
+    f.puts "#include <crystax/sys/ctype.h>"
+end
+
+g.fixup :include_crystax_sys_endian_h do |f|
+    f.puts "#include <crystax/sys/endian.h>"
+end
+
+g.fixup :include_crystax_sys_inttypes_h do |f|
+    f.puts "#include <crystax/sys/inttypes.h>"
+end
+
+g.fixup :include_crystax_sys_langinfo_h do |f|
+    f.puts "#include <crystax/sys/langinfo.h>"
+end
+
+g.fixup :include_crystax_sys_limits_h do |f|
+    f.puts "#include <crystax/sys/limits.h>"
+end
+
+g.fixup :include_crystax_sys_locale_h do |f|
+    f.puts "#include <crystax/sys/locale.h>"
+end
+
+g.fixup :include_crystax_sys_math_h do |f|
+    f.puts "#include <crystax/sys/math.h>"
+end
+
+g.fixup :include_crystax_sys_monetary_h do |f|
+    f.puts "#include <crystax/sys/monetary.h>"
+end
+
+g.fixup :include_crystax_sys_stdio_h do |f|
+    f.puts "#include <crystax/sys/stdio.h>"
+end
+
+g.fixup :include_crystax_sys_stdlib_h do |f|
+    f.puts "#include <crystax/sys/stdlib.h>"
+end
+
+g.fixup :include_crystax_sys_string_h do |f|
+    f.puts "#include <crystax/sys/string.h>"
+end
+
+g.fixup :include_crystax_sys_strings_h do |f|
+    f.puts "#include <crystax/sys/strings.h>"
+end
+
+g.fixup :include_crystax_sys_time_h do |f|
+    f.puts "#include <crystax/sys/time.h>"
+end
+
+g.fixup :include_crystax_sys_wchar_h do |f|
+    f.puts "#include <crystax/sys/wchar.h>"
+end
+
+g.fixup :include_crystax_sys_wctype_h do |f|
+    f.puts "#include <crystax/sys/wctype.h>"
+end
+
+g.fixup :undef_min do |f|
+    f.puts "#ifdef MIN"
+    f.puts "#undef MIN"
+    f.puts "#endif"
+end
+
+g.fixup :define_libc_dlopen do |f|
+    f.puts "#define libc_dlopen(p, m) dlopen(p, m)"
+end
+
+g.fixup :define_citrus_bcs_strtol do |f|
+    f.puts "#define _citrus_bcs_strtol(s, e, b) strtol(s, e, b)"
+end
+
+g.fixup :define_ctassert do |f|
+    f.puts "#define CTASSERT(x) __CRYSTAX_STATIC_ASSERT(x, #x \": failed\")"
+end
+
+g.fixup :define_complex_h_included do |f|
+    f.puts "#define __CRYSTAX_COMPLEX_H_INCLUDED 1"
+end
+
+g.fixup :define_complex_functions do |f|
+    f.puts "__BEGIN_DECLS"
+    f.puts ""
+
+    f.puts "long double atan2l(long double v1, long double v2);"
+    f.puts "long double cargl(long double complex v1);"
+
+    bc = proc do |type,name,nargs|
+        nargs = 1 if nargs.nil?
+        params = []
+        (1..nargs).each do |i|
+            params << "#{type} complex v#{i}"
+        end
+        f.puts "extern #{type} complex #{name}(#{params.join(", ")});"
+    end
+
+    bc.call("double", "cpow",  2)
+    bc.call("float",  "cpowf", 2)
+    bc.call("long double", "cpowl", 2)
+
+    bc.call("double", "clog")
+    bc.call("float",  "clogf")
+    bc.call("long double", "clogl")
+
+    [
+        "cacoshl",
+        "cacosl",
+        "casinhl",
+        "casinl",
+        "catanhl",
+        "catanl",
+        "ccoshl",
+        "ccosl",
+        "cexpl",
+        "csinhl",
+        "csinl",
+        "ctanhl",
+        "ctanl",
+    ].each { |n| bc.call("long double", n) }
+
+    f.puts ""
+    f.puts "__END_DECLS"
+end
+
+g.fixup :long_double_128 do |f|
+    f.puts "#if __LDBL_MANT_DIG__ == 113"
+end
+
+g.fixup :endif do |f|
+    f.puts "#endif"
+end
+
+# empty
+g.add "lib/libc/include/libc_private.h",   empty: true
+g.add "lib/libc/include/namespace.h",      empty: true
+g.add "lib/libc/include/spinlock.h",       empty: true
+g.add "lib/libc/include/un-namespace.h",   empty: true
+
+# gdtoa
+g.add "contrib/gdtoa/dmisc.c",             warnings: "sign-compare"
+g.add "contrib/gdtoa/dtoa.c"
+g.add "contrib/gdtoa/gdtoa.c"
+g.add "contrib/gdtoa/gdtoa.h"
+g.add "contrib/gdtoa/gdtoa_fltrnds.h"
+g.add "contrib/gdtoa/gdtoaimp.h"
+g.add "contrib/gdtoa/gethex.c"
+g.add "contrib/gdtoa/gmisc.c"
+g.add "contrib/gdtoa/hd_init.c"
+g.add "contrib/gdtoa/hexnan.c"
+g.add "contrib/gdtoa/misc.c",              warnings: "sign-compare"
+g.add "contrib/gdtoa/smisc.c"
+g.add "contrib/gdtoa/strtod.c"
+g.add "contrib/gdtoa/strtodg.c"
+g.add "contrib/gdtoa/strtof.c",            warnings: "maybe-uninitialized"
+g.add "contrib/gdtoa/strtord.c"
+g.add "contrib/gdtoa/sum.c"
+g.add "contrib/gdtoa/ulp.c"
+# libc-vis
+g.add "contrib/libc-vis/vis.c",            warnings: ["pointer-sign", "sign-compare"],
+                                           fixup: "define_ctassert"
+g.add "contrib/libc-vis/vis.h"
+# tzcode
+g.add "contrib/tzcode/stdtime/private.h"
+g.add "contrib/tzcode/stdtime/tzfile.h"
+# include
+g.add "include/_ctype.h"
+g.add "include/complex.h",                 fixup: "define_complex_h_included",
+                                           postfixup: "define_complex_functions"
+g.add "include/ctype.h",                   postfixup: "include_crystax_sys_ctype_h"
+g.add "include/err.h"
+g.add "include/iconv.h"
+g.add "include/inttypes.h",                postfixup: "include_crystax_sys_inttypes_h"
+g.add "include/langinfo.h",                postfixup: "include_crystax_sys_langinfo_h"
+g.add "include/limits.h"
+g.add "include/locale.h",                  postfixup: "include_crystax_sys_locale_h"
+g.add "include/monetary.h",                postfixup: "include_crystax_sys_monetary_h"
+g.add "include/nl_types.h"
+g.add "include/printf.h"
+g.add "include/runetype.h"
+g.add "include/stdio.h",                   postfixup: ["include_stdarg_h", "include_crystax_sys_stdio_h"]
+g.add "include/stdlib.h",                  postfixup: "include_crystax_sys_stdlib_h"
+g.add "include/string.h",                  postfixup: "include_crystax_sys_string_h"
+g.add "include/strings.h",                 postfixup: "include_crystax_sys_strings_h"
+g.add "include/sysexits.h"
+g.add "include/tar.h"
+g.add "include/tgmath.h"
+g.add "include/time.h",                    postfixup: "include_crystax_sys_time_h"
+g.add "include/wchar.h",                   postfixup: ["include_stdarg_h", "include_crystax_sys_wchar_h"]
+g.add "include/wctype.h",                  postfixup: "include_crystax_sys_wctype_h"
+g.add "include/xlocale/_ctype.h",          noguard: true
+g.add "include/xlocale/_inttypes.h",       noguard: true
+g.add "include/xlocale/_langinfo.h",       noguard: true
+g.add "include/xlocale/_locale.h",         noguard: true
+g.add "include/xlocale/_monetary.h",       noguard: true
+g.add "include/xlocale/_stdio.h",          noguard: true
+g.add "include/xlocale/_stdlib.h",         noguard: true
+g.add "include/xlocale/_string.h",         noguard: true
+g.add "include/xlocale/_strings.h",        noguard: true
+g.add "include/xlocale/_time.h",           noguard: true
+g.add "include/xlocale/_wchar.h",          noguard: true
+# libc
+g.add "lib/libc/amd64/arith.h"
+g.add "lib/libc/amd64/gd_qnan.h"
+g.add "lib/libc/arm/arith.h"
+g.add "lib/libc/arm/gd_qnan.h"
+g.add "lib/libc/gdtoa/_hdtoa.c"
+g.add "lib/libc/gdtoa/_hldtoa.c"
+g.add "lib/libc/gdtoa/_ldtoa.c",           warnings: "uninitialized"
+g.add "lib/libc/gdtoa/glue.c"
+g.add "lib/libc/gdtoa/machdep_ldisd.c"
+g.add "lib/libc/gen/err.c"
+g.add "lib/libc/gen/fpclassify.c"
+g.add "lib/libc/gen/isinf.c"
+g.add "lib/libc/gen/ldexp.c"
+g.add "lib/libc/gen/lockf.c"
+g.add "lib/libc/i386/arith.h"
+g.add "lib/libc/i386/gd_qnan.h"
+# libc iconv
+g.add "lib/libc/iconv/bsd_iconv.c"
+g.add "lib/libc/iconv/citrus_bcs.c"
+g.add "lib/libc/iconv/citrus_bcs.h",       postfixup: "define_citrus_bcs_strtol"
+g.add "lib/libc/iconv/citrus_db.c"
+g.add "lib/libc/iconv/citrus_db.h"
+g.add "lib/libc/iconv/citrus_db_factory.h"
+g.add "lib/libc/iconv/citrus_db_file.h"
+g.add "lib/libc/iconv/citrus_db_hash.c"
+g.add "lib/libc/iconv/citrus_db_hash.h"
+g.add "lib/libc/iconv/citrus_esdb.c"
+g.add "lib/libc/iconv/citrus_esdb.h"
+g.add "lib/libc/iconv/citrus_esdb_file.h"
+g.add "lib/libc/iconv/citrus_hash.h"
+g.add "lib/libc/iconv/citrus_iconv.c"
+g.add "lib/libc/iconv/citrus_iconv.h"
+g.add "lib/libc/iconv/citrus_iconv_local.h"
+g.add "lib/libc/iconv/citrus_lock.h"
+g.add "lib/libc/iconv/citrus_lookup.c"
+g.add "lib/libc/iconv/citrus_lookup.h"
+g.add "lib/libc/iconv/citrus_lookup_file.h"
+g.add "lib/libc/iconv/citrus_memstream.c"
+g.add "lib/libc/iconv/citrus_memstream.h"
+g.add "lib/libc/iconv/citrus_mmap.c"
+g.add "lib/libc/iconv/citrus_mmap.h"
+g.add "lib/libc/iconv/citrus_module.c",    fixup: "define_libc_dlopen"
+g.add "lib/libc/iconv/citrus_module.h"
+g.add "lib/libc/iconv/citrus_namespace.h"
+g.add "lib/libc/iconv/citrus_region.h"
+g.add "lib/libc/iconv/citrus_types.h"
+g.add "lib/libc/iconv/iconv-internal.h"
+g.add "lib/libc/iconv/iconv.c"
+g.add "lib/libc/iconv/iconv_close.c"
+g.add "lib/libc/iconv/iconv_open.c"
+# libc include
+g.add "lib/libc/include/errlst.h"
+# libc locale
+g.add "lib/libc/locale/ascii.c",           warnings: ["sign-compare", "type-limits", "tautological-compare"]
+g.add "lib/libc/locale/big5.c"
+g.add "lib/libc/locale/btowc.c"
+g.add "lib/libc/locale/collate.c",         warnings: ["missing-field-initializers", "pointer-sign", "sign-compare", "unused-parameter"],
+                                           fixup:    "collate_rename"
+g.add "lib/libc/locale/collate.h"
+g.add "lib/libc/locale/collcmp.c",         warnings: "missing-field-initializers"
+g.add "lib/libc/locale/euc.c",             warnings: "sign-compare"
+g.add "lib/libc/locale/fix_grouping.c"
+g.add "lib/libc/locale/gb18030.c",         warnings: "sign-compare"
+g.add "lib/libc/locale/gb2312.c",          warnings: "sign-compare"
+g.add "lib/libc/locale/gbk.c"
+g.add "lib/libc/locale/isctype.c"
+g.add "lib/libc/locale/iswctype.c",        fixup:    "include_wctype_h"
+g.add "lib/libc/locale/ldpart.c"
+g.add "lib/libc/locale/ldpart.h"
+g.add "lib/libc/locale/lmessages.c"
+g.add "lib/libc/locale/lmessages.h"
+g.add "lib/libc/locale/lmonetary.c"
+g.add "lib/libc/locale/lmonetary.h"
+g.add "lib/libc/locale/lnumeric.c"
+g.add "lib/libc/locale/lnumeric.h"
+g.add "lib/libc/locale/localeconv.c"
+g.add "lib/libc/locale/mblen.c"
+g.add "lib/libc/locale/mblocal.h"
+g.add "lib/libc/locale/mbrlen.c"
+g.add "lib/libc/locale/mbrtowc.c"
+g.add "lib/libc/locale/mbsinit.c"
+g.add "lib/libc/locale/mbsnrtowcs.c"
+g.add "lib/libc/locale/mbsrtowcs.c"
+g.add "lib/libc/locale/mbstowcs.c"
+g.add "lib/libc/locale/mbtowc.c"
+g.add "lib/libc/locale/mskanji.c"
+g.add "lib/libc/locale/nl_langinfo.c"
+g.add "lib/libc/locale/none.c",            warnings: ["sign-compare", "type-limits", "tautological-compare", "missing-field-initializers"]
+g.add "lib/libc/locale/rune.c"
+g.add "lib/libc/locale/runefile.h"
+g.add "lib/libc/locale/runetype.c"
+g.add "lib/libc/locale/setlocale.c"
+g.add "lib/libc/locale/setlocale.h"
+g.add "lib/libc/locale/setrunelocale.c",   warnings: "unused-parameter"
+g.add "lib/libc/locale/table.c",           warnings: "missing-field-initializers"
+g.add "lib/libc/locale/tolower.c"
+g.add "lib/libc/locale/toupper.c"
+g.add "lib/libc/locale/utf8.c",            warnings: ["sign-compare", "type-limits", "tautological-compare"]
+g.add "lib/libc/locale/wcrtomb.c"
+g.add "lib/libc/locale/wcsftime.c"
+g.add "lib/libc/locale/wcsnrtombs.c",      warnings: "sign-compare"
+g.add "lib/libc/locale/wcsrtombs.c"
+g.add "lib/libc/locale/wcstod.c"
+g.add "lib/libc/locale/wcstof.c"
+g.add "lib/libc/locale/wcstoimax.c",       warnings: "sign-compare"
+g.add "lib/libc/locale/wcstol.c",          warnings: "sign-compare", fixup: "include_wctype_h"
+g.add "lib/libc/locale/wcstold.c"
+g.add "lib/libc/locale/wcstoll.c",         warnings: "sign-compare"
+g.add "lib/libc/locale/wcstombs.c"
+g.add "lib/libc/locale/wcstoul.c",         warnings: "sign-compare", fixup: "include_wctype_h"
+g.add "lib/libc/locale/wcstoull.c",        warnings: "sign-compare"
+g.add "lib/libc/locale/wcstoumax.c",       warnings: "sign-compare"
+g.add "lib/libc/locale/wctob.c"
+g.add "lib/libc/locale/wctomb.c"
+g.add "lib/libc/locale/wctrans.c",         warnings: "unused-parameter"
+g.add "lib/libc/locale/wctype.c",          warnings: "unused-parameter", fixup: "include_wctype_h"
+g.add "lib/libc/locale/wcwidth.c"
+g.add "lib/libc/locale/xlocale.c",         warnings: "missing-field-initializers"
+g.add "lib/libc/locale/xlocale_private.h"
+# libc mips
+g.add "lib/libc/mips/arith.h"
+g.add "lib/libc/mips/gd_qnan.h"
+# libc stdio
+g.add "lib/libc/stdio/_flock_stub.c",      warnings: "unused-parameter"
+g.add "lib/libc/stdio/asprintf.c"
+g.add "lib/libc/stdio/clrerr.c"
+g.add "lib/libc/stdio/dprintf.c"
+g.add "lib/libc/stdio/fclose.c"
+g.add "lib/libc/stdio/fdopen.c"
+g.add "lib/libc/stdio/feof.c"
+g.add "lib/libc/stdio/ferror.c"
+g.add "lib/libc/stdio/fflush.c"
+g.add "lib/libc/stdio/fgetc.c"
+g.add "lib/libc/stdio/fgetwc.c",           warnings: "pointer-sign"
+g.add "lib/libc/stdio/fgetws.c",           warnings: "pointer-sign"
+g.add "lib/libc/stdio/fgetpos.c"
+g.add "lib/libc/stdio/fgets.c",            warnings: "sign-compare"
+g.add "lib/libc/stdio/fileno.c"
+g.add "lib/libc/stdio/findfp.c",           fixup:    "mutex_initializer"
+g.add "lib/libc/stdio/flags.c"
+g.add "lib/libc/stdio/floatio.h"
+g.add "lib/libc/stdio/fmemopen.c",         warnings: "sign-compare"
+g.add "lib/libc/stdio/fopen.c"
+g.add "lib/libc/stdio/fprintf.c"
+g.add "lib/libc/stdio/fputc.c"
+g.add "lib/libc/stdio/fputs.c"
+g.add "lib/libc/stdio/fputwc.c"
+g.add "lib/libc/stdio/fputws.c"
+g.add "lib/libc/stdio/fread.c",            warnings: "sign-compare"
+g.add "lib/libc/stdio/freopen.c",          warnings: "maybe-uninitialized"
+g.add "lib/libc/stdio/fscanf.c"
+g.add "lib/libc/stdio/fseek.c",            warnings: "sign-compare"
+g.add "lib/libc/stdio/fsetpos.c"
+g.add "lib/libc/stdio/ftell.c",            warnings: "sign-compare"
+g.add "lib/libc/stdio/funopen.c"
+g.add "lib/libc/stdio/fvwrite.c",          warnings: "sign-compare", fixup: "undef_min"
+g.add "lib/libc/stdio/fvwrite.h"
+g.add "lib/libc/stdio/fwalk.c"
+g.add "lib/libc/stdio/fwide.c"
+g.add "lib/libc/stdio/fwprintf.c"
+g.add "lib/libc/stdio/fwrite.c"
+g.add "lib/libc/stdio/fwscanf.c"
+g.add "lib/libc/stdio/getc.c"
+g.add "lib/libc/stdio/getchar.c"
+g.add "lib/libc/stdio/getdelim.c",         warnings: "pointer-sign"
+g.add "lib/libc/stdio/getline.c"
+g.add "lib/libc/stdio/gets.c"
+g.add "lib/libc/stdio/getwc.c"
+g.add "lib/libc/stdio/getwchar.c"
+g.add "lib/libc/stdio/glue.h"
+g.add "lib/libc/stdio/local.h",            fixup:    "include_stdio_h"
+g.add "lib/libc/stdio/makebuf.c"
+g.add "lib/libc/stdio/open_memstream.c"
+g.add "lib/libc/stdio/open_wmemstream.c",  warnings: "sign-compare"
+g.add "lib/libc/stdio/printf-pos.c"
+g.add "lib/libc/stdio/printf.c"
+g.add "lib/libc/stdio/printfcommon.h"
+g.add "lib/libc/stdio/printflocal.h"
+g.add "lib/libc/stdio/putc.c"
+g.add "lib/libc/stdio/putchar.c"
+g.add "lib/libc/stdio/puts.c"
+g.add "lib/libc/stdio/putwc.c"
+g.add "lib/libc/stdio/putwchar.c"
+g.add "lib/libc/stdio/refill.c"
+g.add "lib/libc/stdio/rewind.c"
+g.add "lib/libc/stdio/rget.c"
+g.add "lib/libc/stdio/scanf.c"
+g.add "lib/libc/stdio/setbuf.c"
+g.add "lib/libc/stdio/setvbuf.c"
+g.add "lib/libc/stdio/snprintf.c"
+g.add "lib/libc/stdio/sprintf.c"
+g.add "lib/libc/stdio/sscanf.c"
+g.add "lib/libc/stdio/stdio.c"
+g.add "lib/libc/stdio/swprintf.c"
+g.add "lib/libc/stdio/swscanf.c"
+g.add "lib/libc/stdio/tmpfile.c"
+g.add "lib/libc/stdio/ungetc.c"
+g.add "lib/libc/stdio/ungetwc.c"
+g.add "lib/libc/stdio/vasprintf.c"
+g.add "lib/libc/stdio/vdprintf.c"
+g.add "lib/libc/stdio/vfprintf.c",         warnings: ["maybe-uninitialized", "sign-compare", "unused-parameter"]
+g.add "lib/libc/stdio/vfscanf.c",          warnings: "maybe-uninitialized"
+g.add "lib/libc/stdio/vfwprintf.c",        warnings: ["maybe-uninitialized", "sign-compare", "pointer-sign"]
+g.add "lib/libc/stdio/vfwscanf.c",         warnings: ["maybe-uninitialized", "sign-compare", "unused-but-set-variable"]
+g.add "lib/libc/stdio/vprintf.c"
+g.add "lib/libc/stdio/vscanf.c"
+g.add "lib/libc/stdio/vsnprintf.c"
+g.add "lib/libc/stdio/vsprintf.c"
+g.add "lib/libc/stdio/vsscanf.c",          warnings: "unused-parameter"
+g.add "lib/libc/stdio/vswprintf.c",        warnings: "pointer-sign"
+g.add "lib/libc/stdio/vswscanf.c",         warnings: "unused-parameter"
+g.add "lib/libc/stdio/vwprintf.c"
+g.add "lib/libc/stdio/vwscanf.c"
+g.add "lib/libc/stdio/wbuf.c"
+g.add "lib/libc/stdio/wprintf.c"
+g.add "lib/libc/stdio/wscanf.c"
+g.add "lib/libc/stdio/wsetup.c"
+g.add "lib/libc/stdio/xprintf.c",          warnings: ["format", "unused-parameter"]
+g.add "lib/libc/stdio/xprintf_errno.c",    warnings: "unused-parameter"
+g.add "lib/libc/stdio/xprintf_float.c",    warnings: ["maybe-uninitialized", "unused-but-set-variable", "unused-parameter"]
+g.add "lib/libc/stdio/xprintf_hexdump.c",  warnings: "unused-parameter"
+g.add "lib/libc/stdio/xprintf_int.c",      warnings: ["format", "maybe-uninitialized", "unused-parameter", "sometimes-uninitialized"]
+g.add "lib/libc/stdio/xprintf_quote.c",    warnings: "unused-parameter"
+g.add "lib/libc/stdio/xprintf_str.c",      warnings: ["pointer-sign", "unused-parameter"]
+g.add "lib/libc/stdio/xprintf_time.c",     warnings: "unused-parameter"
+g.add "lib/libc/stdio/xprintf_vis.c",      warnings: "unused-parameter"
+# libc stdlib
+g.add "lib/libc/stdlib/_Exit.c"
+g.add "lib/libc/stdlib/atexit.h"
+g.add "lib/libc/stdlib/atof.c"
+g.add "lib/libc/stdlib/atoi.c"
+g.add "lib/libc/stdlib/exit.c",            fixup:    "isthreaded"
+g.add "lib/libc/stdlib/llabs.c"
+g.add "lib/libc/stdlib/qsort.c",           warnings: "sign-compare"
+g.add "lib/libc/stdlib/qsort_r.c"
+g.add "lib/libc/stdlib/reallocf.c"
+g.add "lib/libc/stdlib/strfmon.c"
+g.add "lib/libc/stdlib/strtoimax.c"
+g.add "lib/libc/stdlib/strtol.c"
+g.add "lib/libc/stdlib/strtoll.c"
+g.add "lib/libc/stdlib/strtoull.c"
+g.add "lib/libc/stdlib/strtoumax.c"
+# libc stdtime
+g.add "lib/libc/stdtime/strftime.c",       fixup:    "include_wctype_h"
+g.add "lib/libc/stdtime/timelocal.c"
+g.add "lib/libc/stdtime/timelocal.h"
+# libc string
+g.add "lib/libc/string/bcopy.c"
+g.add "lib/libc/string/bzero.c"
+g.add "lib/libc/string/ffs.c"
+g.add "lib/libc/string/memccpy.c"
+g.add "lib/libc/string/memchr.c"
+g.add "lib/libc/string/memcmp.c"
+g.add "lib/libc/string/memcpy.c"
+g.add "lib/libc/string/memmove.c"
+g.add "lib/libc/string/memset.c"
+g.add "lib/libc/string/stpcpy.c"
+g.add "lib/libc/string/stpncpy.c"
+g.add "lib/libc/string/strcasecmp.c"
+g.add "lib/libc/string/strcasestr.c"
+g.add "lib/libc/string/strcat.c"
+g.add "lib/libc/string/strchr.c"
+g.add "lib/libc/string/strcmp.c"
+g.add "lib/libc/string/strcoll.c",         fixup:    "collate_fixwarnings"
+g.add "lib/libc/string/strcpy.c"
+g.add "lib/libc/string/strcspn.c",         warnings: "sign-compare"
+g.add "lib/libc/string/strdup.c"
+g.add "lib/libc/string/strlcpy.c"
+g.add "lib/libc/string/strlen.c"
+g.add "lib/libc/string/strncat.c"
+g.add "lib/libc/string/strncmp.c"
+g.add "lib/libc/string/strncpy.c"
+g.add "lib/libc/string/strndup.c"
+g.add "lib/libc/string/strnlen.c"
+g.add "lib/libc/string/strpbrk.c"
+g.add "lib/libc/string/strrchr.c"
+g.add "lib/libc/string/strspn.c",          warnings: "sign-compare"
+g.add "lib/libc/string/strstr.c"
+g.add "lib/libc/string/strtok.c"
+g.add "lib/libc/string/strxfrm.c",         fixup:    "collate_fixwarnings"
+g.add "lib/libc/string/wcpcpy.c"
+g.add "lib/libc/string/wcpncpy.c"
+g.add "lib/libc/string/wcscasecmp.c"
+g.add "lib/libc/string/wcscat.c"
+g.add "lib/libc/string/wcschr.c"
+g.add "lib/libc/string/wcscmp.c"
+g.add "lib/libc/string/wcscoll.c"
+g.add "lib/libc/string/wcscpy.c"
+g.add "lib/libc/string/wcscspn.c"
+g.add "lib/libc/string/wcsdup.c"
+g.add "lib/libc/string/wcslcat.c"
+g.add "lib/libc/string/wcslcpy.c"
+g.add "lib/libc/string/wcslen.c"
+g.add "lib/libc/string/wcsncasecmp.c"
+g.add "lib/libc/string/wcsncat.c"
+g.add "lib/libc/string/wcsncmp.c"
+g.add "lib/libc/string/wcsncpy.c"
+g.add "lib/libc/string/wcsnlen.c"
+g.add "lib/libc/string/wcspbrk.c"
+g.add "lib/libc/string/wcsrchr.c"
+g.add "lib/libc/string/wcsspn.c"
+g.add "lib/libc/string/wcsstr.c"
+g.add "lib/libc/string/wcstok.c"
+g.add "lib/libc/string/wcswidth.c"
+g.add "lib/libc/string/wcsxfrm.c",         fixup:    "collate_fixwarnings"
+g.add "lib/libc/string/wmemchr.c"
+g.add "lib/libc/string/wmemcmp.c"
+g.add "lib/libc/string/wmemcpy.c"
+g.add "lib/libc/string/wmemmove.c"
+g.add "lib/libc/string/wmemset.c"
+# msun
+g.add "lib/msun/bsdsrc/b_exp.c"
+g.add "lib/msun/bsdsrc/b_log.c"
+g.add "lib/msun/bsdsrc/b_tgamma.c"
+g.add "lib/msun/bsdsrc/mathimpl.h"
+g.add "lib/msun/ld128/e_rem_pio2l.h",      warnings: ["type-limits", "parentheses"]
+g.add "lib/msun/ld128/invtrig.c",          fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/invtrig.h"
+g.add "lib/msun/ld128/k_cosl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/k_expl.h",           warnings: "missing-braces"
+g.add "lib/msun/ld128/k_sinl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/k_tanl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/s_erfl.c",           warnings: "unused-but-set-variable",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/s_exp2l.c",          fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/s_expl.c",           warnings: "missing-braces",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/s_logl.c",           warnings: "missing-braces",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/ld128/s_nanl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/catrig.c",             warnings: "unused-variable"
+g.add "lib/msun/src/catrigf.c",            warnings: "unused-variable"
+g.add "lib/msun/src/e_acos.c"
+g.add "lib/msun/src/e_acosf.c"
+g.add "lib/msun/src/e_acosl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_acosh.c"
+g.add "lib/msun/src/e_acoshf.c"
+g.add "lib/msun/src/e_acoshl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_asin.c"
+g.add "lib/msun/src/e_asinf.c"
+g.add "lib/msun/src/e_asinl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_atan2.c",            warnings: "parentheses"
+g.add "lib/msun/src/e_atan2f.c"
+g.add "lib/msun/src/e_atan2l.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_atanh.c"
+g.add "lib/msun/src/e_atanhf.c"
+g.add "lib/msun/src/e_atanhl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_cosh.c"
+g.add "lib/msun/src/e_coshf.c"
+g.add "lib/msun/src/e_coshl.c",            warnings: "unused-variable",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_exp.c"
+g.add "lib/msun/src/e_expf.c"
+g.add "lib/msun/src/e_fmod.c"
+g.add "lib/msun/src/e_fmodf.c"
+g.add "lib/msun/src/e_fmodl.c",            warnings: ["sign-compare", "maybe-uninitialized"]
+g.add "lib/msun/src/e_hypot.c"
+g.add "lib/msun/src/e_hypotf.c"
+g.add "lib/msun/src/e_hypotl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_j0.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_j1.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_jn.c"
+g.add "lib/msun/src/e_lgamma.c"
+g.add "lib/msun/src/e_lgamma_r.c",         warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_lgammaf.c"
+g.add "lib/msun/src/e_lgammaf_r.c",        warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_log.c"
+g.add "lib/msun/src/e_log10.c"
+g.add "lib/msun/src/e_log10f.c"
+g.add "lib/msun/src/e_log2.c"
+g.add "lib/msun/src/e_log2f.c"
+g.add "lib/msun/src/e_logf.c"
+g.add "lib/msun/src/e_pow.c",              warnings: "sign-compare"
+g.add "lib/msun/src/e_powf.c",             warnings: "sign-compare"
+g.add "lib/msun/src/e_rem_pio2.c"
+g.add "lib/msun/src/e_rem_pio2f.c"
+g.add "lib/msun/src/e_remainder.c"
+g.add "lib/msun/src/e_remainderf.c"
+g.add "lib/msun/src/e_remainderl.c",       fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_scalb.c"
+g.add "lib/msun/src/e_scalbf.c"
+g.add "lib/msun/src/e_sinh.c"
+g.add "lib/msun/src/e_sinhf.c"
+g.add "lib/msun/src/e_sinhl.c",            warnings: "unused-variable",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/e_sqrt.c",             warnings: "sign-compare"
+g.add "lib/msun/src/e_sqrtf.c"
+g.add "lib/msun/src/e_sqrtl.c",            warnings: "unknown-pragmas",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/fenv-softfloat.h"
+g.add "lib/msun/src/k_cos.c"
+g.add "lib/msun/src/k_cosf.c"
+g.add "lib/msun/src/k_exp.c"
+g.add "lib/msun/src/k_expf.c"
+g.add "lib/msun/src/k_log.h"
+g.add "lib/msun/src/k_logf.h"
+g.add "lib/msun/src/k_rem_pio2.c"
+g.add "lib/msun/src/k_sin.c"
+g.add "lib/msun/src/k_sinf.c"
+g.add "lib/msun/src/k_tan.c"
+g.add "lib/msun/src/k_tanf.c"
+g.add "lib/msun/src/math.h",               postfixup: "include_crystax_sys_math_h"
+g.add "lib/msun/src/math_private.h"
+g.add "lib/msun/src/s_asinh.c"
+g.add "lib/msun/src/s_asinhf.c"
+g.add "lib/msun/src/s_asinhl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_atan.c"
+g.add "lib/msun/src/s_atanf.c"
+g.add "lib/msun/src/s_atanl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_carg.c"
+g.add "lib/msun/src/s_cargf.c"
+g.add "lib/msun/src/s_cbrt.c"
+g.add "lib/msun/src/s_cbrtf.c"
+g.add "lib/msun/src/s_cbrtl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_ccosh.c"
+g.add "lib/msun/src/s_ccoshf.c"
+g.add "lib/msun/src/s_ceil.c",             warnings: "sign-compare"
+g.add "lib/msun/src/s_ceilf.c"
+g.add "lib/msun/src/s_ceill.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_cexp.c"
+g.add "lib/msun/src/s_cexpf.c"
+g.add "lib/msun/src/s_cimag.c"
+g.add "lib/msun/src/s_cimagf.c"
+g.add "lib/msun/src/s_cimagl.c"
+g.add "lib/msun/src/s_conj.c"
+g.add "lib/msun/src/s_conjf.c"
+g.add "lib/msun/src/s_conjl.c"
+g.add "lib/msun/src/s_copysign.c"
+g.add "lib/msun/src/s_copysignf.c"
+g.add "lib/msun/src/s_copysignl.c"
+g.add "lib/msun/src/s_cos.c"
+g.add "lib/msun/src/s_cosf.c"
+g.add "lib/msun/src/s_cosl.c",             fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_cproj.c"
+g.add "lib/msun/src/s_cprojf.c"
+g.add "lib/msun/src/s_cprojl.c"
+g.add "lib/msun/src/s_creal.c"
+g.add "lib/msun/src/s_crealf.c"
+g.add "lib/msun/src/s_creall.c"
+g.add "lib/msun/src/s_csinh.c"
+g.add "lib/msun/src/s_csinhf.c"
+g.add "lib/msun/src/s_csqrt.c",            warnings: "unknown-pragmas"
+g.add "lib/msun/src/s_csqrtf.c",           warnings: "unknown-pragmas"
+g.add "lib/msun/src/s_csqrtl.c",           warnings: "unknown-pragmas",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_ctanh.c"
+g.add "lib/msun/src/s_ctanhf.c"
+g.add "lib/msun/src/s_erf.c"
+g.add "lib/msun/src/s_erff.c"
+g.add "lib/msun/src/s_exp2.c"
+g.add "lib/msun/src/s_exp2f.c"
+g.add "lib/msun/src/s_expm1.c"
+g.add "lib/msun/src/s_expm1f.c"
+g.add "lib/msun/src/s_fabs.c"
+g.add "lib/msun/src/s_fabsf.c"
+g.add "lib/msun/src/s_fabsl.c"
+g.add "lib/msun/src/s_fdim.c"
+g.add "lib/msun/src/s_finite.c"
+g.add "lib/msun/src/s_finitef.c"
+g.add "lib/msun/src/s_floor.c",            warnings: "sign-compare"
+g.add "lib/msun/src/s_floorf.c"
+g.add "lib/msun/src/s_floorl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_fma.c",              warnings: "parentheses"
+g.add "lib/msun/src/s_fmaf.c"
+g.add "lib/msun/src/s_fmal.c",             warnings: "parentheses",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_fmax.c"
+g.add "lib/msun/src/s_fmaxf.c"
+g.add "lib/msun/src/s_fmaxl.c"
+g.add "lib/msun/src/s_fmin.c"
+g.add "lib/msun/src/s_fminf.c"
+g.add "lib/msun/src/s_fminl.c"
+g.add "lib/msun/src/s_frexp.c"
+g.add "lib/msun/src/s_frexpf.c"
+g.add "lib/msun/src/s_frexpl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_ilogb.c"
+g.add "lib/msun/src/s_ilogbf.c"
+g.add "lib/msun/src/s_ilogbl.c"
+g.add "lib/msun/src/s_isfinite.c",         warnings: "uninitialized"
+g.add "lib/msun/src/s_isnan.c"
+g.add "lib/msun/src/s_isnormal.c",         warnings: "uninitialized"
+g.add "lib/msun/src/s_llrint.c"
+g.add "lib/msun/src/s_llrintf.c"
+g.add "lib/msun/src/s_llrintl.c"
+g.add "lib/msun/src/s_llround.c"
+g.add "lib/msun/src/s_llroundf.c"
+g.add "lib/msun/src/s_llroundl.c"
+g.add "lib/msun/src/s_log1p.c"
+g.add "lib/msun/src/s_log1pf.c"
+g.add "lib/msun/src/s_logb.c"
+g.add "lib/msun/src/s_logbf.c"
+g.add "lib/msun/src/s_logbl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_lrint.c"
+g.add "lib/msun/src/s_lrintf.c"
+g.add "lib/msun/src/s_lrintl.c"
+g.add "lib/msun/src/s_lround.c"
+g.add "lib/msun/src/s_lroundf.c"
+g.add "lib/msun/src/s_lroundl.c"
+g.add "lib/msun/src/s_modf.c"
+g.add "lib/msun/src/s_modff.c"
+g.add "lib/msun/src/s_modfl.c",            warnings: ["uninitialized", "maybe-uninitialized"]
+g.add "lib/msun/src/s_nan.c"
+g.add "lib/msun/src/s_nearbyint.c"
+g.add "lib/msun/src/s_nextafter.c"
+g.add "lib/msun/src/s_nextafterf.c"
+g.add "lib/msun/src/s_nextafterl.c",       warnings: "parentheses",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_nexttoward.c",       warnings: "parentheses",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_nexttowardf.c",      warnings: "parentheses"
+g.add "lib/msun/src/s_remquo.c"
+g.add "lib/msun/src/s_remquof.c"
+g.add "lib/msun/src/s_remquol.c",          warnings: "sign-compare",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_rint.c"
+g.add "lib/msun/src/s_rintf.c"
+g.add "lib/msun/src/s_rintl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_round.c"
+g.add "lib/msun/src/s_roundf.c"
+g.add "lib/msun/src/s_roundl.c"
+g.add "lib/msun/src/s_scalbln.c"
+g.add "lib/msun/src/s_scalbn.c",           warnings: "parentheses"
+g.add "lib/msun/src/s_scalbnf.c",          warnings: "parentheses"
+g.add "lib/msun/src/s_scalbnl.c",          warnings: "parentheses",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_signbit.c",          warnings: "uninitialized"
+g.add "lib/msun/src/s_signgam.c"
+g.add "lib/msun/src/s_sin.c"
+g.add "lib/msun/src/s_sinf.c"
+g.add "lib/msun/src/s_sinl.c",             fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_tan.c"
+g.add "lib/msun/src/s_tanf.c"
+g.add "lib/msun/src/s_tanh.c"
+g.add "lib/msun/src/s_tanhf.c"
+g.add "lib/msun/src/s_tanhl.c",            warnings: "unused-variable",
+                                           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_tanl.c",             fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/s_tgammaf.c"
+g.add "lib/msun/src/s_trunc.c"
+g.add "lib/msun/src/s_truncf.c"
+g.add "lib/msun/src/s_truncl.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/w_cabs.c"
+g.add "lib/msun/src/w_cabsf.c"
+g.add "lib/msun/src/w_cabsl.c",            fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/msun/src/w_drem.c"
+g.add "lib/msun/src/w_dremf.c"
+# platform-specific
+g.add "sys/arm/include/_inttypes.h"
+g.add "sys/arm/include/_limits.h"
+g.add "sys/arm/include/_stdint.h"
+g.add "sys/arm/include/armreg.h"
+g.add "sys/arm/include/endian.h"
+g.add "sys/arm/include/sysarch.h"
+g.add "sys/i386/include/ieeefp.h"
+g.add "sys/mips/include/_inttypes.h"
+g.add "sys/mips/include/_limits.h"
+g.add "sys/mips/include/_stdint.h"
+g.add "sys/mips/include/endian.h"
+g.add "sys/sys/_null.h"
+g.add "sys/sys/_stdint.h"
+g.add "sys/sys/endian.h",                  postfixup: "include_crystax_sys_endian_h"
+g.add "sys/sys/iconv.h",                   fixup:     "include_sys_types_h"
+g.add "sys/sys/limits.h",                  postfixup: "include_crystax_sys_limits_h"
+g.add "sys/sys/stdint.h"
+g.add "sys/x86/include/_inttypes.h"
+g.add "sys/x86/include/_limits.h"
+g.add "sys/x86/include/_stdint.h"
+g.add "sys/x86/include/endian.h"
+
+["arm64", "mips64"].each do |a|
+    [
+        "_inttypes.h",
+        "_limits.h",
+        "_stdint.h",
+        "endian.h",
+    ].each do |i|
+        g.add "sys/#{a}/include/#{i}" do |f|
+            f.puts "#include <crystax/#{a}/#{i}>"
+        end
+    end
+
+    [
+        "arith.h",
+        "gd_qnan.h",
+    ].each do |i|
+        g.add "lib/libc/#{a}/#{i}" do |f|
+            f.puts "/*"
+            f.puts " * WARNING!!! IT'S NOT CLEAR WHICH SETTINGS SHOULD BE HERE FOR #{a.sub('arm64', 'aarch64').upcase}"
+            f.puts " * FOR NOW, JUST COPY SETTINGS FROM #{a.sub(/64$/, '').upcase}-SPECIFIC HEADER"
+            f.puts " * NEED TO BE REVIEWED WHEN WORKING #{a.sub('arm64', 'aarch64').upcase} DEVICE/EMULATOR APPEARS"
+            f.puts " */"
+            f.puts "#include \"../#{a.sub(/64$/, '')}/#{i}\""
+        end
+    end
+end
+
+g.add "lib/libc/include/fpmath.h" do |f|
+    f.puts "#include <crystax/sys/fpmath.h>"
+end
+
+g.generate

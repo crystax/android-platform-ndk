@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+
+SYMBOLS = [
+    "dladdr",
+    "fcntl",
+    "pthread_mutex_lock_timeout_np",
+    "pthread_mutex_timedlock",
+    "sysconf",
+]
+
+TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
+DSTFILE = File.join(TOPDIR, 'src', 'include', 'crystax', 'details', 'bionic.inc')
+
+if File.exists?(DSTFILE) && File.mtime(DSTFILE) > File.mtime(__FILE__)
+    exit 0
+end
+
+def relpath(path, from)
+    Pathname.new(path).relative_path_from(Pathname.new(from)).to_s
+end
+
+puts "GEN  #{relpath(DSTFILE, TOPDIR)}"
+FileUtils.mkdir_p File.dirname(DSTFILE)
+File.open(DSTFILE, "w") do |f|
+    f.puts "/*"
+    File.read(File.join(TOPDIR, 'LICENSE')).split("\n").map(&:chomp).each do |line|
+        f.puts " * #{line}".rstrip
+    end
+    f.puts " */"
+    f.puts ""
+
+    SYMBOLS.sort.each do |sym|
+        f.puts "DEF(#{sym.upcase}, \"#{sym}\")"
+    end
+end

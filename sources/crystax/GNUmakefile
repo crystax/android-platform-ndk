@@ -502,9 +502,8 @@ endef
 
 # $1: root directory
 # $2: wildcards (*.c, *.h etc)
-#$(foreach __d,$(wildcard $(1)*),$(call rwildcard,$(__d)/,$(2)) $(filter $(subst *,%,$(2)),$(__d)))
 define rwildcard
-$(foreach __mask,$(2),$(shell find $(1) -name '$(2)' -print))
+$(foreach __d,$(wildcard $(1)*),$(call rwildcard,$(__d)/,$(2)) $(filter $(subst *,%,$(2)),$(__d)))
 endef
 
 define hide
@@ -523,7 +522,7 @@ endef
 # $2: multilib variant
 # $3: source file
 define add-objfile-rule
-$$(call objdir,$(1),$(2))/$$(call objfile,$(3)): $$(abspath $(3)) $$(MAKEFILE_LIST) $$(firstword $$(CCONF))
+$$(call objdir,$(1),$(2))/$$(call objfile,$(3)): $$(abspath $(3)) $$(filter-out %.d,$(MAKEFILE_LIST)) $$(firstword $$(CCONF))
 	@echo "CC $(1) [$(2)] $(3)"
 	@mkdir -p $$(dir $$@)
 	$$(hide)$$(call compiler-for,$(1),$$<) \
@@ -537,7 +536,7 @@ endef
 # $2: ABI
 # $3: multilib variant
 define add-target-rule
-$$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(MAKEFILE_LIST) $$(firstword $$(CCONF))
+$$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(filter-out %.d,$(MAKEFILE_LIST)) $$(firstword $$(CCONF))
 	@echo "$(if $(filter static,$(1)),AR,LD) $(2) [$(3)] $$(notdir $$@)"
 	@mkdir -p $$(dir $$@)
 	@rm -f $$@
@@ -611,9 +610,7 @@ $(foreach __abi,$(call abis),\
         $(foreach __src,$(call sources,$(__abi)),\
             $(eval $(call add-objfile-rule,$(__abi),$(__mlib),$(__src)))\
         )\
-        $(if $(wildcard $(call objdir,$(__abi),$(__mlib))),\
-            $(eval include $(call rwildcard,$(call objdir,$(__abi),$(__mlib),*.d)))\
-        )\
+        $(eval sinclude $(call rwildcard,$(call objdir,$(__abi),$(__mlib)),*.d))\
     )\
 )
 else

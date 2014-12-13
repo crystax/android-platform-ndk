@@ -45,4 +45,5 @@ include/time.h
 include/wchar.h
 include/wctype.h
 include/xlocale/
+src/include/crystax/details/bionic.inc
 # END OF AUTO-GENERATED SOURCES

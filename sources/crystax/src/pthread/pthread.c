@@ -33,24 +33,12 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
+#include <crystax/atomic.h>
+#include <crystax/bionic.h>
+
 static int initialized = 0;
-static int (*pthread_mutex_timedlock_func)(pthread_mutex_t *, const struct timespec *) = 0;
-static int (*pthread_mutex_lock_timeout_np_func)(pthread_mutex_t *, unsigned int ) = 0;
-
-static int crystax_atomic_fetch(volatile int *ptr)
-{
-    return __sync_add_and_fetch(ptr, 0);
-}
-
-static int crystax_atomic_swap(int v, volatile int *ptr)
-{
-    int prev;
-    do
-    {
-        prev = *ptr;
-    } while (__sync_val_compare_and_swap(ptr, prev, v) != prev);
-    return prev;
-}
+static int (*bionic_pthread_mutex_timedlock)(pthread_mutex_t *, const struct timespec *) = NULL;
+static int (*bionic_pthread_mutex_lock_timeout_np)(pthread_mutex_t *, unsigned int ) = NULL;
 
 /* return difference in milliseconds */
 static long long diff(const struct timespec *s, const struct timespec *e)
@@ -91,7 +79,7 @@ static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct 
 
     /* pthread_mutex_lock_timeout_np returns EBUSY when timeout expires
      * but POSIX specifies ETIMEDOUT return value */
-    rc = pthread_mutex_lock_timeout_np_func(mutex, (unsigned) msecs);
+    rc = bionic_pthread_mutex_lock_timeout_np(mutex, (unsigned) msecs);
     if (rc == EBUSY)
         rc = ETIMEDOUT;
 
@@ -103,22 +91,17 @@ int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *absti
     if (!mutex)
         return EINVAL;
 
-    if (crystax_atomic_fetch(&initialized) == 0)
+    if (__crystax_atomic_fetch(&initialized) == 0)
     {
-        void *pc;
+        bionic_pthread_mutex_timedlock = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_PTHREAD_MUTEX_TIMEDLOCK, 1);
+        bionic_pthread_mutex_lock_timeout_np = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_PTHREAD_MUTEX_LOCK_TIMEOUT_NP, 1);
 
-        pc = dlopen("libc.so", RTLD_NOW);
-        if (!pc) abort();
-
-        pthread_mutex_timedlock_func = dlsym(pc, "pthread_mutex_timedlock");
-        pthread_mutex_lock_timeout_np_func = dlsym(pc, "pthread_mutex_lock_timeout_np");
-
-        crystax_atomic_swap(1, &initialized);
+        __crystax_atomic_swap(&initialized, 1);
     }
 
-    if (pthread_mutex_timedlock_func)
-        return pthread_mutex_timedlock_func(mutex, abstime);
-    else if (pthread_mutex_lock_timeout_np_func)
+    if (bionic_pthread_mutex_timedlock)
+        return bionic_pthread_mutex_timedlock(mutex, abstime);
+    else if (bionic_pthread_mutex_lock_timeout_np)
         return crystax_pthread_mutex_timedlock(mutex, abstime);
     else
         return EFAULT;

@@ -166,13 +166,7 @@ sources_for_abi()
             ;;
     esac
 
-    case $a in
-        x86)
-            echo "src/crystax/string/i386/ffs.s"
-            ;;
-    esac
-
-    find gen -name '*.c' -a -not -name 'freebsd_*' -print | sort
+    find gen -name '*.c' -a -not -name 'mangled-*' -print | sort
 
     find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
 }
@@ -262,6 +256,7 @@ common_cflags_for_abi()
 
     crystax=$CRYSTAX_SRCDIR
     freebsd=$CRYSTAX_SRCDIR/gen/freebsd
+    cxx=$CRYSTAX_SRCDIR/../cxx-stl/system
 
     arch_flags_for_abi $abi $mlib
 
@@ -345,6 +340,8 @@ common_cflags_for_abi()
     if [ -n "$bsdarch" ]; then
         echo "-I$freebsd/lib/libc/$bsdarch"
     fi
+
+    echo "-I$cxx/include"
 }
 
 # $1: ABI
@@ -406,12 +403,12 @@ ldflags_for_abi()
         echo "-Wl,--fix-cortex-a8"
     fi
 
-    # This is needed to link with libc, compiled with soft float ABI
-    # Please note this is dangerous option and it's easy to miss real
-    # mismatch when it enabled.
-    # Unfortunately, right now we just have no other option beside this one.
-    # TODO: implement own libc stub built with proper float ABI.
     if [ "$a" = "armeabi-v7a-hard" ]; then
+        # This is needed to link with crtbegin_so.o/crtend_so.o, compiled with soft float ABI
+        # Please note this is dangerous option and it's easy to miss real
+        # mismatch when it enabled.
+        # Unfortunately, right now we just have no other option beside this one.
+        # TODO: build crtbegin_so.o/crtend_so.o with proper float ABI.
         echo "-Wl,--no-warn-mismatch"
     fi
 
@@ -420,11 +417,10 @@ ldflags_for_abi()
     echo "-Wl,-z,interpose"
     echo "-Wl,-z,nodelete"
 
-    echo "-lgcc"
-    echo "-lstdc++"
-    echo "-ldl"
-    echo "-lc"
-    is_debug_mode && echo "-llog"
+    echo "-Wl,-Bstatic,-lgcc"
+    echo "-Wl,-Bdynamic,-lc"
+    echo "-Wl,-Bdynamic,-ldl"
+    is_debug_mode && echo "-Wl,-Bdynamic,-llog"
 }
 
 # $1: ABI

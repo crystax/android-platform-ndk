@@ -46,6 +46,7 @@
 #endif
 
 #include <crystax/private.h>
+#include <crystax/atomic.h>
 
 #if CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_LOGCAT
 
@@ -53,24 +54,9 @@ static int (*func_android_log_vprint)(int, const char *, const char *, va_list) 
 
 static int initialized = 0;
 
-#define atomic_fetch(p) __sync_add_and_fetch(p, 0)
-
-#define def_atomic_swap(type, suffix) \
-    static type atomic_swap_ ## suffix ( type v, type *ptr) \
-    { \
-        type prev; \
-        do { \
-            prev = *ptr; \
-        } while (__sync_val_compare_and_swap(ptr, prev, v) != prev); \
-        return prev; \
-    }
-
-def_atomic_swap(int, i)
-def_atomic_swap(void *, p)
-
 static int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list ap)
 {
-    if (atomic_fetch(&initialized) == 0)
+    if (__crystax_atomic_fetch(&initialized) == 0)
     {
         void *pc;
         void *pf;
@@ -81,8 +67,8 @@ static int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list
         pf = dlsym(pc, "__android_log_vprint");
         if (!pf) abort();
 
-        atomic_swap_p(pf, (void*)&func_android_log_vprint);
-        atomic_swap_i(1, &initialized);
+        __crystax_atomic_swap((void*)&func_android_log_vprint, pf);
+        __crystax_atomic_swap(&initialized, 1);
     }
     return func_android_log_vprint(prio, tag, fmt, ap);
 }

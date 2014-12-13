@@ -27,58 +27,9 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef _CRYSTAX_INTERNAL_H_800619B1E3CF4547AD9EEABF49101679
-#define _CRYSTAX_INTERNAL_H_800619B1E3CF4547AD9EEABF49101679
+#include <crystax/log.h>
 
-#include <stdint.h>
-#include <xlocale.h>
-#include <machine/_align.h>
-
-/* Size of long double should be either 64- or 128-bit */
-#if __LDBL_MANT_DIG__ != 53 && __LDBL_MANT_DIG__ != 113
-#error "Wrong size of long double"
-#endif
-
-#define ALIGNBYTES _ALIGNBYTES
-#define ALIGN(p) _ALIGN(p)
-
-#define FLOCKFILE(fp)   if (__isthreaded) flockfile(fp)
-#define FUNLOCKFILE(fp) if (__isthreaded) funlockfile(fp)
-
-extern void __crystax_stdio_thread_lock();
-extern void __crystax_stdio_thread_unlock();
-#define STDIO_THREAD_LOCK()   __crystax_stdio_thread_lock()
-#define STDIO_THREAD_UNLOCK() __crystax_stdio_thread_unlock()
-
-/*
- * Function to clean up streams, called from abort() and exit().
- */
-extern void (*__cleanup)(void) __attribute__((__visibility__("hidden")));
-
-#ifndef NBBY
-#define NBBY 8
-#endif
-
-#define _pthread_mutex_lock(m)     pthread_mutex_lock(m)
-#define _pthread_mutex_trylock(m)  pthread_mutex_trylock(m)
-#define _pthread_mutex_unlock(m)   pthread_mutex_unlock(m)
-#define _pthread_mutex_destroy(m)  pthread_mutex_destroy(m)
-#define _pthread_self()            pthread_self()
-
-#define _once(o, f) pthread_once(o, f)
-
-#define _fcntl fcntl
-
-#define _close close
-#define _fstat fstat
-#define _getprogname getprogname
-#define _open open
-#define _openat openat
-#define _read read
-#define _write write
-
-#define _dup2(fd, fd2) dup2(fd, fd2)
-
-#define _sigprocmask sigprocmask
-
-#endif /* _CRYSTAX_INTERNAL_H_800619B1E3CF4547AD9EEABF49101679 */
+void __stack_chk_fail()
+{
+    PANIC("stack corruption detected");
+}

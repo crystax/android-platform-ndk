@@ -33,6 +33,6 @@
 #include <crystax/id.h>
 
 /* WARNING!!! Need to be reviewed when real ARM64 device/emulator appear */
-#include <crystax/freebsd/sys/x86/include/_stdint.h>
+#include <crystax/freebsd/sys/x86/include/mangled-_stdint.h>
 
 #endif /* __CRYSTAX_INCLUDE_ARM64__STDINT_T_93712461C0BE4561A28CD06C5DBE1394 */
