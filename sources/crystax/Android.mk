@@ -42,6 +42,8 @@ LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_
 endif
 endif
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+LOCAL_EXPORT_LDFLAGS    := -u __crystax_on_load
+LOCAL_EXPORT_LDFLAGS    += -u __crystax_on_unload
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)

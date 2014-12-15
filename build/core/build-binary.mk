@@ -546,18 +546,16 @@ ifndef LOCAL_SHORT_COMMANDS
     LOCAL_SHORT_COMMANDS := $(strip $(NDK_APP_SHORT_COMMANDS))
 endif
 
-# Enable muldefs option when linking with libcrystax
-# This way app will use functions from libcrystax and link successfully
-# even if there are symbols with the same name in subsequent libraries (libc etc)
-#TARGET_LIBCRYSTAX := -Wl,-z,muldefs
-
 ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
 NDK_APP_LIBCRYSTAX := static
 endif
 
-# Force inclusion of libcrystax constructor/destructor functions
-TARGET_LIBCRYSTAX += -u __crystax_on_load
-TARGET_LIBCRYSTAX += -u __crystax_on_unload
+ifeq (,$(strip $(TARGET_LIBCRYSTAX)))
+
+# Enable muldefs option when linking with libcrystax
+# This way app will use functions from libcrystax and link successfully
+# even if there are symbols with the same name in subsequent libraries (libc etc)
+#TARGET_LIBCRYSTAX := -Wl,-z,muldefs
 
 # Ensure -lcrystax is _always_ before -lc and -lm
 TARGET_LIBCRYSTAX += -Wl,-B$(if $(filter static,$(NDK_APP_LIBCRYSTAX)),static,dynamic),-lcrystax
@@ -568,6 +566,8 @@ TARGET_LIBCRYSTAX += -Wl,-Bstatic
 else
 # Link other libraries dynamically
 TARGET_LIBCRYSTAX += -Wl,-Bdynamic
+endif
+
 endif
 
 $(call generate-file-dir,$(LOCAL_BUILT_MODULE))
