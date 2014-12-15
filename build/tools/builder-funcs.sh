@@ -110,6 +110,7 @@ builder_begin_module ()
     _BUILD_C_INCLUDES=
     _BUILD_CFLAGS=
     _BUILD_CXXFLAGS=
+    _BUILD_CRYSTAX_LIBDIR=
     _BUILD_LDFLAGS_BEGIN_SO=
     _BUILD_LDFLAGS_END_SO=
     _BUILD_LDFLAGS_BEGIN_EXE=
@@ -397,6 +398,7 @@ builder_shared_library ()
         $_BUILD_STATIC_LIBRARIES \
         $_BUILD_COMPILER_RUNTIME_LDFLAGS \
         $_BUILD_SHARED_LIBRARIES \
+        -L$_BUILD_CRYSTAX_LIBDIR -lcrystax \
         $libm -lc \
         $_BUILD_LDFLAGS \
         $_BUILD_LDFLAGS_END_SO \
@@ -521,6 +523,7 @@ builder_begin_android ()
     local CRTBEGIN_SO_O CRTEND_SO_O CRTBEGIN_EXE_SO CRTEND_SO_O
     local BINPREFIX GCC_TOOLCHAIN LLVM_TRIPLE GCC_VERSION
     local SCRATCH_FLAGS PLATFORM
+    local CRYSTAX_SRCDIR
     if [ -z "$NDK_DIR" ]; then
         panic "NDK_DIR is not defined!"
     elif [ ! -d "$NDK_DIR/platforms" ]; then
@@ -637,6 +640,9 @@ builder_begin_android ()
 
     _BUILD_LDFLAGS_END_SO="$CRTEND_SO_O"
     _BUILD_LDFLAGS_END_EXE="$CRTEND_EXE_O"
+
+    CRYSTAX_SRCDIR="$NDK_DIR/$CRYSTAX_SUBDIR"
+    _BUILD_CRYSTAX_LIBDIR="$CRYSTAX_SRCDIR/"`$CRYSTAX_SRCDIR/bin/config --libpath --abi=$ABI`
 
     case $ABI in
         armeabi)

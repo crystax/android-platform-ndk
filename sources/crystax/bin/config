@@ -417,7 +417,8 @@ ldflags_for_abi()
 
     echo "-Wl,--no-undefined"
     echo "-Wl,-z,noexecstack"
-    echo "-Wl,-z,muldefs"
+    echo "-Wl,-z,interpose"
+    echo "-Wl,-z,nodelete"
 
     echo "-lgcc"
     echo "-lstdc++"

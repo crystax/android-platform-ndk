@@ -549,7 +549,7 @@ endif
 # Enable muldefs option when linking with libcrystax
 # This way app will use functions from libcrystax and link successfully
 # even if there are symbols with the same name in subsequent libraries (libc etc)
-TARGET_LIBCRYSTAX := -Wl,-z,muldefs
+#TARGET_LIBCRYSTAX := -Wl,-z,muldefs
 
 ifneq (,$(firstword $(filter -static,$(LOCAL_LDFLAGS))))
 NDK_APP_LIBCRYSTAX := static
