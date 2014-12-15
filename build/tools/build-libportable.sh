@@ -149,11 +149,6 @@ build_libportable_libs_for_abi ()
     CXXFLAGS="$LIBPORTABLE_CXXFLAGS"
     LDFLAGS="$LIBPORTABLE_LDFLAGS"
 
-    CRYSTAX_SRCDIR=$NDK_DIR/$CRYSTAX_SUBDIR
-    CFLAGS="$CFLAGS -I$CRYSTAX_SRCDIR/include"
-    CXXFLAGS="$CXXFLAGS -I$CRYSTAX_SRCDIR/include"
-    LDFLAGS="$LDFLAGS -L$CRYSTAX_SRCDIR/libs/$ABI -lcrystax"
-
     if [ -z "$PLATFORM" ]; then
         PLATFORM="android-$FIRST_API64_LEVEL"
     fi
