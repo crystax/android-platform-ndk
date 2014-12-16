@@ -201,6 +201,7 @@ $(NDK_APP_GDBSETUP): PRIVATE_SRC_DIRS := $(SYSROOT_INC)/usr/include
 $(NDK_APP_GDBSETUP):
 	$(call host-echo-build-step,$(PRIVATE_ABI),Gdbsetup) "$(call pretty-dir,$(PRIVATE_DST))"
 	$(hide) $(HOST_ECHO) "set solib-search-path $(call host-path,$(PRIVATE_SOLIB_PATH))" > $(PRIVATE_DST)
+	$(hide) $(HOST_ECHO) "source $(call host-path,$(NDK_ROOT)/prebuilt/common/gdb/common.setup)" >> $(PRIVATE_DST)
 	$(hide) $(HOST_ECHO) "directory $(call host-path,$(call remove-duplicates,$(PRIVATE_SRC_DIRS)))" >> $(PRIVATE_DST)
 
 $(call generate-file-dir,$(NDK_APP_GDBSETUP))
