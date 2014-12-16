@@ -42,8 +42,14 @@ LOCAL_EXPORT_LDLIBS     := -L$(call host-path,$(LOCAL_PATH))/libs/$(TARGET_ARCH_
 endif
 endif
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+# Force __crystax_on_load/__crystax_on_unload to be undefined
+# This way we ensure they will not be thrown away by linker
 LOCAL_EXPORT_LDFLAGS    := -u __crystax_on_load
 LOCAL_EXPORT_LDFLAGS    += -u __crystax_on_unload
+# Enable muldefs option when linking with libcrystax
+# This way app will use functions from libcrystax and link successfully
+# even if there are symbols with the same name in subsequent libraries (libc etc)
+LOCAL_EXPORT_LDFLAGS    += -Wl,-z,muldefs
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
