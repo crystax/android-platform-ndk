@@ -57,7 +57,15 @@ extract_parameters "$@"
 #
 # Try cached package
 #
-set_cache_host_tag
+# This script is run only for windows* systems.
+# Since MINGW is not set here the 'set_cache_tag function works incorrectly.
+# Hence we're setting cache host tag directly.
+#
+if [ "$TRY64" = "yes" ]; then
+    CACHE_HOST_TAG=windows-x86_64
+else
+    CACHE_HOST_TAG=windows
+fi
 ARCHIVE=toolbox-$CACHE_HOST_TAG.tar.bz2
 if [ "$PACKAGE_DIR" ]; then
     # will exit if cached package found
