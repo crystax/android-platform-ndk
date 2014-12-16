@@ -33,8 +33,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <crystax/private.h>
-
-void * __crystax_bionic_symbol(const char *name);
+#include <crystax/bionic.h>
 
 static long crystax_sysconf(int name)
 {
@@ -61,15 +60,11 @@ static long crystax_sysconf(int name)
 
 long sysconf(int name)
 {
-    static long (*bionic_sysconf)(int name);
+    long (*bionic_sysconf)(int name);
 
     if (name & __CRYSTAX_SC_BASE)
         return crystax_sysconf(name);
 
-    bionic_sysconf = __crystax_bionic_symbol("sysconf");
-
-    if (!bionic_sysconf)
-        PANIC("bionic_sysconf() failed");
-
+    bionic_sysconf = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_SYSCONF, 1);
     return bionic_sysconf(name);
 }

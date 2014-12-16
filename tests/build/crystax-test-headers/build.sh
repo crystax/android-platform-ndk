@@ -56,9 +56,7 @@ abis_for_platform()
     elif [ $apilevel -ge 21 ]; then
         echo all
     elif [ $apilevel -ge 9 ]; then
-        echo armeabi armeabi-v7a armeabi-v7a-hard x86 mips
-    else
-        echo armeabi armeabi-v7a armeabi-v7a-hard
+        echo all32
     fi
 }
 
@@ -68,6 +66,72 @@ run()
     "$@"
 }
 
+rm -Rf jni obj libs
+mkdir -p jni || exit 1
+
+{
+    echo 'LOCAL_PATH := $(call my-dir)'
+    echo ''
+    echo 'include $(CLEAR_VARS)'
+    echo 'LOCAL_MODULE := crystax-test-headers'
+    echo 'LOCAL_SRC_FILES := main.c'
+} | cat >jni/Android.mk || exit 1
+
+{
+    echo 'int main() { return 0; }'
+} | cat >jni/main.c || exit 1
+
+num=0
+
+for HEADER in $HEADERS; do
+    HEADER=${HEADER##$INCDIR/}
+
+    # Skip internal headers
+    [[ ${HEADER} == "_ctype.h"    ]] && continue
+    [[ ${HEADER} == "ieeefp.h"    ]] && continue
+    [[ ${HEADER##crystax/arm64/}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/details}  != $HEADER ]] && continue
+    [[ ${HEADER##crystax/freebsd/} != $HEADER ]] && continue
+    [[ ${HEADER##crystax/mips64/}  != $HEADER ]] && continue
+    [[ ${HEADER##crystax/sys/}     != $HEADER ]] && continue
+    [[ ${HEADER##linux/}           != $HEADER ]] && continue
+    [[ ${HEADER##machine/}         != $HEADER ]] && continue
+    [[ ${HEADER##sys/_}            != $HEADER ]] && continue
+    [[ ${HEADER##xlocale/}         != $HEADER ]] && continue
+
+    num=$(expr $num + 1)
+
+    for LANG in c c++ objc objc++; do
+        fname=test${num}-${LANG}.$(ext_for_lang $LANG)
+
+        {
+            echo "#include <${HEADER}>"
+            echo ''
+            echo "#if !defined(__LIBCRYSTAX) || __LIBCRYSTAX != 1"
+            echo "#error \"__LIBCRYSTAX macro is not defined\""
+            echo "#endif"
+        } | cat >jni/$fname || exit 1
+
+        SKIP=no
+        case $LANG in
+            c|objc)
+                echo $HEADER | grep -q '\.hpp$'
+                if [ $? -eq 0 ]; then
+                    SKIP=yes
+                fi
+                ;;
+        esac
+        if [ "$SKIP" != "yes" ]; then
+            echo "LOCAL_SRC_FILES += $fname" >>jni/Android.mk || exit 1
+        fi
+    done
+
+done
+
+{
+    echo 'include $(BUILD_EXECUTABLE)'
+} | cat >>jni/Android.mk || exit 1
+
 for PLATFORM in $PLATFORMS; do
     echo ""
     echo "================================================================="
@@ -75,75 +139,9 @@ for PLATFORM in $PLATFORMS; do
     echo "================================================================="
     echo ""
 
-    rm -Rf jni obj libs
-    mkdir -p jni || exit 1
+    #echo "APP_ABI := $(abis_for_platform $PLATFORM)" >jni/Application.mk || exit 1
 
-    echo "APP_ABI := $(abis_for_platform $PLATFORM)" >jni/Application.mk || exit 1
-
-    {
-        echo 'LOCAL_PATH := $(call my-dir)'
-        echo ''
-        echo 'include $(CLEAR_VARS)'
-        echo 'LOCAL_MODULE := crystax-test-headers'
-        echo 'LOCAL_SRC_FILES := main.c'
-    } | cat >jni/Android.mk || exit 1
-
-    {
-        echo 'int main() { return 0; }'
-    } | cat >jni/main.c || exit 1
-
-    num=0
-
-    for HEADER in $HEADERS; do
-        HEADER=${HEADER##$INCDIR/}
-
-        # Skip internal headers
-        [[ ${HEADER} == "_ctype.h"    ]] && continue
-        [[ ${HEADER} == "ieeefp.h"    ]] && continue
-        [[ ${HEADER##crystax/arm64/}   != $HEADER ]] && continue
-        [[ ${HEADER##crystax/details}  != $HEADER ]] && continue
-        [[ ${HEADER##crystax/freebsd/} != $HEADER ]] && continue
-        [[ ${HEADER##crystax/mips64/}  != $HEADER ]] && continue
-        [[ ${HEADER##crystax/sys/}     != $HEADER ]] && continue
-        [[ ${HEADER##linux/}           != $HEADER ]] && continue
-        [[ ${HEADER##machine/}         != $HEADER ]] && continue
-        [[ ${HEADER##sys/_}            != $HEADER ]] && continue
-        [[ ${HEADER##xlocale/}         != $HEADER ]] && continue
-
-        num=$(expr $num + 1)
-
-        for LANG in c c++ objc objc++; do
-            fname=test${num}-${LANG}.$(ext_for_lang $LANG)
-
-            {
-                echo "#include <${HEADER}>"
-                echo ''
-                echo "#if !defined(__LIBCRYSTAX) || __LIBCRYSTAX != 1"
-                echo "#error \"__LIBCRYSTAX macro is not defined\""
-                echo "#endif"
-            } | cat >jni/$fname || exit 1
-
-            SKIP=no
-            case $LANG in
-                c|objc)
-                    echo $HEADER | grep -q '\.hpp$'
-                    if [ $? -eq 0 ]; then
-                        SKIP=yes
-                    fi
-                    ;;
-            esac
-            if [ "$SKIP" != "yes" ]; then
-                echo "LOCAL_SRC_FILES += $fname" >>jni/Android.mk || exit 1
-            fi
-        done
-
-    done
-
-    {
-        echo 'include $(BUILD_EXECUTABLE)'
-    } | cat >>jni/Android.mk || exit 1
-
-    run $NDK/ndk-build -C $MYDIR -B APP_PLATFORM=$PLATFORM V=1
+    run $NDK/ndk-build -C $MYDIR -B "$@" APP_PLATFORM=$PLATFORM APP_ABI=$(abis_for_platform $PLATFORM) V=1
     if [ $? -ne 0 ]; then
         echo "ERROR: Can't compile CrystaX headers for $PLATFORM alone" 1>&2
         exit 1

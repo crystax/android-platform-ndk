@@ -33,12 +33,9 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <crystax/log.h>
+#include <crystax/bionic.h>
 
-void * __crystax_bionic_symbol(const char *name);
-
-static int (*bionic_fcntl)(int, int, ...) = NULL;
-
-static int crystax_fcntl(int fd, int command, va_list args)
+static int crystax_fcntl(int (*bionic_fcntl)(int, int, ...), int fd, int command, va_list args)
 {
     int rc;
     int fd2;
@@ -79,17 +76,14 @@ int fcntl(int fd, int command, ...)
     int n;
     struct flock *flck;
 
-    if (!bionic_fcntl)
-    {
-        bionic_fcntl = __crystax_bionic_symbol("fcntl");
-        if (!bionic_fcntl)
-            PANIC("Can't find \"fcntl\" in Bionic");
-    }
+    int (*bionic_fcntl)(int, int, ...);
+
+    bionic_fcntl = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_FCNTL, 0);
 
     if (command & __CRYSTAX_FCNTL_BASE)
     {
         va_start(args, command);
-        rc = crystax_fcntl(fd, command, args);
+        rc = crystax_fcntl(bionic_fcntl, fd, command, args);
         va_end(args);
         return rc;
     }

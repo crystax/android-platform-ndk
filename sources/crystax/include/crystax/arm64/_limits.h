@@ -33,6 +33,6 @@
 #include <crystax/id.h>
 
 /* WARNING!!! Need to be reviewed when real ARM64 device/emulator appear */
-#include <crystax/freebsd/sys/x86/include/_limits.h>
+#include <crystax/freebsd/sys/x86/include/mangled-_limits.h>
 
 #endif /* __CRYSTAX_INCLUDE_ARM64__LIMITS_H_DDB7014D7AA6444EAD12E1E46FEECFB3 */

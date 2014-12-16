@@ -59,34 +59,9 @@ BF(csinh);
 BF(ctan);
 BF(ctanh);
 
-double cabs(double complex x)
-{
-    return hypot(creal(x), cimag(x));
-}
-
-float cabsf(float complex x)
-{
-    return hypotf(crealf(x), cimagf(x));
-}
-
-long double cabsl(long double complex x)
-{
-    return cabs((double complex)x);
-}
-
-double carg(double complex x)
-{
-    return atan(cimag(x) / creal(x));
-}
-
-float cargf(float complex x)
-{
-    return atanf(cimagf(x) / crealf(x));
-}
-
 long double cargl(long double complex x)
 {
-    return carg((double complex)x);
+    return atan2l(cimagl(x), creall(x));
 }
 
 double complex clog(double complex x)
@@ -101,7 +76,7 @@ float complex clogf(float complex x)
 
 long double complex clogl(long double complex x)
 {
-    return clog((double complex)x);
+    return logl(cabsl(x)) + I * cargl(x);
 }
 
 double complex cpow(double complex x, double complex y)
@@ -116,5 +91,5 @@ float complex cpowf(float complex x, float complex y)
 
 long double complex cpowl(long double complex x, long double complex y)
 {
-    return cpow((double complex)x, (double complex)y);
+    return cexpl(y * clogl(x));
 }

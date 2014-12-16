@@ -33,6 +33,6 @@
 #include <crystax/id.h>
 
 /* WARNING!!! Need to be reviewed when real MIPS64 device/emulator appear */
-#include <crystax/freebsd/sys/x86/include/_inttypes.h>
+#include <crystax/freebsd/sys/x86/include/mangled-_inttypes.h>
 
 #endif /* __CRYSTAX_INCLUDE_MIPS64__INTTYPES_H_6447DE73D4784EAFBF636BCF99056E29 */

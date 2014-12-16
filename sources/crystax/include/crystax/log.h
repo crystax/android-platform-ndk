@@ -31,6 +31,7 @@
 #define __CRYSTAX_INCLUDE_CRYSTAX_LOG_H_465350AFAEF0438E893862FF11F27853
 
 #include <sys/cdefs.h>
+#include <stdlib.h> /* for abort() */
 #include <android/log.h>
 
 #define CRYSTAX_DEBUG 1

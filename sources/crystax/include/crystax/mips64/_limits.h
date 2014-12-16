@@ -33,6 +33,6 @@
 #include <crystax/id.h>
 
 /* WARNING!!! Need to be reviewed when real MIPS64 device/emulator appear */
-#include <crystax/freebsd/sys/x86/include/_limits.h>
+#include <crystax/freebsd/sys/x86/include/mangled-_limits.h>
 
 #endif /* __CRYSTAX_INCLUDE_MIPS64__LIMITS_H_5616538665E643819A03BA52A922495F */

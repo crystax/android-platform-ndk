@@ -4,14 +4,20 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := libfoo_static
 LOCAL_SRC_FILES := foo.cpp
 LOCAL_CPP_FEATURES := exceptions
-LOCAL_SHARED_LIBRARIES := gnustl_static
-LOCAL_SHARED_LIBRARIES += crystax_static
-include $(BUILD_SHARED_LIBRARY)
+LOCAL_STATIC_LIBRARIES := gnustl_static
+include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := test_exception_crash_static
 LOCAL_SRC_FILES := main.cpp
-LOCAL_SHARED_LIBRARIES := libfoo_static
+LOCAL_STATIC_LIBRARIES := libfoo_static
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := test_exception_crash_static2
+LOCAL_SRC_FILES := main.cpp
+LOCAL_STATIC_LIBRARIES := libfoo_static
+LOCAL_LDFLAGS := -static
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
@@ -19,7 +25,6 @@ LOCAL_MODULE := libfoo_shared
 LOCAL_SRC_FILES := foo.cpp
 LOCAL_CPP_FEATURES := exceptions
 LOCAL_SHARED_LIBRARIES := gnustl_shared
-LOCAL_SHARED_LIBRARIES += crystax_shared
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -29,4 +34,3 @@ LOCAL_SHARED_LIBRARIES := libfoo_shared
 include $(BUILD_EXECUTABLE)
 
 $(call import-module,cxx-stl/gnu-libstdc++)
-$(call import-module,crystax)

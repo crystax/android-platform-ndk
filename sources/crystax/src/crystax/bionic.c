@@ -32,28 +32,37 @@
 #include <unistd.h>
 
 #include <crystax/private.h>
+#include <crystax/atomic.h>
+#include <crystax/bionic.h>
 
-static int initialized = 0;
 static void *libc = NULL;
 
-#define atomic_fetch(p) __sync_add_and_fetch(p, 0)
+static const char *symbols[] = {
+#ifdef DEF
+#error Macro DEF is already defined
+#endif
+#define DEF(x, y) y ,
+#include "crystax/details/bionic.inc"
+#undef DEF
+};
 
-#define def_atomic_swap(type, suffix) \
-    static type atomic_swap_ ## suffix ( type v, type *ptr) \
-    { \
-        type prev; \
-        do { \
-            prev = *ptr; \
-        } while (__sync_val_compare_and_swap(ptr, prev, v) != prev); \
-        return prev; \
-    }
+typedef struct {
+    int initialized;
+    void *addr;
+} addr_t;
 
-def_atomic_swap(int, i)
-def_atomic_swap(void *, p)
+static addr_t addresses[] = {
+#ifdef DEF
+#error Macro DEF is already defined
+#endif
+#define DEF(x, y) {.initialized = 0, .addr = NULL} ,
+#include "crystax/details/bionic.inc"
+#undef DEF
+};
 
-void * __crystax_bionic()
+static void * __crystax_bionic()
 {
-    if (atomic_fetch(&initialized) == 0)
+    if (__crystax_atomic_fetch(&libc) == NULL)
     {
         void *pc;
 
@@ -61,16 +70,32 @@ void * __crystax_bionic()
         if (!pc)
             PANIC("dlopen(\"libc.so\") failed");
 
-        atomic_swap_p(pc, &libc);
-        atomic_swap_i(1, &initialized);
+        __crystax_atomic_swap(&libc, pc);
     }
 
-    return atomic_fetch(&libc);
+    return __crystax_atomic_fetch(&libc);
 }
 
-void * __crystax_bionic_symbol(const char *name)
+void * __crystax_bionic_symbol(__crystax_bionic_symbol_t sym, int maynotexist)
 {
-    void *pc = __crystax_bionic();
-    if (!pc) PANIC("__crystax_bionic() failed");
-    return dlsym(pc, name);
+    void *addr;
+    addr_t *ar;
+
+    if (sym < 0 || sym >= sizeof(symbols)/sizeof(symbols[0]))
+        PANIC("Wrong __crystax_bionic_symbol_t passed to __crystax_bionic_symbol()");
+
+    ar = &addresses[sym];
+    if (__crystax_atomic_fetch(&(ar->initialized)) == 0)
+    {
+        const char *symname = symbols[sym];
+        addr = dlsym(__crystax_bionic(), symname);
+        if (!addr && !maynotexist)
+            PANIC("Can't find symbol \"%s\" in Bionic libc.so", symname);
+        __crystax_atomic_swap(&(ar->addr), addr);
+        __crystax_atomic_swap(&(ar->initialized), 1);
+    }
+    else
+        addr = __crystax_atomic_fetch(&(ar->addr));
+
+    return addr;
 }
