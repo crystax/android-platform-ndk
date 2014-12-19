@@ -322,6 +322,7 @@ if [ -n "$NDK_ROOT" ] ; then
 else
     NDK="$ROOTDIR"
 fi
+export NDK
 
 #
 # Create log file
