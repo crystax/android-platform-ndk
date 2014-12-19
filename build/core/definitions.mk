@@ -2359,17 +2359,14 @@ ndk-libcrystax-register = \
 ndk-libcrystax-select = \
     $(call import-module,$(NDK_LIBCRYSTAX.$1.IMPORT_MODULE))
 
-# Force static libcrystax for module if it's static library or static executable
+# Force static libcrystax for module if it's static executable
 ndk-libcrystax-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(eval __ndk_libcrystax_for_module.$(__module) := $(strip \
             $(if \
-                $(or \
-                    $(filter STATIC_LIBRARY PREBUILT_STATIC_LIBRARY,$(call module-get-class,$(__module))),\
-                    $(and \
-                        $(filter EXECUTABLE,$(call module-get-class,$(__module))),\
-                        $(filter -static,$(call module-get-ldflags,$(__module)))\
-                    )\
+                $(and \
+                    $(filter EXECUTABLE,$(call module-get-class,$(__module))),\
+                    $(filter -static,$(call module-get-ldflags,$(__module)))\
                 ),\
                 static,\
                 $(1)\
