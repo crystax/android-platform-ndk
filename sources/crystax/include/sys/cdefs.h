@@ -85,19 +85,26 @@
     __asm__(".weak " #alias); \
     __asm__(".equ "  #alias ", " #sym);
 
-#ifndef __weak_reference
+#ifdef __weak_reference
+#undef __weak_reference
+#endif
 #define __weak_reference(s, a) __weak_alias(s, a)
-#endif
 
-#ifndef __warn_references
-#define __warn_references(sym, msg) \
-    __asm__(".section .gnu.warning." #sym "\n\t.ascii \"" msg "\"\n\t.text");
+#ifdef __strong_reference
+#undef __strong_reference
 #endif
-
-#ifndef __strong_reference
 #define __strong_reference(sym,aliassym) \
     extern __typeof (sym) aliassym __attribute__ ((__alias__ (#sym)))
+
+#ifdef __warn_references
+#undef __warn_references
 #endif
+#define __warn_references(sym, msg)
+/*
+ * TODO: Enable this implementation. See https://tracker.crystax.net/issues/756 for details.
+#define __warn_references(sym, msg) \
+    __asm__(".section .gnu.warning." #sym "\n\t.ascii \"" msg "\"\n\t.text");
+*/
 
 #ifndef __always_inline
 #define __always_inline __attribute__((__always_inline__))
