@@ -1212,12 +1212,7 @@ g.add "sys/x86/include/endian.h"
         "gd_qnan.h",
     ].each do |i|
         g.add "lib/libc/#{a}/#{i}" do |f|
-            f.puts "/*"
-            f.puts " * WARNING!!! IT'S NOT CLEAR WHICH SETTINGS SHOULD BE HERE FOR #{a.sub('arm64', 'aarch64').upcase}"
-            f.puts " * FOR NOW, JUST COPY SETTINGS FROM #{a.sub(/64$/, '').upcase}-SPECIFIC HEADER"
-            f.puts " * NEED TO BE REVIEWED WHEN WORKING #{a.sub('arm64', 'aarch64').upcase} DEVICE/EMULATOR APPEARS"
-            f.puts " */"
-            f.puts "#include \"../#{a.sub(/64$/, '')}/#{i}\""
+            f.puts "#include <crystax/#{a}/#{i}>"
         end
     end
 end
