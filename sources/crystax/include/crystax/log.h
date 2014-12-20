@@ -32,6 +32,7 @@
 
 #include <sys/cdefs.h>
 #include <stdlib.h> /* for abort() */
+#include <inttypes.h>
 #include <android/log.h>
 
 #define CRYSTAX_DEBUG 1
