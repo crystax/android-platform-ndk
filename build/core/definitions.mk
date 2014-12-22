@@ -23,6 +23,18 @@ include $(BUILD_SYSTEM)/definitions-utils.mk
 include $(BUILD_SYSTEM)/definitions-host.mk
 include $(BUILD_SYSTEM)/definitions-graph.mk
 
+define crystax-dir
+$(strip \
+    $(call assert-defined,NDK_ROOT)\
+    $(eval __crystax_dir := $(NDK_ROOT)/sources/crystax)\
+    $(if $(strip $(wildcard $(__crystax_dir))),\
+        $(__crystax_dir),\
+        $(call __ndk_info,Could not find libcrystax directory: $(call pretty-dir,$(__crystax_dir)) (broken NDK?))\
+        $(call __ndk_error,Aborting)\
+    )
+)
+endef
+
 # -----------------------------------------------------------------------------
 # Macro    : this-makefile
 # Returns  : the name of the current Makefile in the inclusion stack
@@ -772,8 +784,7 @@ module-extract-whole-static-libs = $(strip \
 modules-compute-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(call module-compute-depends,$(__module))\
-    )\
-    $(call ndk-libcrystax-fix-modules-dependencies)
+    )
 
 module-compute-depends = \
     $(call module-add-static-depends,$1,$(__ndk_modules.$1.STATIC_LIBRARIES))\
@@ -796,9 +807,6 @@ modules-get-all-installable = $(strip \
     $(foreach __alldep,$(call module-get-all-dependencies,$1),\
         $(if $(call module-is-installable,$(__alldep)),$(__alldep))\
     ))
-
-module-is-not-libcrystax = \
-    $(strip $(filter-out $(ndk-libcrystax-libraries),$1))
 
 # Return the Obj-C extension of a given module
 # $1: module name
@@ -955,12 +963,10 @@ module-has-c++-features = $(strip \
 # $3: list of runtime shared libraries (if any)
 #
 module-add-deps = \
-    $(if $(call module-is-not-libcrystax,$1),\
     $(if $(call strip,$2),$(call ndk_log,Add dependency '$(call strip,$2)' to module '$1'))\
     $(eval __ndk_modules.$1.STATIC_LIBRARIES += $(2))\
     $(if $(call strip,$3),$(call ndk_log,Add dependency '$(call strip,$3)' to module '$1'))\
-    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))\
-    )
+    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))
 
 
 # =============================================================================
@@ -1494,21 +1500,17 @@ $(strip $(foreach __opt,$(1),\
 ))
 endef
 
-# Extract -IPATH/sources/crystax/include from passed argument
-define extract-crystax-include
-$(strip $(foreach __opt,$(1),\
-    $(if \
-        $(filter -I%/sources/crystax/include,$(__opt)),\
-        $(__opt)\
-    )\
-))
-endef
-
 # Put platforms include option to the end of list, ensuring CrystaX include option going right before that
-define transform-includes
+define interpose-crystax-headers
 $(strip \
-    $(filter-out $(call extract-crystax-include,$(1)) $(call extract-platforms-include,$(1)),$(1)) \
-    $(call extract-crystax-include,$(1)) $(call extract-platforms-include,$(1))\
+    $(filter-out $(call extract-platforms-include,$(1)),$(1)) \
+    $(eval __libcrystax_incpath := $(crystax-dir)/include)\
+    $(if $(wildcard $(__libcrystax_incpath)),\
+        -I$(__libcrystax_incpath),\
+        $(call __ndk_info,Could not find libcrystax headers: $(call pretty-dir,$(__libcrystax_incpath)) (broken NDK?))\
+        $(call __ndk_error,Aborting)\
+    )\
+    $(call extract-platforms-include,$(1))\
 )
 endef
 
@@ -1527,7 +1529,7 @@ $$(_OBJ): PRIVATE_DEPS     := $$(call host-path,$$(_OBJ).d)
 $$(_OBJ): PRIVATE_MODULE   := $$(LOCAL_MODULE)
 $$(_OBJ): PRIVATE_TEXT     := $$(_TEXT)
 $$(_OBJ): PRIVATE_CC       := $$(_CC)
-$$(_OBJ): PRIVATE_CFLAGS   := $$(call transform-includes,$$(_FLAGS))
+$$(_OBJ): PRIVATE_CFLAGS   := $$(call interpose-crystax-headers,$$(_FLAGS))
 
 ifeq ($$(LOCAL_SHORT_COMMANDS),true)
 _OPTIONS_LISTFILE := $$(_OBJ).cflags
@@ -2335,106 +2337,6 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     none,\
     cxx-stl/system,\
-    )
-
-NDK_LIBCRYSTAX_LIST :=
-
-ndk-libcrystax-libraries = \
-    crystax_static \
-    crystax_shared
-
-ndk-libcrystax-check = \
-    $(if $(call set_is_member,$(NDK_LIBCRYSTAX_LIST),$1),,\
-        $(call __ndk_info,Invalid APP_LIBCRYSTAX value: $1)\
-        $(call __ndk_info,Please use one of the following instead: $(NDK_LIBCRYSTAX_LIST))\
-        $(call __ndk_error,Aborting))
-
-ndk-libcrystax-register = \
-    $(eval __ndk_libcrystax := $(strip $1)) \
-    $(eval NDK_LIBCRYSTAX_LIST += $(__ndk_libcrystax)) \
-    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).IMPORT_MODULE := $(strip $2)) \
-    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).STATIC_LIBS := $(strip $3)) \
-    $(eval NDK_LIBCRYSTAX.$(__ndk_libcrystax).SHARED_LIBS := $(strip $4))
-
-ndk-libcrystax-select = \
-    $(call import-module,$(NDK_LIBCRYSTAX.$1.IMPORT_MODULE))
-
-# Force static libcrystax for module if it's static executable
-ndk-libcrystax-add-dependencies = \
-    $(foreach __module,$(__ndk_modules),\
-        $(eval __ndk_libcrystax_for_module.$(__module) := $(strip \
-            $(if \
-                $(and \
-                    $(filter EXECUTABLE,$(call module-get-class,$(__module))),\
-                    $(filter -static,$(call module-get-ldflags,$(__module)))\
-                ),\
-                static,\
-                $(1)\
-            )\
-        ))\
-        $(call module-add-deps,$(__module),\
-            $(NDK_LIBCRYSTAX.$(__ndk_libcrystax_for_module.$(__module)).STATIC_LIBS),\
-            $(NDK_LIBCRYSTAX.$(__ndk_libcrystax_for_module.$(__module)).SHARED_LIBS))\
-    )
-
-ndk-libcrystax-fix-modules-dependencies = \
-    $(foreach __module,$(modules-get-top-list),\
-        $(eval __top_module_all_deps := $(call module-get-all-dependencies,$(__module)))\
-        $(eval __top_module_libcrystax_dep := $(firstword $(filter $(ndk-libcrystax-libraries),$(__top_module_all_deps))))\
-        $(foreach __mmodule,$(__top_module_all_deps),\
-            $(if $(filter-out $(__module) $(ndk-libcrystax-libraries),$(__mmodule)),\
-                $(eval __this_module_libcrystax_dep := $(filter $(ndk-libcrystax-libraries),$(call module-get-depends,$(__mmodule))))\
-                $(if $(filter-out $(__top_module_libcrystax_dep),$(__this_module_libcrystax_dep)),\
-                    $(eval __ndk_modules.$(__mmodule).depends := \
-                        $(filter-out $(ndk-libcrystax-libraries),$(__ndk_modules.$(__mmodule).depends)) \
-                        $(__top_module_libcrystax_dep))\
-                    $(eval __ndk_modules.$(__mmodule).SHARED_LIBRARIES := \
-                        $(filter-out $(ndk-libcrystax-libraries),$(__ndk_modules.$(__mmodule).SHARED_LIBRARIES)) \
-                        $(filter crystax_shared,$(__top_module_libcrystax_dep)))\
-                    $(eval __ndk_modules.$(__mmodule).STATIC_LIBRARIES := \
-                        $(filter-out $(ndk-libcrystax-libraries),$(__ndk_modules.$(__mmodule).STATIC_LIBRARIES)) \
-                        $(filter crystax_static,$(__top_module_libcrystax_dep)))\
-                )\
-            )\
-        )\
-    )\
-    $(foreach __module,$(modules-get-top-list),\
-        $(eval __top_module_all_libs := $(call module-get-link-libs,$(__module)))\
-        $(if \
-            $(and \
-                $(filter crystax_static,$(__top_module_all_libs)),\
-                $(filter crystax_shared,$(__top_module_all_libs))\
-            ),\
-            $(warning WARNING: Module '$(__module)' depends on both shared and static libcrystax.)\
-            $(warning WARNING: Trying to fix it by removing dependency on static libcrystax.)\
-            $(warning WARNING: Please note however it might be wrong. To fix it properly, please)\
-            $(warning WARNING: review dependencies of '$(__module)' in your Android.mk and ensure)\
-            $(warning WARNING: there is no modules referenced from another modules with different settings.)\
-            $(foreach __mmodule,$(call module-get-all-dependencies,$(__module)),\
-                $(eval __ndk_modules.$(__mmodule).STATIC_LIBRARIES := \
-                    $(filter-out $(ndk-libcrystax-libraries),$(__ndk_modules.$(__mmodule).STATIC_LIBRARIES))\
-                )\
-            )\
-        )\
-    )
-
-$(call ndk-libcrystax-register,\
-    static,\
-    crystax,\
-    crystax_static,\
-    \
-    )
-
-$(call ndk-libcrystax-register,\
-    shared,\
-    crystax,\
-    ,\
-    crystax_shared\
-    )
-
-$(call ndk-libcrystax-register,\
-    none,\
-    crystax\
     )
 
 ifneq (,$(NDK_UNIT_TESTS))

@@ -31,9 +31,4 @@ $(call __ndk_info,$(LOCAL_MAKEFILE):$(LOCAL_MODULE): Unknown LOCAL_MODULE_CLASS 
 $(call __ndk_error,Aborting)\
 )
 
-# CrystaX: force -Wl,--eh-frame-hdr for static executables
-ifneq (,$(and $(filter -static,$(LOCAL_LDFLAGS)),$(if $(filter -Wl,--eh-frame-hdr,$(LOCAL_LDFLAGS)),,yes)))
-LOCAL_LDFLAGS += -Wl,--eh-frame-hdr
-endif
-
 $(call module-add,$(LOCAL_MODULE))

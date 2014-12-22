@@ -548,12 +548,84 @@ endif
 
 $(call generate-file-dir,$(LOCAL_BUILT_MODULE))
 
+# Statically link with libc _only_ in case of static executable
+define libc-link-type
+$(strip $(if \
+    $(filter -static,$(LOCAL_LDFLAGS)),\
+    static,\
+    dynamic\
+))
+endef
+
+define libcrystax-link-type
+$(strip \
+    $(call assert-defined,LOCAL_LDFLAGS NDK_APP_LIBCRYSTAX)\
+    $(if \
+        $(or \
+            $(filter -static,$(LOCAL_LDFLAGS)),\
+            $(filter static,$(NDK_APP_LIBCRYSTAX))\
+        ),\
+        static,\
+        dynamic\
+    )\
+)
+endef
+
+# Static-only libcrystax link options
+# - Force __crystax_on_load/__crystax_on_unload to be undefined in case of static
+#   libcrystax linking. This way we ensure they will not be thrown away by linker.
+# - Enable 'muldefs' option when statically linking with libcrystax.
+#   This way app will use functions from libcrystax and link successfully
+#   even if there are symbols with the same name in subsequent libraries (libc etc)
+# - Force -Wl,--eh-frame-hdr for static executables if not yet specified
+define libcrystax-static-link-options
+$(strip \
+    $(call assert-defined,LOCAL_LDFLAGS)\
+    -u __crystax_on_load \
+    -u __crystax_on_unload \
+    -Wl,-z,muldefs \
+    $(if $(filter -Wl,--eh-frame-hdr,$(LOCAL_LDFLAGS)),,-Wl,--eh-frame-hdr) \
+)
+endef
+
+# Dynamic-only libcrystax link options
+define libcrystax-dynamic-link-options
+endef
+
+# $1: Target ABI
+define libcrystax-libpath
+$(strip \
+    $(eval __libcrystax_libpath := $(crystax-dir)/libs/$(1)$(if $(filter armeabi%,$(1)),/thumb))\
+    $(if $(wildcard $(__libcrystax_libpath)),\
+        $(__libcrystax_libpath),\
+        $(call __ndk_info,Could not find libcrystax libraries: $(call pretty-dir,$(__libcrystax_libpath)) (broken NDK?))\
+        $(call __ndk_error,Aborting)\
+    )\
+)
+endef
+
+# - Ensure -lcrystax is _always_ before -lc
+# - Properly detect how to link libcrystax and libc - statically or dynamically
+# - Specify proper path to libcrystax binaries
+# Parameters:
+# $1: List of linker '-lxxx' options to adjust
+define interpose-libcrystax
+$(strip \
+    $(call assert-defined,TARGET_ARCH_ABI)\
+    $(filter-out -lc -lm,$(1)) \
+    $(call libcrystax-$(libcrystax-link-type)-link-options) \
+    -L$(call libcrystax-libpath,$(TARGET_ARCH_ABI)) \
+    -Wl,-B$(libcrystax-link-type),-lcrystax \
+    -Wl,-B$(libc-link-type),-lc \
+)
+endef
+
 $(LOCAL_BUILT_MODULE): PRIVATE_OBJECTS := $(LOCAL_OBJECTS)
 $(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC)
 
 $(LOCAL_BUILT_MODULE): PRIVATE_LD := $(TARGET_LD)
 $(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)
-$(LOCAL_BUILT_MODULE): PRIVATE_LDLIBS  := $(LOCAL_LDLIBS) $(TARGET_LDLIBS)
+$(LOCAL_BUILT_MODULE): PRIVATE_LDLIBS  := $(call interpose-libcrystax,$(LOCAL_LDLIBS) $(TARGET_LDLIBS))
 
 $(LOCAL_BUILT_MODULE): PRIVATE_NAME := $(notdir $(LOCAL_BUILT_MODULE))
 $(LOCAL_BUILT_MODULE): PRIVATE_CXX := $(TARGET_CXX)
@@ -740,11 +812,15 @@ $(LOCAL_INSTALLED): PRIVATE_STRIP       := $(TARGET_STRIP)
 $(LOCAL_INSTALLED): PRIVATE_STRIP_CMD   := $(call cmd-strip, $(PRIVATE_DST))
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY     := $(TARGET_OBJCOPY)
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY_CMD := $(call cmd-add-gnu-debuglink, $(PRIVATE_DST), $(PRIVATE_SRC))
+$(LOCAL_INSTALLED): PRIVATE_LIBCRYSTAX  := $(if $(filter dynamic,$(libcrystax-link-type)),$(PRIVATE_DST_DIR)/libcrystax.so)
 
 $(LOCAL_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries
 	$(call host-echo-build-step,$(PRIVATE_ABI),Install) "$(PRIVATE_NAME) => $(call pretty-dir,$(PRIVATE_DST))"
 	$(hide) $(call host-install,$(PRIVATE_SRC),$(PRIVATE_DST))
 	$(hide) $(PRIVATE_STRIP_CMD)
+	$(if $(PRIVATE_LIBCRYSTAX),$(call host-echo-build-step,$(PRIVATE_ABI),Install) "$(notdir $(PRIVATE_LIBCRYSTAX)) => $(call pretty-dir,$(PRIVATE_LIBCRYSTAX))")
+	$(if $(PRIVATE_LIBCRYSTAX),$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_ABI))/$(notdir $(PRIVATE_LIBCRYSTAX)),$(PRIVATE_LIBCRYSTAX)))
+	$(if $(PRIVATE_LIBCRYSTAX),$(hide) $(call cmd-strip,$(PRIVATE_LIBCRYSTAX)))
 
 #$(hide) $(PRIVATE_OBJCOPY_CMD)
 
