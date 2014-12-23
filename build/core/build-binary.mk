@@ -584,7 +584,8 @@ $(strip \
     -u __crystax_on_load \
     -u __crystax_on_unload \
     -Wl,-z,muldefs \
-    $(if $(filter -Wl,--eh-frame-hdr,$(LOCAL_LDFLAGS)),,-Wl,--eh-frame-hdr) \
+    $(eval __libcrystax_static_eh_frame_hdr := -Wl,--eh-frame-hdr)\
+    $(if $(filter $(__libcrystax_static_eh_frame_hdr),$(LOCAL_LDFLAGS)),,$(__libcrystax_static_eh_frame_hdr)) \
 )
 endef
 
