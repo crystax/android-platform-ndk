@@ -107,8 +107,8 @@ class Ndk_data
     end
   end
 
-  def standalone_path(api_level, arch, gcc_version)
-    File.join(@ndk_tmp_dir, "android-ndk-api#{api_level}-#{arch}-#{tag}-#{gcc_version}")
+  def standalone_path(api_level, arch, gcc_version, stl_type)
+    File.join(@ndk_tmp_dir, "android-ndk-api#{api_level}-#{arch}-#{tag}-#{gcc_version}-#{stl_type}")
   end
 
   def toolchain_name_for_arch(arch, gcc_version)
@@ -174,7 +174,7 @@ class Toolchain
     @gccver = gccver
     @apilev = apilev
 
-    @install_dir_base = $ndk_data.standalone_path(@apilev, @arch, @gccver)
+    @install_dir_base = $ndk_data.standalone_path(@apilev, @arch, @gccver, stl)
     @name = $ndk_data.toolchain_name_for_arch(@arch, @gccver)
     @prefix = $ndk_data.toolchain_prefix_for_arch(@arch)
 
@@ -274,7 +274,7 @@ OptionParser.new do |opts|
   end
 
   opts.on("--ndk-log-file=FILE", String, "Use the FILE as NDK's log file;", "#{$ndk_data.log_file}") do |f|
-    $ndk_data.log_file = f
+    $ndk_data.log_file = File.expand_path(f)
   end
 
   opts.on("--no-clean", "Do not remove toolchains after tests were run") do |_|
