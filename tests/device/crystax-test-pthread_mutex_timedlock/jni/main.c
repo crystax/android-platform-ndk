@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include <crystax/log.h>
+
 #define DO_TEST(name, param)                           \
-    printf("test " #name "(" #param "): BEGIN\n");   \
+    printf("test " #name "(" #param "): BEGIN\n");     \
     fflush(stdout);                                    \
     test_ ## name (param);                             \
     printf("test " #name "(" #param "): OK\n");        \
@@ -29,7 +31,6 @@ pthread_mutex_t errcheck_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
 
 
 void test_lock_unlock(pthread_mutex_t *mutex);
-void test_einval(pthread_mutex_t *mutex);
 void test_expired(pthread_mutex_t *mutex);
 void test_with_thread(pthread_mutex_t *mutex);
 
@@ -40,9 +41,6 @@ void nano_sleep(int sec);
 
 int main()
 {
-#ifdef __ANDROID__
-    DO_TEST(einval,      NULL);
-#endif
     DO_TEST(lock_unlock, &fast_mutex);
     DO_TEST(lock_unlock, &rec_mutex);
     DO_TEST(lock_unlock, &errcheck_mutex);
@@ -79,38 +77,6 @@ const char *mutex_type(pthread_mutex_t *mutex)
     fprintf(stderr, "FATAL: unknown mutex passed to 'mutex_type' function\n");
     abort();
 }
-
-void test_einval(pthread_mutex_t *mutex)
-{
-    int rc;
-    struct timespec timeout;
-
-    get_time(&timeout);
-    timeout.tv_sec += 5;
-    timeout.tv_nsec = 300;
-
-    /* check with NULL mutex */
-    FAIL_IF(mutex != NULL, "passed mutex is not NULL");
-
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnonnull"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-
-    rc = pthread_mutex_timedlock(mutex, &timeout);
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-    FAIL_IF(rc != EINVAL, "pthread_mutex_timedlock should fail if NULL mutex passed, but it didn't");
-}
-
 
 void test_lock_unlock(pthread_mutex_t *mutex)
 {
