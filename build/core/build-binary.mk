@@ -812,18 +812,28 @@ $(LOCAL_INSTALLED): PRIVATE_STRIP       := $(TARGET_STRIP)
 $(LOCAL_INSTALLED): PRIVATE_STRIP_CMD   := $(call cmd-strip, $(PRIVATE_DST))
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY     := $(TARGET_OBJCOPY)
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY_CMD := $(call cmd-add-gnu-debuglink, $(PRIVATE_DST), $(PRIVATE_SRC))
-$(LOCAL_INSTALLED): PRIVATE_LIBCRYSTAX  := $(if $(filter dynamic,$(libcrystax-link-type)),$(PRIVATE_DST_DIR)/libcrystax.so)
 
-$(LOCAL_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries
+$(LOCAL_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries $(if $(filter dynamic,$(libcrystax-link-type)),$(dir $(LOCAL_INSTALLED))/libcrystax.so)
 	$(call host-echo-build-step,$(PRIVATE_ABI),Install) "$(PRIVATE_NAME) => $(call pretty-dir,$(PRIVATE_DST))"
 	$(hide) $(call host-install,$(PRIVATE_SRC),$(PRIVATE_DST))
 	$(hide) $(PRIVATE_STRIP_CMD)
-	$(if $(PRIVATE_LIBCRYSTAX),$(call host-echo-build-step,$(PRIVATE_ABI),Install) "$(notdir $(PRIVATE_LIBCRYSTAX)) => $(call pretty-dir,$(PRIVATE_LIBCRYSTAX))")
-	$(if $(PRIVATE_LIBCRYSTAX),$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_ABI))/$(notdir $(PRIVATE_LIBCRYSTAX)),$(PRIVATE_LIBCRYSTAX)))
-	$(if $(PRIVATE_LIBCRYSTAX),$(hide) $(call cmd-strip,$(PRIVATE_LIBCRYSTAX)))
 
 #$(hide) $(PRIVATE_OBJCOPY_CMD)
 
 $(call generate-file-dir,$(LOCAL_INSTALLED))
+
+ifeq (,$(GLOBAL_LIBCRYSTAX_INSTALL_RULE_DEFINED.$(TARGET_ARCH_ABI)))
+
+$(dir $(LOCAL_INSTALLED))/libcrystax.so: PRIVATE_LIBCRYSTAX_ABI := $(TARGET_ARCH_ABI)
+
+$(dir $(LOCAL_INSTALLED))/libcrystax.so: $(LOCAL_BUILT_MODULE) clean-installed-binaries
+	$(call host-echo-build-step,$(PRIVATE_LIBCRYSTAX_ABI),Install) "$(notdir $@) => $(call pretty-dir,$(subst //,/,$@))"
+	$(hide) $(call host-mkdir,$(dir $@))
+	$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_LIBCRYSTAX_ABI))/libcrystax.so,$(subst //,/,$@))
+	$(hide) $(call cmd-strip,$(subst //,/,$@))
+
+GLOBAL_LIBCRYSTAX_INSTALL_RULE_DEFINED.$(TARGET_ARCH_ABI) := true
+
+endif
 
 endif

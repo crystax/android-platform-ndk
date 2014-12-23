@@ -26,7 +26,7 @@ include $(BUILD_SYSTEM)/definitions-graph.mk
 define crystax-dir
 $(strip \
     $(call assert-defined,NDK_ROOT)\
-    $(eval __crystax_dir := $(NDK_ROOT)/sources/crystax)\
+    $(eval __crystax_dir := $(call host-path,$(NDK_ROOT)/sources/crystax))\
     $(if $(strip $(wildcard $(__crystax_dir))),\
         $(__crystax_dir),\
         $(call __ndk_info,Could not find libcrystax directory: $(call pretty-dir,$(__crystax_dir)) (broken NDK?))\
