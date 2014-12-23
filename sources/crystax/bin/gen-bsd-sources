@@ -459,6 +459,10 @@ g.fixup :include_crystax_sys_stdio_h do |f|
     f.puts "#include <crystax/sys/stdio.h>"
 end
 
+g.fixup :include_crystax_sys_stdio_local_h do |f|
+    f.puts "#include <crystax/sys/stdio-local.h>"
+end
+
 g.fixup :include_crystax_sys_stdlib_h do |f|
     f.puts "#include <crystax/sys/stdlib.h>"
 end
@@ -604,7 +608,8 @@ g.add "include/monetary.h",                postfixup: "include_crystax_sys_monet
 g.add "include/nl_types.h"
 g.add "include/printf.h"
 g.add "include/runetype.h"
-g.add "include/stdio.h",                   postfixup: ["include_stdarg_h", "include_crystax_sys_stdio_h"]
+g.add "include/stdio.h",                   fixup: "include_crystax_sys_stdio_local_h",
+                                           postfixup: ["include_stdarg_h", "include_crystax_sys_stdio_h"]
 g.add "include/stdlib.h",                  postfixup: "include_crystax_sys_stdlib_h"
 g.add "include/string.h",                  postfixup: "include_crystax_sys_string_h"
 g.add "include/strings.h",                 postfixup: "include_crystax_sys_strings_h"
@@ -795,8 +800,8 @@ g.add "lib/libc/stdio/getline.c"
 g.add "lib/libc/stdio/gets.c"
 g.add "lib/libc/stdio/getwc.c"
 g.add "lib/libc/stdio/getwchar.c"
-g.add "lib/libc/stdio/glue.h"
-g.add "lib/libc/stdio/local.h",            fixup:    "include_stdio_h"
+g.add "lib/libc/stdio/glue.h",             fixup:    "include_crystax_sys_stdio_local_h"
+g.add "lib/libc/stdio/local.h",            fixup:    ["include_crystax_sys_stdio_local_h", "include_stdio_h"]
 g.add "lib/libc/stdio/makebuf.c"
 g.add "lib/libc/stdio/open_memstream.c"
 g.add "lib/libc/stdio/open_wmemstream.c",  warnings: "sign-compare"
