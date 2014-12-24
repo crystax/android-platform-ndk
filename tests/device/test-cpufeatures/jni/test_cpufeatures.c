@@ -93,8 +93,9 @@ int main(void)
     int result = 0;
 
     // Check that the CPU features mask is empty for anything that isn't
-    // 32-bit ARM or 32-bit x86.
+    // 32/64-bit ARM or 32-bit x86.
     if (family != ANDROID_CPU_FAMILY_ARM &&
+        family != ANDROID_CPU_FAMILY_ARM64 &&
         family != ANDROID_CPU_FAMILY_X86) {
         uint64_t features = android_getCpuFeatures();
         if (features != 0) {

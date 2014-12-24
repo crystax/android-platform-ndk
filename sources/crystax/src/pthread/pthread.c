@@ -89,7 +89,7 @@ static int crystax_pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct 
 int pthread_mutex_timedlock(pthread_mutex_t *mutex, const struct timespec *abstime)
 {
     if (!mutex)
-        return EINVAL;
+        abort();
 
     if (__crystax_atomic_fetch(&initialized) == 0)
     {

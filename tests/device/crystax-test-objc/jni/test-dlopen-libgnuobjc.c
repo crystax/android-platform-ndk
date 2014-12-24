@@ -3,13 +3,15 @@
 
 int main()
 {
-    const char *plib = "/data/local/tmp/libgnuobjc_shared.so";
+    const char *plib = "libgnuobjc_shared.so";
 
     if (!dlopen(plib, RTLD_NOW)) {
         char *err = dlerror();
-        printf("error dlopen %s: %s\n", plib, err);
+        printf("dlopen(\"%s\") FAILED: %s\n", plib, err);
         return 1;
     }
+
+    printf("dlopen(\"%s\"): OK\n", plib);
 
     return 0;
 }

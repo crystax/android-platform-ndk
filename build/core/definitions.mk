@@ -2166,7 +2166,13 @@ ndk-objc-check = \
 # $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
 #
 ndk-objc-select = \
-    $(call import-module,$(NDK_OBJC.$1.IMPORT_MODULE))
+    $(if $(strip \
+        $(foreach __module,$(__ndk_modules),\
+            $(call module-has-objc-sources,$(__module)) \
+            $(call module-has-objc++-sources,$(__module)) \
+        )),\
+        $(call import-module,$(NDK_OBJC.$1.IMPORT_MODULE))\
+    )
 
 # Called after all Android.mk files are parsed to add
 # proper Objective-C dependencies to every Objective-C module.
