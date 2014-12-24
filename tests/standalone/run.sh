@@ -445,6 +445,7 @@ CXXFLAGS=$CXXFLAGS" -fno-exceptions"
 CFLAGS=$COMMON_FLAGS" "$CFLAGS
 CXXFLAGS=$COMMON_FLAGS" "$CXXFLAGS
 OBJC_LDFLAGS="-lobjc $OBJC_LDFLAGS"
+LDFLAGS="$LDFLAGS -lstdc++ -latomic"
 
 if [ -z "$TEST_SUBDIRS" ]; then
     TEST_SUBDIRS=$(cd $PROGDIR && ls -d *)
