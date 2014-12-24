@@ -6,8 +6,6 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#include <crystax/log.h>
-
 #define DO_TEST(name, param)                           \
     printf("test " #name "(" #param "): BEGIN\n");     \
     fflush(stdout);                                    \
