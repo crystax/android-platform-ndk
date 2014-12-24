@@ -213,14 +213,20 @@ class Toolchain
     end
     @results['gcc'] = run_test_cmd(cmd)
     # run tests with LLVM toolchains
+    # but do not run tests with LLVM for gcc 4.6 based toolchains
     $ndk_data.llvm_versions.each do |llvm_ver|
-      cmd = "./tests/standalone/run.sh " +
-            " --no-sysroot"              +
-            " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang"
-      if /armeabi/ =~ @abi
-        cmd += " --abi=#{@abi}"
-      end
-      @results['clang'+llvm_ver] = run_test_cmd(cmd)
+      @results['clang'+llvm_ver] =
+        if @gccver == "4.6"
+          -1
+        else
+          cmd = "./tests/standalone/run.sh " +
+                " --no-sysroot"              +
+                " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang"
+          if /armeabi/ =~ @abi
+            cmd += " --abi=#{@abi}"
+          end
+          run_test_cmd(cmd)
+        end
     end
     @results
   end
@@ -295,7 +301,7 @@ abis.each do |abi|
     puts "  #{gccver}"
     stl_types.each do |stl|
       print "    #{stl}, API levels: "
-      results = Hash.new([])
+      results = Hash[$ndk_data.compiler_types.map { |v| [v, []] }]
       $ndk_data.allowed_api_levels(abi, api_levels).each do |apilev|
         # create toolchain and run tests
         toolchain = Toolchain.new(abi, gccver, stl, apilev)
@@ -304,7 +310,7 @@ abis.each do |abi|
         r = toolchain.run_tests
         $ndk_data.compiler_types.each do |compiler|
           if r[compiler] > 0
-            results[compiler] << [Integer(apilev), r[compiler]]
+            results[compiler] = results[compiler] << [Integer(apilev), r[compiler]]
           end
         end
         # remove toolchain if clean was requested
