@@ -286,7 +286,6 @@ else
         $(call __ndk_info,Invalid APP_LIBCRYSTAX value: $(APP_LIBCRYSTAX))\
         $(call __ndk_info,Please use one of the following instead: 'static' or 'shared')\
         $(call __ndk_error,Aborting))
-    )
 endif
 $(call ndk_log,Using APP_LIBCRYSTAX: $(APP_LIBCRYSTAX))
 
