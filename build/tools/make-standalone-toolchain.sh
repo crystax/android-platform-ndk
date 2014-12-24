@@ -513,6 +513,12 @@ dump "Copying sysroot headers and libraries..."
 # expect the sysroot files to be placed there!
 run copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
 run copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
+
+# remove this libstdc++ library to avoid possible clashes
+# with real ones
+rm "$TMPDIR/sysroot/usr/lib/libstdc++.a"
+rm "$TMPDIR/sysroot/usr/lib/libstdc++.so"
+
 case "$ARCH" in
 # x86_64 and mips* toolchain are built multilib.
     x86_64)
@@ -694,7 +700,7 @@ copy_stl_common_headers () {
             ;;
         libcxx|libc++)
             copy_directory "$LIBCXX_DIR/libcxx/include" "$ABI_STL_INCLUDE"
-            copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
+            #copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
             if [ "$LIBCXX_SUPPORT_LIB" = "gabi++" ]; then
                 copy_directory "$STLPORT_DIR/../gabi++/include" "$ABI_STL_INCLUDE/../../gabi++/include"
                 copy_abi_headers gabi++ cxxabi.h unwind.h unwind-arm.h unwind-itanium.h gabixx_config.h
