@@ -516,8 +516,9 @@ run copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
 
 # remove this libstdc++ library to avoid possible clashes
 # with real ones
-rm "$TMPDIR/sysroot/usr/lib/libstdc++.a"
-rm "$TMPDIR/sysroot/usr/lib/libstdc++.so"
+find "$TMPDIR/sysroot/usr/" -name 'libstdc++.*' -delete
+#rm "$TMPDIR/sysroot/usr/lib/libstdc++.a"
+#rm "$TMPDIR/sysroot/usr/lib/libstdc++.so"
 
 case "$ARCH" in
 # x86_64 and mips* toolchain are built multilib.

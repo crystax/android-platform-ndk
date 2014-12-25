@@ -303,6 +303,13 @@ if [ "$PREFIX" = "${PREFIX%clang}" ]; then
     CXX=${PREFIX}g++
     CC_TARGET=$($GCC -v 2>&1 | tr ' ' '\n' | grep -e --target=)
     CC_TARGET=${CC_TARGET##--target=}
+
+    GCC_VERSION=$($GCC -v 2>&1 | awk '/gcc version/ { print $3 }')
+    if [ "$GCC_VERSION" = "4.6" ]; then
+        LDFLAGS="$LDFLAGS -Wl,-z,muldefs"
+    else
+        LDFLAGS="$LDFLAGS -lstdc++ -latomic"
+    fi
 else
     # Test Clang
     # Remove clang or clang++ from prefix if any
@@ -340,6 +347,8 @@ else
     if [ "$CLANG_VERSION" = "3.4" ]; then
         OBJC_CFLAGS="-integrated-as"
     fi
+
+    LDFLAGS="$LDFLAGS -lstdc++ -latomic"
 fi
 
 if [ -z "$ABI" ]; then
@@ -445,7 +454,6 @@ CXXFLAGS=$CXXFLAGS" -fno-exceptions"
 CFLAGS=$COMMON_FLAGS" "$CFLAGS
 CXXFLAGS=$COMMON_FLAGS" "$CXXFLAGS
 OBJC_LDFLAGS="-lobjc $OBJC_LDFLAGS"
-LDFLAGS="$LDFLAGS -lstdc++ -latomic"
 
 if [ -z "$TEST_SUBDIRS" ]; then
     TEST_SUBDIRS=$(cd $PROGDIR && ls -d *)
