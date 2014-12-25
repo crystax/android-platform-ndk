@@ -172,9 +172,10 @@ class Toolchain
     @abi = abi
     @arch = $ndk_data.abi_to_arch(abi)
     @gccver = gccver
+    @stl = stl
     @apilev = apilev
 
-    @install_dir_base = $ndk_data.standalone_path(@apilev, @arch, @gccver, stl)
+    @install_dir_base = $ndk_data.standalone_path(@apilev, @arch, @gccver, @stl)
     @name = $ndk_data.toolchain_name_for_arch(@arch, @gccver)
     @prefix = $ndk_data.toolchain_prefix_for_arch(@arch)
 
@@ -205,13 +206,18 @@ class Toolchain
     # run tests with GCC toolchain
     # since GCC compilers are the same for each LLVM version
     # use first LLVM version to run GCC tests
-    cmd = "./tests/standalone/run.sh " +
-          " --no-sysroot"              +
-          " --prefix=#{@install_dir_base}-#{$ndk_data.llvm_versions[0]}/bin/#{@prefix}-gcc"
-    if /armeabi/ =~ @abi
-      cmd += " --abi=#{@abi}"
-    end
-    @results['gcc'] = run_test_cmd(cmd)
+    @results['gcc'] =
+      if (@gccver == "4.6") && (@stl == 'libc++')
+        -1
+      else
+        cmd = "./tests/standalone/run.sh " +
+              " --no-sysroot"              +
+              " --prefix=#{@install_dir_base}-#{$ndk_data.llvm_versions[0]}/bin/#{@prefix}-gcc"
+        if /armeabi/ =~ @abi
+          cmd += " --abi=#{@abi}"
+        end
+        run_test_cmd(cmd)
+      end
     # run tests with LLVM toolchains
     # but do not run tests with LLVM for gcc 4.6 based toolchains
     $ndk_data.llvm_versions.each do |llvm_ver|
