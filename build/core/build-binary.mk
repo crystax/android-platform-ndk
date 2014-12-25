@@ -548,15 +548,6 @@ endif
 
 $(call generate-file-dir,$(LOCAL_BUILT_MODULE))
 
-# Statically link with libc _only_ in case of static executable
-define libc-link-type
-$(strip $(if \
-    $(filter -static,$(LOCAL_LDFLAGS)),\
-    static,\
-    dynamic\
-))
-endef
-
 define libcrystax-link-type
 $(strip \
     $(call assert-defined,LOCAL_LDFLAGS NDK_APP_LIBCRYSTAX)\
@@ -569,28 +560,6 @@ $(strip \
         dynamic\
     )\
 )
-endef
-
-# Static-only libcrystax link options
-# - Force __crystax_on_load/__crystax_on_unload to be undefined in case of static
-#   libcrystax linking. This way we ensure they will not be thrown away by linker.
-# - Enable 'muldefs' option when statically linking with libcrystax.
-#   This way app will use functions from libcrystax and link successfully
-#   even if there are symbols with the same name in subsequent libraries (libc etc)
-# - Force -Wl,--eh-frame-hdr for static executables if not yet specified
-define libcrystax-static-link-options
-$(strip \
-    $(call assert-defined,LOCAL_LDFLAGS)\
-    -u __crystax_on_load \
-    -u __crystax_on_unload \
-    -Wl,-z,muldefs \
-    $(eval __libcrystax_static_eh_frame_hdr := -Wl,--eh-frame-hdr)\
-    $(if $(filter $(__libcrystax_static_eh_frame_hdr),$(LOCAL_LDFLAGS)),,$(__libcrystax_static_eh_frame_hdr)) \
-)
-endef
-
-# Dynamic-only libcrystax link options
-define libcrystax-dynamic-link-options
 endef
 
 # $1: Target ABI
@@ -606,18 +575,37 @@ $(strip \
 endef
 
 # - Ensure -lcrystax is _always_ before -lc
-# - Properly detect how to link libcrystax and libc - statically or dynamically
-# - Specify proper path to libcrystax binaries
+# - Properly detect how to link libcrystax - statically or dynamically
+# - Specify path to empty libcrystax.a stub to make linker happy when it
+#   use -lcrystax (according to built-in linker spec)
+# - Specify proper path to libcrystax binary
+# - Force __crystax_on_load/__crystax_on_unload to be undefined in case of static
+#   libcrystax linking. This way we ensure they will not be thrown away by linker.
+# - Enable 'muldefs' option when statically linking.
+#   This way app will use functions from libcrystax and link successfully
+#   even if there are symbols with the same name in subsequent static libraries (libc etc)
+# - Force -Wl,--eh-frame-hdr for static executables if not yet specified
 # Parameters:
 # $1: List of linker '-lxxx' options to adjust
 define interpose-libcrystax
 $(strip \
-    $(call assert-defined,TARGET_ARCH_ABI)\
+    $(call assert-defined,TARGET_ARCH_ABI LOCAL_LDFLAGS)\
     $(filter-out -lc -lm,$(1)) \
-    $(call libcrystax-$(libcrystax-link-type)-link-options) \
-    -L$(call libcrystax-libpath,$(TARGET_ARCH_ABI)) \
-    -Wl,-B$(libcrystax-link-type),-lcrystax \
-    -Wl,-B$(libc-link-type),-lc \
+    $(if $(filter static,$(libcrystax-link-type)),\
+        -u __crystax_on_load \
+        -u __crystax_on_unload \
+    ) \
+    $(if $(filter -static,$(LOCAL_LDFLAGS)),\
+        $(eval __libcrystax_muldefs := -Wl,-z,muldefs) \
+        $(__libcrystax_muldefs) \
+    ) \
+    $(if $(filter -static,$(LOCAL_LDFLAGS)),\
+        $(eval __libcrystax_static_eh_frame_hdr := -Wl,--eh-frame-hdr) \
+        $(if $(filter $(__libcrystax_static_eh_frame_hdr),$(LOCAL_LDFLAGS)),,$(__libcrystax_static_eh_frame_hdr)) \
+    ) \
+    -L$(crystax-dir)/empty \
+    $(call libcrystax-libpath,$(TARGET_ARCH_ABI))/libcrystax.$(if $(filter static,$(libcrystax-link-type)),a,so) \
+    -lc \
 )
 endef
 
