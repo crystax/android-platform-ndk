@@ -514,12 +514,6 @@ dump "Copying sysroot headers and libraries..."
 run copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
 run copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
 
-# remove this libstdc++ library to avoid possible clashes
-# with real ones
-find "$TMPDIR/sysroot/usr/" -name 'libstdc++.*' -delete
-#rm "$TMPDIR/sysroot/usr/lib/libstdc++.a"
-#rm "$TMPDIR/sysroot/usr/lib/libstdc++.so"
-
 case "$ARCH" in
 # x86_64 and mips* toolchain are built multilib.
     x86_64)
@@ -539,6 +533,10 @@ case "$ARCH" in
 	fi
         ;;
 esac
+
+# remove this libstdc++ library to avoid possible clashes
+# with real ones
+run find "$TMPDIR/sysroot/usr/" -name 'libstdc++.*' -delete
 
 if [ "$ARCH_INC" != "$ARCH" ]; then
     cp -a $NDK_DIR/$GABIXX_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
