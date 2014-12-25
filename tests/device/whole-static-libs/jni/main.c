@@ -10,8 +10,9 @@
 int main(int argc, char *argv[])
 {
     void*  lib;
+    char dir[PATH_MAX];
     char buf[PATH_MAX];
-    sprintf(buf, "%s/libbar.so", getcwd(NULL, 0));
+    sprintf(buf, "%s/libbar.so", getcwd(dir, sizeof(dir)));
     lib = dlopen(buf, RTLD_NOW);
     if (lib == NULL) {
         fprintf(stderr, "Could not dlopen(\"libbar.so\"): %s\n", dlerror());
