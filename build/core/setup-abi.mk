@@ -48,8 +48,6 @@ ifneq (,$(call gte,$(TARGET_PLATFORM_LEVEL),$(NDK_FIRST_PIE_PLATFORM_LEVEL)))
 else
     TARGET_PIE := false
 endif
-# CrystaX: Enable PIE for all API levels
-TARGET_PIE := true
 
 # Separate the debug and release objects. This prevents rebuilding
 # everything when you switch between these two modes. For projects
