@@ -216,16 +216,13 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    if [ "$GCC_VERSION" = "4.6" ]; then
-        CRYSTAX_LIBDIR="$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
-        if [ -n "$THUMB" ]; then
-            CRYSTAX_LIBDIR="$CRYSTAX_LIBDIR/thumb"
-        fi
-        CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR"
-    else
-        CRYSTAX_LDFLAGS=""
+    local CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
+    local CRYSTAX_CONFIG_FLAGS="--libpath --abi=$ABI"
+    if [ -n "$THUMB" ]; then
+        CRYSTAX_CONFIG_FLAGS="$CRYSTAX_CONFIG_FLAGS --multilib=thumb"
     fi
-    CRYSTAX_LDFLAGS="$CRYSTAX_LDFLAGS -lcrystax -lstdc++ -lm"
+    local CRYSTAX_LIBDIR=$CRYSTAX_DIR/$($CRYSTAX_DIR/bin/config $CRYSTAX_CONFIG_FLAGS)
+    local CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR -lcrystax"
 
     export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
 

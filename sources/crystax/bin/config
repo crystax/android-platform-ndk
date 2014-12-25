@@ -580,6 +580,11 @@ set_abi()
 set_multilib()
 {
     local newval=$1
+    if [ -z "$newval" ]; then
+        echo "ERROR: empty 'multilib' passed" 1>&2
+        usage 1>&2
+        exit 1
+    fi
     if [ -n "$MULTILIB" -a "$MULTILIB" != "$newval" ]; then
         echo "ERROR: 'multilib' specified twice (first: $MULTILIB)" 1>&2
         usage 1>&2
