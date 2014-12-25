@@ -859,6 +859,7 @@ g.add "lib/libc/stdio/xprintf_time.c",     warnings: "unused-parameter"
 g.add "lib/libc/stdio/xprintf_vis.c",      warnings: "unused-parameter"
 # libc stdlib
 g.add "lib/libc/stdlib/_Exit.c"
+g.add "lib/libc/stdlib/abs.c"
 g.add "lib/libc/stdlib/atexit.h"
 g.add "lib/libc/stdlib/atof.c"
 g.add "lib/libc/stdlib/atoi.c"
