@@ -1,4 +1,11 @@
+/* WARNING!!! THIS FILE IS AUTO-GENERATED!!! DO NOT MODIFY IT MANUALLY!!! */
+
 /*
+ * This library contains code from libc library of FreeBSD project which by-turn contains
+ * code from other projects. To see specific authors and/or licenses, look into appropriate
+ * source file. Here is license for those parts which are not derived from any other projects
+ * but written by CrystaX .NET.
+ *
  * Copyright (c) 2011-2014 CrystaX .NET.
  * All rights reserved.
  *
@@ -27,18 +34,20 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_ARM64_GD_QNAN_H_E88C5A0645F8484E8B13B1FB494E95D7
-#define __CRYSTAX_INCLUDE_ARM64_GD_QNAN_H_E88C5A0645F8484E8B13B1FB494E95D7
+#ifndef __CRYSTAX_SRC_INCLUDE_ARM64_GD_QNAN_H_5020604a28210551e71b0fcfe3e2ae13e5711ba7b72c3cc6c91597f228b84f09
+#define __CRYSTAX_SRC_INCLUDE_ARM64_GD_QNAN_H_5020604a28210551e71b0fcfe3e2ae13e5711ba7b72c3cc6c91597f228b84f09
 
-#include <crystax/id.h>
+#define f_QNAN 0x7fc00000
+#define d_QNAN0 0x0
+#define d_QNAN1 0x7ff80000
+#define ld_QNAN0 0xffffffff
+#define ld_QNAN1 0xffffffff
+#define ld_QNAN2 0xffffffff
+#define ld_QNAN3 0x7fffffff
+#define ldus_QNAN0 0xffff
+#define ldus_QNAN1 0xffff
+#define ldus_QNAN2 0xffff
+#define ldus_QNAN3 0xffff
+#define ldus_QNAN4 0xffff
 
-#define f_QNAN  0xffffffff
-#define d_QNAN0 0xffffffff
-#define d_QNAN1 0xffffffff
-
-#define ld_QNAN0 0x7fff8000
-#define ld_QNAN1 0x00000000
-#define ld_QNAN2 0x00000000
-#define ld_QNAN3 0x00000000
-
-#endif /* __CRYSTAX_INCLUDE_ARM64_GD_QNAN_H_E88C5A0645F8484E8B13B1FB494E95D7 */
+#endif /* __CRYSTAX_SRC_INCLUDE_ARM64_GD_QNAN_H_5020604a28210551e71b0fcfe3e2ae13e5711ba7b72c3cc6c91597f228b84f09 */

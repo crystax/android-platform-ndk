@@ -553,6 +553,10 @@ g.fixup :define_complex_functions do |f|
     f.puts "__END_DECLS"
 end
 
+g.fixup :long_double_64 do |f|
+    f.puts "#if __LDBL_MANT_DIG__ == 53"
+end
+
 g.fixup :long_double_128 do |f|
     f.puts "#if __LDBL_MANT_DIG__ == 113"
 end
@@ -580,10 +584,23 @@ g.add "contrib/gdtoa/hd_init.c"
 g.add "contrib/gdtoa/hexnan.c"
 g.add "contrib/gdtoa/misc.c",              warnings: "sign-compare"
 g.add "contrib/gdtoa/smisc.c"
+g.add "contrib/gdtoa/strtoIQ.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "contrib/gdtoa/strtoId.c"
+g.add "contrib/gdtoa/strtoIdd.c"
+g.add "contrib/gdtoa/strtoIf.c"
+g.add "contrib/gdtoa/strtoIg.c"
 g.add "contrib/gdtoa/strtod.c"
+g.add "contrib/gdtoa/strtodI.c"
 g.add "contrib/gdtoa/strtodg.c"
 g.add "contrib/gdtoa/strtof.c",            warnings: "maybe-uninitialized"
+g.add "contrib/gdtoa/strtopQ.c",           fixup:    "long_double_128", postfixup: "endif"
+g.add "contrib/gdtoa/strtopd.c"
+g.add "contrib/gdtoa/strtopdd.c"
+g.add "contrib/gdtoa/strtopf.c"
+g.add "contrib/gdtoa/strtorQ.c",           fixup:    "long_double_128", postfixup: "endif"
 g.add "contrib/gdtoa/strtord.c"
+g.add "contrib/gdtoa/strtordd.c"
+g.add "contrib/gdtoa/strtorf.c"
 g.add "contrib/gdtoa/sum.c"
 g.add "contrib/gdtoa/ulp.c"
 # libc-vis
@@ -631,22 +648,17 @@ g.add "include/xlocale/_strings.h",        noguard: true
 g.add "include/xlocale/_time.h",           noguard: true
 g.add "include/xlocale/_wchar.h",          noguard: true
 # libc
-g.add "lib/libc/amd64/arith.h"
-g.add "lib/libc/amd64/gd_qnan.h"
-g.add "lib/libc/arm/arith.h"
-g.add "lib/libc/arm/gd_qnan.h"
 g.add "lib/libc/gdtoa/_hdtoa.c"
 g.add "lib/libc/gdtoa/_hldtoa.c"
 g.add "lib/libc/gdtoa/_ldtoa.c",           warnings: "uninitialized"
 g.add "lib/libc/gdtoa/glue.c"
-g.add "lib/libc/gdtoa/machdep_ldisd.c"
+g.add "lib/libc/gdtoa/machdep_ldisd.c",    fixup:    "long_double_64",  postfixup: "endif"
+g.add "lib/libc/gdtoa/machdep_ldisQ.c",    fixup:    "long_double_128", postfixup: "endif"
 g.add "lib/libc/gen/err.c"
 g.add "lib/libc/gen/fpclassify.c"
 g.add "lib/libc/gen/isinf.c"
 g.add "lib/libc/gen/ldexp.c"
 g.add "lib/libc/gen/lockf.c"
-g.add "lib/libc/i386/arith.h"
-g.add "lib/libc/i386/gd_qnan.h"
 # libc iconv
 g.add "lib/libc/iconv/bsd_iconv.c"
 g.add "lib/libc/iconv/citrus_bcs.c"
@@ -750,9 +762,6 @@ g.add "lib/libc/locale/wctype.c",          warnings: "unused-parameter", fixup: 
 g.add "lib/libc/locale/wcwidth.c"
 g.add "lib/libc/locale/xlocale.c",         warnings: "missing-field-initializers"
 g.add "lib/libc/locale/xlocale_private.h"
-# libc mips
-g.add "lib/libc/mips/arith.h"
-g.add "lib/libc/mips/gd_qnan.h"
 # libc stdio
 g.add "lib/libc/stdio/_flock_stub.c",      warnings: "unused-parameter"
 g.add "lib/libc/stdio/asprintf.c"
@@ -859,6 +868,7 @@ g.add "lib/libc/stdio/xprintf_time.c",     warnings: "unused-parameter"
 g.add "lib/libc/stdio/xprintf_vis.c",      warnings: "unused-parameter"
 # libc stdlib
 g.add "lib/libc/stdlib/_Exit.c"
+g.add "lib/libc/stdlib/abs.c"
 g.add "lib/libc/stdlib/atexit.h"
 g.add "lib/libc/stdlib/atof.c"
 g.add "lib/libc/stdlib/atoi.c"
@@ -1200,6 +1210,32 @@ g.add "sys/x86/include/_limits.h"
 g.add "sys/x86/include/_stdint.h"
 g.add "sys/x86/include/endian.h"
 
+[
+    "arm",
+    "arm64",
+    "i386",
+    "amd64",
+    "mips",
+    "mips64",
+].each do |a|
+    [
+        "arith.h",
+        "gd_qnan.h",
+    ].each do |i|
+        ta = case a
+             when "i386"
+                 "x86"
+             when "amd64"
+                 "x86_64"
+             else
+                 a
+             end
+        g.add "lib/libc/#{a}/#{i}" do |f|
+            f.puts "#include <crystax/#{ta}/#{i}>"
+        end
+    end
+end
+
 ["arm64", "mips64"].each do |a|
     [
         "_inttypes.h",
@@ -1208,15 +1244,6 @@ g.add "sys/x86/include/endian.h"
         "endian.h",
     ].each do |i|
         g.add "sys/#{a}/include/#{i}" do |f|
-            f.puts "#include <crystax/#{a}/#{i}>"
-        end
-    end
-
-    [
-        "arith.h",
-        "gd_qnan.h",
-    ].each do |i|
-        g.add "lib/libc/#{a}/#{i}" do |f|
             f.puts "#include <crystax/#{a}/#{i}>"
         end
     end

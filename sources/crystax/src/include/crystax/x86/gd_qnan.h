@@ -34,14 +34,20 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3
-#define __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3
+#ifndef __CRYSTAX_SRC_INCLUDE_X86_GD_QNAN_H_bbc20bac449d4ea2f7618de03f341894c0d736f6e8d175dcec023e689ea5a670
+#define __CRYSTAX_SRC_INCLUDE_X86_GD_QNAN_H_bbc20bac449d4ea2f7618de03f341894c0d736f6e8d175dcec023e689ea5a670
 
-#define IEEE_8087
-#define Arith_Kind_ASL 1
-#define Long int
-#define Intcast (int)(long)
-#define Double_Align
-#define X64_bit_pointers
+#define f_QNAN 0x7fc00000
+#define d_QNAN0 0x0
+#define d_QNAN1 0xfff80000
+#define ld_QNAN0 0x0
+#define ld_QNAN1 0xfff80000
+#define ld_QNAN2 0x0
+#define ld_QNAN3 0x0
+#define ldus_QNAN0 0x0
+#define ldus_QNAN1 0x0
+#define ldus_QNAN2 0x0
+#define ldus_QNAN3 0xfff8
+#define ldus_QNAN4 0x0
 
-#endif /* __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3 */
+#endif /* __CRYSTAX_SRC_INCLUDE_X86_GD_QNAN_H_bbc20bac449d4ea2f7618de03f341894c0d736f6e8d175dcec023e689ea5a670 */

@@ -32,6 +32,13 @@
 
 #include <crystax/id.h>
 
+/*
+ * WARNING!!!
+ * These values are stolen from another sources and most likely will not work
+ * on real MIPS64 device.
+ * TODO: build contrib/gdtoa/qnan.c, run it on MIPS64 device and fill proper values here
+*/
+
 #define f_QNAN  0x7fbfffff
 #define d_QNAN0 0x7ff7ffff
 #define d_QNAN1 0xffffffff
@@ -40,5 +47,12 @@
 #define ld_QNAN1 0x00000000
 #define ld_QNAN2 0x00000000
 #define ld_QNAN3 0x00000000
+
+#define ldus_QNAN0 0xffff
+#define ldus_QNAN1 0xffff
+#define ldus_QNAN2 0xffff
+#define ldus_QNAN3 0xffff
+#define ldus_QNAN4 0xffff
+
 
 #endif /* __CRYSTAX_INCLUDE_MIPS64_GD_QNAN_H_1DA89F97A9934AE5BC35666909AF03D1 */

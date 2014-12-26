@@ -216,13 +216,29 @@ build_gnustl_for_abi ()
 
     setup_ccache
 
-    local CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
-    local CRYSTAX_CONFIG_FLAGS="--libpath --abi=$ABI"
-    if [ -n "$THUMB" ]; then
-        CRYSTAX_CONFIG_FLAGS="$CRYSTAX_CONFIG_FLAGS --multilib=thumb"
+    local CRYSTAX_LDFLAGS
+    if [ "$GCC_VERSION" != "4.6" ]; then
+        # We MUST NOT specify path to libcrystax binaries, because it cause
+        # conflict on configure stage for toolchains with more than one incompatible
+        # multilib variants (such as mips64).
+        # To the moment this script called, we already have sysroot patched,
+        # with libcrystax binaries copied to proper folders, taking into account
+        # different multilibs variants, so configure scripts find them there.
+        CRYSTAX_LDFLAGS=""
+    else
+        # For some reason, when building libstdc++ from gcc-4.6 distribution,
+        # it's configure scripts don't find libcrystax in sysroot.
+        # To workaround that, specify path to libcrystax binaries explicitly.
+        # It works because gcc-4.6 doesn't support targets with incompatible
+        # multilibs variants, so we apply such workaround here.
+        local CRYSTAX_LIBDIR
+        CRYSTAX_LIBDIR="$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
+        if [ -n "$THUMB" ]; then
+            CRYSTAX_LIBDIR="$CRYSTAX_LIBDIR/thumb"
+        fi
+        CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR"
     fi
-    local CRYSTAX_LIBDIR=$CRYSTAX_DIR/$($CRYSTAX_DIR/bin/config $CRYSTAX_CONFIG_FLAGS)
-    local CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR -lcrystax"
+    CRYSTAX_LDFLAGS="$CRYSTAX_LDFLAGS -lcrystax"
 
     export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
 

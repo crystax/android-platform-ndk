@@ -69,6 +69,7 @@ RUN_TESTS_FILTERED=
 NDK_PACKAGE=
 WINE=
 CONTINUE_ON_BUILD_FAIL=
+ENABLE_PIE=
 if [ -z "$TEST_DIR" ]; then
     TEST_DIR="/tmp/ndk-$USER/tests"
 fi
@@ -147,6 +148,12 @@ while [ -n "$1" ]; do
         --continue-on-build-fail)
             CONTINUE_ON_BUILD_FAIL=yes
             ;;
+        --pie)
+            ENABLE_PIE=yes
+            ;;
+        --no-pie)
+            ENABLE_PIE=no
+            ;;
         -*) # unknown options
             echo "ERROR: Unknown option '$opt', use --help for list of valid ones."
             exit 1
@@ -183,6 +190,8 @@ if [ "$OPTION_HELP" = "yes" ] ; then
     echo "    --only-awk        Only run awk tests."
     echo "    --full            Run all device tests, even very long ones."
     echo "    --wine            Build all tests with wine on Linux"
+    echo "    --pie             If specified, enforce building executables with PIE"
+    echo "    --no-pie          If specified, enforce building executables without PIE"
     echo ""
     echo "NOTE: You cannot use --ndk and --package at the same time."
     echo ""
@@ -624,17 +633,24 @@ run_on_host_test ()
 
 run_ndk_build ()
 {
+    if [ "$ENABLE_PIE" = "yes" ]; then
+        APP_PIE="APP_PIE=true"
+    elif [ "$ENABLE_PIE" = "no" ]; then
+        APP_PIE="APP_PIE=false"
+    else
+        APP_PIE=
+    fi
     if [ "$WINE" ]; then
         if [ "$WINE" = "wine12" ]; then
-            run $WINE cmd /c Z:$NDK/ndk-build.cmd -j$JOBS "$@" APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS"
+            run $WINE cmd /c Z:$NDK/ndk-build.cmd -j$JOBS "$@" APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS" $APP_PIE
         else
             # do "clean" instead of -B
             run $WINE cmd /c Z:$NDK/ndk-build.cmd clean
             # make.exe can't do parallel build in wine > 1.2.x
-            run $WINE cmd /c Z:$NDK/ndk-build.cmd "$@" -j1 APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS"
+            run $WINE cmd /c Z:$NDK/ndk-build.cmd "$@" -j1 APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS" $APP_PIE
         fi
     else
-        run $NDK/ndk-build -j$JOBS "$@" APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS"
+        run $NDK/ndk-build -j$JOBS "$@" APP_LDFLAGS="$APP_LDFLAGS" APP_CFLAGS="$APP_CFLAGS" $APP_PIE
     fi
 }
 
