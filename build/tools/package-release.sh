@@ -367,6 +367,19 @@ copy_file_list "$NDK_ROOT_DIR" "$REFERENCE" $GIT_FILES &&
 rm -f $REFERENCE/Android.mk
 fail_panic "Could not create reference. Aborting."
 
+echo "Coping LIBC++ headers and sources"
+# first remove symlink
+rm "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx"
+fail_panic "Could not remove LIBCXX link. Aborting."
+# create dir and copy headers and sources
+mkdir -p "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx"
+cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/include" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
+fail_panic "Could not copy LIBCXX include files. Aborting."
+cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/src" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
+fail_panic "Could not copy LIBCXX src files. Aborting."
+cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/test" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
+fail_panic "Could not copy LIBCXX test files. Aborting."
+
 # Copy platform and sample files
 if [ "$PREBUILT_DIR" ]; then
     echo "Unpacking platform files" &&
@@ -449,7 +462,7 @@ fi
 # Remove un-needed files
 rm -f $REFERENCE/CleanSpec.mk
 rm -Rf $REFERENCE/sources/crystax/vendor
-rm -Rf $REFERENCE/sources/cxx-stl/llvm-libc++/libcxx
+#rm -Rf $REFERENCE/sources/cxx-stl/llvm-libc++/libcxx
 
 # now, for each system, create a package
 #
