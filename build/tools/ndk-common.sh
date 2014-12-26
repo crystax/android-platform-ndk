@@ -927,7 +927,6 @@ copy_file_list ()
     log "  to $DSTDIR"
 
     mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | tr ' ' '\n' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
-    #mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | sed -e 's/Additional library docs/Additional_library_docs/g' | tr ' ' '\n' | sed -e 's/Additional_library_docs/Additional\ library\ docs/g' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
     fail_panic "Cannot copy files to directory: $DSTDIR"
 }
 
