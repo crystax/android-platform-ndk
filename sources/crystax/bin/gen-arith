@@ -1,0 +1,237 @@
+#!/bin/bash
+
+cd $(dirname $0)/.. || exit 1
+MYDIR=$(pwd)
+NDK=$(cd ../.. && pwd)
+
+TMPDIR=/tmp/gen-arith-$USER-$$
+DTMPDIR=/data/local/tmp/$(basename $TMPDIR)
+
+run()
+{
+    echo "## COMMAND: $@"
+    "$@"
+}
+
+upcase()
+{
+    echo "$@" | tr '[a-z]' '[A-Z]'
+}
+
+downcase()
+{
+    echo "$@" | tr '[A-Z]' '[a-z]'
+}
+
+adbdevices()
+{
+    adb devices | sed '1d' | grep -v '^$' | grep "\<device$" | awk -F '\t' '{print $1}'
+}
+
+adbpush()
+{
+    run adb push "$@"
+}
+
+adbshell()
+{
+    run adb shell "$@"
+}
+
+cleanup()
+{
+    rm -Rf $TMPDIR
+    adbdevices | {
+        while read DEVICE; do
+            ANDROID_SERIAL="$DEVICE" adb shell "rm -r $DTMPDIR 2>/dev/null"
+        done
+    }
+}
+
+license()
+{
+    echo "/*"
+    cat $MYDIR/LICENSE | sed 's/^/ \* /' | sed 's/ *$//'
+    echo " */"
+    echo ""
+}
+
+checksum()
+{
+    echo "$@" | openssl sha256 | awk '{print $2}'
+}
+
+trap "cleanup" EXIT INT QUIT TERM ABRT
+
+ARITHCHK=$MYDIR/vendor/freebsd/contrib/gdtoa/arithchk.c
+QNAN=$MYDIR/vendor/freebsd/contrib/gdtoa/qnan.c
+
+if [ ! -f $ARITHCHK ]; then
+    echo "ERROR: File '$ARITHCHK' not found" 1>&2
+    exit 1
+fi
+
+if [ ! -f $QNAN ]; then
+    echo "ERROR: File '$QNAN' not found" 1>&2
+    exit 1
+fi
+
+HOST_OS=$(downcase $(uname -s))
+if [ "x$HOST_OS" = "x" ]; then
+    echo "ERROR: Can't detect host OS" 1>&2
+    exit 1
+fi
+
+HOST_ARCH=$(uname -m)
+if [ "x$HOST_ARCH" = "x" ]; then
+    echo "ERROR: Can't detect host CPU architecture" 1>&2
+    exit 1
+fi
+
+#DEVICES=$(adb devices | sed '1d' | grep -v '^$' | grep "\<device$" | awk -F '\t' '{print $1}')
+#if [ -z "$DEVICES" ]; then
+#    echo "WARNING: No connected devices found" 1>&2
+#    exit 0
+#fi
+
+for ARCH in arm arm64 x86 x86_64 mips mips64; do
+    eval unset HEADERS_GENERATED_${ARCH}
+done
+
+adbdevices | {
+while read DEVICE; do
+    export ANDROID_SERIAL="$DEVICE"
+    ABI=$(adb shell getprop ro.product.cpu.abi | tr -d '\r')
+
+    case $ABI in
+        armeabi*)
+            ARCH=arm
+            ;;
+        arm64*)
+            ARCH=arm64
+            ;;
+        *)
+            ARCH=$ABI
+    esac
+
+    ALREADY_DONE=$(eval echo \$HEADERS_GENERATED_${ARCH})
+    if [ "x$ALREADY_DONE" = "xyes" ]; then
+        continue
+    fi
+    eval HEADERS_GENERATED_${ARCH}=yes
+
+    echo "========================================================================="
+    echo "=== Generating headers for $(upcase $ARCH) (device '$DEVICE') ..."
+    echo "========================================================================="
+
+    case $ABI in
+        armeabi*)
+            TC=arm-linux-androideabi
+            ;;
+        arm64*)
+            TC=aarch64-linux-android
+            ;;
+        x86)
+            TC=x86
+            ;;
+        x86_64)
+            TC=x86_64
+            ;;
+        mips)
+            TC=mipsel-linux-android
+            ;;
+        mips64)
+            TC=mips64el-linux-android
+            ;;
+        *)
+            echo "ERROR: Unknown ABI: $ABI" 1>&2
+            exit 1
+    esac
+
+    case $ABI in
+        x86)
+            TCPREFIX=i686-linux-android
+            ;;
+        x86_64)
+            TCPREFIX=x86_64-linux-android
+            ;;
+        *)
+            TCPREFIX=$TC
+    esac
+
+    case $ABI in
+        armeabi*|x86|mips)
+            APILEVEL=9
+            ;;
+        arm64*|x86_64|mips64)
+            APILEVEL=21
+            ;;
+        *)
+            echo "ERROR: Unknown ABI: $ABI" 1>&2
+            exit 1
+    esac
+
+    CFLAGS=""
+
+    CFLAGS="$CFLAGS -O2"
+    CFLAGS="$CFLAGS -fpic"
+    CFLAGS="$CFLAGS -fno-strict-aliasing"
+    CFLAGS="$CFLAGS -ffunction-sections"
+    CFLAGS="$CFLAGS -funwind-tables"
+    CFLAGS="$CFLAGS -fomit-frame-pointer"
+    CFLAGS="$CFLAGS -no-canonical-prefixes"
+
+    SYSROOT=$NDK/platforms/android-$APILEVEL/arch-$ARCH
+    CFLAGS="$CFLAGS --sysroot=$SYSROOT"
+
+    LDFLAGS="-static -Wl,-z,muldefs"
+    LDFLAGS="$LDFLAGS -L$MYDIR/$($MYDIR/bin/config --libpath --abi=$ABI)"
+
+    PREFIX=$NDK/toolchains/$TC-4.9/prebuilt/${HOST_OS}-${HOST_ARCH}/bin/${TCPREFIX}
+    GCC=${PREFIX}-gcc
+    STRIP=${PREFIX}-strip
+
+    mkdir -p $TMPDIR || exit 1
+    adbshell mkdir $DTMPDIR || exit 1
+
+    run $GCC $CFLAGS $LDFLAGS -o $TMPDIR/arithchk $ARITHCHK || exit 1
+    run $STRIP --strip-unneeded $TMPDIR/arithchk || exit 1
+    adbpush $TMPDIR/arithchk $DTMPDIR/ || exit 1
+    adbshell $DTMPDIR/arithchk | sed '1d' | tr -d '\r' >$TMPDIR/arith.h || exit 1
+
+    run $GCC $CFLAGS -I$TMPDIR $LDFLAGS -o $TMPDIR/qnan $QNAN || exit 1
+    run $STRIP --strip-unneeded $TMPDIR/qnan || exit 1
+    adbpush $TMPDIR/qnan $DTMPDIR/ || exit 1
+    adbshell $DTMPDIR/qnan | sed '1d' | tr -d '\r' >$TMPDIR/gd_qnan.h || exit 1
+
+    INCPATH=src/include/crystax/$ARCH
+    mkdir -p $INCPATH || exit 1
+
+    for f in arith.h gd_qnan.h; do
+        DST=$INCPATH/$f
+        printf "Generating $DST ... "
+
+        GUARD="__CRYSTAX_SRC_INCLUDE_$(upcase $ARCH)_$(upcase $(echo $f | tr '.' '_'))_$(checksum $DST)"
+        {
+            echo "/* WARNING!!! THIS FILE IS AUTO-GENERATED!!! DO NOT MODIFY IT MANUALLY!!! */"
+            echo ""
+
+            license
+
+            echo "#ifndef $GUARD"
+            echo "#define $GUARD"
+            echo ""
+
+            cat $TMPDIR/$f
+
+            echo ""
+            echo "#endif /* $GUARD */"
+
+        } | cat >$MYDIR/$DST || exit 1
+
+        echo "DONE"
+    done
+done
+}
+
+exit 0

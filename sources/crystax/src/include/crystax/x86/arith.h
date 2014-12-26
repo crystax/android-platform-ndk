@@ -34,14 +34,10 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3
-#define __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3
+#ifndef __CRYSTAX_SRC_INCLUDE_X86_ARITH_H_f0ae0502c175aa7ec3ab296405b44cb55d55120827433d9a7f7fdcec8d72976a
+#define __CRYSTAX_SRC_INCLUDE_X86_ARITH_H_f0ae0502c175aa7ec3ab296405b44cb55d55120827433d9a7f7fdcec8d72976a
 
 #define IEEE_8087
 #define Arith_Kind_ASL 1
-#define Long int
-#define Intcast (int)(long)
-#define Double_Align
-#define X64_bit_pointers
 
-#endif /* __CRYSTAX_SRC_INCLUDE_ARM64_ARITH_H_d024fd295eb862cefa8f5723dfa8a0a1178ff868d44485918ab866d2cab2b6d3 */
+#endif /* __CRYSTAX_SRC_INCLUDE_X86_ARITH_H_f0ae0502c175aa7ec3ab296405b44cb55d55120827433d9a7f7fdcec8d72976a */
