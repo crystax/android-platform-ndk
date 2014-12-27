@@ -961,6 +961,7 @@ if is_testable device; then
     # $2: DEVICE CPU ABI
     # $3: test
     # $4: tmp dir
+    # $5: DEVICE_MODEL
     run_device_test ()
     {
         local DEVICE=$1
@@ -972,6 +973,7 @@ if is_testable device; then
         local SRCFILE
         local DSTFILE
         local PROGRAM
+        local DEVICE_MODEL=$5
         # Do not run the test if BROKEN_RUN is defined
         if [ "$FORCE" != "yes" ]; then
             if is_broken_build $TEST "NDK device test not built"; then
@@ -1089,17 +1091,24 @@ if is_testable device; then
                 exit 1
             fi
             PROGRAM="`basename $DSTPATH`"
+            if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
+                JSONFIELDS="\"path\":\"$TEST\""
+                JSONFIELDS="$JSONFIELDS,\"name\":\"`basename $PROGRAM`\""
+                JSONFIELDS="$JSONFIELDS,\"abi\":\"$CPU_ABI\""
+                JSONFIELDS="$JSONFIELDS,\"deviceid\":\"$DEVICE\""
+                JSONFIELDS="$JSONFIELDS,\"devicemodel\":\"$DEVICE_MODEL\""
+            fi
             dump "Running device test [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
             adb_var_shell_cmd "$DEVICE" "" "cd $DSTDIR && LD_LIBRARY_PATH=$DSTDIR ./$PROGRAM"
             if [ $? != 0 ] ; then
                 (( NUM_FAILED_DEVICE_TESTS += 1 ))
                 dump "   ---> TEST FAILED!!"
                 if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
-                    echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-failed\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
+                    echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-failed\",$JSONFIELDS}"
                 fi
             fi
             if [ -n "$MACHINE_READABLE_OUTPUT_PREFIX" ]; then
-                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",\"path\":\"$TEST\",\"name\":\"`basename $PROGRAM`\",\"abi\":\"$CPU_ABI\"}"
+                echo "$MACHINE_READABLE_OUTPUT_PREFIX{\"event\":\"test-success\",$JSONFIELDS}"
             fi
             adb_var_shell_cmd "$DEVICE" "" "rm $DSTPATH"
             if [ -n "$DATAPATHS" ]; then
@@ -1159,10 +1168,14 @@ if is_testable device; then
         for DEVICE in $ADB_DEVICES; do
             # undo earlier ' '-to-'#' translation
             DEVICE=$(echo "$DEVICE" | tr '#' ' ')
+            CPU_ABIS=""
             # get device CPU_ABI and CPU_ABI2, each may contain list of abi, comma-delimited.
             adb_var_shell_cmd "$DEVICE" CPU_ABI1 getprop ro.product.cpu.abi
             adb_var_shell_cmd "$DEVICE" CPU_ABI2 getprop ro.product.cpu.abi2
-            CPU_ABIS="$CPU_ABI1,$CPU_ABI2"
+            adb_var_shell_cmd "$DEVICE" CPU_ABIS getprop ro.product.cpu.abilist
+            if [ -z "$CPU_ABIS" ]; then
+                CPU_ABIS="$CPU_ABI1,$CPU_ABI2"
+            fi
             CPU_ABIS=$(commas_to_spaces $CPU_ABIS)
             if [ -n "$_NDK_TESTING_ALL_" ]; then
                 if [ "$CPU_ABI1" = "armeabi-v7a" -o "$CPU_ABI2" = "armeabi-v7a" ]; then
@@ -1175,13 +1188,43 @@ if is_testable device; then
               CPU_ABIS=armeabi
             fi
             log "CPU_ABIS=$CPU_ABIS"
+            adb_var_shell_cmd "$DEVICE" APILEVEL getprop ro.build.version.sdk
+            if [ -n "$APILEVEL" ]; then
+                if [ "$ENABLE_PIE" = "yes" ]; then
+                    if [ $APILEVEL -le 15 ]; then
+                        dump "Skipping device '$DEVICE': PIE-enabled binaries are not supported on android-$APILEVEL"
+                        continue
+                    fi
+                elif [ "$ENABLE_PIE" = "no" ]; then
+                    if [ $APILEVEL -ge 21 ]; then
+                        dump "Skipping device '$DEVICE': only PIE-enabled binaries supported on android-$APILEVEL"
+                        continue
+                    fi
+                fi
+            else
+                dump "WARNING: Can't detect API Level of device '$DEVICE'!"
+            fi
+            if echo "$DEVICE" | grep -q "^emulator\>"; then
+                DEVICE_MODEL=""
+            else
+                adb_var_shell_cmd "$DEVICE" DEVICE_MODEL getprop ro.product.model
+            fi
             for CPU_ABI in $CPU_ABIS; do
                 if [ "$ABI" = "default" -o "$ABI" = "$CPU_ABI" -o "$ABI" = "$(find_ndk_unknown_archs)" ] ; then
+                    # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
+                    # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
+                    # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
+                    if [ "$CPU_ABI1" = "x86" -a "$CPU_ABI2" = "armeabi-v7a" -a "$ENABLE_PIE" = "yes" ]; then
+                        if [ "$CPU_ABI" = "armeabi-v7a" -o "$CPU_ABI" = "armeabi-v7a-hard" ]; then
+                            dump "Skipping device '$DEVICE': PIE-enabled $CPU_ABI binaries are not supported on x86 device"
+                            continue
+                        fi
+                    fi
                     AT_LEAST_CPU_ABI_MATCH="yes"
                     for DIR in `ls -d $ROOTDIR/tests/device/*`; do
                         if is_buildable $DIR; then
                             log "Running device test on $DEVICE [$CPU_ABI]: $DIR"
-                            run_device_test "$DEVICE" "$CPU_ABI" "$DIR" /data/local/tmp
+                            run_device_test "$DEVICE" "$CPU_ABI" "$DIR" /data/local/tmp "$DEVICE_MODEL"
                         fi
                     done
                 fi
