@@ -332,20 +332,19 @@ pack_release ()
     local srcdir="$2"
     local reldir="$3"
     local ext="${archive##*.}"
-    local sys_flags=
-    if [ "$ext" = "7z" ] ; then
-        sys_flags="-l"
-        chmod_flags="a-x"
+    local chmod_flags="a+x"
+    local pack_cmd=
+    if [ "$ext" = "exe" ] ; then
+        pack_cmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/7z.exe"
     else
-        sys_flags="-sfx"
-        chmod_flags="a+x"
+        pack_cmd="7z"
     fi
-    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on $sys_flags"
+    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -sfx"
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
     mkdir -p `dirname $ARCHIVE`
-    (cd $srcdir && 7z $flags_7z "$archive" "$reldir" > /dev/null && chmod $chmod_flags $archive)
+    (cd $srcdir && $pack_cmd $flags_7z "$archive" "$reldir" > /dev/null && chmod $chmod_flags $archive)
 }
 
 rm -rf $TMPDIR && mkdir -p $TMPDIR
@@ -639,8 +638,8 @@ for SYSTEM in $SYSTEMS; do
     fi
     case "$SYSTEM" in
         windows)
-            ARCHIVE64="${ARCHIVE}_64.7z"
-            ARCHIVE="${ARCHIVE}.7z"
+            ARCHIVE64="${ARCHIVE}_64.exe"
+            ARCHIVE="${ARCHIVE}.exe"
             SHORT_SYSTEM="windows"
             ;;
         *)
