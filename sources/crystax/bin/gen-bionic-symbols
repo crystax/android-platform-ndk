@@ -4,6 +4,7 @@ require 'fileutils'
 require 'pathname'
 
 SYMBOLS = [
+    "__system_property_get",
     "dladdr",
     "fcntl",
     "pthread_mutex_lock_timeout_np",

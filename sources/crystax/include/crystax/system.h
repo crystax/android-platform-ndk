@@ -27,39 +27,20 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
-#define __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
+#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYSTEM_H_95FCEB31574A4A0EA85C434B217FB3A2
+#define __CRYSTAX_INCLUDE_CRYSTAX_SYSTEM_H_95FCEB31574A4A0EA85C434B217FB3A2
 
 #include <crystax/id.h>
-#include <crystax/ctassert.h>
-
 #include <sys/cdefs.h>
-#include <jni.h>
 
 __BEGIN_DECLS
 
-int crystax_jni_on_load(JavaVM *vm);
-void crystax_jni_on_unload(JavaVM *vm);
+#define CRYSTAX_DEVICE_TYPE_UNKNOWN  0
+#define CRYSTAX_DEVICE_TYPE_EMULATOR 1
+#define CRYSTAX_DEVICE_TYPE_REAL     2
 
-/*
- * Return pointer to application's Java VM.
- * Return NULL if there is no JVM (standalone executable)
- */
-JavaVM *crystax_jvm();
-
-/*
- * Return thread-specific JNIEnv pointer.
- * Return NULL if there is no JVM (standalone executable)
- */
-JNIEnv *crystax_jnienv();
-
-/*
- * Save specified JNIEnv to thread-specific storage.
- * This value will then be returned on subsequent calls
- * of crystax_jnienv()
- */
-void crystax_save_jnienv(JNIEnv *env);
+int crystax_device_type();
 
 __END_DECLS
 
-#endif /* __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3 */
+#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYSTEM_H_95FCEB31574A4A0EA85C434B217FB3A2 */

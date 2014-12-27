@@ -27,39 +27,40 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
-#define __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
+#include <crystax/system.h>
 
-#include <crystax/id.h>
-#include <crystax/ctassert.h>
+#include <crystax/private.h>
+#include <crystax/atomic.h>
+#include <crystax/bionic.h>
 
-#include <sys/cdefs.h>
-#include <jni.h>
+#include <sys/system_properties.h>
 
-__BEGIN_DECLS
+#include <string.h>
 
-int crystax_jni_on_load(JavaVM *vm);
-void crystax_jni_on_unload(JavaVM *vm);
+static int devtype = -1;
 
-/*
- * Return pointer to application's Java VM.
- * Return NULL if there is no JVM (standalone executable)
- */
-JavaVM *crystax_jvm();
+CRYSTAX_GLOBAL
+int crystax_device_type()
+{
+    static const char *generic = "generic";
 
-/*
- * Return thread-specific JNIEnv pointer.
- * Return NULL if there is no JVM (standalone executable)
- */
-JNIEnv *crystax_jnienv();
+    int type = __crystax_atomic_fetch(&devtype);
+    if (type < 0)
+    {
+        typedef int (*syspropget_t)(const char *, char *);
 
-/*
- * Save specified JNIEnv to thread-specific storage.
- * This value will then be returned on subsequent calls
- * of crystax_jnienv()
- */
-void crystax_save_jnienv(JNIEnv *env);
+        char brand[PROP_VALUE_MAX + 1];
 
-__END_DECLS
+        syspropget_t syspropget = (syspropget_t)__crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL___SYSTEM_PROPERTY_GET, 1);
+        if (!syspropget || syspropget("ro.product.brand", brand) <= 0)
+            type = CRYSTAX_DEVICE_TYPE_UNKNOWN;
+        else if (memcmp(brand, generic, strlen(generic)) == 0)
+            type = CRYSTAX_DEVICE_TYPE_EMULATOR;
+        else
+            type = CRYSTAX_DEVICE_TYPE_REAL;
 
-#endif /* __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3 */
+        __crystax_atomic_swap(&devtype, type);
+    }
+
+    return type;
+}
