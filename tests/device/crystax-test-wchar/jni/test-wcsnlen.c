@@ -35,6 +35,17 @@
 #include <wchar.h>
 #include <unistd.h>
 
+#ifdef assert
+#undef assert
+#endif
+
+#define assert(x) \
+    if (!(x)) \
+    { \
+        fprintf(stderr, "%s:%d: ERROR: Assertion failed: \"%s\"\n", __FILE__, __LINE__, #x); \
+        abort(); \
+    }
+
 #ifndef roundup2
 #define roundup2(x, y)	(((x)+((y)-1))&(~((y)-1))) /* if y is powers of two */
 #endif
