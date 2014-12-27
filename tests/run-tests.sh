@@ -682,9 +682,9 @@ is_broken_build ()
             if [ ! -s "$PROJECT/BROKEN_BUILD" ] ; then
                 # skip all
                 if [ -z "$ERRMSG" ] ; then
-                    dump "Skipping `basename $PROJECT`: (build)"
+                    dump "SKIP `basename $PROJECT`: (build)"
                 else
-                    dump "Skipping $ERRMSG: `basename $PROJECT`"
+                    dump "SKIP $ERRMSG: `basename $PROJECT`"
                 fi
                 return 0
             else
@@ -694,9 +694,9 @@ is_broken_build ()
                 grep -q -e "$TARGET_TOOLCHAIN_VERSION" "$PROJECT/BROKEN_BUILD"
                 if [ $? = 0 ] ; then
                     if [ -z "$ERRMSG" ] ; then
-                        dump "Skipping `basename $PROJECT`: (no build for $TARGET_TOOLCHAIN_VERSION)"
+                        dump "SKIP `basename $PROJECT`: (no build for $TARGET_TOOLCHAIN_VERSION)"
                     else
-                        dump "Skipping $ERRMSG: `basename $PROJECT` (no build for $TARGET_TOOLCHAIN_VERSION)"
+                        dump "SKIP $ERRMSG: `basename $PROJECT` (no build for $TARGET_TOOLCHAIN_VERSION)"
                     fi
                     return 0
                 fi
@@ -705,9 +705,9 @@ is_broken_build ()
                     grep -q -e "$PLATFORM" "$PROJECT/BROKEN_BUILD" || grep -q -e "android-forced" "$PROJECT/BROKEN_BUILD"
                     if [ $? = 0 ] ; then
                         if [ -z "$ERRMSG" ] ; then
-                            dump "Skipping `basename $PROJECT`: (no build for $PLATFORM)"
+                            dump "SKIP `basename $PROJECT`: (no build for $PLATFORM)"
                         else
-                            dump "Skipping $ERRMSG: `basename $PROJECT` (no build for $PLATFORM)"
+                            dump "SKIP $ERRMSG: `basename $PROJECT` (no build for $PLATFORM)"
                         fi
                         return 0
                     fi
@@ -744,7 +744,7 @@ is_incompatible_abi ()
           APP_ABIS="${_FRONT}${_EXPANDED}${_BACK}"
         fi
         if [ "$APP_ABIS" = "${APP_ABIS%$ABI *}" ] ; then
-            dump "Skipping `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
+            dump "SKIP `basename $PROJECT`: incompatible ABI, needs $APP_ABIS"
             return 0
         fi
     fi
@@ -881,7 +881,7 @@ if is_testable samples; then
 
     build_sample ()
     {
-        dump "Building NDK sample: `basename $1`"
+        dump "BLD  NDK sample: `basename $1`"
         build_project $1 "no"
     }
 
@@ -902,7 +902,7 @@ if is_testable build; then
     build_build_test ()
     {
         local NAME="$(basename $1)"
-        dump "Building NDK build test: `basename $1`"
+        dump "BLD  NDK build test: `basename $1`"
         if [ -f $1/build.sh ]; then
             local DIR="$BUILD_DIR/$NAME"
             if [ -f "$1/jni/Android.mk" -a -f "$1/jni/Application.mk" ] ; then
@@ -953,7 +953,7 @@ if is_testable device; then
         if is_broken_build $1 "broken device test build"; then
             return 0;
         fi
-        dump "Building NDK device test: `basename $1`"
+        dump "BLD  NDK device test: `basename $1`"
         build_project $1 "yes"
     }
 
@@ -982,7 +982,7 @@ if is_testable device; then
             if [ -f "$TEST/BROKEN_RUN" ] ; then
                 if [ ! -s "$TEST/BROKEN_RUN" ] ; then
                     # skip all
-                    dump "Skipping NDK device test run: $TEST_NAME"
+                    dump "SKIP NDK device test run: $TEST_NAME"
                     return 0
                 else
                     # skip all tests built by toolchain
@@ -990,12 +990,12 @@ if is_testable device; then
                     TARGET_TOOLCHAIN_VERSION=`echo $TARGET_TOOLCHAIN | tr '-' '\n' | tail -1`
                     grep -q -e "$TARGET_TOOLCHAIN_VERSION" "$TEST/BROKEN_RUN"
                     if [ $? = 0 ] ; then
-                        dump "Skipping NDK device test run: $TEST_NAME (no run for binary built by $TARGET_TOOLCHAIN_VERSION)"
+                        dump "SKIP NDK device test run: $TEST_NAME (no run for binary built by $TARGET_TOOLCHAIN_VERSION)"
                         return 0
                     fi
                     # skip tests listed in file
                     SKIPPED_EXECUTABLES=`cat $TEST/BROKEN_RUN | tr '\n' ' '`
-                    dump "Skipping NDK device test run: $TEST_NAME ($SKIPPED_EXECUTABLES)"
+                    dump "SKIP NDK device test run: $TEST_NAME ($SKIPPED_EXECUTABLES)"
                 fi
             fi
         fi
@@ -1004,7 +1004,7 @@ if is_testable device; then
         fi
         SRCDIR="$BUILD_DIR/`basename $TEST`/libs/$CPU_ABI"
         if [ ! -d "$SRCDIR" ] || [ -z "`ls $SRCDIR`" ]; then
-            dump "Skipping NDK device test run (no $CPU_ABI binaries): $TEST_NAME"
+            dump "SKIP NDK device test run (no $CPU_ABI binaries): $TEST_NAME"
             return 0
         fi
         # First, copy all files to the device, except for gdbserver, gdb.setup, and
@@ -1098,7 +1098,12 @@ if is_testable device; then
                 JSONFIELDS="$JSONFIELDS,\"deviceid\":\"$DEVICE\""
                 JSONFIELDS="$JSONFIELDS,\"devicemodel\":\"$DEVICE_MODEL\""
             fi
-            dump "Running device test [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
+            if [ -n "$DEVICE_MODEL" ]; then
+                DEVID=$DEVICE_MODEL
+            else
+                DEVID=$DEVICE
+            fi
+            dump "RUN  test on $DEVID [$CPU_ABI]: $TEST_NAME (`basename $PROGRAM`)"
             adb_var_shell_cmd "$DEVICE" "" "cd $DSTDIR && LD_LIBRARY_PATH=$DSTDIR ./$PROGRAM"
             if [ $? != 0 ] ; then
                 (( NUM_FAILED_DEVICE_TESTS += 1 ))
@@ -1188,29 +1193,33 @@ if is_testable device; then
                 CPU_ABIS=armeabi
             fi
             log "CPU_ABIS=$CPU_ABIS"
-            adb_var_shell_cmd "$DEVICE" APILEVEL getprop ro.build.version.sdk
-            if [ -n "$APILEVEL" ]; then
-                if [ "$ENABLE_PIE" = "yes" ]; then
-                    if [ $APILEVEL -le 15 ]; then
-                        dump "Skipping device '$DEVICE': PIE-enabled binaries are not supported on android-$APILEVEL"
-                        continue
-                    fi
-                elif [ "$ENABLE_PIE" = "no" ]; then
-                    if [ $APILEVEL -ge 21 ]; then
-                        dump "Skipping device '$DEVICE': only PIE-enabled binaries supported on android-$APILEVEL"
-                        continue
-                    fi
-                fi
-            else
-                dump "WARNING: Can't detect API Level of device '$DEVICE'!"
-            fi
+
             if echo "$DEVICE" | grep -q "^emulator\>"; then
                 DEVICE_MODEL=""
             else
                 adb_var_shell_cmd "$DEVICE" DEVICE_MODEL getprop ro.product.model
             fi
+            if [ -n "$DEVICE_MODEL" ]; then
+                DEVID=$DEVICE_MODEL
+            else
+                DEVID=$DEVICE
+            fi
+
+            adb_var_shell_cmd "$DEVICE" APILEVEL getprop ro.build.version.sdk
+
             for CPU_ABI in $CPU_ABIS; do
                 if [ "$ABI" = "default" -o "$ABI" = "$CPU_ABI" -o "$ABI" = "$(find_ndk_unknown_archs)" ] ; then
+                    if [ "$ENABLE_PIE" = "yes" ]; then
+                        if [ $APILEVEL -le 15 ]; then
+                            dump "SKIP test on $DEVID [$CPU_ABI]: android-$APILEVEL don't support PIE-enabled binaries"
+                            continue
+                        fi
+                    elif [ "$ENABLE_PIE" = "no" ]; then
+                        if [ $APILEVEL -ge 21 ]; then
+                            dump "SKIP test on $DEVID [$CPU_ABI]: android-$APILEVEL don't support non-PIE binaries"
+                            continue
+                        fi
+                    fi
                     if [ "$CHECK_COMPATIBLE_ABI" != "no" ]; then
                         DEVICE_ABI=$CPU_ABI1
                         COMPATIBLE=no
@@ -1240,7 +1249,7 @@ if is_testable device; then
                         esac
 
                         if [ "$COMPATIBLE" = "no" ]; then
-                            dump "Skipping runnning incompatible $CPU_ABI tests on device '$DEVICE'"
+                            dump "SKIP test on $DEVID [$CPU_ABI]: $DEVICE_ABI-incompatible (set CHECK_COMPATIBLE_ABI=no to force running it)"
                             continue
                         fi
                     fi
@@ -1251,7 +1260,7 @@ if is_testable device; then
                     if [ "$DEVICE_ABI" = "x86" -a "$ENABLE_PIE" = "yes" ]; then
                         case $CPU_ABI in
                             armeabi-v7a*)
-                                dump "Skipping device '$DEVICE': PIE-enabled $CPU_ABI binaries are not supported on x86 device"
+                                dump "SKIP test on $DEVID [$CPU_ABI]: PIE-enabled binaries are not supported on $DEVICE_ABI device"
                                 continue
                                 ;;
                         esac
