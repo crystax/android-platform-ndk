@@ -1178,14 +1178,14 @@ if is_testable device; then
             fi
             CPU_ABIS=$(commas_to_spaces $CPU_ABIS)
             if [ -n "$_NDK_TESTING_ALL_" ]; then
-                if [ "$CPU_ABI1" = "armeabi-v7a" -o "$CPU_ABI2" = "armeabi-v7a" ]; then
+                if echo $CPU_ABIS | tr ' ' '\n' | grep -q -x armeabi-v7a; then
                     CPU_ABIS="$CPU_ABIS armeabi-v7a-hard"
                 fi
             fi
             if [ "$CPU_ABIS" = " " ]; then
-              # Very old cupcake-based Android devices don't have these properties
-              # defined. Fortunately, they are all armeabi-based.
-              CPU_ABIS=armeabi
+                # Very old cupcake-based Android devices don't have these properties
+                # defined. Fortunately, they are all armeabi-based.
+                CPU_ABIS=armeabi
             fi
             log "CPU_ABIS=$CPU_ABIS"
             adb_var_shell_cmd "$DEVICE" APILEVEL getprop ro.build.version.sdk
@@ -1211,14 +1211,50 @@ if is_testable device; then
             fi
             for CPU_ABI in $CPU_ABIS; do
                 if [ "$ABI" = "default" -o "$ABI" = "$CPU_ABI" -o "$ABI" = "$(find_ndk_unknown_archs)" ] ; then
+                    if [ "$CHECK_COMPATIBLE_ABI" != "no" ]; then
+                        DEVICE_ABI=$CPU_ABI1
+                        COMPATIBLE=no
+                        case $CPU_ABI in
+                            armeabi)
+                                case $DEVICE_ABI in
+                                    armeabi|armeabi-v7a|arm64-v8a)
+                                        COMPATIBLE=yes
+                                esac
+                                ;;
+                            armeabi-v7a|armeabi-v7a-hard)
+                                case $DEVICE_ABI in
+                                    armeabi-v7a|arm64-v8a)
+                                        COMPATIBLE=yes
+                                esac
+                                ;;
+                            x86)
+                                case $DEVICE_ABI in
+                                    x86|x86_64)
+                                        COMPATIBLE=yes
+                                esac
+                                ;;
+                            *)
+                                if [ "$CPU_ABI" = "$DEVICE_ABI" ]; then
+                                    COMPATIBLE=yes
+                                fi
+                        esac
+
+                        if [ "$COMPATIBLE" = "no" ]; then
+                            dump "Skipping runnning incompatible $CPU_ABI tests on device '$DEVICE'"
+                            continue
+                        fi
+                    fi
+
                     # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
                     # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
                     # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
-                    if [ "$CPU_ABI1" = "x86" -a "$CPU_ABI2" = "armeabi-v7a" -a "$ENABLE_PIE" = "yes" ]; then
-                        if [ "$CPU_ABI" = "armeabi-v7a" -o "$CPU_ABI" = "armeabi-v7a-hard" ]; then
-                            dump "Skipping device '$DEVICE': PIE-enabled $CPU_ABI binaries are not supported on x86 device"
-                            continue
-                        fi
+                    if [ "$DEVICE_ABI" = "x86" -a "$ENABLE_PIE" = "yes" ]; then
+                        case $CPU_ABI in
+                            armeabi-v7a*)
+                                dump "Skipping device '$DEVICE': PIE-enabled $CPU_ABI binaries are not supported on x86 device"
+                                continue
+                                ;;
+                        esac
                     fi
                     AT_LEAST_CPU_ABI_MATCH="yes"
                     for DIR in `ls -d $ROOTDIR/tests/device/*`; do
