@@ -815,7 +815,7 @@ ifeq (,$(GLOBAL_LIBCRYSTAX_INSTALL_RULE_DEFINED.$(TARGET_ARCH_ABI)))
 
 $(dir $(LOCAL_INSTALLED))/libcrystax.so: PRIVATE_LIBCRYSTAX_ABI := $(TARGET_ARCH_ABI)
 
-$(dir $(LOCAL_INSTALLED))/libcrystax.so: $(LOCAL_BUILT_MODULE) clean-installed-binaries
+$(dir $(LOCAL_INSTALLED))/libcrystax.so: $(LOCAL_BUILT_MODULE) clean-installed-binaries | $(dir $(LOCAL_INSTALLED))
 	$(call host-echo-build-step,$(PRIVATE_LIBCRYSTAX_ABI),Install) "$(notdir $@) => $(call pretty-dir,$(subst //,/,$@))"
 	$(hide) $(call host-mkdir,$(dir $@))
 	$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_LIBCRYSTAX_ABI))/libcrystax.so,$(subst //,/,$@))
