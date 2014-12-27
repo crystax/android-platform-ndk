@@ -101,7 +101,7 @@ class Ndk_data
   def allowed_gcc_versions(abi, gcc_versions)
     case abi
     when /64/
-      gcc_versions.include?("4.9") ? ["4.9"] : nil
+      gcc_versions.include?("4.9") ? ["4.9"] : []
     else
       gcc_versions
     end
