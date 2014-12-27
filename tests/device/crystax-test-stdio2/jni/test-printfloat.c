@@ -327,17 +327,19 @@ main(int argc, char *argv[])
 #define FLOAT_HEX_ROUNDING_BROKEN 0
 #endif
 
-#if !FLOAT_HEX_ROUNDING_BROKEN
-	/*
-	 * Hexadecimal rounding
-	 */
-	fesetround(FE_TOWARDZERO);
 #if __CRYSTAX__ && __i386__
     /* This test fails on x86 emulator so temporarily disable it for such case.
      * See https://tracker.crystax.net/issues/820 for details.
      */
     if (crystax_device_type() != CRYSTAX_DEVICE_TYPE_EMULATOR)
+    {
 #endif
+
+#if !FLOAT_HEX_ROUNDING_BROKEN
+	/*
+	 * Hexadecimal rounding
+	 */
+	fesetround(FE_TOWARDZERO);
 	testfmt("0X1.23456789ABCP+0", "%.11A", 0x1.23456789abcdep0);
 	testfmt("-0x1.23456p+0", "%.5a", -0x1.23456789abcdep0);
 	testfmt("0x1.23456p+0", "%.5a", 0x1.23456789abcdep0);
@@ -357,6 +359,10 @@ main(int argc, char *argv[])
 	testfmt("0x1.23457p+0", "%.5a", 0x1.23456789abcdep0);
 	testfmt("0x1.234568p+0", "%.6a", 0x1.23456789abcdep0);
 	testfmt("-0x1.234566p+0", "%.6a", -0x1.23456689abcdep0);
+#endif /* !FLOAT_HEX_ROUNDING_BROKEN */
+
+#if __CRYSTAX__ && __i386__
+    }
 #endif
 
 	fesetround(FE_TONEAREST);
