@@ -39,6 +39,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if __CRYSTAX__
+#include <crystax/system.h>
+#endif
+
+#ifdef assert
+#undef assert
+#endif
+#define assert(x) \
+    if (!(x)) \
+    { \
+        fprintf(stderr, "%s:%d: ERROR: Assertion failed: \"%s\"\n", __FILE__, __LINE__, #x); \
+        abort(); \
+    }
+
 #define	eq(type, a, b)	_eq(type##_EPSILON, (a), (b))
 static int _eq(long double epsilon, long double a, long double b);
 
@@ -50,6 +64,22 @@ main(int argc, char *argv[])
 	double d = 0.0;
 	float f = 0.0;
 	char *endp;
+
+    int nan_cmp_broken = 0;
+
+#if __ANDROID__
+/* NaN comparing is broken
+ * - on mips platform
+ * - on arm emulator when app built with clang toolchain.
+ * See https://tracker.crystax.net/issues/821 for details.
+ */
+#if __mips__
+    nan_cmp_broken = 1;
+#elif __CRYSTAX__ && __arm__ && __clang__
+    if (crystax_device_type() == CRYSTAX_DEVICE_TYPE_EMULATOR)
+        nan_cmp_broken = 1;
+#endif
+#endif
 
 	printf("1..4\n");
 
@@ -189,24 +219,25 @@ main(int argc, char *argv[])
 	sscanf("nan", "%le", &d);
 	sscanf("nan", "%Le", &ld);
 	feclearexcept(FE_ALL_EXCEPT);
-	assert(f != f);
-	assert(d != d);
-	assert(ld != ld);
+    if (!nan_cmp_broken)
+    {
+        assert(f != f);
+        assert(d != d);
+        assert(ld != ld);
+    }
 	assert(fetestexcept(FE_INVALID) == 0);
-#if !__ANDROID__ || !__mips__
-    /* Temporarily disable these tests since it's broken on mips platform.
-     * See https://tracker.crystax.net/issues/821 for details.
-     */
 	sscanf("nan(1234)", "%e", &f);
 	sscanf("nan(1234)", "%le", &d);
 	sscanf("nan(1234)", "%Le", &ld);
 	feclearexcept(FE_ALL_EXCEPT);
-	assert(f != f);
-	assert(d != d);
-	assert(ld != ld);
+    if (!nan_cmp_broken)
+    {
+        assert(f != f);
+        assert(d != d);
+        assert(ld != ld);
+    }
 	/* POSIX says we should only generate quiet NaNs. */
 	assert(fetestexcept(FE_INVALID) == 0);
-#endif
 
 	printf("ok 2 - scanfloat\n");
 
