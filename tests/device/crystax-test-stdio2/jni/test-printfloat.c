@@ -60,26 +60,40 @@ main(int argc, char *argv[])
 	printf("1..11\n");
 	assert(setlocale(LC_NUMERIC, "C"));
 
+#if __ANDROID__ && __x86_64__ && __clang__
+    /* Print of long double values broken on Android/x86_64 when being built by clang.
+     * See https://tracker.crystax.net/issues/830 for details.
+     */
+#define LONG_DOUBLE_PRINT_BROKEN 1
+#else
+#define LONG_DOUBLE_PRINT_BROKEN 0
+#endif
+
 	/*
 	 * Basic tests of decimal output functionality.
 	 */
 	testfmt(" 1.000000E+00", "%13E", 1.0);
 	testfmt("     1.000000", "%13f", 1.0);
 	testfmt("            1", "%13G", 1.0);
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt(" 1.000000E+00", "%13LE", 1.0L);
 	testfmt("     1.000000", "%13Lf", 1.0L);
 	testfmt("            1", "%13LG", 1.0L);
+#endif /* !LONG_DOUBLE_PRINT_BROKEN */
 
 	testfmt("2.718282", "%.*f", -2, 2.7182818);
 
 	testfmt("1.234568e+06", "%e", 1234567.8);
 	testfmt("1234567.800000", "%f", 1234567.8);
 	testfmt("1.23457E+06", "%G", 1234567.8);
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt("1.234568e+06", "%Le", 1234567.8L);
 	testfmt("1234567.800000", "%Lf", 1234567.8L);
 	testfmt("1.23457E+06", "%LG", 1234567.8L);
+#endif /* !LONG_DOUBLE_PRINT_BROKEN */
 
 #if (LDBL_MANT_DIG > DBL_MANT_DIG) && !defined(__i386__)
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt("123456789.864210", "%Lf", 123456789.8642097531L);
 	testfmt("-1.23457E+08", "%LG", -123456789.8642097531L);
 	testfmt("123456789.8642097531", "%.10Lf", 123456789.8642097531L);
@@ -87,6 +101,7 @@ main(int argc, char *argv[])
 	testfmt(" 3.141592653589793238e-4000", "%L27.18Le",
 	    3.14159265358979323846e-4000L);
 #endif
+#endif /* !LONG_DOUBLE_PRINT_BROKEN */
 #endif
 
 	printf("ok 1 - printfloat\n");
@@ -272,8 +287,10 @@ main(int argc, char *argv[])
 	fesetround(FE_TONEAREST);
 	testfmt("4.438", "%.3f", 4.4375);
 	testfmt("-4.438", "%.3f", -4.4375);
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt("4.438", "%.3Lf", 4.4375L);
 	testfmt("-4.438", "%.3Lf", -4.4375L);
+#endif /* !LONG_DOUBLE_PRINT_BROKEN */
 #endif /* !FLOAT_DECIMAL_ROUNDING_TONEAREST_BROKEN */
 
 	printf("ok 9 - printfloat\n");
@@ -285,9 +302,13 @@ main(int argc, char *argv[])
 	 */
 	testfmt("0x0p+0", "%a", 0x0.0p0);
 	testfmt("0X0.P+0", "%#LA", 0x0.0p0L);
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt("inf", "%La", (long double)INFINITY);
+#endif
 	testfmt("+INF", "%+A", INFINITY);
+#if !LONG_DOUBLE_PRINT_BROKEN
 	testfmt("nan", "%La", (long double)NAN);
+#endif
 	testfmt("NAN", "%A", NAN);
 
 	testfmt(" 0x1.23p+0", "%10a", 0x1.23p0);
