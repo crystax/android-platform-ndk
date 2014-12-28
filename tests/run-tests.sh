@@ -333,6 +333,11 @@ else
 fi
 export NDK
 
+if [ ${NDK_TOOLCHAIN_VERSION##clang} != ${NDK_TOOLCHAIN_VERSION} ]; then
+    dump "Enforcing PIE-enabled binaries for $NDK_TOOLCHAIN_VERSION"
+    ENABLE_PIE=yes
+fi
+
 #
 # Create log file
 #
