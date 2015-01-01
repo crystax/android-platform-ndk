@@ -22,7 +22,7 @@ int main()
 {
     const char *locale;
     const char *fmt = "%x";
-    time_t t = (time_t)1411859044;
+    time_t t = (time_t)1411902244;
     struct tm *tm = localtime(&t);
 
     print("C", tm, fmt, "09/28/14");
