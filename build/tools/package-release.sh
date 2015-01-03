@@ -447,15 +447,16 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
 fi
 
+RELEASE_VERSION=${RELEASE_PREFIX%%-b*}
 # create a release file named 'RELEASE.TXT' containing the release
 # name. This is used by the build script to detect whether you're
 # invoking the NDK from a release package or from the development
 # tree.
 #
 if [ "$TRY64" = "yes" ]; then
-    echo "$RELEASE (64-bit)" > $REFERENCE/RELEASE.TXT
+    echo "$RELEASE_VERSION (64-bit)" > $REFERENCE/RELEASE.TXT
 else
-    echo "$RELEASE" > $REFERENCE/RELEASE.TXT
+    echo "$RELEASE_VERSION" > $REFERENCE/RELEASE.TXT
 fi
 
 # Remove un-needed files
@@ -481,7 +482,7 @@ for SYSTEM in $SYSTEMS; do
 
     if [ "$DSTDIR" != "$DSTDIR64" ]; then
         copy_directory "$DSTDIR" "$DSTDIR64"
-        echo "$RELEASE (64-bit)" > $DSTDIR64/RELEASE.TXT
+        echo "$RELEASE_VERSION (64-bit)" > $DSTDIR64/RELEASE.TXT
     fi
 
     if [ "$PREBUILT_NDK" ]; then
