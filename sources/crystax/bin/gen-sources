@@ -2,6 +2,7 @@
 
 CWD=$(dirname $0)
 
+$CWD/gen-bzip2-headers || exit 1
 $CWD/gen-bsd-sources || exit 1
 $CWD/gen-bionic-symbols || exit 1
 
