@@ -46,6 +46,9 @@ GCCUNWIND_SUBDIR=sources/android/gccunwind
 # Location of the compiler-rt sources, relative to the NDK root directory
 COMPILER_RT_SUBDIR=sources/android/compiler-rt
 
+# Location of the boost sources, relative to the NDK root directory
+BOOST_SUBDIR=sources/boost
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=now
