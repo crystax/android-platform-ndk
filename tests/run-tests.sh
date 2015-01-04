@@ -77,6 +77,12 @@ if [ -z "$TARGET_TEST_SUBDIR" ]; then
     TARGET_TEST_SUBDIR="ndk-tests"
 fi
 
+if which stdbuf >/dev/null 2>&1; then
+    STDBUF="stdbuf -o0"
+else
+    STDBUF=""
+fi
+
 while [ -n "$1" ]; do
     opt="$1"
     optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -218,7 +224,7 @@ adb_var_shell_cmd ()
     # Run the command, while storing the standard output to ADB_SHELL_CMD_LOG
     # and appending the exit code as the last line.
     log "$ADB_CMD -s \"$DEVICE\" shell \"$@\""
-    $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | sed -e 's![[:cntrl:]]!!g' | tee $ADB_SHELL_CMD_LOG | catlog
+    $ADB_CMD -s "$DEVICE" shell "$@" ";" echo \$? | $STDBUF sed -e 's![[:cntrl:]]!!g' | $STDBUF tee $ADB_SHELL_CMD_LOG | catlog
     # Get last line in log, which contains the exit code from the command
     RET=`sed -e '$!d' $ADB_SHELL_CMD_LOG`
     # Get output, which corresponds to everything except the last line
