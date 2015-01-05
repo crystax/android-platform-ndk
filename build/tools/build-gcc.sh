@@ -28,7 +28,7 @@ PROGRAM_DESCRIPTION=\
 
 Where <src-dir> is the location of toolchain sources, <ndk-dir> is
 the top-level NDK installation path and <toolchain> is the name of
-the toolchain to use (e.g. arm-linux-androideabi-4.6)."
+the toolchain to use (e.g. arm-linux-androideabi-4.8)."
 
 RELEASE=`date +%Y%m%d`
 BUILD_OUT=/tmp/ndk-$USER/build/toolchain
@@ -336,6 +336,12 @@ case "$TOOLCHAIN" in
     *) EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-libgomp" ;;
 esac
 
+# Enable indirect functions in the compilers that support it (4.6 and above)
+case "$TOOLCHAIN" in
+    *-4.4.3) ;;
+    *) EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gnu-indirect-function" ;;
+esac
+
 # Disable libcilkrts which needs C++ for now, because libstdlibc++ in NDK is built separately...
 case "$TOOLCHAIN" in
     x86*-4.9) EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-libcilkrts"
@@ -490,7 +496,7 @@ unwind_library_for_abi ()
           pr-support.o \
           unwind-c.o"
     ;;
-    x86|mips)
+    x86|mips|mipsr6)
     BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
     if [ "$GCC_VERSION" = "4.6" -o "$GCC_VERSION" = "4.4.3" ]; then
        OBJS="unwind-c.o \

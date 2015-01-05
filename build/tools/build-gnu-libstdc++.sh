@@ -282,9 +282,9 @@ build_gnustl_for_abi ()
         #LDFLAGS=$LDFLAGS" -lsupc++"
     fi
 
-    if [ "$ARCH" == "x86_64" -o "$ARCH" == "mips64" -o "$ARCH" == "mips" ] ; then
+    if [ "$ARCH" = "x86_64" -o "$ARCH" = "mips64" -o "$ARCH" = "mips" ] ; then
         MULTILIB_FLAGS=
-    elif [ "$ARCH" == "mips" -a $GCC_VERSION == "4.9" ] ; then
+    elif [ "$ARCH" = "mips" -a $GCC_VERSION = "4.9" ] ; then
         MULTILIB_FLAGS=
     else
         MULTILIB_FLAGS=--disable-multilib
@@ -370,7 +370,7 @@ copy_gnustl_libs ()
 
     LDIR=lib
     if [ "$ARCH" != "${ARCH%%64*}" ]; then
-        #Can't call $(get_default_libdir_for_arch $ARCH) which contain hack for arm64 and mips64
+        #Can't call $(get_default_libdir_for_arch $ARCH) which contain hack for arm64
         LDIR=lib64
     fi
 
@@ -512,8 +512,8 @@ if [ -n "$PACKAGE_DIR" ] ; then
                               lib64/libsupc++.a lib64/libgnustl_static.a lib64/libgnustl_shared.so
                               lib64r2/libsupc++.a lib64r2/libgnustl_static.a lib64r2/libgnustl_shared.so"
                     ;;
-                mips)
-                    if [ "$VERSION" == "4.9" ]; then
+                mips|mipsr6)
+                    if [ "$VERSION" = "4.9" ]; then
                         MULTILIB="include/mips-r2/bits include/mips-r6/bits include/bits
                                   lib/libsupc++.a lib/libgnustl_static.a lib/libgnustl_shared.so
                                   libr2/libsupc++.a libr2/libgnustl_static.a libr2/libgnustl_shared.so

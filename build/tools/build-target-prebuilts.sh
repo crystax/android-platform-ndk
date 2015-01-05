@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2014 The Android Open Source Project
+# Copyright (C) 2011, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ fi
 
 # First, gdbserver
 for ARCH in $ARCHS; do
-    if [ "$GCC_VERSION" == "default" ]; then
+    if [ "$GCC_VERSION" = "default" ]; then
         GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
     elif [ ! -z "$GCC_VERSION" ]; then
         GDB_TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
@@ -178,14 +178,14 @@ dump "Building $ABIS $UNKNOWN_ABIS stlport binaries..."
 run $BUILDTOOLS/build-cxx-stl.sh --stl=stlport --abis="$ABIS,$UNKNOWN_ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
 fail_panic "Could not build stlport with debug info!"
 
-dump "Building $ABIS $UNKNOWN_ABIS libc++ binaries... with libc++abi"
-run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS,$UNKNOWN_ABIS" $FLAGS --with-debug-info --llvm-version=$LLVM_VERSION
+dump "Building $ABIS libc++ binaries... with libc++abi"
+run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
 fail_panic "Could not build libc++ with libc++abi and debug info!"
 
 # workaround issues in libc++/libc++abi for x86 and mips
 for abi in $ABIS; do
   case $abi in
-     x86|x86_64|mips|mips64)
+     x86|x86_64|mips|mipsr6|mips64)
   dump "Rebuilding $abi libc++ binaries... with gabi++"
   run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-gabi++ --abis=$abi $FLAGS --with-debug-info $BUILD_TOOLCHAIN
   esac

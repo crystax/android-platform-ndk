@@ -47,7 +47,7 @@ register_var_option "--abis=<armeabi,armeabi-v7a,x86,mips,armeabi-v7a-hard>" OPT
 OPTION_GCC_VERSION=
 register_var_option "--gcc-version=<version>" OPTION_GCC_VERSION "Specify GCC toolchain version [Default: $DEFAULT_GCC_VERSION]"
 
-STL=stlport
+STL=gnustl
 register_var_option "--stl=<name>" STL "Specify C++ STL"
 
 SHARED=
@@ -175,7 +175,7 @@ for abi in $ABIS; do
         CFLAGS=$CFLAGS" -mhard-float -D_NDK_MATH_NO_SOFTFP=1 -Wl,--no-warn-mismatch -lm_hard"
       fi
       ;;
-    mips)
+    mips|mipsr6)
       CFLAGS=$CFLAGS" -fmessage-length=0 -fno-inline-functions-called-once -fgcse-after-reload -frerun-cse-after-loop -frename-registers"
       ;;
   esac
@@ -185,7 +185,7 @@ for abi in $ABIS; do
     --stl=$STL \
     --arch=$arch \
     --system=$HOST_TAG \
-    --platform=android-19 \
+    --platform=android-21 \
     --install-dir=$BUILD_OUT/ndk-standalone-$arch
   fail_panic "Couldn't make standalone for $arch"
 
@@ -266,11 +266,7 @@ for abi in $ABIS; do
   fail_panic "Couldn't compile mclinker"
 
   run mkdir -p $TOOLCHAIN_BUILD_PREFIX/$abi
-  if [ -f $MCLINKER_BUILD_OUT/tools/lite/ld.lite ]; then
-    run cp -f $MCLINKER_BUILD_OUT/tools/lite/ld.lite $TOOLCHAIN_BUILD_PREFIX/$abi/ld.mcld
-  else
-    run cp -f $MCLINKER_BUILD_OUT/optimized/ld.mcld $TOOLCHAIN_BUILD_PREFIX/$abi
-  fi
+  run cp -f $MCLINKER_BUILD_OUT/tools/mcld/ld.mcld $TOOLCHAIN_BUILD_PREFIX/$abi
   fail_panic "Couldn't copy mclinker"
 
   # Strip

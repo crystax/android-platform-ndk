@@ -34,7 +34,7 @@ extract_version ()
     echo $1 | tr '-' '\n' | tail -1
 }
 
-# $1: versioned name (e.g. arm-linux-androideabi-4.6)
+# $1: versioned name (e.g. arm-linux-androideabi-4.8)
 # Out: major version (e.g. 4)
 #
 # Examples:  arm-linux-androideabi-4.4.3 -> 4
@@ -61,10 +61,10 @@ extract_minor_version ()
 # Compare two version numbers and only succeeds if the first one is
 # greather or equal than the second one.
 #
-# $1: first version (e.g. 4.4.3)
-# $2: second version (e.g. 4.6)
+# $1: first version (e.g. 4.9)
+# $2: second version (e.g. 4.8)
 #
-# Example: version_is_at_least 4.6 4.4.3 --> success
+# Example: version_is_at_least 4.9 4.8 --> success
 #
 version_is_at_least ()
 {
@@ -203,7 +203,7 @@ filter_out ()
     local PATTERN="$1"
     local TEXT="$2"
     for pat in $PATTERN; do
-        pat=$"${pat/\//\\/}"
+        pat=$"${pat//\//\\/}"
         TEXT=$(echo $TEXT | sed -e 's/'$pat' //g' -e 's/'$pat'$//g')
     done
     echo $TEXT
@@ -1347,6 +1347,9 @@ convert_abi_to_arch ()
         x86|mips|x86_64|mips64)
             RET=$ABI
             ;;
+        mipsr6)
+            RET=mips
+            ;;
         arm64-v8a)
             RET=arm64
             ;;
@@ -1414,7 +1417,7 @@ convert_archs_to_abis ()
 }
 
 # Return the default toolchain binary path prefix for given architecture and gcc version
-# For example: arm 4.6 -> toolchains/arm-linux-androideabi-4.6/prebuilt/<system>/bin/arm-linux-androideabi-
+# For example: arm 4.8 -> toolchains/arm-linux-androideabi-4.8/prebuilt/<system>/bin/arm-linux-androideabi-
 # $1: Architecture name
 # $2: GCC version
 # $3: optional, system name, defaults to $HOST_TAG
@@ -1443,7 +1446,7 @@ get_llvm_toolchain_binprefix ()
 }
 
 # Return the default toochain binary path prefix for a given architecture
-# For example: arm -> toolchains/arm-linux-androideabi-4.6/prebuilt/<system>/bin/arm-linux-androideabi-
+# For example: arm -> toolchains/arm-linux-androideabi-4.8/prebuilt/<system>/bin/arm-linux-androideabi-
 # $1: Architecture name
 # $2: optional, system name, defaults to $HOST_TAG
 get_default_toolchain_binprefix_for_arch ()
@@ -1486,6 +1489,14 @@ get_default_platform_sysroot_for_arch ()
     echo "platforms/android-$LEVEL/arch-$ARCH"
 }
 
+# Return the default platform sysroot corresponding to a given abi
+# $1: ABI
+get_default_platform_sysroot_for_abi ()
+{
+    local ARCH=$(convert_abi_to_arch $1)
+    $(get_default_platform_sysroot_for_arch $ARCH)
+}
+
 # Return the default libs dir corresponding to a given architecture
 # $1: Architecture name
 # $2: Optional llvm version
@@ -1499,14 +1510,20 @@ get_default_libdir_for_arch ()
     esac
 }
 
-# Guess what?
-get_default_platform_sysroot_for_abi ()
+# Return the default libs dir corresponding to a given abi
+# $1: ABI
+get_default_libdir_for_abi ()
 {
-    local ARCH=$(convert_abi_to_arch $1)
-    $(get_default_platform_sysroot_for_arch $ARCH)
+    local ARCH
+
+    case $1 in
+      mipsr6) echo "libr6" ;;
+      *)
+        local ARCH=$(convert_abi_to_arch $1)
+        echo "$(get_default_libdir_for_arch $ARCH)"
+        ;;
+    esac
 }
-
-
 
 # Return the host/build specific path for prebuilt toolchain binaries
 # relative to $1.

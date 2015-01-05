@@ -105,7 +105,7 @@ COMPILER_RT_LDFLAGS="-nostdlib"
 COMPILER_RT_GENERIC_SOURCES=$(cd $SRC_DIR && ls lib/builtins/*.c)
 
 # filter out the sources we don't need
-UNUSED_SOURCES="lib/apple_versioning.c lib/gcc_personality_v0.c"
+UNUSED_SOURCES="lib/builtins/apple_versioning.c lib/builtins/gcc_personality_v0.c"
 COMPILER_RT_GENERIC_SOURCES=$(filter_out "$UNUSED_SOURCES" "$COMPILER_RT_GENERIC_SOURCES")
 
 # ARM specific
@@ -176,13 +176,13 @@ prepare_compiler_rt_source_for_abi ()
     local ABI=$1
     local ARCH_SOURCES GENERIC_SOURCES FOUND
 
-    if [ $ABI == "armeabi" -o $ABI == "armeabi-v7a" -o $ABI == "armeabi-v7a-hard" ]; then
+    if [ $ABI = "armeabi" -o $ABI = "armeabi-v7a" -o $ABI = "armeabi-v7a-hard" ]; then
         ARCH_SOURCES="$COMPILER_RT_ARM_SOURCES"
-    elif [ $ABI == "x86" ]; then
+    elif [ $ABI = "x86" ]; then
         ARCH_SOURCES="$COMPILER_RT_X86_SOURCES"
-    elif [ $ABI == "mips" ]; then
+    elif [ $ABI = "mips" -o $ABI = "mipsr6" ]; then
         ARCH_SOURCES="$COMPILER_RT_MIPS_SOURCES"
-    elif [ $ABI == "x86_64" ]; then
+    elif [ $ABI = "x86_64" ]; then
         ARCH_SOURCES="$COMPILER_RT_X86_64_SOURCES"
     fi
 
@@ -227,6 +227,11 @@ build_compiler_rt_libs_for_abi ()
     else
         ARCH=$(convert_abi_to_arch $ABI)
         GCCVER=$(get_default_gcc_version_for_arch $ARCH)
+        if [ "$LLVM_VERSION" \> "3.4" ]; then
+            # Turn on integrated-as for clang >= 3.5 otherwise file like
+            # can't be compiled
+            COMPILER_RT_CFLAGS="$COMPILER_RT_CFLAGS -fintegrated-as"
+        fi
     fi
 
     builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "android-$FIRST_API64_LEVEL"
@@ -235,15 +240,15 @@ build_compiler_rt_libs_for_abi ()
 
     builder_cflags "$COMPILER_RT_CFLAGS"
 
-    if [ $ABI == "armeabi" -o $ABI == "armeabi-v7a" -o $ABI == "armeabi-v7a-hard" ]; then
+    if [ $ABI = "armeabi" -o $ABI = "armeabi-v7a" -o $ABI = "armeabi-v7a-hard" ]; then
         builder_cflags "-D__ARM_EABI__"
-        if [ $ABI == "armeabi-v7a-hard" ]; then
+        if [ $ABI = "armeabi-v7a-hard" ]; then
             builder_cflags "-mhard-float -D_NDK_MATH_NO_SOFTFP=1"
         fi
     fi
 
     builder_ldflags "$COMPILER_RT_LDFLAGS"
-    if [ $ABI == "armeabi-v7a-hard" ]; then
+    if [ $ABI = "armeabi-v7a-hard" ]; then
         builder_cflags "-Wl,--no-warn-mismatch -lm_hard"
     fi
 
