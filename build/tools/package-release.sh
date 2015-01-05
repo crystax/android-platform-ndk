@@ -317,7 +317,8 @@ copy_prebuilt ()
         echo "Copying: $SUBDIR"
         copy_directory "$SUBDIR" "$DSTDIR/$2"
     else
-        echo "Ignored: $SUBDIR"
+        echo "Copying: $1"
+        copy_file_list "$(dirname $1)" "$DSTDIR/$2" "$(basename $1)"
     fi
 }
 
@@ -433,7 +434,8 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     for VERSION in $BOOST_VERSIONS; do
-        unpack_prebuilt boost-$VERSION-header "$REFERENCE"
+        unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
+        unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
     done
     for ABI in $ABIS; do
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"

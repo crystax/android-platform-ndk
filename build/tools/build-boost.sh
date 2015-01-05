@@ -427,6 +427,15 @@ EOF
 SAVED_PATH=$PATH
 
 if [ -n "$PACKAGE_DIR" ]; then
+    PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+    if [ $? -eq 0 ]; then
+        BOOST_BUILD_FILES_NEED_PACKAGE=no
+    else
+        BOOST_BUILD_FILES_NEED_PACKAGE=yes
+    fi
+
     PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
@@ -500,6 +509,16 @@ log "Generating $BOOST_DSTDIR/Android.mk"
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
+    if [ "$BOOST_BUILD_FILES_NEED_PACKAGE" = "yes" ]; then
+        FILES="$BOOST_SUBDIR/$BOOST_VERSION/Android.mk"
+        PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Could not package Boost $BOOST_VERSION build files!"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    fi
+
     if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
         PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
