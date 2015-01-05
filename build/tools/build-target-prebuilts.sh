@@ -209,6 +209,10 @@ if [ ! -z "$GCC_VERSION_LIST" ]; then
   fail_panic "Could not build gnustl with debug info!"
 fi
 
+dump "Building $ABIS boost binaries..."
+run $BUILDTOOLS/build-boost.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/boost && pwd)
+fail_panic "Could not build Boost!"
+
 dump "Building $ABIS libportable binaries..."
 run $BUILDTOOLS/build-libportable.sh --abis="$ABIS" $FLAGS $BUILD_TOOLCHAIN
 fail_panic "Could not build libportable!"
