@@ -1,0 +1,3 @@
+--sysroot=../../platforms/android-9/arch-arm
+-I../include
+-I../src/include
