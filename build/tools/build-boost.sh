@@ -510,7 +510,10 @@ log "Generating $BOOST_DSTDIR/Android.mk"
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     if [ "$BOOST_BUILD_FILES_NEED_PACKAGE" = "yes" ]; then
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/Android.mk"
+        FILES=""
+        for F in Android.mk LICENSE_1_0.txt; do
+            FILES="$FILES $BOOST_SUBDIR/$BOOST_VERSION/$F"
+        done
         PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
