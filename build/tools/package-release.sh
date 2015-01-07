@@ -433,6 +433,10 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
+    for VERSION in $ICU_VERSIONS; do
+        unpack_prebuilt icu-$VERSION-build-files "$REFERENCE"
+        unpack_prebuilt icu-$VERSION-headers "$REFERENCE"
+    done
     for VERSION in $BOOST_VERSIONS; do
         unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
         unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
@@ -445,6 +449,9 @@ if [ -z "$PREBUILT_NDK" ]; then
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
+        done
+        for VERSION in $ICU_VERSIONS; do
+            unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
         done
         for VERSION in $BOOST_VERSIONS; do
             unpack_prebuilt boost-$VERSION-libs-$ABI "$REFERENCE"
@@ -544,6 +551,13 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
             for OBJC_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
+            done
+        done
+
+        for VERSION in $ICU_VERSIONS; do
+            copy_prebuilt "$ICU_SUBDIR/$VERSION/include" "$ICU_SUBDIR/$VERSION/"
+            for ICU_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$ICU_SUBDIR/$VERSION/libs/$ICU_ABI" "$ICU_SUBDIR/$VERSION/libs"
             done
         done
 
