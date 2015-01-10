@@ -160,15 +160,17 @@ FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 UNKNOWN_ABIS=$(convert_archs_to_abis $UNKNOWN_ARCH)
 
+if [ -z "$LLVM_VERSION" ]; then
+    fail_panic "LLVM_VERSION not specified!"
+fi
+
 dump "Building $ABIS libcrystax binaries..."
 run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
 
-if [ ! -z "$LLVM_VERSION" ]; then
-   dump "Building $ABIS compiler-rt binaries..."
-   run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
-   fail_panic "Could not build compiler-rt!"
-fi
+dump "Building $ABIS compiler-rt binaries..."
+run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
+fail_panic "Could not build compiler-rt!"
 
 dump "Building $ABIS gabi++ binaries..."
 run $BUILDTOOLS/build-cxx-stl.sh --stl=gabi++ --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
@@ -179,7 +181,7 @@ run $BUILDTOOLS/build-cxx-stl.sh --stl=stlport --abis="$ABIS,$UNKNOWN_ABIS" $FLA
 fail_panic "Could not build stlport with debug info!"
 
 dump "Building $ABIS libc++ binaries... with libc++abi"
-run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
+run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$LLVM_VERSION
 fail_panic "Could not build libc++ with libc++abi and debug info!"
 
 # workaround issues in libc++/libc++abi for x86 and mips
