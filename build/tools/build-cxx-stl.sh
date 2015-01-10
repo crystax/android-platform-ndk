@@ -99,7 +99,7 @@ fi
 ABIS=$(commas_to_spaces $ABIS)
 UNKNOWN_ABIS=
 if [ "$ABIS" = "${ABIS%%64*}" ]; then
-    UNKNOWN_ABIS="$(filter_out "$PREBUILT_ABIS mipsr6" "$ABIS" )"
+    UNKNOWN_ABIS="$(filter_out "$PREBUILT_ABIS mips32r6" "$ABIS" )"
     if [ -n "$UNKNOWN_ABIS" ] && [ -n "$(find_ndk_unknown_archs)" ]; then
         ABIS="$(filter_out "$UNKNOWN_ABIS" "$ABIS")"
         ABIS="$ABIS $(find_ndk_unknown_archs)"
@@ -411,7 +411,7 @@ build_stl_libs_for_abi ()
                 EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
             fi
             ;;
-        mipsr6)
+        mips32r6)
             EXTRA_CFLAGS="-mips32r6"
             EXTRA_CXXFLAGS="-mips32r6"
             EXTRA_LDFLAGS="-mips32r6"
