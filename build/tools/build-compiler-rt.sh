@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013, 2014 The Android Open Source Project
+# Copyright (C) 2013, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -225,13 +225,14 @@ build_compiler_rt_libs_for_abi ()
     if [ -n "$GCC_VERSION" ]; then
         GCCVER=$GCC_VERSION
     else
-        ARCH=$(convert_abi_to_arch $ABI)
+        local ARCH=$(convert_abi_to_arch $ABI)
         GCCVER=$(get_default_gcc_version_for_arch $ARCH)
-        if [ "$LLVM_VERSION" \> "3.4" ]; then
-            # Turn on integrated-as for clang >= 3.5 otherwise file like
-            # can't be compiled
-            COMPILER_RT_CFLAGS="$COMPILER_RT_CFLAGS -fintegrated-as"
-        fi
+    fi
+
+    if [ "$LLVM_VERSION" \> "3.4" ]; then
+        # Turn on integrated-as for clang >= 3.5 otherwise file like
+        # can't be compiled
+        COMPILER_RT_CFLAGS="$COMPILER_RT_CFLAGS -fintegrated-as"
     fi
 
     builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "android-$FIRST_API64_LEVEL"
