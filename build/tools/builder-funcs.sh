@@ -566,7 +566,7 @@ builder_begin_android ()
     else
       SYSROOT=$NDK_DIR/platforms/$PLATFORM/arch-$ARCH
     fi
-    LDIR=$SYSROOT"/usr/"$(get_default_libdir_for_arch $ARCH $LLVM_VERSION)
+    LDIR=$SYSROOT"/usr/"$(get_default_libdir_for_abi $ABI $LLVM_VERSION)
 
     CRTBEGIN_EXE_O=$LDIR/crtbegin_dynamic.o
     CRTEND_EXE_O=$LDIR/crtend_android.o
