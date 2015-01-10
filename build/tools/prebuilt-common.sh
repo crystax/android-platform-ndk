@@ -1512,6 +1512,7 @@ get_default_libdir_for_arch ()
 
 # Return the default libs dir corresponding to a given abi
 # $1: ABI
+# $2: Optional llvm version
 get_default_libdir_for_abi ()
 {
     local ARCH
@@ -1520,7 +1521,7 @@ get_default_libdir_for_abi ()
       mips32r6) echo "libr6" ;;
       *)
         local ARCH=$(convert_abi_to_arch $1)
-        echo "$(get_default_libdir_for_arch $ARCH)"
+        echo "$(get_default_libdir_for_arch $ARCH $2)"
         ;;
     esac
 }
