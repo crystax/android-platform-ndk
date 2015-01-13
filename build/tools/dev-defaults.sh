@@ -48,8 +48,11 @@ COMPILER_RT_SUBDIR=sources/android/compiler-rt
 
 # Location of the boost sources, relative to the NDK root directory
 BOOST_SUBDIR=sources/boost
-
 BOOST_VERSIONS="1.57.0"
+
+# Location of the ICU sources, relative to the NDK root directory
+ICU_SUBDIR=sources/icu
+ICU_VERSIONS="54.1"
 
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.

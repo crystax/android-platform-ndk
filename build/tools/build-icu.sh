@@ -33,7 +33,7 @@
 PROGRAM_PARAMETERS="<src-dir>"
 
 PROGRAM_DESCRIPTION=\
-"Rebuild Boost libraries for the CrystaX NDK.
+"Rebuild ICU libraries for the CrystaX NDK.
 
 This requires a temporary NDK installation containing
 toolchain binaries for all target architectures.
@@ -42,7 +42,7 @@ By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
 The output will be placed in appropriate sub-directories of
-<ndk>/$BOOST_SUBDIR, but you can override this with the --out-dir=<path>
+<ndk>/$ICU_SUBDIR, but you can override this with the --out-dir=<path>
 option.
 "
 
@@ -62,32 +62,31 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 TOOLCHAIN_VERSION=4.9
 #register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
-BOOST_VERSION=1.57.0
 ICU_VERSION=54.1
 
 register_jobs_option
 
 extract_parameters "$@"
 
-BOOST_SRCDIR=$(echo $PARAMETERS | sed 1q)
-if [ -z "$BOOST_SRCDIR" ]; then
-    echo "ERROR: Please provide the path to the Boost source tree. See --help"
+ICU_SRCDIR=$(echo $PARAMETERS | sed 1q)
+if [ -z "$ICU_SRCDIR" ]; then
+    echo "ERROR: Please provide the path to the ICU source tree. See --help"
     exit 1
 fi
 
-if [ ! -d "$BOOST_SRCDIR" ]; then
-    echo "ERROR: Not a directory: '$BOOST_SRCDIR'"
+if [ ! -d "$ICU_SRCDIR" ]; then
+    echo "ERROR: Not a directory: '$ICU_SRCDIR'"
     exit 1
 fi
 
-BOOST_DSTDIR=$NDK_DIR/$BOOST_SUBDIR/$BOOST_VERSION
-mkdir -p $BOOST_DSTDIR
-fail_panic "Could not create Boost $BOOST_VERSION destination directory: $BOOST_DSTDIR"
+ICU_DSTDIR=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
+mkdir -p $ICU_DSTDIR
+fail_panic "Could not create ICU $ICU_VERSION destination directory: $ICU_DSTDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-boost
+    BUILD_DIR=$NDK_TMPDIR/build-icu
 else
     eval BUILD_DIR=$OPTION_BUILD_DIR
 fi
@@ -97,11 +96,6 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 
 prepare_target_build
 fail_panic "Could not setup target build"
-
-BOOSTGENFILES="project-config.jam user-config.jam b2 bjam bootstrap.log"
-BOOSTGENFILES="$BOOSTGENFILES tools/build/src/engine/bin.*"
-BOOSTGENFILES="$BOOSTGENFILES tools/build/src/engine/bootstrap"
-trap "cd $BOOST_SRCDIR && rm -Rf $BOOSTGENFILES" EXIT INT QUIT TERM ABRT
 
 mktool()
 {
@@ -114,21 +108,69 @@ mktool()
     done
 }
 
+# $1: build directory
+build_icu_for_host()
+{
+    local BUILDDIR="$1"
+
+    dump "Building ICU $ICU_VERSION host ($HOST_OS) binaries"
+
+    rm -Rf $BUILDDIR
+    mkdir -p $BUILDDIR
+    fail_panic "Couldn't create temporary build directory $BUILDDIR"
+
+    cd $BUILDDIR
+    fail_panic "Couldn't CD to temporary build directory $BUILDDIR"
+
+    local TMPHOSTTCDIR=$BUILDDIR/host-bin
+    run mkdir $TMPHOSTTCDIR
+    fail_panic "Couldn't create temporary directory for host toolchain wrappers"
+
+    {
+        echo "#!/bin/sh"
+        echo ""
+        echo "exec $CC $HOST_CFLAGS $HOST_LDFLAGS \"\$@\""
+    } | mktool $TMPHOSTTCDIR/gcc
+
+    {
+        echo "#!/bin/sh"
+        echo ""
+        echo "exec $CXX $HOST_CFLAGS $HOST_LDFLAGS \"\$@\""
+    } | mktool $TMPHOSTTCDIR/g++
+
+    PATH=$TMPHOSTTCDIR:$SAVED_PATH
+    export PATH
+
+    local ICU_HOST_OS
+    case $HOST_OS in
+        darwin)
+            ICU_HOST_OS=MacOSX/GCC
+            ;;
+        linux)
+            ICU_HOST_OS=Linux/gcc
+            ;;
+        *)
+            echo "ERROR: Unsupported host OS: $HOST_OS" 1>&2
+            exit 1
+    esac
+
+    run $ICU_SRCDIR/source/runConfigureICU $ICU_HOST_OS
+    fail_panic "Couldn't configure host build of ICU $ICU_VERSION"
+
+    run make -j$NUM_JOBS
+    fail_panic "Couldn't build host ICU $ICU_VERSION"
+}
+
 # $1: ABI
-# $2: build directory
-# $3: build type: "static" or "shared"
-build_boost_for_abi ()
+# $2: host ICU build directory
+# $3: build directory
+build_icu_for_abi ()
 {
     local ABI=$1
-    local BUILDDIR="$2"
-    local TYPE="$3"
+    local ICUHOSTBUILDDIR="$2"
+    local BUILDDIR="$3"
 
-    local V
-    if [ "$VERBOSE2" = "yes" ]; then
-        V=1
-    fi
-
-    dump "Building Boost $BOOST_VERSION $TYPE $ABI libraries"
+    dump "Building ICU $ICU_VERSION $ABI libraries"
 
     local APILEVEL=9
     if [ ${ABI%%64*} != ${ABI} ]; then
@@ -218,53 +260,6 @@ build_boost_for_abi ()
 
     local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
 
-    cd $BOOST_SRCDIR
-    fail_panic "Couldn't CD to Boost $BOOST_VERSION sources directory"
-
-    rm -Rf $BOOSTGENFILES
-
-    if [ ! -x ./b2 ]; then
-        local TMPHOSTTCDIR=$BUILDDIR/host-bin
-        run mkdir $TMPHOSTTCDIR
-        fail_panic "Couldn't create temporary directory for host toolchain wrappers"
-
-        {
-            echo "#!/bin/sh"
-            echo ""
-            echo "exec $CC $HOST_CFLAGS $HOST_LDFLAGS \"\$@\""
-        } | mktool $TMPHOSTTCDIR/cc
-
-        PATH=$TMPHOSTTCDIR:$SAVED_PATH
-        export PATH
-
-        run ./bootstrap.sh --with-toolset=cc
-        local RC=$?
-        if [ -e bootstrap.log ]; then
-            mv -f bootstrap.log $BUILDDIR/
-        fi
-        if [ $RC -eq 0 ]; then
-            true
-        else
-            false
-        fi
-        fail_panic "Could not bootstrap Boost build"
-
-        # Remove unneeded intermediate files
-        rm -Rf bjam
-        rm -Rf tools/build/src/engine/bin.*
-        rm -Rf tools/build/src/engine/bootstrap
-    fi
-
-    {
-        echo "import option ;"
-        echo "import feature ;"
-        echo "using gcc : $ARCH : g++ ;"
-        echo "project : default-build <toolset>gcc ;"
-        echo "libraries = ;"
-        echo "option.set keep-going : false ;"
-    } | cat >project-config.jam
-    fail_panic "Could not create project-config.jam"
-
     local TMPTARGETTCDIR=$BUILDDIR/target-bin
     run mkdir $TMPTARGETTCDIR
     fail_panic "Couldn't create temporary directory for target $ABI toolchain wrappers"
@@ -274,10 +269,12 @@ build_boost_for_abi ()
     local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
+    FLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
+    FLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1"
 
     local TOOL
 
-    for TOOL in gcc g++ c++ cpp; do
+    for TOOL in gcc g++ cpp; do
         mktool $TMPTARGETTCDIR/$TOOL <<EOF
 #!/bin/sh
 
@@ -308,9 +305,9 @@ fi
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
-    FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
-    FLAGS="\$FLAGS -lgnustl_${TYPE}"
+    FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
+    FLAGS="\$FLAGS -lgnustl_shared"
 else
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
@@ -322,7 +319,7 @@ EOF
         fail_panic "Could not create target tool $TOOL"
     done
 
-    for TOOL in as ar ranlib strip gcc-ar gcc-ranlib; do
+    for TOOL in as ar ranlib strip; do
         {
             echo "#!/bin/sh"
             echo "exec $TCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
@@ -333,127 +330,80 @@ EOF
     PATH=$TMPTARGETTCDIR:$SAVED_PATH
     export PATH
 
-    local BJAMABI
-    case $ARCH in
-        arm)
-            BJAMARCH=arm
-            BJAMABI=aapcs
-            ;;
-        x86|x86_64)
-            BJAMARCH=x86
-            BJAMABI=sysv
-            ;;
-        mips)
-            BJAMARCH=mips1
-            BJAMABI=o32
-            ;;
-    esac
+    local TMPTARGETBUILD=$BUILDDIR/target-build
+    run mkdir -p $TMPTARGETBUILD
+    fail_panic "Couldn't create temporary directory for $ABI target build"
 
-    local BJAMADDRMODEL
-    if [ ${ARCH%%64} != ${ARCH} ]; then
-        BJAMADDRMODEL=64
-    else
-        BJAMADDRMODEL=32
-    fi
+    cd $TMPTARGETBUILD
+    fail_panic "Couldn't CD to temporary directory for $ABI target build"
 
-    local EXTRA_OPTIONS
-    case $ARCH in
-        arm|x86|x86_64|mips)
-            EXTRA_OPTIONS="$EXTRA_OPTIONS \
-                architecture=$BJAMARCH \
-                abi=$BJAMABI \
-                binary-format=elf \
-                address-model=$BJAMADDRMODEL \
-                "
-            ;;
-    esac
-
-    local WITHOUT="\
-        --without-python \
-        --without-mpi \
-        "
-    case $ARCH in
-        arm64|mips64)
-            WITHOUT="$WITHOUT \
-                --without-context \
-                --without-coroutine \
-                "
-            ;;
-    esac
+    CC=gcc
+    CXX=g++
+    CPP=cpp
+    export CC CXX CPP
 
     local PREFIX=$BUILDDIR/install
 
-    local ICU=$NDK_DIR/sources/icu/$ICU_VERSION
+    run $ICU_SRCDIR/source/configure        \
+        --prefix=$PREFIX                    \
+        --host=$TCPREFIX                    \
+        --with-cross-build=$ICUHOSTBUILDDIR \
+        --enable-shared                     \
+        --enable-static                     \
 
-    run ./b2 -d+2 -q -j$NUM_JOBS \
-        variant=release \
-        link=$TYPE \
-        runtime-link=shared \
-        threading=multi \
-        threadapi=pthread \
-        target-os=android \
-        toolset=gcc-$ARCH \
-        include=$ICU/include \
-        library-path=$ICU/libs/$ABI \
-        $EXTRA_OPTIONS \
-        --layout=system \
-        --prefix=$PREFIX \
-        --build-dir=$BUILDDIR/build \
-        $WITHOUT \
-        install \
+    fail_panic "Couldn't configure $ABI ICU $ICU_VERSION"
 
-    fail_panic "Couldn't build Boost $BOOST_VERSION $ABI libraries"
+    run make -j$NUM_JOBS
+    fail_panic "Couldn't build $ABI ICU $ICU_VERSION"
 
-    rm -Rf $BOOSTGENFILES
+    run make install
+    fail_panic "Couldn't install $ABI ICU $ICU_VERSION"
 
-    if [ "$BOOST_HEADERS_INSTALLED" != "yes" ]; then
-        log "Install Boost $BOOST_VERSION headers into $BOOST_DSTDIR"
-        run rm -Rf $BOOST_DSTDIR/include
-        run cp -pR $PREFIX/include $BOOST_DSTDIR/
-        fail_panic "Couldn't install Boost $BOOST_VERSION headers"
-        BOOST_HEADERS_INSTALLED=yes
-        export BOOST_HEADERS_INSTALLED
+    if [ "$ICU_HEADERS_INSTALLED" != "yes" ]; then
+        log "Install ICU $ICU_VERSION headers into $ICU_DSTDIR"
+        run rm -Rf $ICU_DSTDIR/include
+        run cp -pR $PREFIX/include $ICU_DSTDIR/
+        fail_panic "Couldn't install ICU $ICU_VERSION headers"
+        ICU_HEADERS_INSTALLED=yes
+        export ICU_HEADERS_INSTALLED
     fi
 
-    log "Install Boost $BOOST_VERSION $TYPE $ABI libraries into $BOOST_DSTDIR"
-    run mkdir -p $BOOST_DSTDIR/libs/$ABI
-    fail_panic "Couldn't create Boost $BOOST_VERSION target $ABI libraries directory"
+    log "Install ICU $ICU_VERSION $ABI libraries into $ICU_DSTDIR"
+    run mkdir -p $ICU_DSTDIR/libs/$ABI
+    fail_panic "Couldn't create ICU $ICU_VERSION target $ABI libraries directory"
 
     local LIBSUFFIX
-    if [ "$TYPE" = "shared" ]; then
-        LIBSUFFIX=so
-    else
-        LIBSUFFIX=a
-    fi
-    rm -f $BOOST_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
+    for LIBSUFFIX in a so; do
+        run rm -f $ICU_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
 
-    for f in $(find $PREFIX -name "lib*.$LIBSUFFIX" -print); do
-        run cp -pRH $f $BOOST_DSTDIR/libs/$ABI/$(basename $f)
-        fail_panic "Couldn't install Boost $BOOST_VERSION $ABI $(basename $f) library"
+        for f in $(find $PREFIX -name "lib*.$LIBSUFFIX" -print); do
+            run cp -pRH $f $ICU_DSTDIR/libs/$ABI/$(basename $f)
+            fail_panic "Couldn't install ICU $ICU_VERSION target $ABI $(basename $f)"
+        done
     done
 
-    log "Boost $BOOST_VERSION $TYPE $ABI binaries built successfully"
+    log "ICU $ICU_VERSION $ABI binaries built successfully"
 }
 
 SAVED_PATH=$PATH
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+    PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.bz2"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
-        BOOST_BUILD_FILES_NEED_PACKAGE=no
+        ICU_BUILD_FILES_NEED_PACKAGE=no
     else
-        BOOST_BUILD_FILES_NEED_PACKAGE=yes
+        ICU_BUILD_FILES_NEED_PACKAGE=yes
     fi
 
-    PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
+    PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.bz2"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
-        BOOST_HEADERS_NEED_PACKAGE=no
+        ICU_HEADERS_NEED_PACKAGE=no
     else
-        BOOST_HEADERS_NEED_PACKAGE=yes
+        ICU_HEADERS_NEED_PACKAGE=yes
     fi
 fi
 
@@ -461,11 +411,11 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="boost-$BOOST_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.bz2"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
-            if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+            if [ "$ICU_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
                 BUILT_ABIS="$BUILT_ABIS $ABI"
             else
                 DO_BUILD_PACKAGE="no"
@@ -475,8 +425,11 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_boost_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared"
-        build_boost_for_abi $ABI "$BUILD_DIR/$ABI/static" "static"
+        if [ -z "$ICU_HOST_BUILD" ]; then
+            build_icu_for_host "$BUILD_DIR/host"
+            ICU_HOST_BUILD="$BUILD_DIR/host"
+        fi
+        build_icu_for_abi $ABI "$ICU_HOST_BUILD" "$BUILD_DIR/$ABI/shared"
     fi
 done
 
@@ -484,15 +437,13 @@ done
 PATH=$SAVED_PATH
 export PATH
 
-cd $BOOST_SRCDIR && rm -Rf $BOOSTGENFILES
-
 # Copy license
-log "Copying Boost $BOOST_VERSION license"
-run cp -f $BOOST_SRCDIR/LICENSE_1_0.txt $BOOST_DSTDIR/
-fail_panic "Couldn't copy Boost $BOOST_VERSION license"
+log "Copying ICU $ICU_VERSION license"
+run cp -f $ICU_SRCDIR/license.html $ICU_DSTDIR/
+fail_panic "Couldn't copy ICU $ICU_VERSION license"
 
 # Generate Android.mk
-log "Generating $BOOST_DSTDIR/Android.mk"
+log "Generating $ICU_DSTDIR/Android.mk"
 {
     echo "# WARNING!!! THIS IS AUTO-GENERATED FILE!!! DO NOT EDIT IT MANUALLY!!!"
     echo ""
@@ -506,7 +457,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
         else
             type=shared
         fi
-        find $BOOST_DSTDIR/libs -name "libboost_*.$suffix" -exec basename '{}' \; | \
+        find $ICU_DSTDIR/libs -name "libicu*.$suffix" -exec basename '{}' \; | \
             sed "s,^lib\\([^\\.]*\\)\\.${suffix}$,\\1," | sort | uniq | \
         {
             while read lib; do
@@ -519,40 +470,40 @@ log "Generating $BOOST_DSTDIR/Android.mk"
             done
         }
     done
-} | cat >$BOOST_DSTDIR/Android.mk
+} | cat >$ICU_DSTDIR/Android.mk
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
-    if [ "$BOOST_BUILD_FILES_NEED_PACKAGE" = "yes" ]; then
+    if [ "$ICU_BUILD_FILES_NEED_PACKAGE" = "yes" ]; then
         FILES=""
-        for F in Android.mk LICENSE_1_0.txt; do
-            FILES="$FILES $BOOST_SUBDIR/$BOOST_VERSION/$F"
+        for F in Android.mk license.html; do
+            FILES="$FILES $ICU_SUBDIR/$ICU_VERSION/$F"
         done
-        PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package Boost $BOOST_VERSION build files!"
+        fail_panic "Could not package ICU $ICU_VERSION build files!"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     fi
 
-    if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
-        PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
+    if [ "$ICU_HEADERS_NEED_PACKAGE" = "yes" ]; then
+        FILES="$ICU_SUBDIR/$ICU_VERSION/include"
+        PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package Boost $BOOST_VERSION headers!"
+        fail_panic "Could not package ICU $ICU_VERSION headers!"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     fi
 
     for ABI in $BUILT_ABIS; do
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI"
-        PACKAGE_NAME="boost-$BOOST_VERSION-libs-$ABI.tar.bz2"
+        FILES="$ICU_SUBDIR/$ICU_VERSION/libs/$ABI"
+        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI Boost $BOOST_VERSION binaries!"
+        fail_panic "Could not package $ABI ICU $ICU_VERSION binaries!"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done
 fi
