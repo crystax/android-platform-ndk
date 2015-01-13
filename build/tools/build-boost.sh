@@ -98,11 +98,6 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 prepare_target_build
 fail_panic "Could not setup target build"
 
-BOOSTGENFILES="project-config.jam user-config.jam b2 bjam bootstrap.log"
-BOOSTGENFILES="$BOOSTGENFILES tools/build/src/engine/bin.*"
-BOOSTGENFILES="$BOOSTGENFILES tools/build/src/engine/bootstrap"
-trap "cd $BOOST_SRCDIR && rm -Rf $BOOSTGENFILES" EXIT INT QUIT TERM ABRT
-
 mktool()
 {
     local tool
@@ -145,7 +140,7 @@ build_boost_for_abi ()
             TCNAME=arm-linux-androideabi
             ;;
         arm64*)
-            TCNAME=aarch64-linux-android;
+            TCNAME=aarch64-linux-android
             ;;
         mips)
             TCNAME=mipsel-linux-android
@@ -176,10 +171,10 @@ build_boost_for_abi ()
     local ARCH
     case $ABI in
         armeabi*)
-            ARCH=arm;
+            ARCH=arm
             ;;
         arm64*)
-            ARCH=arm64;
+            ARCH=arm64
             ;;
         *)
             ARCH=$ABI
@@ -218,10 +213,11 @@ build_boost_for_abi ()
 
     local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
 
-    cd $BOOST_SRCDIR
-    fail_panic "Couldn't CD to Boost $BOOST_VERSION sources directory"
+    local SRCDIR=$BUILDDIR/src
+    copy_directory $BOOST_SRCDIR $SRCDIR
 
-    rm -Rf $BOOSTGENFILES
+    cd $SRCDIR
+    fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
 
     if [ ! -x ./b2 ]; then
         local TMPHOSTTCDIR=$BUILDDIR/host-bin
@@ -238,21 +234,7 @@ build_boost_for_abi ()
         export PATH
 
         run ./bootstrap.sh --with-toolset=cc
-        local RC=$?
-        if [ -e bootstrap.log ]; then
-            mv -f bootstrap.log $BUILDDIR/
-        fi
-        if [ $RC -eq 0 ]; then
-            true
-        else
-            false
-        fi
         fail_panic "Could not bootstrap Boost build"
-
-        # Remove unneeded intermediate files
-        rm -Rf bjam
-        rm -Rf tools/build/src/engine/bin.*
-        rm -Rf tools/build/src/engine/bootstrap
     fi
 
     {
@@ -272,8 +254,10 @@ build_boost_for_abi ()
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
     local LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
     local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
+    local ICU=$NDK_DIR/sources/icu/$ICU_VERSION
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
+    FLAGS="$FLAGS -fPIC"
 
     local TOOL
 
@@ -308,10 +292,12 @@ fi
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
+    FLAGS="\$FLAGS -L$ICU/libs/$ABI"
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
     FLAGS="\$FLAGS -lgnustl_${TYPE}"
 else
+    FLAGS="\$FLAGS -I$ICU/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
@@ -383,8 +369,6 @@ EOF
 
     local PREFIX=$BUILDDIR/install
 
-    local ICU=$NDK_DIR/sources/icu/$ICU_VERSION
-
     run ./b2 -d+2 -q -j$NUM_JOBS \
         variant=release \
         link=$TYPE \
@@ -393,8 +377,6 @@ EOF
         threadapi=pthread \
         target-os=android \
         toolset=gcc-$ARCH \
-        include=$ICU/include \
-        library-path=$ICU/libs/$ABI \
         $EXTRA_OPTIONS \
         --layout=system \
         --prefix=$PREFIX \
@@ -403,8 +385,6 @@ EOF
         install \
 
     fail_panic "Couldn't build Boost $BOOST_VERSION $ABI libraries"
-
-    rm -Rf $BOOSTGENFILES
 
     if [ "$BOOST_HEADERS_INSTALLED" != "yes" ]; then
         log "Install Boost $BOOST_VERSION headers into $BOOST_DSTDIR"
@@ -484,8 +464,6 @@ done
 PATH=$SAVED_PATH
 export PATH
 
-cd $BOOST_SRCDIR && rm -Rf $BOOSTGENFILES
-
 # Copy license
 log "Copying Boost $BOOST_VERSION license"
 run cp -f $BOOST_SRCDIR/LICENSE_1_0.txt $BOOST_DSTDIR/
@@ -511,11 +489,26 @@ log "Generating $BOOST_DSTDIR/Android.mk"
         {
             while read lib; do
                 echo ''
+
+                case $lib in
+                    boost_context|boost_coroutine)
+                        echo "# $lib doesn't support yet arm64 and mips64 targets"
+                        echo 'ifeq (,$(filter arm64% mips64,$(TARGET_ARCH_ABI)))'
+                        has_if=yes
+                        ;;
+                    *)
+                        has_if=no
+                esac
+
                 echo 'include $(CLEAR_VARS)'
                 echo "LOCAL_MODULE := ${lib}_${type}"
-                echo "LOCAL_SRCFILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
+                echo "LOCAL_SRC_FILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
                 echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
                 echo "include \$(PREBUILT_$(echo $type | tr '[a-z]' '[A-Z]')_LIBRARY)"
+
+                if [ "$has_if" = "yes" ]; then
+                    echo 'endif'
+                fi
             done
         }
     done
