@@ -1,6 +1,15 @@
 #include <atomic>
 #include <stdio.h>
 
+#if __clang__ && __ARM_ARCH_5TE__
+
+int main()
+{
+    return 0;
+}
+
+#else
+
 int main()
 {
     printf("std::atomic test - begin\n");
@@ -17,3 +26,5 @@ int main()
     printf("OK\n");
     return 0;
 }
+
+#endif
