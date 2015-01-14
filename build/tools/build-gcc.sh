@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2014 The Android Open Source Project
+# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -147,12 +147,23 @@ case "$TOOLCHAIN" in
     ;;
 esac
 
+prepare_target_build
+parse_toolchain_name $TOOLCHAIN
+
 #
 # Try cached package
+# We need previous two lines because ARCH is set in parse_toolchain_name
 #
 set_cache_host_tag
 ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
 if [ "$PACKAGE_DIR" ]; then
+    # try for libgccunwind packages
+    ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
+    for ABI in $ABIS; do
+        PACKAGE_NAME="libgccunwind-libs-$ABI.tar.bz2"
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+    done
     # will exit if cached package found
     try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
 fi
@@ -160,10 +171,6 @@ fi
 #
 # Rebuild from scratch
 #
-prepare_target_build
-
-parse_toolchain_name $TOOLCHAIN
-
 if [ -z "$PLATFORM" ]; then
    PLATFORM="android-"$(get_default_api_level_for_arch $ARCH)
 fi
@@ -415,6 +422,9 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
+#echo $BUILD_OUT/binutils-$BINUTILS_VERSION/binutils
+#exit 1
+
 ABI="$OLD_ABI"
 # build the toolchain
 dump "Building : $TOOLCHAIN toolchain [this can take a long time]."
@@ -524,18 +534,19 @@ create_unwind_library ()
     local ARCH="$1"
     local NDK_DIR="$2"
     local ABIS="$(commas_to_spaces $(convert_archs_to_abis $ARCH))"
+    local AR=$BUILD_OUT/binutils-$BINUTILS_VERSION/binutils/ar
     local ABI UNWIND_OBJS UNWIND_LIB
     for ABI in $ABIS; do
         UNWIND_OBJS=$(unwind_library_for_abi $ABI)
         UNWIND_LIB_DIR="$NDK_DIR/$GCCUNWIND_SUBDIR/libs/$ABI/"
         run mkdir -p $UNWIND_LIB_DIR
-        run ar crsD $UNWIND_LIB_DIR/libgccunwind.a $UNWIND_OBJS
+        run $AR crsD $UNWIND_LIB_DIR/libgccunwind.a $UNWIND_OBJS
     done
 }
 
 # Only create libgccunwind.a when building default version of gcc
 DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
-if [ "$HOST_OS" = "linux" -a "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
+if [ "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
     run create_unwind_library $ARCH $NDK_DIR
 fi
 
@@ -682,7 +693,7 @@ if [ "$PACKAGE_DIR" ]; then
     assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
-  # exlude ld.mcld
+    # exlude ld.mcld
     EXCLUSIONS=
     if [ -f $SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE} ] ; then
         EXCLUSIONS=$EXCLUSIONS" --exclude=$SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE}"
@@ -693,13 +704,13 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR" $EXCLUSIONS
     cache_package "$PACKAGE_DIR" "$ARCHIVE"
     # package libgccunwind.a
-    if [ "$HOST_OS" = "linux" -a "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
+    if [ "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
         ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
         for ABI in $ABIS; do
             FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
             PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
             PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
-            log "Packaging: $PACKAGE"
+            dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI libgccunwind binaries!"
             dump "Packaging: $PACKAGE"
