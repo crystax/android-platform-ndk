@@ -428,9 +428,6 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
-#echo $BUILD_OUT/binutils-$BINUTILS_VERSION/binutils
-#exit 1
-
 ABI="$OLD_ABI"
 # build the toolchain
 dump "Building : $TOOLCHAIN toolchain [this can take a long time]."
@@ -711,7 +708,6 @@ if [ "$PACKAGE_DIR" ]; then
             FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
             PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
             PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
-            dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI libgccunwind binaries!"
             dump "Packaging: $PACKAGE"
