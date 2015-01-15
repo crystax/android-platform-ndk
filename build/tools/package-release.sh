@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009-2010, 2014 The Android Open Source Project
+# Copyright (C) 2009-2010, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -447,6 +447,10 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt stlport-libs-$ABI-g "$REFERENCE"
         unpack_prebuilt libcxx-libs-$ABI-g "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+            if [ "${ABI%64}" != "$abi" -a "$VERSION" = "4.8" ]; then
+                # only gcc 4.9 is used for 64-bit abis
+                continue
+            fi
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
