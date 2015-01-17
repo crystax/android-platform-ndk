@@ -447,7 +447,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt stlport-libs-$ABI-g "$REFERENCE"
         unpack_prebuilt libcxx-libs-$ABI-g "$REFERENCE"
         for VERSION in $DEFAULT_GCC_VERSION_LIST; do
-            if [ "${ABI%64}" != "$abi" -a "$VERSION" = "4.8" ]; then
+            if [ "${ABI%64}" != "$ABI" -a "$VERSION" = "4.8" ]; then
                 # only gcc 4.9 is used for 64-bit abis
                 continue
             fi
