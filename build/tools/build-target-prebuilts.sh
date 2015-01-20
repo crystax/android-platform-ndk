@@ -75,10 +75,9 @@ BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
 # and some require both toolchains
 #if [ ! -z "$LLVM_VERSION" ]; then
 #   BUILD_TOOLCHAIN="--llvm-version=$LLVM_VERSION"
-#else
+#elif [ ! -z "$GCC_VERSION" ]; then
 #   BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
 #fi
-#
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -97,7 +96,7 @@ fi
 if [ -z "$NO_GEN_PLATFORMS" ]; then
     echo "Preparing the build..."
     PLATFORMS_BUILD_TOOLCHAIN=
-    if [ "$GCC_VERSION" != "default" ]; then
+    if [ ! -z "$GCC_VERSION" ]; then
 	PLATFORMS_BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
     fi
     run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS $PLATFORMS_BUILD_TOOLCHAIN
@@ -143,12 +142,10 @@ fi
 
 # First, gdbserver
 for ARCH in $ARCHS; do
-    if [ "$GCC_VERSION" = "default" ]; then
-        GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
-    elif [ ! -z "$GCC_VERSION" ]; then
-        GDB_TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
+    if [ -z "$GCC_VERSION" ]; then
+       GDB_TOOLCHAIN=$(get_default_toolchain_name_for_arch $ARCH)
     else
-        fail_panic "No GCC_VERSION to build gdb-server!"
+       GDB_TOOLCHAIN=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION)
     fi
     GDB_VERSION="--gdb-version="$(get_default_gdb_version_for_gcc $GDB_TOOLCHAIN)
     dump "Building $GDB_TOOLCHAIN gdbserver binaries..."

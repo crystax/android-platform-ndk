@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2014 The Android Open Source Project
+# Copyright (C) 2011, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -170,10 +170,11 @@ build_gnustl_for_abi ()
         exit 1
     fi
 
-    EXTRA_FLAGS="-ffunction-sections -fdata-sections"
+    EXTRA_CFLAGS="-ffunction-sections -fdata-sections"
+    EXTRA_LDFLAGS=
     if [ -n "$THUMB" ] ; then
-        EXTRA_FLAGS="$EXTRA_FLAGS -mthumb"
-        EXTRA_FLAGS="$EXTRA_FLAGS -minline-thumb1-jumptable"
+        EXTRA_CFLAGS="$EXTRA_CFLAGS -mthumb"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -mthumb"
     fi
 
     case $ARCH in
@@ -197,8 +198,8 @@ build_gnustl_for_abi ()
             ;;
     esac
 
-    CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
-    CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_FLAGS"
+    CFLAGS="-fPIC $CFLAGS --sysroot=$SYSROOT -fexceptions -funwind-tables -D__BIONIC__ -O2 $EXTRA_CFLAGS"
+    CXXFLAGS="-fPIC $CXXFLAGS --sysroot=$SYSROOT -fexceptions -frtti -funwind-tables -D__BIONIC__ -O2 $EXTRA_CFLAGS"
     CPPFLAGS="$CPPFLAGS --sysroot=$SYSROOT"
     if [ "$WITH_DEBUG_INFO" ]; then
         CFLAGS="$CFLAGS -g"
@@ -217,30 +218,16 @@ build_gnustl_for_abi ()
     setup_ccache
 
     local CRYSTAX_LDFLAGS
-    if [ "$GCC_VERSION" != "4.6" ]; then
-        # We MUST NOT specify path to libcrystax binaries, because it cause
-        # conflict on configure stage for toolchains with more than one incompatible
-        # multilib variants (such as mips64).
-        # To the moment this script called, we already have sysroot patched,
-        # with libcrystax binaries copied to proper folders, taking into account
-        # different multilibs variants, so configure scripts find them there.
-        CRYSTAX_LDFLAGS=""
-    else
-        # For some reason, when building libstdc++ from gcc-4.6 distribution,
-        # it's configure scripts don't find libcrystax in sysroot.
-        # To workaround that, specify path to libcrystax binaries explicitly.
-        # It works because gcc-4.6 doesn't support targets with incompatible
-        # multilibs variants, so we apply such workaround here.
-        local CRYSTAX_LIBDIR
-        CRYSTAX_LIBDIR="$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
-        if [ -n "$THUMB" ]; then
-            CRYSTAX_LIBDIR="$CRYSTAX_LIBDIR/thumb"
-        fi
-        CRYSTAX_LDFLAGS="-L$CRYSTAX_LIBDIR"
-    fi
+    # We MUST NOT specify path to libcrystax binaries, because it cause
+    # conflict on configure stage for toolchains with more than one incompatible
+    # multilib variants (such as mips64).
+    # To the moment this script called, we already have sysroot patched,
+    # with libcrystax binaries copied to proper folders, taking into account
+    # different multilibs variants, so configure scripts find them there.
+    CRYSTAX_LDFLAGS=""
     CRYSTAX_LDFLAGS="$CRYSTAX_LDFLAGS -lcrystax"
 
-    export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_FLAGS"
+    export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_LDFLAGS"
 
     case $ABI in
         armeabi-v7a|armeabi-v7a-hard)
