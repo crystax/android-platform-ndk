@@ -269,6 +269,7 @@ build_icu_for_abi ()
     local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
+    FLAGS="$FLAGS -fPIC"
     FLAGS="$FLAGS -DU_USING_ICU_NAMESPACE=0"
     FLAGS="$FLAGS -DU_CHARSET_IS_UTF8=1"
 
@@ -464,7 +465,7 @@ log "Generating $ICU_DSTDIR/Android.mk"
                 echo ''
                 echo 'include $(CLEAR_VARS)'
                 echo "LOCAL_MODULE := ${lib}_${type}"
-                echo "LOCAL_SRCFILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
+                echo "LOCAL_SRC_FILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
                 echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
                 echo "include \$(PREBUILT_$(echo $type | tr '[a-z]' '[A-Z]')_LIBRARY)"
             done
