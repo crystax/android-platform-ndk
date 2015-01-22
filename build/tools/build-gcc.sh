@@ -567,8 +567,10 @@ if [ "$MINGW" = "yes" -o "$DARWIN" = "yes" ] ; then
     # these lines required to put libatomic.a into arm64/x86_64 package
     INSTALL_TARGET_LIB_PATH_64="$BUILD_OUT/host-$ABI_CONFIGURE_BUILD/install/$ABI_CONFIGURE_TARGET/lib64"
     TOOLCHAIN_TARGET_LIB_PATH_64="$TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib64"
-    (cd "$INSTALL_TARGET_LIB_PATH_64" &&
-        find . \( -name "*.a" -o -name "*.la" -o -name "*.spec" \) -exec install -D "{}" "$TOOLCHAIN_TARGET_LIB_PATH_64/{}" \;)
+    if [ -d "$INSTALL_TARGET_LIB_PATH_64" ]; then
+        (cd "$INSTALL_TARGET_LIB_PATH_64" &&
+                find . \( -name "*.a" -o -name "*.la" -o -name "*.spec" \) -exec install -D "{}" "$TOOLCHAIN_TARGET_LIB_PATH_64/{}" \;)
+    fi
 fi
 
 # build the gdb stub and replace gdb with it. This is done post-install
@@ -722,6 +724,6 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
-    rm -rf $BUILD_OUT
-fi
+#if [ -z "$OPTION_BUILD_OUT" ] ; then
+#    rm -rf $BUILD_OUT
+#fi
