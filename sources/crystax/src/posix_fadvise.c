@@ -27,47 +27,30 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816
-#define __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816
+#include <fcntl.h>
+#include <errno.h>
 
-#include <crystax/id.h>
-#include <crystax/google/fcntl.h>
-
-#define __CRYSTAX_FCNTL_BASE 0x80000000
-
-#ifndef F_DUPFD_CLOEXEC
-#define F_DUPFD_CLOEXEC  ((int)(__CRYSTAX_FCNTL_BASE | 0x0001))
+#if defined(__arm__)
+int __arm_fadvise64_64(int, int, off64_t, off64_t);
+#else
+int __fadvise64(int, off64_t, off64_t, int);
 #endif
 
-#define F_DUP2FD         ((int)(__CRYSTAX_FCNTL_BASE | 0x0002))
-#define F_DUP2FD_CLOEXEC ((int)(__CRYSTAX_FCNTL_BASE | 0x0003))
+int posix_fadvise(int fd, off_t offset, off_t length, int advice)
+{
+    return posix_fadvise64(fd, offset, length, advice);
+}
 
-#ifndef F_GETPIPE_SZ
-#define F_GETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0004))
+int posix_fadvise64(int fd, off64_t offset, off64_t length, int advice)
+{
+    int rc;
+    int saved_errno = errno;
+#if defined(__arm__)
+    rc = __arm_fadvise64_64(fd, advice, offset, length);
+#else
+    rc = __fadvise64(fd, offset, length, advice);
 #endif
-
-#ifndef F_SETPIPE_SZ
-#define F_SETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0005))
-#endif
-
-#define POSIX_FADV_NORMAL     0
-#define POSIX_FADV_RANDOM     1
-#define POSIX_FADV_SEQUENTIAL 2
-#define POSIX_FADV_WILLNEED   3
-#define POSIX_FADV_DONTNEED   4
-#define POSIX_FADV_NOREUSE    5
-
-__BEGIN_DECLS
-
-extern int fallocate64(int, int, off64_t, off64_t);
-extern int fallocate(int, int, off_t, off_t);
-
-extern int posix_fallocate64(int, off64_t, off64_t);
-extern int posix_fallocate(int, off_t, off_t);
-
-extern int posix_fadvise64(int, off64_t, off64_t, int);
-extern int posix_fadvise(int, off_t, off_t, int);
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816 */
+    if (rc != 0) rc = errno;
+    errno = saved_errno;
+    return rc;
+}
