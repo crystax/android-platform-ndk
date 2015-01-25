@@ -74,6 +74,6 @@ gen IN6_IS_ADDR_MC_GLOBAL
 
 echo "#endif /* _POSIX_IPV6 */"
 
-echo "#if _POSIX_RAW_SOCKETS"
+echo "#if defined(_POSIX_RAW_SOCKETS) && _POSIX_RAW_SOCKETS"
 gen IPPROTO_RAW
 echo "#endif /* _POSIX_RAW_SOCKETS */"
