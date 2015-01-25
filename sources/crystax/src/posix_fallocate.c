@@ -42,8 +42,9 @@ int posix_fallocate(int fd, off_t offset, off_t len)
     int rc;
     int saved_errno = errno;
     rc = fallocate(fd, 0, offset, len);
+    if (rc != 0) rc = errno;
     errno = saved_errno;
-    return rc == 0 ? 0 : errno;
+    return rc;
 }
 
 int posix_fallocate64(int fd, off64_t offset, off64_t len)
@@ -51,6 +52,7 @@ int posix_fallocate64(int fd, off64_t offset, off64_t len)
     int rc;
     int saved_errno = errno;
     rc = fallocate64(fd, 0, offset, len);
+    if (rc != 0) rc = errno;
     errno = saved_errno;
-    return rc == 0 ? 0 : errno;
+    return rc;
 }
