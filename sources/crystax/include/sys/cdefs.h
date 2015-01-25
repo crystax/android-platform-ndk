@@ -31,33 +31,39 @@
 #define __CRYSTAX_SYS_CDEFS_H_649B3B19BE21490D983FE57C973D2BA8
 
 #include <crystax/id.h>
+#include <crystax/google/sys/cdefs.h>
 
 #if !defined(_POSIX_SOURCE)
 #define _POSIX_SOURCE
 #endif
 
-#if defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE < 200809
-#undef _POSIX_C_SOURCE
-#endif
+#if !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 200809
-
-#if defined(__POSIX_VISIBLE) && __POSIX_VISIBLE < 200809
-#undef __POSIX_VISIBLE
+#elif _POSIX_C_SOURCE < 200809
+#undef  _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 200809
 #endif
+
+#if !defined(__POSIX_VISIBLE)
 #define __POSIX_VISIBLE 200809
-
-#if defined(__XSI_VISIBLE) && __XSI_VISIBLE < 600
-#undef __XSI_VISIBLE
+#elif __POSIX_VISIBLE < 200809
+#undef  __POSIX_VISIBLE
+#define __POSIX_VISIBLE 200809
 #endif
+
+#if !defined(__XSI_VISIBLE)
 #define __XSI_VISIBLE 600
-
-#if defined(__ISO_C_VISIBLE) && __ISO_C_VISIBLE < 1999
-#undef __ISO_C_VISIBLE
+#elif __XSI_VISIBLE < 600
+#undef  __XSI_VISIBLE
+#define __XSI_VISIBLE 600
 #endif
+
+#if !defined(__ISO_C_VISIBLE)
 #define __ISO_C_VISIBLE 1999
-
-#include <crystax/google/sys/cdefs.h>
-
+#elif __ISO_C_VISIBLE < 1999
+#undef  __ISO_C_VISIBLE
+#define __ISO_C_VISIBLE 1999
+#endif
 
 #ifndef __has_extension
 #define __has_extension     __has_feature
