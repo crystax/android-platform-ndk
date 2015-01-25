@@ -31,8 +31,11 @@
 #define __CRYSTAX_PTHREAD_H_B2421410F8124BED8ACB3D385041AECF
 
 #include <crystax/id.h>
+#include <sys/cdefs.h>
 
+#define pthread_attr_getscope __crystax_disabled_pthread_attr_getscope
 #include <crystax/google/pthread.h>
+#undef  pthread_attr_getscope
 
 /* In old platform headers, these symbols were defined as enum elements.
  * We defined them as macro here so they become available to preprocessor.
@@ -54,14 +57,11 @@
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 int pthread_mutex_timedlock(pthread_mutex_t *, const struct timespec*);
+int pthread_attr_getscope(const pthread_attr_t*, int*);
 
-#ifdef __cplusplus
-}
-#endif
+__END_DECLS
 
 #endif /* __CRYSTAX_PTHREAD_H_B2421410F8124BED8ACB3D385041AECF */
