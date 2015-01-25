@@ -173,7 +173,8 @@ sources_for_abi()
 
     test -n "$arch" && echo "src/math/$arch/fenv.c"
 
-    find gen -name '*.c' -a -not -name 'mangled-*' -print | sort
+    find gen -name '*.c'   -a -not -name 'mangled-*' -print | sort
+    find gen -name '*.cpp' -a -not -name 'mangled-*' -print | sort
 
     case $a in
         armeabi*)
@@ -292,6 +293,7 @@ common_cflags_for_abi()
 
     crystax=$CRYSTAX_SRCDIR
     freebsd=$CRYSTAX_SRCDIR/gen/freebsd
+    bionic=$CRYSTAX_SRCDIR/gen/bionic
     cxx=$CRYSTAX_SRCDIR/../cxx-stl/system
 
     arch_flags_for_abi $abi $mlib
@@ -319,6 +321,10 @@ common_cflags_for_abi()
     elif [ ${TOOLCHAIN##clang} != ${TOOLCHAIN} ]; then
         echo "-Wno-unknown-pragmas"
     fi
+
+    # First, include Bionic headers, which can override some of public headers
+    echo "-I$bionic/libc/include"
+    echo "-I$bionic/libc"
 
     echo "-I$crystax/include"
     echo "-I$crystax/src/include"

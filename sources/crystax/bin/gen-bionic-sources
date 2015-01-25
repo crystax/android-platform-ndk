@@ -5,8 +5,10 @@ require 'pathname'
 require 'digest'
 
 TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
-DSTDIR = File.join(TOPDIR, 'gen', 'bionic')
 SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'bionic'))
+
+PRIVATEDIR = File.join(TOPDIR, 'gen', 'bionic')
+PUBLICDIR  = File.join(TOPDIR, 'include')
 
 ARCHS = [
     "arm",
@@ -53,9 +55,15 @@ class Generator
             f = e[:file]
             options = e[:options]
 
-            dst = File.join(DSTDIR, f)
-            mdst = File.join(File.dirname(dst), "mangled-#{File.basename(dst)}")
             src = File.join(SRCDIR, f)
+            mdst = File.join(options[:public] ? File.join(PUBLICDIR, 'crystax', 'bionic') : PRIVATEDIR, File.dirname(f), "mangled-#{File.basename(f)}")
+
+            if options[:public]
+                f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == ['libc', 'include']
+                dst = File.join(PUBLICDIR, f)
+            else
+                dst = File.join(PRIVATEDIR, f)
+            end
 
             next if File.exists?(dst) && File.exists?(mdst) &&
                 File.mtime(dst)  >= File.mtime(mdst) &&
@@ -98,7 +106,12 @@ class Generator
                 end
 
                 df.puts ""
-                df.puts "#include \"#{File.basename(mdst)}\""
+                if options[:public]
+                    df.puts "#include <crystax/id.h>"
+                    df.puts "#include <#{relpath(mdst, File.join(TOPDIR, 'include'))}>"
+                else
+                    df.puts "#include \"#{File.basename(mdst)}\""
+                end
 
                 df.puts ""
                 df.puts "#endif /* #{guard} */"
@@ -117,8 +130,14 @@ g.fixup :redefine_fcntl64 do |f|
     f.puts "#define __fcntl64 __bionic_fcntl"
 end
 
+# common headers
+g.add "libc/include/machine/posix_limits.h"
+g.add "libc/include/sys/auxv.h"
+g.add "libc/private/ScopedReaddir.h"
 g.add "libc/private/bionic_asm.h"
+g.add "libc/private/bionic_macros.h"
 
+# include/machine/asm.h
 g.add "libc/arch-arm/include/machine/asm.h"
 g.add "libc/arch-arm64/include/machine/asm.h"
 g.add "libc/arch-mips/include/machine/asm.h"
@@ -141,5 +160,11 @@ g.add "libc/arch-mips/syscalls/__fcntl64.S", fixup: "redefine_fcntl64"
 g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/arch-x86/syscalls/__fcntl64.S",  fixup: "redefine_fcntl64"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
+
+# sysconf
+g.add "libc/include/sys/sysconf.h", public: true
+g.add "libc/include/sys/sysinfo.h", public: true
+g.add "libc/bionic/sysconf.cpp"
+g.add "libc/bionic/sysinfo.cpp"
 
 g.generate
