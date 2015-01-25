@@ -202,7 +202,7 @@ sources_for_abi()
             arch=$a
     esac
 
-    find gen/bionic/libc/arch-$arch -iname '*.s' -print | sort
+    find gen/bionic/libc/arch-$arch -iname '*.s' -a -not -name 'mangled-*' -print | sort
 
     find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
 }
