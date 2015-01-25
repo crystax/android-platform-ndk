@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+require 'pathname'
+
+TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
+DSTDIR = File.join(TOPDIR, 'gen', 'bionic')
+SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'bionic'))
+
+ARCHS = [
+    "arm",
+    "x86",
+    "mips",
+    "arm64",
+    "x86_64",
+    "mips64",
+]
+
+class Generator
+    def initialize
+        @files = []
+    end
+
+    def add(f)
+        raise "No such file: #{f}" unless File.exists?(File.join(SRCDIR, f))
+        raise "File #{f} already added" if @files.include?(f)
+        @files << f
+    end
+
+    def generate
+        total = @files.size
+        current = 0
+        @files.each do |f|
+            dst = File.join(DSTDIR, f)
+            src = File.join(SRCDIR, f)
+
+            next if File.exists?(dst) && File.mtime(dst) > File.mtime(src) && File.mtime(dst) > File.mtime(__FILE__)
+
+            current += 1
+            puts "GEN  [#{current}/#{total}] #{f}"
+
+            FileUtils.rm_f dst
+            FileUtils.mkdir_p File.dirname(dst)
+            FileUtils.cp src, dst
+        end
+    end
+end
+
+g = Generator.new
+
+g.add "libc/private/bionic_asm.h"
+
+g.add "libc/arch-arm/include/machine/asm.h"
+g.add "libc/arch-arm64/include/machine/asm.h"
+g.add "libc/arch-mips/include/machine/asm.h"
+g.add "libc/arch-mips64/include/machine/asm.h"
+g.add "libc/arch-x86/include/machine/asm.h"
+g.add "libc/arch-x86_64/include/machine/asm.h"
+
+g.add "libc/arch-arm/syscalls/fallocate64.S"
+g.add "libc/arch-arm64/syscalls/fallocate.S"
+g.add "libc/arch-mips/syscalls/fallocate64.S"
+g.add "libc/arch-mips64/syscalls/fallocate.S"
+g.add "libc/arch-x86/syscalls/fallocate64.S"
+g.add "libc/arch-x86_64/syscalls/fallocate.S"
+
+g.generate

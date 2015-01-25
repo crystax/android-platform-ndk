@@ -27,37 +27,12 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816
-#define __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816
+#include <errno.h>
+#include <crystax/private.h>
 
-#include <crystax/id.h>
-#include <crystax/google/fcntl.h>
-
-#define __CRYSTAX_FCNTL_BASE 0x80000000
-
-#ifndef F_DUPFD_CLOEXEC
-#define F_DUPFD_CLOEXEC  ((int)(__CRYSTAX_FCNTL_BASE | 0x0001))
-#endif
-
-#define F_DUP2FD         ((int)(__CRYSTAX_FCNTL_BASE | 0x0002))
-#define F_DUP2FD_CLOEXEC ((int)(__CRYSTAX_FCNTL_BASE | 0x0003))
-
-#ifndef F_GETPIPE_SZ
-#define F_GETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0004))
-#endif
-
-#ifndef F_SETPIPE_SZ
-#define F_SETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0005))
-#endif
-
-__BEGIN_DECLS
-
-extern int fallocate64(int, int, off64_t, off64_t);
-extern int fallocate(int, int, off_t, off_t);
-
-extern int posix_fallocate64(int, off64_t, off64_t);
-extern int posix_fallocate(int, off_t, off_t);
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816 */
+CRYSTAX_LOCAL
+long __crystax_set_errno_internal(int n)
+{
+    errno = n;
+    return -1;
+}
