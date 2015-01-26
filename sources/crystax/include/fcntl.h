@@ -50,4 +50,24 @@
 #define F_SETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0005))
 #endif
 
+#define POSIX_FADV_NORMAL     0
+#define POSIX_FADV_RANDOM     1
+#define POSIX_FADV_SEQUENTIAL 2
+#define POSIX_FADV_WILLNEED   3
+#define POSIX_FADV_DONTNEED   4
+#define POSIX_FADV_NOREUSE    5
+
+__BEGIN_DECLS
+
+extern int fallocate64(int, int, off64_t, off64_t);
+extern int fallocate(int, int, off_t, off_t);
+
+extern int posix_fallocate64(int, off64_t, off64_t);
+extern int posix_fallocate(int, off_t, off_t);
+
+extern int posix_fadvise64(int, off64_t, off64_t, int);
+extern int posix_fadvise(int, off_t, off_t, int);
+
+__END_DECLS
+
 #endif /* __CRYSTAX_INCLUDE_FCNTL_H_C1EB0D2834804E14818592AF5D8C0816 */

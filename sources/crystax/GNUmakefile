@@ -341,13 +341,15 @@ $(abspath $(MYDIR)/$(shell $(CCONF) --libpath --abi=$(strip $(2)) $(if $(strip $
 endef
 
 # $1: ABI
+# $2: multilib variant (optional)
 define sources-impl
-$(shell $(CCONF) --sources --abi=$(strip $(1)))
+$(shell $(CCONF) --sources --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
 endef
 
 # $1: ABI
+# $2: multilib variant (optional)
 define sources
-$(call cached,var-sources-$(1),sources-impl,$(1))
+$(call cached,var-sources-$(1)-$(2),sources-impl,$(1),$(2))
 endef
 
 # $1: ABI
@@ -429,7 +431,7 @@ endef
 define objfiles-impl
 $(strip \
     $(addprefix $(call objdir,$(2),$(3))/,\
-        $(foreach __f,$(call sources,$(2)),$(call objfile,$(__f)))\
+        $(foreach __f,$(call sources,$(2),$(3)),$(call objfile,$(__f)))\
     )\
 )
 endef
@@ -452,7 +454,7 @@ $(strip $(if $(strip $(1)),\
     $(or \
         $(if $(filter %.c,$(1)),C),\
         $(if $(filter %.cpp %.cc,$(1)),C++),\
-        $(if $(filter %.s,$(1)),ASM),\
+        $(if $(filter %.s %.S,$(1)),ASM),\
         $(error Can not detect language of source file '$(1)')\
     ),\
     $(error Usage: call source-file-language,path)\
@@ -518,11 +520,15 @@ define auto-generated-sources
 $(shell sed -n '/# BEGIN OF AUTO-GENERATED SOURCES/,/# END OF AUTO-GENERATED SOURCES/p' $(MYDIR)/.gitignore | grep -v '^#')
 endef
 
+define additional-dependencies
+$(filter-out %.d,$(MAKEFILE_LIST)) $(firstword $(CCONF))
+endef
+
 # $1: ABI
 # $2: multilib variant
 # $3: source file
 define add-objfile-rule
-$$(call objdir,$(1),$(2))/$$(call objfile,$(3)): $$(abspath $(3)) $$(filter-out %.d,$(MAKEFILE_LIST)) $$(firstword $$(CCONF))
+$$(call objdir,$(1),$(2))/$$(call objfile,$(3)): $$(abspath $(3)) $$(additional-dependencies)
 	@echo "CC $(1) [$(2)] $(3)"
 	@mkdir -p $$(dir $$@)
 	$$(hide)$$(call compiler-for,$(1),$$<) \
@@ -536,7 +542,7 @@ endef
 # $2: ABI
 # $3: multilib variant
 define add-target-rule
-$$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(filter-out %.d,$(MAKEFILE_LIST)) $$(firstword $$(CCONF))
+$$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(additional-dependencies)
 	@echo "$(if $(filter static,$(1)),AR,LD) $(2) [$(3)] $$(notdir $$@)"
 	@mkdir -p $$(dir $$@)
 	@rm -f $$@
@@ -607,7 +613,7 @@ $(foreach __abi,$(call abis),\
         $(foreach __t,static shared,\
             $(eval $(call add-target-rule,$(__t),$(__abi),$(__mlib)))\
         )\
-        $(foreach __src,$(call sources,$(__abi)),\
+        $(foreach __src,$(call sources,$(__abi),$(__mlib)),\
             $(eval $(call add-objfile-rule,$(__abi),$(__mlib),$(__src)))\
         )\
         $(eval sinclude $(call rwildcard,$(call objdir,$(__abi),$(__mlib)),*.d))\
