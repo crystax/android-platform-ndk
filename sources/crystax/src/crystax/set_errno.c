@@ -27,44 +27,12 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <sys/sysconf.h>
-#include <dlfcn.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <crystax/private.h>
-#include <crystax/bionic.h>
 
-static long crystax_sysconf(int name)
+CRYSTAX_LOCAL
+long __crystax_set_errno_internal(int n)
 {
-    switch (name)
-    {
-        case _SC_2_PBS:
-        case _SC_2_PBS_ACCOUNTING:
-        case _SC_2_PBS_CHECKPOINT:
-        case _SC_2_PBS_LOCATE:
-        case _SC_2_PBS_MESSAGE:
-        case _SC_2_PBS_TRACK:
-            return -1;
-        case _SC_REGEXP:
-            return _POSIX_REGEXP;
-        case _SC_READER_WRITER_LOCKS:
-            return _POSIX_READER_WRITER_LOCKS;
-        case _SC_TIMEOUTS:
-            return _POSIX_TIMEOUTS;
-        default:
-            errno = EINVAL;
-            return -1;
-    }
-}
-
-long sysconf(int name)
-{
-    long (*bionic_sysconf)(int name);
-
-    if (name & __CRYSTAX_SC_BASE)
-        return crystax_sysconf(name);
-
-    bionic_sysconf = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_SYSCONF, 1);
-    return bionic_sysconf(name);
+    errno = n;
+    return -1;
 }

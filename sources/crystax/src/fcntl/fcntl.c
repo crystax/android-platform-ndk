@@ -33,9 +33,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <crystax/log.h>
-#include <crystax/bionic.h>
 
-static int crystax_fcntl(int (*bionic_fcntl)(int, int, ...), int fd, int command, va_list args)
+extern int __bionic_fcntl(int fd, int command, ...);
+
+static int crystax_fcntl(int fd, int command, va_list args)
 {
     int rc;
     int fd2;
@@ -43,10 +44,10 @@ static int crystax_fcntl(int (*bionic_fcntl)(int, int, ...), int fd, int command
     switch (command)
     {
         case F_DUPFD_CLOEXEC:
-            rc = bionic_fcntl(fd, F_DUPFD);
+            rc = __bionic_fcntl(fd, F_DUPFD);
             if (rc < 0) return rc;
             fd2 = rc;
-            rc = bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
+            rc = __bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
             if (rc < 0)
                 close(fd2);
             return rc;
@@ -57,7 +58,7 @@ static int crystax_fcntl(int (*bionic_fcntl)(int, int, ...), int fd, int command
             if (rc < 0) return rc;
             if (command == F_DUP2FD_CLOEXEC)
             {
-                rc = bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
+                rc = __bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
                 if (rc < 0)
                     close(fd2);
             }
@@ -76,14 +77,10 @@ int fcntl(int fd, int command, ...)
     int n;
     struct flock *flck;
 
-    int (*bionic_fcntl)(int, int, ...);
-
-    bionic_fcntl = __crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL_FCNTL, 0);
-
     if (command & __CRYSTAX_FCNTL_BASE)
     {
         va_start(args, command);
-        rc = crystax_fcntl(bionic_fcntl, fd, command, args);
+        rc = crystax_fcntl(fd, command, args);
         va_end(args);
         return rc;
     }
@@ -98,7 +95,7 @@ int fcntl(int fd, int command, ...)
         case F_GETOWN:
         case F_GETPIPE_SZ:
         case F_GETSIG:
-            return bionic_fcntl(fd, command);
+            return __bionic_fcntl(fd, command);
         case F_NOTIFY:
         case F_SETFD:
         case F_SETFL:
@@ -108,7 +105,7 @@ int fcntl(int fd, int command, ...)
         case F_SETSIG:
             va_start(args, command);
             n = va_arg(args, int);
-            rc = bionic_fcntl(fd, command, n);
+            rc = __bionic_fcntl(fd, command, n);
             va_end(args);
             return rc;
         case F_GETLK:
@@ -121,7 +118,7 @@ int fcntl(int fd, int command, ...)
 #endif
             va_start(args, command);
             flck = va_arg(args, struct flock *);
-            rc = bionic_fcntl(fd, command, flck);
+            rc = __bionic_fcntl(fd, command, flck);
             va_end(args);
             return rc;
         default:

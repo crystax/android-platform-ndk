@@ -33,4 +33,8 @@
 #include <crystax/id.h>
 #include <sys/endian.h>
 
+#define swap16(x) bswap16(x)
+#define swap32(x) bswap32(x)
+#define swap64(x) bswap64(x)
+
 #endif /* __CRYSTAX_INCLUDE_ENDIAN_H_5658845E872C4DE1A1F43E2BB8151C8F */

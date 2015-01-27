@@ -133,15 +133,19 @@ check_multilib()
 }
 
 # $1: ABI
-# $2: libtype (static or shared)
+# $2: multilib variant
+# $3: libtype (static or shared)
 sources_for_abi()
 {
     local a=$1
-    local t=$2
-    if [ -z "$a" -o -z "$t" ]; then
-        echo "ERROR: Usage: $0 ABI LIBTYPE" 1>&2
+    local m=$2
+    local t=$3
+    if [ -z "$a" -o -z "$m" -o -z "$t" ]; then
+        echo "ERROR: Usage: $0 ABI MULTILIB LIBTYPE" 1>&2
         exit 1
     fi
+
+    local arch
 
     find src -name '*.c' -a -not -name 'fenv.c' -print | sort
 
@@ -151,22 +155,55 @@ sources_for_abi()
         echo "src/crystax/android_jni.cpp"
     fi
 
+    arch=""
     case $a in
         arm64*)
-            echo "src/math/arm64/fenv.c"
+            arch=arm64
             ;;
         x86)
-            echo "src/math/i386/fenv.c"
+            arch=i386
             ;;
         x86_64)
-            echo "src/math/x86_64/fenv.c"
+            arch=x86_64
             ;;
         mips64)
-            echo "src/math/mips64/fenv.c"
+            arch=mips64
             ;;
     esac
 
-    find gen -name '*.c' -a -not -name 'mangled-*' -print | sort
+    test -n "$arch" && echo "src/math/$arch/fenv.c"
+
+    find gen -name '*.c'   -a -not -name 'mangled-*' -print | sort
+    find gen -name '*.cpp' -a -not -name 'mangled-*' -print | sort
+
+    case $a in
+        armeabi*)
+            arch=arm
+            ;;
+        arm64*)
+            arch=arm64
+            ;;
+        x86_64)
+            if [ "$m" = "i386" ]; then
+                arch=x86
+            else
+                arch=x86_64
+            fi
+            ;;
+        mips64)
+            case $m in
+                mips64*)
+                    arch=mips64
+                    ;;
+                *)
+                    arch=mips
+            esac
+            ;;
+        *)
+            arch=$a
+    esac
+
+    find gen/bionic/libc/arch-$arch -iname '*.s' -a -not -name 'mangled-*' -print | sort
 
     find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
 }
@@ -256,6 +293,7 @@ common_cflags_for_abi()
 
     crystax=$CRYSTAX_SRCDIR
     freebsd=$CRYSTAX_SRCDIR/gen/freebsd
+    bionic=$CRYSTAX_SRCDIR/gen/bionic
     cxx=$CRYSTAX_SRCDIR/../cxx-stl/system
 
     arch_flags_for_abi $abi $mlib
@@ -283,6 +321,10 @@ common_cflags_for_abi()
     elif [ ${TOOLCHAIN##clang} != ${TOOLCHAIN} ]; then
         echo "-Wno-unknown-pragmas"
     fi
+
+    # First, include Bionic headers, which can override some of public headers
+    echo "-I$bionic/libc/include"
+    echo "-I$bionic/libc"
 
     echo "-I$crystax/include"
     echo "-I$crystax/src/include"
@@ -384,8 +426,45 @@ asmflags_for_abi()
         exit 1
     fi
 
+    local bionic=$CRYSTAX_SRCDIR/gen/bionic
+
     arch_flags_for_abi $a $m
     echo "-O2"
+
+    local arch
+    case $a in
+        armeabi*)
+            arch=arm
+            ;;
+        arm64*)
+            arch=arm64
+            ;;
+        x86_64)
+            case $m in
+                i386)
+                    arch=x86
+                    ;;
+                *)
+                    arch=x86_64
+            esac
+            ;;
+        mips64)
+            case $m in
+                mips64*)
+                    arch=mips64
+                    ;;
+                *)
+                    arch=mips
+            esac
+            ;;
+        *)
+            arch=$a
+    esac
+
+    echo "-D__set_errno_internal=__crystax_set_errno_internal"
+
+    echo "-I$bionic/libc/arch-$arch/include"
+    echo "-I$bionic/libc"
 }
 
 # $1: ABI
@@ -737,7 +816,7 @@ case $REQUEST in
         multilibs_for_abi $ABI
         ;;
     sources)
-        sources_for_abi $ABI $LIBTYPE
+        sources_for_abi $ABI $MULTILIB $LIBTYPE
         ;;
     abiflags)
         arch_flags_for_abi $ABI $MULTILIB

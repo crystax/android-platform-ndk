@@ -80,6 +80,36 @@ int pthread_atfork(void (*f1)(void), void (*f2)(void), void(*f3)(void))
     return 1234;
 }
 
+int pthread_attr_getinheritsched(const pthread_attr_t *a, int *p)
+{
+    (void)a;
+    (void)p;
+    return 1234;
+}
+
+int pthread_attr_setinheritsched(pthread_attr_t *a, int p)
+{
+    (void)a;
+    (void)p;
+    return 1234;
+}
+
+#if __ANDROID_API__ < 21
+int pthread_condattr_getclock(const pthread_condattr_t *a, clockid_t *t)
+{
+    (void)a;
+    (void)t;
+    return 1234;
+}
+
+int pthread_condattr_setclock(pthread_condattr_t *a, clockid_t t)
+{
+    (void)a;
+    (void)t;
+    return 1234;
+}
+#endif /* __ANDROID_API__ < 21 */
+
 int pthread_cancel(pthread_t tid)
 {
     (void)tid;
@@ -147,6 +177,13 @@ int pthread_mutexattr_setprotocol(pthread_mutexattr_t *a, int c)
     return 1234;
 }
 
+int pthread_setschedprio(pthread_t t, int p)
+{
+    (void)t;
+    (void)p;
+    return 1234;
+}
+
 #endif /* __ANDROID__ */
 
 void *pthread_new_thread(void *arg)
@@ -197,12 +234,12 @@ void pthread_check_functions()
     (void)pthread_attr_getguardsize(&attr, (size_t*)1234);
 #endif
 #if _POSIX_THREAD_PRIORITY_SCHEDULING > 0
-    (void)pthread_attr_getinheritsched(&attr, (int*)0);
+    (void)pthread_attr_getinheritsched(&attr, (int*)1234);
 #endif
     (void)pthread_attr_getschedparam(&attr, &sched_param_value);
 #if _POSIX_THREAD_PRIORITY_SCHEDULING > 0
-    (void)pthread_attr_getschedpolicy(&attr, (int*)0);
-    (void)pthread_attr_getscope(&attr, (int*)0);
+    (void)pthread_attr_getschedpolicy(&attr, (int*)1234);
+    (void)pthread_attr_getscope(&attr, (int*)1234);
 #endif
 #if _POSIX_THREAD_ATTR_STACKADDR > 0 || _POSIX_THREAD_ATTR_STACKSIZE > 0
     (void)pthread_attr_getstack(&attr, (void**)1234, (size_t*)1234);
