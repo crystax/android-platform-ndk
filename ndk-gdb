@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2010 The Android Open Source Project
+# Copyright (C) 2010, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -789,13 +789,32 @@ if [ $? != 0 ] ; then
     exit 1
 fi
 
-# If we are debugging 32-bit application on 64-bit device
-# then we need to pull app_process32, not app_process
-APP_PROCESS_NAME=app_process
-if [ "$COMPAT_ABI_BITS" = 32 ] && [ -n "$CPU_ABILIST64" ] ; then
-    APP_PROCESS_NAME=app_process32
-    log "We are debugging 32-bit app on 64-bit device"
+# the problem we're tring to solve here is that adb fails to pull
+# a symlinked file from device or emulator when ran on windows
+# 
+if [ "$API_LEVEL" -lt "21" ] ; then
+    log "We are debugging on prior-lollipop device"
+    APP_PROCESS_NAME=app_process
+else
+    if [ -z "$CPU_ABILIST64" ] ; then
+        # we're on a 32 bit device
+        log "We are debugging on 32 bit device"
+        APP_PROCESS_NAME=app_process32
+    else
+        # we're on a 32 bit device but
+        # if we are debugging 32-bit application on 64-bit device
+        # then we need to pull app_process32, not app_process
+        if [ "$COMPAT_ABI_BITS" = 32 ] ; then
+            APP_PROCESS_NAME=app_process32
+            log "We are debugging 32-bit app on 64-bit device"
+        else
+            APP_PROCESS_NAME=app_process64
+            log "We are debugging 64-bit app on 64-bit device"
+        fi
+    fi
 fi
+
+log "APP_PROCESS_NAME=$APP_PROCESS_NAME"
 
 # If we are debugging 64-bit app, then we need to pull linker64
 # and libc.so from lib64 directory
