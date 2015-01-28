@@ -19,6 +19,8 @@ prebuilt/android-x86/
 prebuilt/android-x86_64/
 prebuilt/linux-x86/
 prebuilt/linux-x86_64/
+prebuilt/darwin-x86/
+prebuilt/darwin-x86_64/
 prebuilt/windows/
 prebuilt/windows-x86_64/
 prebuilt/common/scan-build/
