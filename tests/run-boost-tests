@@ -455,19 +455,23 @@ if [ "x\$LINKER" = "xyes" ]; then
     PARAMS=\$NPARAMS
 fi
 
-LDLIBS=""
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
     FLAGS="\$FLAGS -L$ICU/libs/$ABI"
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
-    LDLIBS="-lgnustl_shared"
 else
     FLAGS="\$FLAGS -I$ICU/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
+    FLAGS="\$FLAGS -Wno-long-long"
+fi
+
+PARAMS="\$FLAGS \$PARAMS"
+if [ "x\$LINKER" = "xyes" ]; then
+    PARAMS="\$PARAMS -lgnustl_shared"
 fi
 
 run()
@@ -476,7 +480,7 @@ run()
     exec "\$@"
 }
 
-run $TCPATH/bin/$TCPREFIX-$TOOL \$FLAGS \$PARAMS \$LDLIBS
+run $TCPATH/bin/$TCPREFIX-$TOOL \$PARAMS
 EOF
         fail_panic "Could not create target tool $TOOL"
     done

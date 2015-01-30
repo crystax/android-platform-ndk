@@ -295,15 +295,20 @@ if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS -L$ICU/libs/$ABI"
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
-    FLAGS="\$FLAGS -lgnustl_${TYPE}"
 else
     FLAGS="\$FLAGS -I$ICU/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
+    FLAGS="\$FLAGS -Wno-long-long"
 fi
 
-exec $TCPATH/bin/$TCPREFIX-$TOOL \$FLAGS \$PARAMS
+PARAMS="\$FLAGS \$PARAMS"
+if [ "x\$LINKER" = "xyes" ]; then
+    PARAMS="\$PARAMS -lgnustl_${TYPE}"
+fi
+
+exec $TCPATH/bin/$TCPREFIX-$TOOL \$PARAMS
 EOF
         fail_panic "Could not create target tool $TOOL"
     done
