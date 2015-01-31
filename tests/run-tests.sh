@@ -1231,8 +1231,8 @@ if is_testable device; then
                             continue
                         fi
                     fi
+                    DEVICE_ABI=$CPU_ABI1
                     if [ "$CHECK_COMPATIBLE_ABI" != "no" ]; then
-                        DEVICE_ABI=$CPU_ABI1
                         COMPATIBLE=no
                         case $CPU_ABI in
                             armeabi)

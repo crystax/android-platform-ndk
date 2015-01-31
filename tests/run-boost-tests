@@ -38,7 +38,7 @@ NDK_BUILDTOOLS_PATH=$ROOTDIR/build/tools
 . $NDK_BUILDTOOLS_PATH/ndk-common.sh
 . $NDK_BUILDTOOLS_PATH/prebuilt-common.sh
 
-PROGRAM_PARAMETERS="<src-dir>"
+PROGRAM_PARAMETERS=""
 
 PROGRAM_DESCRIPTION=\
 "Test Boost libraries built for the CrystaX NDK.
@@ -53,9 +53,9 @@ you use the --ndk-dir=<path> option.
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build"
 
-TEST_DIR=
+TEST_DIR=$HOME/.crystax/boost
 OPTION_TEST_DIR=
-register_var_option "--test-dir=<path>" OPTION_TEST_DIR "Specify temporary test directory"
+register_var_option "--test-dir=<path>" OPTION_TEST_DIR "Specify test directory [$TEST_DIR]"
 
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
@@ -63,13 +63,13 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 ADB=adb
 register_var_option "--adb=<path>" ADB "Specify which adb to use"
 
-TESTS=all
-register_var_option "--tests=<list>" TESTS "Specify explicit test cases"
+LIBRARIES=all
+register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries to test"
 
 DEVICE_PATH=/data/local/tmp/boost-tests
 register_var_option "--device-path=<path>" DEVICE_PATH "Path on device where to push files"
 
-RESULTS_PATH=/tmp/ndk-$USER/boost-test-status
+RESULTS_PATH=$TEST_DIR/report
 register_var_option "--results=<path>" RESULTS_PATH "Path where to store tests results (in HTML)"
 
 ENABLE_PIE=yes
@@ -78,53 +78,68 @@ do_pie () { ENABLE_PIE=yes; }
 register_option "--no-pie" do_no_pie "Produce PIE-disabled binaries to test"
 do_no_pie () { ENABLE_PIE=no; }
 
-KEEP_GOING=yes
-register_option "--keep-going" do_keep_going "Don't fail on first error but continue as much as possible (default)"
-do_keep_going () { KEEP_GOING=yes; }
-register_option "--no-keep-going" do_no_keep_going "Fail as quick as possible (don't keep going)"
-do_no_keep_going () { KEEP_GOING=no; }
+SKIP_FETCH=no
+register_option "--skip-fetch" do_skip_fetch "Skip fetching of Boost sources"
+do_skip_fetch () { SKIP_FETCH=yes; }
 
-TOOLCHAIN_VERSION=4.9
-#register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
+SKIP_REGRESSION=no
+register_option "--skip-regression" do_skip_regression "Skip regression testing"
+do_skip_regression () { SKIP_REGRESSION=yes; }
 
-BOOST_VERSION=1.57.0
-ICU_VERSION=54.1
+SKIP_LOGS_UPLOAD=no
+register_option "--skip-logs-upload" do_skip_logs_upload "Skip uploading of logs to FTP"
+do_skip_logs_upload () { SKIP_LOGS_UPLOAD=yes; }
+
+SKIP_REPORT=no
+register_option "--skip-report" do_skip_report "Skip report generation"
+do_skip_report () { SKIP_REPORT=yes; }
+
+TOOLCHAIN_VERSIONS=gcc-4.9,gcc-4.8,clang-3.5,clang-3.4
+register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain versions"
+
+TAG="master"
+register_var_option "--tag=<value>" TAG "Boost tag to test ('master' or 'develop')"
+
+LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
+
+ICU_VERSION=$(ls -1 $NDK_DIR/$ICU_SUBDIR/ 2>/dev/null | head -n 1)
+if [ -n "$ICU_VERSION" ]; then
+    ICU=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
+else
+    ICU=""
+fi
+
+BOOST_GIT_URL=https://github.com/boostorg/boost
 
 register_jobs_option
 
 extract_parameters "$@"
 
-BOOST_SRCDIR=$(echo $PARAMETERS | sed 1q)
-if [ -z "$BOOST_SRCDIR" ]; then
-    echo "ERROR: Please provide the path to the Boost source tree. See --help"
-    exit 1
-fi
-
-if [ ! -d "$BOOST_SRCDIR" ]; then
-    echo "ERROR: Not a directory: '$BOOST_SRCDIR'"
-    exit 1
-fi
-
 ABIS=$(commas_to_spaces $ABIS)
+TOOLCHAIN_VERSIONS=$(commas_to_spaces $TOOLCHAIN_VERSIONS)
 
-if [ -z "$OPTION_TEST_DIR" ]; then
-    TEST_DIR=$NDK_TMPDIR/test-boost
-else
+case $TAG in
+    master|develop)
+        ;;
+    *)
+        panic "Wrong tag value: '$TAG'"
+esac
+
+if [ -n "$OPTION_TEST_DIR" ]; then
     eval TEST_DIR=$OPTION_TEST_DIR
 fi
-rm -rf "$TEST_DIR"
 mkdir -p "$TEST_DIR"
-fail_panic "Could not create test directory: $TEST_DIR"
+fail_panic "Cannot create test directory: $TEST_DIR"
 
 setup_default_log_file $TEST_DIR/test.log
 
-LOCKDIR="$TEST_DIR/lck"
+LOCKDIR="$TEST_DIR/lock"
 rm -Rf "$LOCKDIR"
 mkdir -p "$LOCKDIR"
-fail_panic "Could not create lock directory: $LOCKDIR"
+fail_panic "Cannot create lock directory: $LOCKDIR"
 
-prepare_target_build
-fail_panic "Could not setup target build"
+mkdir -p $RESULTS_PATH
+fail_panic "Cannot create results directory: $RESULTS_PATH"
 
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
@@ -132,10 +147,12 @@ which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 mktool()
 {
     local tool="$1"
+    mkdir -p $(dirname $tool)
+    fail_panic "Cannot create parent directory for tool $tool"
     cat >$tool
-    fail_panic "Could not create tool $tool"
+    fail_panic "Cannot create tool $tool"
     chmod +x $tool
-    fail_panic "Could not chmod +x $tool"
+    fail_panic "Cannot chmod +x $tool"
 }
 
 adb_getprop()
@@ -181,59 +198,51 @@ adb_devices()
         if echo $CPU_ABIS | tr ' ' '\n' | grep -q -x armeabi-v7a; then
             CPU_ABIS="$CPU_ABIS armeabi-v7a-hard"
         fi
+        DEVICE_ABI=$(echo $CPU_ABIS | tr ' ' '\n' | head -n 1)
         for C in $CPU_ABIS; do
             if [ "$C" != "$ABI" ]; then
                 continue
             fi
+
+            # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
+            # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
+            # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
+            case $C in
+                armeabi-v7a*)
+                    if [ "$DEVICE_ABI" = "x86" -a "$ENABLE_PIE" = "yes" ]; then
+                        continue
+                    fi
+                    ;;
+            esac
+
             echo "$D"
         done
     done
     }
 }
 
-cleanup_devices()
+cleanup()
 {
-    local ABI=$1
-    adb_devices $ABI | {
+    adb_devices | {
         while read D; do
-            $ADB -s "$D" shell "rm -r $DEVICE_PATH/$ABI 2>/dev/null"
+            $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
         done
     }
 }
 
-trap "cleanup_devices" EXIT QUIT ABRT TERM
+trap "cleanup" EXIT QUIT ABRT TERM
 trap "echo 'INTERRUPTED'; exit 1" INT
 
-run_tests()
-{
-    local SRCDIR="$1"
-    shift
-    local OPTIONS="$@"
-
-    local CWD=$(pwd)
-
-    log "## TESTS: Building and running tests in $CWD ..."
-    LD_LIBRARY_PATH= DYLD_LIBRARY_PATH= $SRCDIR/b2 $OPTIONS 2>&1 | $STDBUF tee bjam.log | catlog
-    log "## TESTS: Processing jam logs in $CWD ..."
-    $SRCDIR/process_jam_log --v2 <bjam.log 2>&1 | catlog
-    log "## TESTS: Generating library status in $CWD ..."
-    $SRCDIR/library_status library_status.html links.html 2>&1 | catlog
-
-    if [ $? -ne 0 -a "$KEEP_GOING" = "no" ]; then
-        return 1
-    fi
-}
-
 # $1: ABI
-# $2: test directory
-test_boost_for_abi ()
+# $2: toolchain type (gcc or clang)
+# $3: toolchain version
+# $4: target directory
+generate_toolchain()
 {
     local ABI=$1
-    local TESTDIR="$2"
-
-    dump "PREP Boost $BOOST_VERSION [$ABI]"
-
-    cleanup_devices $ABI
+    local TOOLCHAIN_TYPE=$2
+    local TOOLCHAIN_VERSION=$3
+    local DIR=$4
 
     local APILEVEL=9
     if [ ${ABI%%64*} != ${ABI} ]; then
@@ -272,6 +281,34 @@ test_boost_for_abi ()
             ;;
         *)
             TCPREFIX=$TCNAME
+    esac
+
+    local LLVMTRIPPLE
+    case $ABI in
+        armeabi)
+            LLVMTRIPPLE=armv5te-none-linux-androideabi
+            ;;
+        armeabi-v7a*)
+            LLVMTRIPPLE=armv7-none-linux-androideabi
+            ;;
+        arm64-v8a)
+            LLVMTRIPPLE=aarch64-none-linux-android
+            ;;
+        x86)
+            LLVMTRIPPLE=i686-none-linux-android
+            ;;
+        x86_64)
+            LLVMTRIPPLE=x86_64-none-linux-android
+            ;;
+        mips)
+            LLVMTRIPPLE=mipsel-none-linux-android
+            ;;
+        mips64)
+            LLVMTRIPPLE=mips64el-none-linux-android
+            ;;
+        *)
+            echo "ERROR: Unknown ABI: $ABI" 1>&2
+            exit 1
     esac
 
     local ARCH
@@ -317,106 +354,28 @@ test_boost_for_abi ()
             ;;
     esac
 
-    local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
-
-    rm -Rf $TESTDIR
-    mkdir -p $TESTDIR
-    fail_panic "Couldn't create temporary test directory $TESTDIR"
-
-    local SRCDIR="$TESTDIR/src"
-    copy_directory "$BOOST_SRCDIR" "$SRCDIR"
-
-    local TMPHOSTTCDIR=$TESTDIR/host-bin
-    run mkdir $TMPHOSTTCDIR
-    fail_panic "Couldn't create temporary directory for host toolchain wrappers"
-
-    for T in cc gcc g++; do
-        mktool $TMPHOSTTCDIR/$T <<EOF
-#!/bin/bash
-
-PARAMS=""
-for p in "\$@"; do
-    case \$p in
-        -Wl,*)
-            if [ "$HOST_OS" = "linux" ]; then
-                PARAMS="\$PARAMS \$p"
-            fi
+    local GCCTCPATH
+    local CCS
+    case $TOOLCHAIN_TYPE in
+        gcc)
+            GCCTCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
+            CCS="gcc g++"
+            GNULIBCXX_VERSION=$TOOLCHAIN_VERSION
+            ;;
+        clang)
+            LLVMGCCVERSION=4.9
+            GCCTCPATH=$NDK_DIR/toolchains/$TCNAME-$LLVMGCCVERSION/prebuilt/$HOST_TAG
+            LLVMTCPATH=$NDK_DIR/toolchains/llvm-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
+            CCS="clang clang++"
+            GNULIBCXX_VERSION=$LLVMGCCVERSION
             ;;
         *)
-            PARAMS="\$PARAMS \$p"
+            echo "ERROR: Unknown toolchain type: $TOOLCHAIN_TYPE" 1>&2
+            exit 1
     esac
-done
-
-run()
-{
-    echo "## COMMAND: \$@" >>$TMPLOG
-    exec "\$@"
-}
-
-LFLAGS=""
-if [ "$HOST_OS" = "darwin" ]; then
-    LFLAGS="\$LFLAGS -static-libgcc -static-libstdc++ -lstdc++"
-else
-    LFLAGS="\$LFLAGS -lstdc++"
-fi
-
-run $CC $HOST_CFLAGS $HOST_LDFLAGS \$PARAMS \$LFLAGS
-EOF
-    done
-
-    PATH=$TMPHOSTTCDIR:$SAVED_PATH
-    export PATH
-
-    if [ ! -x $SRCDIR/b2 ]; then
-        cd $SRCDIR
-        fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
-
-        run ./bootstrap.sh --with-toolset=cc
-        fail_panic "Could not bootstrap Boost build"
-    fi
-
-    {
-        echo "import option ;"
-        echo "import feature ;"
-        echo "using gcc : $HOST_OS : $TMPHOSTTCDIR/g++ ;"
-        echo "project : default-build <toolset>gcc ;"
-        echo "libraries = ;"
-        echo "option.set keep-going : false ;"
-    } | cat >$SRCDIR/project-config.jam
-    fail_panic "Could not create project-config.jam"
-
-    for T in process_jam_log library_status; do
-        test -x $SRCDIR/$T && continue
-
-        cd $SRCDIR/tools/regression/build
-        fail_panic "Could not CD to regression build directory"
-
-        run $SRCDIR/b2 toolset=gcc-$HOST_OS $T
-        fail_panic "Could not build $T"
-
-        run cp $(find . -name $T -print) $SRCDIR/
-        fail_panic "Could not copy $T to $SRCDIR"
-    done
-
-    {
-        echo "import option ;"
-        echo "import feature ;"
-        echo "using gcc : $ARCH : g++ ;"
-        echo "project : default-build <toolset>gcc ;"
-        echo "libraries = ;"
-        echo "option.set keep-going : false ;"
-    } | cat >$SRCDIR/project-config.jam
-    fail_panic "Could not create project-config.jam"
-
-    local TMPTARGETTCDIR=$TESTDIR/target-bin
-    run mkdir $TMPTARGETTCDIR
-    fail_panic "Couldn't create temporary directory for target $ABI toolchain wrappers"
 
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
-    local LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
-    local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
-    local ICU=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
-    local BOOST=$NDK_DIR/$BOOST_SUBDIR/$BOOST_VERSION
+    local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$GNULIBCXX_VERSION
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
 
@@ -427,8 +386,9 @@ EOF
     fi
 
     local TOOL
-    for TOOL in gcc g++ c++ cpp; do
-        mktool $TMPTARGETTCDIR/$TOOL <<EOF
+    for TOOL in $CCS; do
+        {
+            cat <<EOF
 #!/bin/sh
 
 if echo "\$@" | tr ' ' '\\n' | grep -q -x -e -c; then
@@ -440,16 +400,14 @@ fi
 # Remove any -m32/-m64 from input parameters
 PARAMS=\`echo "\$@" | tr ' ' '\\n' | grep -v -x -e -m32 | grep -v -x -e -m64 | tr '\\n' ' '\`
 if [ "x\$LINKER" = "xyes" ]; then
-    # Fix SONAME for shared libraries
     NPARAMS=""
-    SONAME_DETECTED=no
     for p in \$PARAMS; do
-        if [ "x\$p" = "x-Wl,-soname" -o "x\$p" = "x-Wl,-h" ]; then
-            SONAME_DETECTED=yes
-        elif [ "x\$SONAME_DETECTED" = "xyes" ]; then
-            p=\`echo \$p | sed 's!^\\(-Wl,lib[^\\.]*\\.so\\)\\..*\$!\\1!'\`
-            SONAME_DETECTED=no
-        fi
+        case \$p in
+            -lrt|-pthread|-lpthread)
+                continue
+                ;;
+        esac
+
         NPARAMS="\$NPARAMS \$p"
     done
     PARAMS=\$NPARAMS
@@ -458,11 +416,15 @@ fi
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
-    FLAGS="\$FLAGS -L$ICU/libs/$ABI"
+    if [ "x$ICU" != "x" ]; then
+        FLAGS="\$FLAGS -L$ICU/libs/$ABI"
+    fi
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
 else
-    FLAGS="\$FLAGS -I$ICU/include"
+    if [ "x$ICU" != "x" ]; then
+        FLAGS="\$FLAGS -I$ICU/include"
+    fi
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
@@ -479,13 +441,27 @@ run()
     echo "## COMMAND: \$@" >>$TMPLOG
     exec "\$@"
 }
-
-run $TCPATH/bin/$TCPREFIX-$TOOL \$PARAMS
 EOF
-        fail_panic "Could not create target tool $TOOL"
+
+            case $TOOLCHAIN_TYPE in
+                gcc)
+                    echo "run $GCCTCPATH/bin/$TCPREFIX-$TOOL \$PARAMS"
+                    ;;
+                clang)
+                    echo "run $LLVMTCPATH/bin/$TOOL \\"
+                    echo "    -target $LLVMTRIPPLE \\"
+                    echo "    -gcc-toolchain $GCCTCPATH \\"
+                    echo "    \$PARAMS"
+                    ;;
+                *)
+                    echo "echo 'WRONG TOOLCHAIN TYPE: $TOOLCHAIN_TYPE' 1>&2"
+                    echo "exit 1"
+            esac
+        } | mktool $DIR/$TOOL-$TOOLCHAIN_VERSION
+        fail_panic "Cannot create target tool $TOOL"
     done
 
-    for TOOL in as ar ranlib strip gcc-ar gcc-ranlib; do
+    for TOOL in as ar; do
         {
             echo "#!/bin/sh"
             echo 'run()'
@@ -493,39 +469,108 @@ EOF
             echo '    echo "## COMMAND: $@" >>'$TMPLOG
             echo '    exec "$@"'
             echo '}'
-            echo "run $TCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
-        } | mktool $TMPTARGETTCDIR/$TOOL
-        fail_panic "Could not create target tool $TOOL"
+            case $TOOLCHAIN_TYPE in
+                gcc)
+                    echo "run $GCCTCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
+                    ;;
+                clang)
+                    echo "run $LLVMTCPATH/bin/llvm-$TOOL \"\$@\""
+                    ;;
+                *)
+                    echo "echo 'WRONG TOOLCHAIN TYPE: $TOOLCHAIN_TYPE' 1>&2"
+                    echo "exit 1"
+            esac
+        } | mktool $DIR/$TOOL
+        fail_panic "Cannot create target tool $TOOL"
     done
 
-    PATH=$TMPTARGETTCDIR:$SAVED_PATH
-    export PATH
+    for TOOL in ranlib strip; do
+        {
+            echo "#!/bin/sh"
+            echo 'run()'
+            echo '{'
+            echo '    echo "## COMMAND: $@" >>'$TMPLOG
+            echo '    exec "$@"'
+            echo '}'
+            echo "run $GCCTCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
+        } | mktool $DIR/$TOOL
+        fail_panic "Cannot create target tool $TOOL"
+    done
+}
 
-    local DEVPATH=$DEVICE_PATH/$ABI
+# $1: output file
+generate_flock()
+{
+    local OUT="$1"
+    local TMPFILE=$(mktemp /tmp/flockXXXXXX.c)
 
-    local ADBRUNNER=$TMPTARGETTCDIR/adbrunner
+    cat >$TMPFILE <<EOF
+#include <stdlib.h>
+#include <sys/file.h>
+
+int main(int argc, char *argv[])
+{
+    int fd;
+    char *p;
+
+    if (argc != 2)
+        return 1;
+
+    fd = strtol(argv[1], &p, 10);
+    if (fd == 0 && p == argv[1])
+        return 1;
+
+    if (flock(fd, LOCK_EX) == -1)
+        return 1;
+
+    return 0;
+}
+EOF
+    fail_panic "Cannot create temporary flock source file"
+
+    cc -o $OUT $TMPFILE
+    fail_panic "Cannot create flock utility"
+
+    rm -f $TMPFILE
+}
+
+# $1: ABI
+# $2: target directory
+# $3: flock utility
+generate_adbrunner()
+{
+    local ABI=$1
+    local DIR=$2
+    local FLOCK=$3
+
+    local ADBRUNNER=$DIR/adbrunner
     {
         echo '#!/bin/bash'
         echo ''
         echo 'LOG='$TMPLOG
+        echo 'MYCMD="$0 $@"'
         echo ''
-        echo 'echo "## COMMAND: $0 $@" >>$LOG'
+        echo 'echo "## COMMAND: $MYCMD" >>$LOG'
         echo ''
         echo 'F=$1'
         echo 'shift'
         echo 'ARGS="$@"'
         echo 'BF=$(basename $F)'
-        echo 'DEVPATH='$DEVPATH
+        echo 'DEVPATH='$DEVICE_PATH/$ABI
         echo 'DSTPATH=$DEVPATH/$(uuidgen)'
         echo 'ADB='$ADB
-        echo 'STRIP='$TMPTARGETTCDIR/strip
+        echo 'STRIP='$DIR/strip
         echo 'LOCKDIR='$LOCKDIR
+        echo 'FLOCK='$FLOCK
         echo 'PREFIX="ADBRUNNER.$$"'
+        echo 'STDBUF="'$STDBUF'"'
         echo ''
         echo 'EXTRAS=""'
         echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" "\\n"); do'
         echo '    for LIB in $(find $DIR -name "lib*.so*" -print 2>/dev/null); do'
-        echo '        basename $LIB | grep -q "^libboost_" && continue'
+        echo '        basename $LIB | grep -q -x libcrystax.so && continue'
+        echo '        basename $LIB | grep -q -x libgnustl_shared.so && continue'
+        echo '        basename $LIB | grep -q "^libicu.*" && continue'
         echo '        EXTRAS="$EXTRAS $LIB"'
         echo '    done'
         echo 'done'
@@ -537,7 +582,7 @@ EOF
         echo '    echo "## $PREFIX [$ANDROID_SERIAL] RUN: $CMD" >>$LOG'
         echo '    rm -f $ADBCAP'
         echo '    $ADB shell "$CMD ; echo \$?" 2>&1 \'
-        echo '        | sed -e "s,[[:cntrl:]],,g" | '$STDBUF' tee $ADBCAP >>$LOG'
+        echo '        | sed -e "s,[[:cntrl:]],,g" | $STDBUF tee $ADBCAP >>$LOG'
         echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null)'
         echo '    sed -e "\$d" $ADBCAP'
         echo '    rm -f $ADBCAP'
@@ -548,6 +593,19 @@ EOF
         echo '{'
         echo '    local SRC="$1"'
         echo '    local DST="$2"'
+        echo '    local BSRC'
+        echo ''
+        echo '    if [ -d $SRC ]; then'
+        echo '        BSRC=$(basename $SRC)'
+        echo '        adb_shell "mkdir -p $DST/$BSRC"'
+        echo '        RC=$?'
+        echo '        if [ $RC -ne 0 ]; then'
+        echo '            echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
+        echo '            $ADB shell "rm -r $DST" >/dev/null 2>&1'
+        echo '            return $RC'
+        echo '        fi'
+        echo '        DST=$DST/$BSRC'
+        echo '    fi'
         echo ''
         echo '    local CMD="$ADB push $SRC $DST"'
         echo '    echo "## $PREFIX [$ANDROID_SERIAL] PUSH: $CMD" >>$LOG'
@@ -555,34 +613,11 @@ EOF
         echo '    RC=$?'
         echo '    if [ $RC -ne 0 ]; then'
         echo '        echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
-        echo '        $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
+        echo '        $ADB shell "rm -r $DST" >/dev/null 2>&1'
         echo '        return $RC'
         echo '    fi'
         echo ''
         echo '    return 0'
-        echo '}'
-        echo ''
-        echo 'lock()'
-        echo '{'
-        echo '    local COUNT=0'
-        echo '    while true; do'
-        echo '        mkdir "$LOCKDIR/$@" >/dev/null 2>&1'
-        echo '        test $? -eq 0 && break'
-        echo '        COUNT=$(expr $COUNT + 1)'
-        echo '        if [ $COUNT -gt 30 ]; then'
-        echo '            echo "## $PREFIX [$@] LOCK: STILL BUSY" >>$LOG'
-        echo '            COUNT=0'
-        echo '        fi'
-        echo '        sleep 1'
-        echo '    done'
-        echo '    echo "$$" >"$LOCKDIR/$@/owner" 2>/dev/null || true'
-        echo '}'
-        echo ''
-        echo 'unlock()'
-        echo '{'
-        echo '    local UUID=$(uuidgen)'
-        echo '    mv "$LOCKDIR/$@" "$LOCKDIR/$@.$UUID" >/dev/null 2>&1'
-        echo '    rm -Rf "$LOCKDIR/$@.$UUID" >/dev/null 2>&1'
         echo '}'
         echo ''
         echo '{'
@@ -591,17 +626,20 @@ EOF
         echo 'EOD'
         echo '} | {'
         echo 'while read D; do'
-        echo '    lock "$D"'
+        echo '    mkdir -p $LOCKDIR >/dev/null 2>&1'
         echo '    ('
-        echo ''
         echo '    export ANDROID_SERIAL="$D"'
+        echo ''
+        echo '    $FLOCK 3'
+        echo '    if [ $? -ne 0 ]; then'
+        echo '        echo "## $PREFIX [$ANDROID_SERIAL] LOCK FAILED" >>$LOG'
+        echo '    fi'
         echo ''
         echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
         echo '    adb_shell "mkdir -p $DSTPATH"'
         echo ''
         echo '    for E in $F $EXTRAS; do'
-        echo '        BE=$(basename $E | sed "s,\\.so\\..*\$,.so,")'
-        echo '        cp -f $E $E.dbg'
+        echo '        BE=$(basename $E)'
         echo '        $STRIP --strip-unneeded $E >/dev/null 2>&1'
         echo '        adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
         echo '        if [ $? -ne 0 ]; then'
@@ -635,10 +673,8 @@ EOF
         echo ''
         echo '    exit 0'
         echo ''
-        echo '    )'
-        echo ''
+        echo '    ) 3>"$LOCKDIR/$D.lock"'
         echo '    RC=$?'
-        echo '    unlock "$D"'
         echo '    test $RC -eq 0 || exit $RC'
         echo 'done'
         echo ''
@@ -646,203 +682,529 @@ EOF
         echo '}'
     } | mktool $ADBRUNNER
 
-    adb_devices $ABI | {
-        local TMPTARGETLIBDIR=$TESTDIR/target-lib
-        run mkdir $TMPTARGETLIBDIR
+}
+
+# $1: ABI
+# $2: intermediate directory to copy libraries to strip
+# $3: full path to strip utility
+prepare_device()
+{
+    local ABI=$1
+    local DIR=$2
+    local STRIP=$3
+
+    local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/4.9
+
+    {
+        adb_devices $ABI
+    } | {
+        rm -Rf $DIR
+        run mkdir -p $DIR
         fail_panic "Cannot create temporary $ABI target libraries directory"
 
         while read D; do
-            run $ADB -s "$D" shell "rm -r $DEVPATH 2>/dev/null"
-            run $ADB -s "$D" shell "mkdir -p $DEVPATH/tmp"
-            run $ADB -s "$D" shell "mkdir -p $DEVPATH/lib"
+            run $ADB -s "$D" shell "rm -r $DEVICE_PATH/$ABI 2>/dev/null"
+            run $ADB -s "$D" shell "mkdir -p $DEVICE_PATH/$ABI/tmp"
+            run $ADB -s "$D" shell "mkdir -p $DEVICE_PATH/$ABI/lib"
+
             for F in \
                 $LIBCRYSTAX/libs/$ABI/libcrystax.so \
                 $GNULIBCXX/libs/$ABI/libgnustl_shared.so \
-                $BOOST/libs/$ABI/lib*.so \
                 $ICU/libs/$ABI/lib*.so \
                 ; do
-                run cp -f $F $TMPTARGETLIBDIR/
-                fail_panic "Cannot copy $F to $TMPTARGETLIBDIR"
+
+                run cp -f $F $DIR/
+                fail_panic "Cannot copy $F to $DIR"
             done
-            for F in $TMPTARGETLIBDIR/lib*.so; do
-                run $TMPTARGETTCDIR/strip --strip-unneeded $F
+
+            for F in $DIR/lib*.so; do
+                run $STRIP --strip-unneeded $F
                 fail_panic "Cannot strip $F"
-                run $ADB -s "$D" push $F $DEVPATH/lib/
+                run $ADB -s "$D" push $F $DEVICE_PATH/$ABI/lib
                 fail_panic "Cannot push $F to $D"
             done
         done
     }
-
-    local TESTLIBS=$(echo $TESTS | tr ',' ' ')
-    if [ -z "$TESTLIBS" -o "$TESTLIBS" = "all" ]; then
-        TESTLIBS=$(find $SRCDIR/libs -mindepth 1 -maxdepth 1 -type d -exec basename '{}' \; | sort)
-    fi
-
-    local BJAM_OPTIONS="\
-        --dump-tests \
-        -j$NUM_JOBS \
-        variant=release \
-        link=static,shared \
-        runtime-link=shared \
-        threading=multi \
-        threadapi=pthread \
-        target-os=android \
-        toolset=gcc-$ARCH \
-        testing.launcher=$ADBRUNNER \
-        "
-
-    if [ "$KEEP_GOING" = "no" ]; then
-        BJAM_OPTIONS="$BJAM_OPTIONS -q"
-    fi
-
-    local STATUS=$SRCDIR/status.html
-
-    cat >$STATUS <<EOF
-<!doctype HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="boost.css">
-<title>Boost $BOOST_VERSION [$ABI] testing results</title>
-<style media="screen" type="text/css">
-html, body {
-    width: 100%;
-    height: 100%;
 }
-iframe {
-    border: solid 1px #ddd;
-    width: 95vw;
-    height: 80vh;
-    margin-top: 5px;
-}
-</style>
-<script type="text/javascript">
-function toggle(id)
+
+# $1: target directory
+copy_boost()
 {
-    var e = document.getElementById(id);
+    local DIR="$1"
 
-    if (e.style.display == '')
-        e.style.display = 'none';
-    else
-        e.style.display = '';
+    rm -Rf $DIR
+    fail_panic "Cannot remove $DIR"
+
+    run mkdir -p $(dirname $DIR)
+    fail_panic "Cannot create target directory for copying Boost sources"
+
+    run ln -s "$BOOST_SRCDIR" "$DIR"
+    fail_panic "Cannot symlink Boost sources"
 }
-</script>
-<body>
-<h1>Boost $BOOST_VERSION [$ABI] testing results</h1>
-<ul>
-EOF
 
-    local LIBNAME SUBLIB
-    for LIBNAME in $TESTLIBS; do
-        run cd $SRCDIR/libs/$LIBNAME
-        fail_panic "Could not CD to $LIBNAME directory: $SRCDIR/libs/$LIBNAME"
+copy_boost_bb()
+{
+    local DIR="$1"
 
-        if [ -e test/Jamfile.v2 ]; then
-            cd test
-            fail_panic "Could not CD to test subdirectory"
+    rm -Rf $DIR
+    fail_panic "Cannot remote $DIR"
 
-            dump "TEST Boost $BOOST_VERSION [$ABI]: $LIBNAME"
+    run mkdir -p $(dirname $DIR)
+    fail_panic "Cannot create target directory for copying Boost build sources"
 
-            {
-                local ID=$LIBNAME
-                local HREF="libs/$LIBNAME/test/library_status.html"
-                echo "<li>"
-                echo "<a href=\"$HREF\" onclick=\"toggle('$ID'); return false;\">$LIBNAME</a><br/>"
-                echo "<iframe id=\"$ID\" src=\"$HREF\" style=\"display: none\"></iframe>"
-                echo "</li>"
-            } | cat >>$STATUS
+    run cp -r "$BOOST_BB_SRCDIR" "$DIR"
+    fail_panic "Cannot copy Boost build sources"
+}
 
-            run_tests $SRCDIR $BJAM_OPTIONS
-            test $? -eq 0 || break
-        fi
+copy_boost_rr()
+{
+    local DIR="$1"
 
-        local SUBLIB_FAILED=
-        for SUBLIB in $(find $SRCDIR/libs/$LIBNAME -mindepth 1 -maxdepth 1 -type d -exec basename '{}' \; | sort); do
-            run cd $SRCDIR/libs/$LIBNAME/$SUBLIB
-            fail_panic "Could not CD to sub-library directory: $SRCDIR/libs/$LIBNAME/$SUBLIB"
+    rm -Rf $DIR
+    fail_panic "Cannot remote $DIR"
 
-            if [ -e test/Jamfile.v2 ]; then
-                cd test
-                fail_panic "Could not CD to test subdirectory"
+    run mkdir -p $(dirname $DIR)
+    fail_panic "Cannot create target directory for copying Boost regression sources"
 
-                dump "TEST Boost $BOOST_VERSION [$ABI]: $LIBNAME/$SUBLIB"
+    run cp -r "$BOOST_RR_SRCDIR" "$DIR"
+    fail_panic "Cannot copy Boost regression sources"
+}
 
-                {
-                    local ID="${LIBNAME}_${SUBLIB}"
-                    local HREF="libs/$LIBNAME/$SUBLIB/test/library_status.html"
-                    echo "<li>"
-                    echo "<a href=\"$HREF\" onclick=\"toggle('$ID'); return false;\">$LIBNAME/$SUBLIB</a><br/>"
-                    echo "<iframe id=\"$ID\" src=\"$HREF\" style=\"display: none\"></iframe>"
-                    echo "</li>"
-                } | cat >>$STATUS
+prepare_boost_tools()
+{
+    local DIR="$1"
 
-                run_tests $SRCDIR $BJAM_OPTIONS
-                if [ $? -ne 0 ]; then
-                    SUBLIB_FAILED=yes
-                    break
-                fi
-            fi
-        done
+    mkdir -p $DIR
+    fail_panic "Cannot create boost sources directory"
 
-        test "$SUBLIB_FAILED" = "yes" && break
+    local RUNPY=$DIR/run.py
+
+    run cp -f $BOOST_RR_SRCDIR/src/run.py $RUNPY
+    fail_panic "Cannot retrieve run.py"
+
+    chmod +x $RUNPY
+    fail_panic "Cannot chmod +x run.py"
+
+    log "Downloading regression scripts..."
+    # download-scripts is a fake target
+    # We run it because run.py download all needed scripts before
+    # doing anything else. With this hack we can download them once (now)
+    # and then use --skip-script-download for subsequent runs"
+    run $RUNPY download-scripts 2>&1 | catlog
+    RUNPY="$RUNPY --skip-script-download"
+
+    RUNPY="$RUNPY --tag=$TAG"
+
+    copy_boost_bb "$DIR/boost_bb"
+    copy_boost_rr "$DIR/boost_regression"
+
+    local BOOST_REGRESSION_SRC="$DIR/boost_regression_src"
+    run mkdir -p $BOOST_REGRESSION_SRC
+    fail_panic "Cannot create $BOOST_REGRESSION_SRC"
+
+    local SCRIPT
+    for SCRIPT in collect_and_upload_logs.py process_jam_log.py regression.py; do
+        run cp -f "$DIR/boost_regression/src/$SCRIPT" "$BOOST_REGRESSION_SRC/"
+        fail_panic "Cannot copy $SCRIPT to $BOOST_REGRESSION_SRC"
     done
 
-    cat >>$STATUS <<EOF
-</ul>
-</body>
-</html>
-EOF
-
-    cleanup_devices $ABI
-
-    local RESULTS=$RESULTS_PATH/$ABI
-
-    rm -Rf $RESULTS
-    run mkdir -p $RESULTS
-    fail_panic "Could not create results directory"
-
-    {
-        echo $STATUS
-        echo $SRCDIR/boost.css
-        find $SRCDIR/libs -name library_status.html -print
-        find $SRCDIR/libs -name links.html -print
-    } | sed "s,$SRCDIR/,," | {
-        while read F; do
-            DIR=$RESULTS/$(dirname $F)
-            mkdir -p $DIR
-            fail_panic "Could not create results directory for $F"
-
-            cp -f $SRCDIR/$F $DIR/
-            fail_panic "Could not copy results"
-        done
-    }
-
-    dump "STAT Boost $BOOST_VERSION [$ABI]: $RESULTS/$(basename $STATUS)"
+    run $RUNPY --bjam-options="-j$NUM_JOBS" setup 2>&1 | catlog
+    test ${PIPESTATUS[0]} -eq 0 || panic "Cannot setup regression tools"
 }
 
-SAVED_PATH=$PATH
+# $1: ABI
+# $2: test directory
+test_boost_for_abi ()
+{
+    local ABI="$1"
+    local TESTDIR="$2"
+    local SRCDIR="$TESTDIR/test"
 
-for ABI in $ABIS; do
-    NUM_DEVICES=$(adb_devices $ABI | wc -l)
-    if [ $NUM_DEVICES -eq 0 ]; then
-        dump "SKIP Boost $BOOST_VERSION [$ABI]: no compatible devices found"
-        continue
+    dump "Run regression testing [$ABI]"
+
+    rm -Rf $TESTDIR $SRCDIR
+    run mkdir -p $TESTDIR && run mkdir -p $SRCDIR
+    fail_panic "Cannot create temporary directory for $ABI testing"
+
+    local FLOCK=$TESTDIR/flock
+    generate_flock $FLOCK
+
+    # Generate adbrunner tool
+    generate_adbrunner "$ABI" "$TESTDIR" "$FLOCK"
+
+    local STRIP=""
+    local TOOLSETS=""
+    local TOOLSETS_PATH=""
+    local TOOLSET
+    local TOOLCHAIN_TYPE TOOLCHAIN_VERSION
+    local CXXBIN
+
+    local CONFIGJAM="$TESTDIR/config.jam"
+    rm -f $CONFIGJAM
+
+    for TOOLCHAIN_VERSION in $TOOLCHAIN_VERSIONS; do
+        if [ ${TOOLCHAIN_VERSION#clang} != ${TOOLCHAIN_VERSION} ]; then
+            TOOLCHAIN_TYPE=clang
+            TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#clang-}
+            TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#clang}
+            CXXBIN=clang++-$TOOLCHAIN_VERSION
+        else
+            TOOLCHAIN_TYPE=gcc
+            TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#gcc-}
+            TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#gcc}
+            CXXBIN=g++-$TOOLCHAIN_VERSION
+        fi
+
+        TOOLSET=${TOOLCHAIN_TYPE}-${TOOLCHAIN_VERSION}
+
+        local TARGETBIN=$TESTDIR/${TOOLSET}
+        rm -Rf $TARGETBIN
+
+        # Generate toolchain wrappers
+        generate_toolchain "$ABI" "$TOOLCHAIN_TYPE" "$TOOLCHAIN_VERSION" "$TARGETBIN"
+
+        if [ -z "$TOOLSETS" ]; then
+            TOOLSETS=$TOOLSET
+        else
+            TOOLSETS="$TOOLSETS,$TOOLSET"
+        fi
+
+        if [ -z "$TOOLSETS_PATH" ]; then
+            TOOLSETS_PATH=$TARGETBIN
+        else
+            TOOLSETS_PATH=$TOOLSETS_PATH:$TARGETBIN
+        fi
+
+        echo "using $TOOLCHAIN_TYPE : $TOOLCHAIN_VERSION : $TARGETBIN/$CXXBIN ;" >>$CONFIGJAM
+        fail_panic "Cannot add $TOOLSET to user config"
+
+        if [ -z "$STRIP" -a -x $TARGETBIN/strip ]; then
+            STRIP=$TARGETBIN/strip
+        fi
+    done
+
+    if [ -z "$STRIP" ]; then
+        panic "Cannot detect strip for $ABI"
     fi
 
-    log "Found $NUM_DEVICES $ABI-compatible devices"
+    # Create directories and copy requires libraries on device
+    prepare_device $ABI $TESTDIR/lib $STRIP
 
-    test_boost_for_abi $ABI "$TEST_DIR/$ABI"
-done
+    copy_boost "$SRCDIR/boost_root"
 
-# Restore PATH
-PATH=$SAVED_PATH
-export PATH
+    prepare_boost_tools "$SRCDIR"
 
-if [ -z "$OPTION_TEST_DIR" ]; then
-    log "Cleaning up..."
-    rm -rf $TEST_DIR
+    local RUNNER="CrystaX.NET-apilevel-19-$ABI"
+
+    local RUNPY="$SRCDIR/run.py --skip-script-download --tag=$TAG"
+
+    EXTRA_PARAMS=""
+    if [ -n "$LIBRARIES" -a "$LIBRARIES" != "all" ]; then
+        EXTRA_PARAMS="$EXTRA_PARAMS --libraries=$(spaces_to_commas $LIBRARIES)"
+    fi
+
+    local BJAM_OPTIONS="                    \
+        -j$NUM_JOBS                         \
+        variant=release                     \
+        link=static,shared                  \
+        runtime-link=shared                 \
+        threading=multi                     \
+        target-os=android                   \
+        testing.launcher=$TESTDIR/adbrunner \
+        "
+
+    BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
+
+    rm -Rf $SRCDIR/results
+    run mkdir $SRCDIR/results
+    fail_panic "Cannot create results $ABI directory"
+
+    local ACTIONS="  \
+        test-run     \
+        test-process \
+        collect-logs \
+        "
+    if [ "$SKIP_LOGS_UPLOAD" != "yes" ]; then
+        ACTIONS="$ACTIONS upload-logs"
+    fi
+
+    (
+        trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
+        cp -f $CONFIGJAM $SRCDIR/user-config.jam
+
+        export PATH=$TOOLSETS_PATH:$PATH
+
+        run $RUNPY                         \
+            --runner="$RUNNER"             \
+            --toolsets=$TOOLSETS           \
+            --platform=Android             \
+            --timeout=15                   \
+            --bjam-options="$BJAM_OPTIONS" \
+            $EXTRA_PARAMS                  \
+            $ACTIONS                       \
+            2>&1 | catlog
+    )
+
+    return 0
+}
+
+generate_comment()
+{
+    local COMMENT=$1
+    local DATE=$2
+    local PREVIOUS=$3
+
+    cat >$COMMENT <<HTML
+<table style="border-spacing: 0.5em;">
+    <tr>
+        <td style="vertical-align: top;"><tt>uname</tt></td>
+        <td>
+            <pre style="border: 1px solid #666; overflow: auto;">
+`uname -a`
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;"><tt>uptime</tt></td>
+        <td>
+            <pre style="border: 1px solid #666; overflow: auto;">
+`uptime`
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;"><tt>python</tt></td>
+        <td>
+            <pre style="border: 1px solid #666; overflow: auto;">
+`python --version 2>&1`
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;">previous run</td>
+        <td>
+            <pre style="border: 1px solid #666; overflow: auto;">
+$PREVIOUS
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td style="vertical-align: top;">current run</td>
+        <td>
+            <pre style="border: 1px solid #666; overflow: auto;">
+$DATE
+            </pre>
+        </td>
+    </tr>
+</table>
+HTML
+    fail_panic "Cannot generate comment.html"
+}
+
+generate_report()
+{
+    local DIR="$1"
+
+    run mkdir -p $DIR
+    fail_panic "Cannot create report directory"
+
+    dump "Retrieving sources"
+
+    local BOOST_ROOT="$DIR/boost_root"
+    copy_boost "$BOOST_ROOT"
+
+    local BOOST_BB="$DIR/boost_bb"
+    copy_boost_bb "$BOOST_BB"
+
+    local BOOST_RR=$DIR/boost_regression
+    copy_boost_rr "$BOOST_RR"
+
+    local BJAM=$BOOST_BB/b2
+
+    if [ ! -x $BJAM ]; then
+        dump "Building bjam"
+
+        (
+        cd $DIR/boost_bb || exit 1
+
+        run ./bootstrap.sh 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+        )
+        fail_panic "Cannot build bjam"
+
+        if [ ! -x $BJAM ]; then
+            panic "Cannot find just build bjam"
+        fi
+    fi
+
+    local BREP=$BOOST_RR/build/bin_boost_report/boost_report
+
+    if [ ! -x $BREP ]; then
+        dump "Building boost_report"
+
+        (
+        cd $BOOST_RR/build || exit 1
+
+        run $BJAM                           \
+            --boost-build=$DIR/boost_bb/src \
+            --boost-root=$BOOST_ROOT        \
+            --bjam-options="-j$NUM_JOBS"    \
+            bin_boost_report                \
+            2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+        )
+        fail_panic "Cannot build bin_boost_report"
+
+        if [ ! -x $BREP ]; then
+            panic "Cannot find just built boost_report"
+        fi
+    fi
+
+    dump "Generating HTML report"
+
+    run mkdir -p $DIR/results
+    fail_panic "Cannot create results directory"
+
+    local COMMENT=$DIR/results/mycomment.html
+    local DATEFILE=$DIR/results/previous.txt
+    local DATE=$(date -u)
+    local PREVIOUS=$(cat $DATEFILE 2>/dev/null)
+
+    (
+        cd $DIR/results || exit 1
+
+        generate_comment "$COMMENT" "$DATE" "$PREVIOUS"
+
+        run python $BOOST_RR/xsl_reports/boost_wide_report.py                   \
+            --locate-root="$BOOST_ROOT"                                         \
+            --tag=$TAG                                                          \
+            --expected-results="$BOOST_ROOT/status/expected_results.xml"        \
+            --failures-markup="$BOOST_ROOT/status/explicit-failures-markup.xml" \
+            --comment="$COMMENT"                                                \
+            --user=""                                                           \
+            --reports="dd,ds,i,n"                                               \
+            --boost-report=$BREP                                                \
+            --filter-runners=crystax                                            \
+            2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+
+        mv -f report.zip $RESULTS_PATH/${TAG}.zip || exit 1
+    )
+    fail_panic "Cannot generate report"
+
+    echo $DATE >$DATEFILE
+    fail_panic "Cannot generate previous.txt"
+}
+
+fetch_boost()
+{
+    local DIR="$1"
+
+    dump "Fetching Boost sources"
+
+    if [ ! -d $DIR ]; then
+        run mkdir -p $(dirname $DIR)
+        fail_panic "Cannot create parent directory for Boost sources"
+
+        (
+            run git clone -b $TAG $BOOST_GIT_URL $DIR 2>&1 | catlog
+            test ${PIPESTATUS[0]} -eq 0 || exit 1
+        )
+        fail_panic "Cannot clone Boost $TAG branch"
+    fi
+
+    (
+        cd $DIR || exit 1
+
+        run git checkout $TAG 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+
+        run git pull 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+
+        run git submodule sync 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+
+        run git submodule update --recursive --init
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+    )
+    fail_panic "Cannot update Boost $TAG branch"
+}
+
+fetch_boost_bb()
+{
+    local DIR="$1"
+
+    dump "Fetching Boost build sources"
+
+    if [ ! -d $DIR ]; then
+        run git clone -b develop https://github.com/crystax/build.git $DIR 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve Boost build tools sources"
+    else
+        (
+            cd $DIR || exit 1
+            run git pull 2>&1 | catlog
+            test ${PIPESTATUS[0]} -eq 0 || exit 1
+        )
+        fail_panic "Cannot update Boost build tools"
+    fi
+}
+
+fetch_boost_rr()
+{
+    local DIR="$1"
+
+    dump "Fetching Boost regression sources"
+
+    if [ ! -d $DIR ]; then
+        run git clone -b develop https://github.com/crystax/regression.git $DIR 2>&1 | catlog
+        test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve regression src"
+    else
+        (
+            cd $DIR || exit 1
+            run git pull 2>&1 | catlog
+            test ${PIPESTATUS[0]} -eq 0 || exit 1
+        )
+        fail_panic "Cannot update regression src"
+    fi
+}
+
+BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
+BOOST_BB_SRCDIR=$TEST_DIR/$TAG/src/boost_bb
+BOOST_RR_SRCDIR=$TEST_DIR/$TAG/src/boost_rr
+
+if [ "$SKIP_FETCH" != "yes" ]; then
+    fetch_boost $BOOST_SRCDIR
+    fetch_boost_bb $BOOST_BB_SRCDIR
+    fetch_boost_rr $BOOST_RR_SRCDIR
 else
-    log "Don't forget to cleanup: $TEST_DIR"
+    if [ ! -d $BOOST_SRCDIR ]; then
+        panic "Boost sources are not fetched. Cannot continue; Aborting."
+    fi
+    if [ ! -d $BOOST_BB_SRCDIR ]; then
+        panic "Boost build sources are not fetched. Cannot continue; Aborting."
+    fi
+    if [ ! -d $BOOST_RR_SRCDIR ]; then
+        panic "Boost regression sources are not fetched. Cannot continue; Aborting."
+    fi
 fi
 
-log "Done!"
+if [ "$SKIP_REGRESSION" != "yes" ]; then
+    for ABI in $ABIS; do
+        NUM_DEVICES=$(adb_devices $ABI | wc -l)
+        if [ $NUM_DEVICES -eq 0 ]; then
+            dump "Skip regression tests [$ABI]: no compatible devices found"
+            continue
+        fi
+
+        log "Found $NUM_DEVICES $ABI-compatible devices"
+
+        test_boost_for_abi "$ABI" "$TEST_DIR/$TAG/regression/$ABI"
+    done
+fi
+
+if [ "$SKIP_REPORT" != "yes" ]; then
+    generate_report "$TEST_DIR/$TAG/report"
+fi
+
+dump "Done!"
