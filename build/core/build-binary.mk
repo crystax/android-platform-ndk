@@ -427,7 +427,7 @@ ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),exceptions))
     LOCAL_CPPFLAGS += -fexceptions
 endif
 
-ifeq ($(filter -std=%,$(LOCAL_CPPFLAGS)),)
+ifeq ($(filter -std=%,$(LOCAL_CFLAGS) $(LOCAL_CPPFLAGS)),)
 ifneq ($(TARGET_CXX_STANDARD),)
 LOCAL_CPPFLAGS += -std=$(TARGET_CXX_STANDARD)
 endif
