@@ -1,4 +1,4 @@
-# Copyright (C) 2008, 2014 The Android Open Source Project
+# Copyright (C) 2008, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -373,7 +373,7 @@ LOCAL_DEPENDENCY_DIRS :=
 
 # all_source_patterns contains the list of filename patterns that correspond
 # to source files recognized by our build system
-ifeq ($(TARGET_ARCH_ABI),x86)
+ifneq ($(filter x86 x86_64, $(TARGET_ARCH_ABI)),)
 all_source_extensions := .c .s .S .asm $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION)
 else
 all_source_extensions := .c .s .S $(LOCAL_CPP_EXTENSION) $(LOCAL_RS_EXTENSION) $(LOCAL_OBJC_EXTENSION) $(LOCAL_OBJCPP_EXTENSION)
@@ -509,7 +509,7 @@ $(foreach src,$(filter $(all_rs_patterns),$(LOCAL_SRC_FILES)),\
     $(call compile-rs-source,$(src),$(call get-rs-scriptc-name,$(src)),$(call get-rs-bc-name,$(src)),$(call get-rs-so-name,$(src)),$(call get-object-name,$(src)),$(RS_COMPAT))\
 )
 
-ifeq ($(TARGET_ARCH_ABI),x86)
+ifneq ($(filter x86 x86_64, $(TARGET_ARCH_ABI)),)
 $(foreach src,$(filter %.asm,$(LOCAL_SRC_FILES)), $(call compile-asm-source,$(src),$(call get-object-name,$(src))))
 endif
 
