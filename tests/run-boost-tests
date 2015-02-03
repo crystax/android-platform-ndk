@@ -131,6 +131,8 @@ fi
 mkdir -p "$TEST_DIR"
 fail_panic "Cannot create test directory: $TEST_DIR"
 
+TLOG=$TEST_DIR/tools.log
+
 setup_default_log_file $TEST_DIR/test.log
 
 LOCKDIR="$TEST_DIR/lock"
@@ -438,7 +440,7 @@ fi
 
 run()
 {
-    echo "## COMMAND: \$@" >>$TMPLOG
+    echo "## COMMAND: \$@" >>$TLOG
     exec "\$@"
 }
 EOF
@@ -466,7 +468,7 @@ EOF
             echo "#!/bin/sh"
             echo 'run()'
             echo '{'
-            echo '    echo "## COMMAND: $@" >>'$TMPLOG
+            echo '    echo "## COMMAND: $@" >>'$TLOG
             echo '    exec "$@"'
             echo '}'
             case $TOOLCHAIN_TYPE in
@@ -489,7 +491,7 @@ EOF
             echo "#!/bin/sh"
             echo 'run()'
             echo '{'
-            echo '    echo "## COMMAND: $@" >>'$TMPLOG
+            echo '    echo "## COMMAND: $@" >>'$TLOG
             echo '    exec "$@"'
             echo '}'
             echo "run $GCCTCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
@@ -547,7 +549,7 @@ generate_adbrunner()
     {
         echo '#!/bin/bash'
         echo ''
-        echo 'LOG='$TMPLOG
+        echo 'LOG='$TLOG
         echo 'MYCMD="$0 $@"'
         echo ''
         echo 'echo "## COMMAND: $MYCMD" >>$LOG'
@@ -929,8 +931,12 @@ test_boost_for_abi ()
     fi
 
     (
-        trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
         cp -f $CONFIGJAM $SRCDIR/user-config.jam
+
+        ( tail -F $TLOG | catlog ) &
+        TPID=$!
+
+        trap "rm -f $SRCDIR/user-config.jam; kill -9 $TPID 2>/dev/null" EXIT INT QUIT ABRT TERM
 
         export PATH=$TOOLSETS_PATH:$PATH
 
