@@ -90,9 +90,9 @@ SKIP_LOGS_UPLOAD=no
 register_option "--skip-logs-upload" do_skip_logs_upload "Skip uploading of logs to FTP"
 do_skip_logs_upload () { SKIP_LOGS_UPLOAD=yes; }
 
-SKIP_REPORT=no
-register_option "--skip-report" do_skip_report "Skip report generation"
-do_skip_report () { SKIP_REPORT=yes; }
+SKIP_REPORT=yes
+register_option "--generate-report" do_generate_report "Generation HTML report"
+do_generate_report () { SKIP_REPORT=no; }
 
 TOOLCHAIN_VERSIONS=gcc-4.9,gcc-4.8,clang-3.5,clang-3.4
 register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain versions"
