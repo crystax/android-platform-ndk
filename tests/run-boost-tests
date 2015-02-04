@@ -332,7 +332,7 @@ generate_toolchain()
             ARCH=$ABI
     esac
 
-    local FLAGS LFLAGS
+    local FLAGS LFLAGS LLIBS
     case $ABI in
         armeabi)
             FLAGS="-march=armv5te -mtune=xscale -msoft-float"
@@ -394,6 +394,11 @@ generate_toolchain()
         LFLAGS="$LFLAGS -pie"
     fi
 
+    LLIBS="-lgnustl_shared"
+    if [ "$TOOLCHAIN_TYPE" = "clang" ]; then
+        LLIBS="$LLIBS -latomic"
+    fi
+
     local TOOL
     for TOOL in $CCS; do
         {
@@ -442,7 +447,7 @@ fi
 
 PARAMS="\$FLAGS \$PARAMS"
 if [ "x\$LINKER" = "xyes" ]; then
-    PARAMS="\$PARAMS -lgnustl_shared"
+    PARAMS="\$PARAMS $LLIBS"
 fi
 
 run()
