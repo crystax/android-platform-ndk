@@ -402,9 +402,6 @@ generate_toolchain()
     fi
 
     LLIBS="-lgnustl_shared"
-    if [ "$TOOLCHAIN_TYPE" = "clang" -a "$ABI" != "armeabi" ]; then
-        LLIBS="$LLIBS -latomic"
-    fi
 
     local TOOL
     for TOOL in $CCS; do
@@ -875,6 +872,11 @@ test_boost_for_abi ()
             TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#gcc-}
             TOOLCHAIN_VERSION=${TOOLCHAIN_VERSION#gcc}
             CXXBIN=g++-$TOOLCHAIN_VERSION
+        fi
+
+        if [ "$TOOLCHAIN_TYPE" = "clang" -a "$ABI" = "armeabi" ]; then
+            # clang toolchains don't support armeabi good
+            continue
         fi
 
         TOOLSET=${TOOLCHAIN_TYPE}-${TOOLCHAIN_VERSION}
