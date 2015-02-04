@@ -144,13 +144,33 @@ fail_panic "Cannot create results directory: $RESULTS_PATH"
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 
+WLOG=$(mktemp /tmp/wrappersXXXXXX.log)
+tail -F $WLOG | catlog &
+WPID=$(jobs -p)
+
+cleanup()
+{
+    kill -INT $WPID 2>/dev/null
+    sleep 0.5
+    kill -KILL $WPID 2>/dev/null
+    rm -f $WLOG
+
+    adb_devices | {
+        while read D; do
+            $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
+        done
+    }
+}
+
+trap "cleanup" EXIT QUIT ABRT TERM
+trap "echo 'INTERRUPTED'; exit 1" INT
+
 mkcatlog()
 {
     local CAT="cat"
     if [ -n "$TMPLOG" ] ; then
-        CAT="$CAT | tee -a $TMPLOG"
-    fi
-    if [ "$VERBOSE" != "yes" ]; then
+        CAT="$CAT >>$TMPLOG"
+    else
         CAT="$CAT >/dev/null"
     fi
 
@@ -236,18 +256,6 @@ adb_devices()
     done
     }
 }
-
-cleanup()
-{
-    adb_devices | {
-        while read D; do
-            $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
-        done
-    }
-}
-
-trap "cleanup" EXIT QUIT ABRT TERM
-trap "echo 'INTERRUPTED'; exit 1" INT
 
 # $1: ABI
 # $2: toolchain type (gcc or clang)
