@@ -227,7 +227,10 @@ adb_devices()
 
 cleanup()
 {
-    kill -9 $TPID 2>/dev/null
+    kill -INT $TPID 2>/dev/null
+    sleep 0.5
+    kill -KILL $TPID 2>/dev/null
+
     adb_devices | {
         while read D; do
             $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
