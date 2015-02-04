@@ -69,8 +69,8 @@ register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries t
 DEVICE_PATH=/data/local/tmp/boost-tests
 register_var_option "--device-path=<path>" DEVICE_PATH "Path on device where to push files"
 
-RESULTS_PATH=$TEST_DIR/report
-register_var_option "--results=<path>" RESULTS_PATH "Path where to store tests results (in HTML)"
+REPORTS_PATH=$TEST_DIR/reports
+register_var_option "--reports=<path>" REPORTS_PATH "Path to store HTML reports"
 
 ENABLE_PIE=yes
 register_option "--pie" do_pie "Produce PIE-enabled binaries to test (default)"
@@ -78,21 +78,25 @@ do_pie () { ENABLE_PIE=yes; }
 register_option "--no-pie" do_no_pie "Produce PIE-disabled binaries to test"
 do_no_pie () { ENABLE_PIE=no; }
 
-SKIP_FETCH=no
+DO_FETCH=yes
 register_option "--skip-fetch" do_skip_fetch "Skip fetching of Boost sources"
-do_skip_fetch () { SKIP_FETCH=yes; }
+do_skip_fetch () { DO_FETCH=no; }
 
-SKIP_REGRESSION=no
+DO_REGRESSION_TESTING=yes
 register_option "--skip-regression" do_skip_regression "Skip regression testing"
-do_skip_regression () { SKIP_REGRESSION=yes; }
+do_skip_regression () { DO_REGRESSION_TESTING=no; }
 
-SKIP_LOGS_UPLOAD=yes
-register_option "--upload-logs" do_upload_logs "Upload logs to FTP"
-do_upload_logs () { SKIP_LOGS_UPLOAD=no; }
+PUBLISH_RESULTS=no
+register_option "--publish-results" do_publish_results "Publish test results, uploading them to the public FTP"
+do_publish_results () { PUBLISH_RESULTS=yes; }
 
-SKIP_REPORT=yes
+GENERATE_REPORT=no
 register_option "--generate-report" do_generate_report "Generate HTML report"
-do_generate_report () { SKIP_REPORT=no; }
+do_generate_report () { GENERATE_REPORT=yes; }
+
+USE_LOCAL_RESULTS_FOR_REPORT=yes
+register_option "--use-remote-results-for-report" do_use_remote_results_for_report "Use public FTP results for report generation"
+do_use_remote_results_for_report () { USE_LOCAL_RESULTS_FOR_REPORT=no; }
 
 TOOLCHAIN_VERSIONS=gcc-4.9,gcc-4.8,clang-3.5,clang-3.4
 register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain versions"
@@ -138,6 +142,9 @@ fi
 mkdir -p "$TEST_DIR"
 fail_panic "Cannot create test directory: $TEST_DIR"
 
+REGRESSION_DIR="$TEST_DIR/$TAG/regression"
+REPORT_DIR="$TEST_DIR/$TAG/report"
+
 setup_default_log_file $TEST_DIR/test.log
 
 LOCKDIR="$TEST_DIR/lock"
@@ -145,8 +152,8 @@ rm -Rf "$LOCKDIR"
 mkdir -p "$LOCKDIR"
 fail_panic "Cannot create lock directory: $LOCKDIR"
 
-mkdir -p $RESULTS_PATH
-fail_panic "Cannot create results directory: $RESULTS_PATH"
+mkdir -p $REPORTS_PATH
+fail_panic "Cannot create results directory: $REPORTS_PATH"
 
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
@@ -940,7 +947,7 @@ test_boost_for_abi ()
         test-process \
         collect-logs \
         "
-    if [ "$SKIP_LOGS_UPLOAD" != "yes" ]; then
+    if [ "$PUBLISH_RESULTS" = "yes" ]; then
         ACTIONS="$ACTIONS upload-logs"
     fi
 
@@ -1064,21 +1071,47 @@ generate_report()
 
     dump "Generating HTML report"
 
-    run mkdir -p $DIR/results
+    local RESULTS_DIR="$DIR/results"
+    run mkdir -p $RESULTS_DIR
     fail_panic "Cannot create results directory"
 
-    local COMMENT=$DIR/results/mycomment.html
-    local DATEFILE=$DIR/results/previous.txt
+    local INCOMING=$RESULTS_DIR/incoming/$TAG
+    run rm -Rf $INCOMING
+    run mkdir -p $INCOMING
+    fail_panic "Cannot create incoming directory"
+
+    if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
+        local ABI
+        for ABI in $ABIS; do
+            local RDIR=$REGRESSION_DIR/$ABI/test/results
+            test -d $RDIR || continue
+            for FILE in $RDIR/*.zip; do
+                run cp -f $FILE $INCOMING/
+                fail_panic "Cannot copy $FILE to report dir"
+            done
+        done
+    fi
+
+    local COMMENT=$RESULTS_DIR/mycomment.html
+    local DATEFILE=$RESULTS_DIR/previous.txt
     local DATE=$(date -u)
     local PREVIOUS=$(cat $DATEFILE 2>/dev/null)
 
+    local EXTRA_PARAMS=""
+    if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
+        EXTRA_PARAMS="$EXTRA_PARAMS --dont-collect-logs"
+    else
+        EXTRA_PARAMS="--filter-runners=crystax"
+    fi
+
     (
-        cd $DIR/results || exit 1
+        cd $RESULTS_DIR || exit 1
 
         generate_comment "$COMMENT" "$DATE" "$PREVIOUS"
 
         run python $BOOST_RR/reports/src/boost_wide_report.py                   \
             --locate-root="$BOOST_ROOT"                                         \
+            --results-dir="$RESULTS_DIR"                                        \
             --tag=$TAG                                                          \
             --expected-results="$BOOST_ROOT/status/expected_results.xml"        \
             --failures-markup="$BOOST_ROOT/status/explicit-failures-markup.xml" \
@@ -1086,10 +1119,10 @@ generate_report()
             --user=""                                                           \
             --reports="dd,ds,i,n"                                               \
             --boost-report=$BREP                                                \
-            --filter-runners=crystax                                            \
+            $EXTRA_PARAMS                                                       \
             || exit 1
 
-        mv -f report.zip $RESULTS_PATH/${TAG}.zip || exit 1
+        run mv -f report.zip $REPORTS_PATH/${TAG}.zip || exit 1
     )
     fail_panic "Cannot generate report"
 
@@ -1171,7 +1204,7 @@ BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
 BOOST_BB_SRCDIR=$TEST_DIR/$TAG/src/boost_bb
 BOOST_RR_SRCDIR=$TEST_DIR/$TAG/src/boost_rr
 
-if [ "$SKIP_FETCH" != "yes" ]; then
+if [ "$DO_FETCH" = "yes" ]; then
     fetch_boost $BOOST_SRCDIR
     fetch_boost_bb $BOOST_BB_SRCDIR
     fetch_boost_rr $BOOST_RR_SRCDIR
@@ -1187,7 +1220,7 @@ else
     fi
 fi
 
-if [ "$SKIP_REGRESSION" != "yes" ]; then
+if [ "$DO_REGRESSION_TESTING" = "yes" ]; then
     for ABI in $ABIS; do
         NUM_DEVICES=$(adb_devices $ABI | wc -l)
         if [ $NUM_DEVICES -eq 0 ]; then
@@ -1197,12 +1230,12 @@ if [ "$SKIP_REGRESSION" != "yes" ]; then
 
         log "Found $NUM_DEVICES $ABI-compatible devices"
 
-        test_boost_for_abi "$ABI" "$TEST_DIR/$TAG/regression/$ABI"
+        test_boost_for_abi "$ABI" "$REGRESSION_DIR/$ABI"
     done
 fi
 
-if [ "$SKIP_REPORT" != "yes" ]; then
-    generate_report "$TEST_DIR/$TAG/report"
+if [ "$GENERATE_REPORT" = "yes" ]; then
+    generate_report "$REPORT_DIR"
 fi
 
 dump "Done!"
