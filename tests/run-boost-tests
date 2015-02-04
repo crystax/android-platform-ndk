@@ -91,7 +91,7 @@ register_option "--upload-logs" do_upload_logs "Upload logs to FTP"
 do_upload_logs () { SKIP_LOGS_UPLOAD=no; }
 
 SKIP_REPORT=yes
-register_option "--generate-report" do_generate_report "Generation HTML report"
+register_option "--generate-report" do_generate_report "Generate HTML report"
 do_generate_report () { SKIP_REPORT=no; }
 
 TOOLCHAIN_VERSIONS=gcc-4.9,gcc-4.8,clang-3.5,clang-3.4
@@ -99,6 +99,19 @@ register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain v
 
 TAG="master"
 register_var_option "--tag=<value>" TAG "Boost tag to test ('master' or 'develop')"
+
+BOOST_GIT_URL=https://github.com/boostorg/boost
+register_var_option "--boost-url=<url>" BOOST_GIT_URL "Use alternative git URL for Boost sources"
+
+BOOST_BUILD_GIT_URL=https://github.com/boostorg/build.git
+register_var_option "--boost-build-url=<url>" BOOST_BUILD_GIT_URL "Use alternative git URL for Boost.Build sources"
+
+BOOST_REGRESSION_GIT_URL=https://github.com/boostorg/regression.git
+register_var_option "--boost-regression-url=<url>" BOOST_REGRESSION_GIT_URL "Use alternative git URL for Boost.Regression sources"
+
+register_jobs_option
+
+extract_parameters "$@"
 
 LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
 
@@ -108,12 +121,6 @@ if [ -n "$ICU_VERSION" ]; then
 else
     ICU=""
 fi
-
-BOOST_GIT_URL=https://github.com/boostorg/boost
-
-register_jobs_option
-
-extract_parameters "$@"
 
 ABIS=$(commas_to_spaces $ABIS)
 TOOLCHAIN_VERSIONS=$(commas_to_spaces $TOOLCHAIN_VERSIONS)
@@ -1153,7 +1160,7 @@ fetch_boost_bb()
     dump "Fetching Boost build sources"
 
     if [ ! -d $DIR ]; then
-        run git clone -b develop https://github.com/crystax/build.git $DIR 2>&1 | catlog
+        run git clone -b develop $BOOST_BUILD_GIT_URL $DIR 2>&1 | catlog
         test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve Boost build tools sources"
     else
         (
@@ -1172,7 +1179,7 @@ fetch_boost_rr()
     dump "Fetching Boost regression sources"
 
     if [ ! -d $DIR ]; then
-        run git clone -b develop https://github.com/crystax/regression.git $DIR 2>&1 | catlog
+        run git clone -b develop $BOOST_REGRESSION_GIT_URL $DIR 2>&1 | catlog
         test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve regression src"
     else
         (
