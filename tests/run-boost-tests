@@ -146,14 +146,17 @@ which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 
 mkcatlog()
 {
+    local CAT="cat"
+    if [ -n "$TMPLOG" ] ; then
+        CAT="$CAT | tee -a $TMPLOG"
+    fi
+    if [ "$VERBOSE" != "yes" ]; then
+        CAT="$CAT >/dev/null"
+    fi
+
     echo 'catlog ()'
     echo '{'
-    if [ "$VERBOSE" = "yes" ] ; then
-        echo '    cat'
-    fi
-    if [ -n "$TMPLOG" ] ; then
-        echo '    cat >> '$TMPLOG
-    fi
+    echo "    $CAT"
     echo '}'
 }
 
@@ -401,7 +404,7 @@ generate_toolchain()
     local TOOL
     for TOOL in $CCS; do
         {
-            echo "#!/bin/sh"
+            echo "#!/bin/bash"
             echo ''
             mkcatlog
             echo ''
@@ -479,7 +482,7 @@ EOF
 
     for TOOL in as ar; do
         {
-            echo "#!/bin/sh"
+            echo "#!/bin/bash"
             echo 'run()'
             echo '{'
             echo ''
@@ -505,7 +508,7 @@ EOF
 
     for TOOL in ranlib strip; do
         {
-            echo "#!/bin/sh"
+            echo "#!/bin/bash"
             echo 'run()'
             echo '{'
             echo ''
