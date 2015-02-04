@@ -402,7 +402,7 @@ generate_toolchain()
     fi
 
     LLIBS="-lgnustl_shared"
-    if [ "$TOOLCHAIN_TYPE" = "clang" ]; then
+    if [ "$TOOLCHAIN_TYPE" = "clang" -a "$ABI" != "armeabi" ]; then
         LLIBS="$LLIBS -latomic"
     fi
 
