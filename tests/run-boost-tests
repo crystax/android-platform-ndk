@@ -165,21 +165,6 @@ cleanup()
 trap "cleanup" EXIT QUIT ABRT TERM
 trap "echo 'INTERRUPTED'; exit 1" INT
 
-mkcatlog()
-{
-    local CAT="cat"
-    if [ -n "$TMPLOG" ] ; then
-        CAT="$CAT >>$TMPLOG"
-    else
-        CAT="$CAT >/dev/null"
-    fi
-
-    echo 'catlog ()'
-    echo '{'
-    echo "    $CAT"
-    echo '}'
-}
-
 mktool()
 {
     local tool="$1"
@@ -412,12 +397,9 @@ generate_toolchain()
     local TOOL
     for TOOL in $CCS; do
         {
-            echo "#!/bin/bash"
-            echo ''
-            mkcatlog
-            echo ''
-
             cat <<EOF
+#!/bin/bash
+
 if echo "\$@" | tr ' ' '\\n' | grep -q -x -e -c; then
     LINKER=no
 else
@@ -465,7 +447,7 @@ fi
 
 run()
 {
-    echo "## COMMAND: \$@" | catlog
+    echo "## COMMAND: \$@" >>$WLOG
     exec "\$@"
 }
 EOF
@@ -493,10 +475,7 @@ EOF
             echo "#!/bin/bash"
             echo 'run()'
             echo '{'
-            echo ''
-            mkcatlog
-            echo ''
-            echo '    echo "## COMMAND: $@" | catlog'
+            echo '    echo "## COMMAND: $@" >>'$WLOG
             echo '    exec "$@"'
             echo '}'
             case $TOOLCHAIN_TYPE in
@@ -519,10 +498,7 @@ EOF
             echo "#!/bin/bash"
             echo 'run()'
             echo '{'
-            echo ''
-            mkcatlog
-            echo ''
-            echo '    echo "## COMMAND: $@" | catlog'
+            echo '    echo "## COMMAND: $@" >>'$WLOG
             echo '    exec "$@"'
             echo '}'
             echo "run $GCCTCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
@@ -580,11 +556,11 @@ generate_adbrunner()
     {
         echo '#!/bin/bash'
         echo ''
-        mkcatlog
+        echo 'LOG='$WLOG
         echo ''
         echo 'MYCMD="$0 $@"'
         echo ''
-        echo 'echo "## COMMAND: $MYCMD" | catlog'
+        echo 'echo "## COMMAND: $MYCMD" >>$LOG'
         echo ''
         echo 'F=$1'
         echo 'shift'
@@ -613,10 +589,10 @@ generate_adbrunner()
         echo '{'
         echo '    local CMD="$@"'
         echo '    local ADBCAP=$F.adbcap.$(uuidgen)'
-        echo '    echo "## $PREFIX [$ANDROID_SERIAL] RUN: $CMD" | catlog'
+        echo '    echo "## $PREFIX [$ANDROID_SERIAL] RUN: $CMD" >>$LOG'
         echo '    rm -f $ADBCAP'
         echo '    $ADB shell "$CMD ; echo \$?" 2>&1 \'
-        echo '        | sed -e "s,[[:cntrl:]],,g" | $STDBUF tee $ADBCAP | catlog'
+        echo '        | sed -e "s,[[:cntrl:]],,g" | $STDBUF tee $ADBCAP >>$LOG'
         echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null)'
         echo '    sed -e "\$d" $ADBCAP'
         echo '    rm -f $ADBCAP'
@@ -634,7 +610,7 @@ generate_adbrunner()
         echo '        adb_shell "mkdir -p $DST/$BSRC"'
         echo '        RC=$?'
         echo '        if [ $RC -ne 0 ]; then'
-        echo '            echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" | catlog'
+        echo '            echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
         echo '            $ADB shell "rm -r $DST" >/dev/null 2>&1'
         echo '            return $RC'
         echo '        fi'
@@ -642,11 +618,11 @@ generate_adbrunner()
         echo '    fi'
         echo ''
         echo '    local CMD="$ADB push $SRC $DST"'
-        echo '    echo "## $PREFIX [$ANDROID_SERIAL] PUSH: $CMD" | catlog'
-        echo '    $CMD 2>&1 | catlog'
+        echo '    echo "## $PREFIX [$ANDROID_SERIAL] PUSH: $CMD" >>$LOG'
+        echo '    $CMD >>$LOG 2>&1'
         echo '    RC=$?'
         echo '    if [ $RC -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" | catlog'
+        echo '        echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
         echo '        $ADB shell "rm -r $DST" >/dev/null 2>&1'
         echo '        return $RC'
         echo '    fi'
@@ -666,7 +642,7 @@ generate_adbrunner()
         echo ''
         echo '    $FLOCK 3'
         echo '    if [ $? -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] LOCK FAILED" | catlog'
+        echo '        echo "## $PREFIX [$ANDROID_SERIAL] LOCK FAILED" >>$LOG'
         echo '    fi'
         echo ''
         echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
@@ -677,7 +653,7 @@ generate_adbrunner()
         echo '        $STRIP --strip-unneeded $E >/dev/null 2>&1'
         echo '        adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
         echo '        if [ $? -ne 0 ]; then'
-        echo '            echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" | catlog'
+        echo '            echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" >>$LOG'
         echo '            exit 0'
         echo '        fi'
         echo '    done'
@@ -688,7 +664,7 @@ generate_adbrunner()
         echo '            BE=$(basename $E)'
         echo '            adb_push "$E" "$DSTPATH/$BE"'
         echo '            if [ $? -ne 0 ]; then'
-        echo '                echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" | catlog'
+        echo '                echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" >>$LOG'
         echo '                exit 0'
         echo '            fi'
         echo '            NEWARGS="$NEWARGS $DSTPATH/$BE"'
@@ -701,7 +677,7 @@ generate_adbrunner()
         echo '    RC=$?'
         echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
         echo '    if [ $RC -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] RUN FAILED [\$?=$RC]: $F" | catlog'
+        echo '        echo "## $PREFIX [$ANDROID_SERIAL] RUN FAILED [\$?=$RC]: $F" >>$LOG'
         echo '        exit $RC'
         echo '    fi'
         echo ''
