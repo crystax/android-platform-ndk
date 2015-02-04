@@ -1118,39 +1118,56 @@ generate_report()
     fail_panic "Cannot generate previous.txt"
 }
 
+fetch()
+{
+    local URL="$1"
+    local DIR="$2"
+    local BRANCH="$3"
+
+    if [ -z "$BRANCH" ]; then
+        BRANCH=master
+    fi
+
+    log "=== Fetching $URL to $DIR (branch $BRANCH)"
+
+    if [ ! -d $DIR ]; then
+        run mkdir -p $DIR
+        fail_panic "Cannot create $DIR"
+
+        (
+            cd $DIR || exit 1
+            run git init || exit 1
+        )
+        fail_panic "Cannot init git repository in $DIR"
+    fi
+
+    (
+    run cd $DIR || exit 1
+    run git config remote.origin.url "$URL" || exit 1
+    run git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || exit 1
+    run git fetch --prune origin || exit 1
+    run git reset --hard || exit 1
+
+    SHA1=$(git rev-list --max-count=1 origin/$BRANCH)
+    test -n "$SHA1" || exit 1
+
+    run git checkout -q $SHA1 || exit 1
+    run git branch -D $BRANCH 2>/dev/null
+
+    run git checkout -b $BRANCH || exit 1
+    run git submodule sync || exit 1
+    run git submodule update --recursive --init || exit 1
+    )
+    fail_panic "Cannot fetch $URL to $DIR"
+}
+
 fetch_boost()
 {
     local DIR="$1"
 
     dump "Fetching Boost sources"
 
-    if [ ! -d $DIR ]; then
-        run mkdir -p $(dirname $DIR)
-        fail_panic "Cannot create parent directory for Boost sources"
-
-        (
-            run git clone -b $TAG $BOOST_GIT_URL $DIR 2>&1 | catlog
-            test ${PIPESTATUS[0]} -eq 0 || exit 1
-        )
-        fail_panic "Cannot clone Boost $TAG branch"
-    fi
-
-    (
-        cd $DIR || exit 1
-
-        run git checkout $TAG 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
-
-        run git pull 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
-
-        run git submodule sync 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
-
-        run git submodule update --recursive --init
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
-    )
-    fail_panic "Cannot update Boost $TAG branch"
+    fetch "$BOOST_GIT_URL" "$DIR" "$TAG"
 }
 
 fetch_boost_bb()
@@ -1159,17 +1176,7 @@ fetch_boost_bb()
 
     dump "Fetching Boost build sources"
 
-    if [ ! -d $DIR ]; then
-        run git clone -b develop $BOOST_BUILD_GIT_URL $DIR 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve Boost build tools sources"
-    else
-        (
-            cd $DIR || exit 1
-            run git pull 2>&1 | catlog
-            test ${PIPESTATUS[0]} -eq 0 || exit 1
-        )
-        fail_panic "Cannot update Boost build tools"
-    fi
+    fetch "$BOOST_BUILD_GIT_URL" "$DIR" "develop"
 }
 
 fetch_boost_rr()
@@ -1178,17 +1185,7 @@ fetch_boost_rr()
 
     dump "Fetching Boost regression sources"
 
-    if [ ! -d $DIR ]; then
-        run git clone -b develop $BOOST_REGRESSION_GIT_URL $DIR 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || panic "Cannot retrieve regression src"
-    else
-        (
-            cd $DIR || exit 1
-            run git pull 2>&1 | catlog
-            test ${PIPESTATUS[0]} -eq 0 || exit 1
-        )
-        fail_panic "Cannot update regression src"
-    fi
+    fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
 }
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
