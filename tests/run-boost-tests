@@ -1097,7 +1097,7 @@ generate_report()
 
         generate_comment "$COMMENT" "$DATE" "$PREVIOUS"
 
-        run python $BOOST_RR/xsl_reports/boost_wide_report.py                   \
+        run python $BOOST_RR/reports/src/boost_wide_report.py                   \
             --locate-root="$BOOST_ROOT"                                         \
             --tag=$TAG                                                          \
             --expected-results="$BOOST_ROOT/status/expected_results.xml"        \
