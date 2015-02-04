@@ -131,9 +131,11 @@ fi
 mkdir -p "$TEST_DIR"
 fail_panic "Cannot create test directory: $TEST_DIR"
 
-TLOG=$TEST_DIR/tools.log
-
 setup_default_log_file $TEST_DIR/test.log
+
+TLOG=$TEST_DIR/tools.log
+( tail -F $TLOG | catlog ) &
+TPID=$!
 
 LOCKDIR="$TEST_DIR/lock"
 rm -Rf "$LOCKDIR"
@@ -225,6 +227,7 @@ adb_devices()
 
 cleanup()
 {
+    kill -9 $TPID 2>/dev/null
     adb_devices | {
         while read D; do
             $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
@@ -931,12 +934,8 @@ test_boost_for_abi ()
     fi
 
     (
+        trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
         cp -f $CONFIGJAM $SRCDIR/user-config.jam
-
-        ( tail -F $TLOG | catlog ) &
-        TPID=$!
-
-        trap "rm -f $SRCDIR/user-config.jam; kill -9 $TPID 2>/dev/null" EXIT INT QUIT ABRT TERM
 
         export PATH=$TOOLSETS_PATH:$PATH
 
