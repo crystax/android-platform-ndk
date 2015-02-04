@@ -86,9 +86,9 @@ SKIP_REGRESSION=no
 register_option "--skip-regression" do_skip_regression "Skip regression testing"
 do_skip_regression () { SKIP_REGRESSION=yes; }
 
-SKIP_LOGS_UPLOAD=no
-register_option "--skip-logs-upload" do_skip_logs_upload "Skip uploading of logs to FTP"
-do_skip_logs_upload () { SKIP_LOGS_UPLOAD=yes; }
+SKIP_LOGS_UPLOAD=yes
+register_option "--upload-logs" do_upload_logs "Upload logs to FTP"
+do_upload_logs () { SKIP_LOGS_UPLOAD=no; }
 
 SKIP_REPORT=yes
 register_option "--generate-report" do_generate_report "Generation HTML report"
