@@ -765,28 +765,22 @@ copy_boost_bb()
 {
     local DIR="$1"
 
-    rm -Rf $DIR
-    fail_panic "Cannot remote $DIR"
+    run mkdir -p $DIR
+    fail_panic "Cannot create target directory for Boost.Build sources"
 
-    run mkdir -p $(dirname $DIR)
-    fail_panic "Cannot create target directory for copying Boost build sources"
-
-    run cp -r "$BOOST_BB_SRCDIR" "$DIR"
-    fail_panic "Cannot copy Boost build sources"
+    run rsync -a "$BOOST_BB_SRCDIR/" "$DIR/"
+    fail_panic "Cannot copy Boost.Build sources"
 }
 
 copy_boost_rr()
 {
     local DIR="$1"
 
-    rm -Rf $DIR
-    fail_panic "Cannot remote $DIR"
+    run mkdir -p $DIR
+    fail_panic "Cannot create target directory for Boost.Regression sources"
 
-    run mkdir -p $(dirname $DIR)
-    fail_panic "Cannot create target directory for copying Boost regression sources"
-
-    run cp -r "$BOOST_RR_SRCDIR" "$DIR"
-    fail_panic "Cannot copy Boost regression sources"
+    run rsync -a "$BOOST_RR_SRCDIR/" "$DIR/"
+    fail_panic "Cannot copy Boost.Regression sources"
 }
 
 prepare_boost_tools()
@@ -804,31 +798,29 @@ prepare_boost_tools()
     chmod +x $RUNPY
     fail_panic "Cannot chmod +x run.py"
 
-    log "Downloading regression scripts..."
-    # download-scripts is a fake target
-    # We run it because run.py download all needed scripts before
-    # doing anything else. With this hack we can download them once (now)
-    # and then use --skip-script-download for subsequent runs"
-    run $RUNPY download-scripts 2>&1 | catlog
-    RUNPY="$RUNPY --skip-script-download"
+    local BOOST_BB="$DIR/boost_bb"
+    copy_boost_bb "$BOOST_BB"
 
-    RUNPY="$RUNPY --tag=$TAG"
+    local BOOST_RR="$DIR/boost_regression"
+    copy_boost_rr "$BOOST_RR"
 
-    copy_boost_bb "$DIR/boost_bb"
-    copy_boost_rr "$DIR/boost_regression"
+    local TOOLS="                  \
+        collect_and_upload_logs.py \
+        process_jam_log.py         \
+        regression.py              \
+        "
 
-    local BOOST_REGRESSION_SRC="$DIR/boost_regression_src"
-    run mkdir -p $BOOST_REGRESSION_SRC
-    fail_panic "Cannot create $BOOST_REGRESSION_SRC"
-
-    local SCRIPT
-    for SCRIPT in collect_and_upload_logs.py process_jam_log.py regression.py; do
-        run cp -f "$DIR/boost_regression/src/$SCRIPT" "$BOOST_REGRESSION_SRC/"
-        fail_panic "Cannot copy $SCRIPT to $BOOST_REGRESSION_SRC"
+    local T
+    for T in $TOOLS; do
+        run cp -f "$DIR/boost_regression/src/$T" "$DIR/"
+        fail_panic "Cannot copy $T to $DIR"
     done
 
-    run $RUNPY --bjam-options="-j$NUM_JOBS" setup 2>&1 | catlog
-    test ${PIPESTATUS[0]} -eq 0 || panic "Cannot setup regression tools"
+    (
+    cd $DIR || exit 1
+    run $RUNPY --use-local --tag=$TAG --bjam-options="-j$NUM_JOBS" setup || exit 1
+    )
+    fail_panic "Cannot setup regression tools"
 }
 
 # $1: ABI
@@ -920,7 +912,7 @@ test_boost_for_abi ()
 
     local RUNNER="CrystaX.NET-apilevel-19-$ABI"
 
-    local RUNPY="$SRCDIR/run.py --skip-script-download --tag=$TAG"
+    local RUNPY="$SRCDIR/run.py --use-local --tag=$TAG"
 
     EXTRA_PARAMS=""
     if [ -n "$LIBRARIES" -a "$LIBRARIES" != "all" ]; then
@@ -954,9 +946,11 @@ test_boost_for_abi ()
 
     (
         trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
-        cp -f $CONFIGJAM $SRCDIR/user-config.jam
+        cp -f $CONFIGJAM $SRCDIR/user-config.jam || exit 1
 
         export PATH=$TOOLSETS_PATH:$PATH
+
+        cd $SRCDIR || exit 1
 
         run $RUNPY                         \
             --runner="$RUNNER"             \
@@ -966,60 +960,50 @@ test_boost_for_abi ()
             --bjam-options="$BJAM_OPTIONS" \
             $EXTRA_PARAMS                  \
             $ACTIONS                       \
-            2>&1 | catlog
-    )
+            || exit 1
+    ) || log "ERROR: $ABI tests failed"
 
     return 0
 }
 
 generate_comment()
 {
-    local COMMENT=$1
-    local DATE=$2
-    local PREVIOUS=$3
+    local COMMENT="$1"
+    local DATE="$2"
+    local PREVIOUS="$3"
 
     cat >$COMMENT <<HTML
 <table style="border-spacing: 0.5em;">
+HTML
+    fail_panic "Cannot generate comment.html"
+
+    {
+        echo "uname"
+        uname -a
+        echo "uptime"
+        uptime
+        echo "python"
+        python --version 2>&1
+        echo "previous run"
+        echo "$PREVIOUS"
+        echo "current run"
+        echo "$DATE"
+    } | {
+        while read name && read value; do
+            cat >>$COMMENT <<HTML
     <tr>
-        <td style="vertical-align: top;"><tt>uname</tt></td>
+        <td style="vertical-align: top;"><tt>${name}</tt></td>
         <td>
             <pre style="border: 1px solid #666; overflow: auto;">
-`uname -a`
+${value}
             </pre>
         </td>
     </tr>
-    <tr>
-        <td style="vertical-align: top;"><tt>uptime</tt></td>
-        <td>
-            <pre style="border: 1px solid #666; overflow: auto;">
-`uptime`
-            </pre>
-        </td>
-    </tr>
-    <tr>
-        <td style="vertical-align: top;"><tt>python</tt></td>
-        <td>
-            <pre style="border: 1px solid #666; overflow: auto;">
-`python --version 2>&1`
-            </pre>
-        </td>
-    </tr>
-    <tr>
-        <td style="vertical-align: top;">previous run</td>
-        <td>
-            <pre style="border: 1px solid #666; overflow: auto;">
-$PREVIOUS
-            </pre>
-        </td>
-    </tr>
-    <tr>
-        <td style="vertical-align: top;">current run</td>
-        <td>
-            <pre style="border: 1px solid #666; overflow: auto;">
-$DATE
-            </pre>
-        </td>
-    </tr>
+HTML
+        done
+    }
+
+    cat >>$COMMENT <<HTML
 </table>
 HTML
     fail_panic "Cannot generate comment.html"
@@ -1028,9 +1012,6 @@ HTML
 generate_report()
 {
     local DIR="$1"
-
-    run mkdir -p $DIR
-    fail_panic "Cannot create report directory"
 
     dump "Retrieving sources"
 
@@ -1049,10 +1030,8 @@ generate_report()
         dump "Building bjam"
 
         (
-        cd $DIR/boost_bb || exit 1
-
-        run ./bootstrap.sh 2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
+        cd $BOOST_BB || exit 1
+        run ./bootstrap.sh 2>&1 || exit 1
         )
         fail_panic "Cannot build bjam"
 
@@ -1069,13 +1048,12 @@ generate_report()
         (
         cd $BOOST_RR/build || exit 1
 
-        run $BJAM                           \
-            --boost-build=$DIR/boost_bb/src \
-            --boost-root=$BOOST_ROOT        \
-            --bjam-options="-j$NUM_JOBS"    \
-            bin_boost_report                \
-            2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
+        run $BJAM                        \
+            --boost-build=$BOOST_BB/src  \
+            --boost-root=$BOOST_ROOT     \
+            --bjam-options="-j$NUM_JOBS" \
+            bin_boost_report             \
+            || exit 1
         )
         fail_panic "Cannot build bin_boost_report"
 
@@ -1109,14 +1087,13 @@ generate_report()
             --reports="dd,ds,i,n"                                               \
             --boost-report=$BREP                                                \
             --filter-runners=crystax                                            \
-            2>&1 | catlog
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
+            || exit 1
 
         mv -f report.zip $RESULTS_PATH/${TAG}.zip || exit 1
     )
     fail_panic "Cannot generate report"
 
-    echo $DATE >$DATEFILE
+    echo "$DATE" >$DATEFILE
     fail_panic "Cannot generate previous.txt"
 }
 
