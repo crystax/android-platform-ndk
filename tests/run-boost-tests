@@ -919,18 +919,39 @@ test_boost_for_abi ()
     # Prepare Boost tools (bjam, process_jam_log)
     prepare_boost_tools "$SRCDIR"
 
-    local FLEVELS=$(mktemp /tmp/apilevelsXXXXXX)
-    local D
+    local FLEVELS=$(mktemp /tmp/apilevelsXXXXX)
+    local DEVICES=$(mktemp /tmp/devicesXXXXXX)
     adb_devices $ABI | {
+        local D
         while read D; do
-            adb_getprop "$D" ro.build.version.sdk >>$FLEVELS
+            local APILEVEL=$(adb_getprop "$D" ro.build.version.sdk)
+            local VERSION=$(android_version $APILEVEL)
+            local DEVICE=$(adb_getprop "$D" ro.product.device)
+
+            local MODEL
+            if [ "$DEVICE" = "generic" ]; then
+                MODEL=emulator
+            else
+                MODEL=$(adb_getprop "$D" ro.product.model)
+            fi
+
+            echo $APILEVEL >>$FLEVELS
+
+            {
+                printf '<tr>'
+                for V in "$VERSION" "$APILEVEL" "$MODEL"; do
+                    printf '<td style="border: solid 1px #ccc; padding: 0.5em;">%s</td>' "$V"
+                done
+                printf '</tr>\n'
+            } | cat >>$DEVICES
         done
     }
     APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
     rm -f $FLEVELS
 
     local COMMENT="$SRCDIR/comment.html"
-    generate_runner_comment "$COMMENT" "$ABI" "$APILEVELS" "$CONFIGJAM" "$CXXBINS"
+    generate_runner_comment "$COMMENT" "$ABI" "$DEVICES" "$CONFIGJAM" "$CXXBINS"
+    rm -f $DEVICES
 
     local RUNNER="CrystaX.NET-apilevel-$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')-$ABI"
 
@@ -1026,7 +1047,7 @@ generate_runner_comment()
 {
     local COMMENT="$1"
     local ABI="$2"
-    local APILEVELS="$3"
+    local DEVICES="$3"
     local CONFIGJAM="$4"
     local COMPILERS="$5"
 
@@ -1035,7 +1056,7 @@ generate_runner_comment()
     run mkdir -p $(dirname $COMMENT)
     fail_panic "Cannot create directory"
 
-    if [ $(echo $APILEVELS | tr ',' ' ' | wc -w) -gt 1 ]; then
+    if [ $(cat $DEVICES 2>/dev/null | wc -l) -gt 1 ]; then
         ANAME="several Android emulators (or having several Android devices connected)"
     else
         ANAME="Android emulator (or having Android device connected)"
@@ -1043,7 +1064,7 @@ generate_runner_comment()
 
     {
         cat <<HTML
-<h2><a href="https://www.crystax.net/" target="_blank">CrystaX .NET</a></h2>
+<h2><a href="https://www.crystax.net/" target="_blank">CrystaX.NET</a></h2>
 
 <p>
 This runner is a $(uname -s) machine, running ${ANAME}.<br/>
@@ -1053,18 +1074,21 @@ HTML
             echo "<p>All tests were built with -std=c++11 option.</p>"
         fi
 
-        echo "<p>"
-        echo "Android versions:<br/>"
-        for APILEVEL in $APILEVELS; do
-            echo "&nbsp;&nbsp;&nbsp;&nbsp;$(android_version $APILEVEL) (API level $APILEVEL)<br/>"
+        echo "<p>ABI: $ABI</p>"
+
+        echo '<p>'
+        echo 'Test devices:<br/>'
+        echo '<table style="border-collapse: collapse;">'
+        echo '<tr>'
+        for V in "Android version" "API level" "Device"; do
+            printf '<th style="border: solid 1px #ccc; padding: 0.5em;">%s</th>\n' "$V"
         done
-        echo "</p>"
+        echo '</tr>'
+        cat $DEVICES 2>/dev/null | sort
+        echo '</table>'
+        echo '</p>'
 
         cat <<HTML
-<p>
-ABI: ${ABI}
-</p>
-
 <p>
 <a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> were used for testing on Android.
 </p>
