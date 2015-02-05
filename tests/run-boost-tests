@@ -602,7 +602,13 @@ generate_adbrunner()
         echo 'ICU="'$ICU'"'
         echo ''
         echo 'EXTRAS=""'
-        echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" "\\n"); do'
+        echo ''
+        echo 'EXTRAS_DIRS=""'
+        echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" " "); do'
+        echo '    EXTRAS_DIRS="$DIR $EXTRAS_DIRS"'
+        echo 'done'
+        echo ''
+        echo 'for DIR in $EXTRAS_DIRS; do'
         echo '    for LIB in $(find $DIR -name "lib*.so*" -print 2>/dev/null); do'
         echo '        EXTRAS="$EXTRAS $LIB"'
         echo '    done'
@@ -979,9 +985,26 @@ test_boost_for_abi ()
 
     BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
 
-    run rm -Rf $SRCDIR/results
-    run mkdir $SRCDIR/results
-    fail_panic "Cannot create results $ABI directory"
+    if [ -d $SRCDIR/results ]; then
+        # Remove this directory, but keep *.zip
+        local TMPRESULTS=$SRCDIR/results.$(uuidgen)
+
+        run mv $SRCDIR/results $TMPRESULTS
+        fail_panic "Cannot move folder"
+
+        run mkdir -p $SRCDIR/results
+        fail_panic "Cannot create results $ABI directory"
+
+        for Z in $TMPRESULTS/*.zip; do
+            run mv $Z $SRCDIR/results/
+            fail_panic "Cannot move file"
+        done
+
+        run rm -Rf $TMPRESULTS
+    else
+        run mkdir -p $SRCDIR/results
+        fail_panic "Cannot create results $ABI directory"
+    fi
 
     local ACTIONS="  \
         test-run     \
