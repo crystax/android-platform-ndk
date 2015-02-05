@@ -935,11 +935,13 @@ test_boost_for_abi ()
             local DEVICE=$(adb_getprop "$D" ro.product.device)
 
             local MODEL
-            if [ "$DEVICE" = "generic" ]; then
-                MODEL=emulator
-            else
-                MODEL=$(adb_getprop "$D" ro.product.model)
-            fi
+            case $DEVICE in
+                generic*)
+                    MODEL=emulator
+                    ;;
+                *)
+                    MODEL=$(adb_getprop "$D" ro.product.model)
+            esac
 
             echo $APILEVEL >>$FLEVELS
 
@@ -1113,7 +1115,7 @@ HTML
 
         cat <<HTML
 <p>
-<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> were used for testing on Android.
+<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> was used to run these tests.
 </p>
 
 <p>
