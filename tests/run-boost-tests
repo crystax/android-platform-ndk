@@ -532,6 +532,9 @@ generate_flock()
     local OUT="$1"
     local TMPFILE=$(mktemp /tmp/flockXXXXXX.c)
 
+    run mkdir -p $(dirname $OUT)
+    fail_panic "Cannot create directory for flock"
+
     cat >$TMPFILE <<EOF
 #include <stdlib.h>
 #include <sys/file.h>
@@ -556,7 +559,7 @@ int main(int argc, char *argv[])
 EOF
     fail_panic "Cannot create temporary flock source file"
 
-    cc -o $OUT $TMPFILE
+    run cc -o $OUT $TMPFILE
     fail_panic "Cannot create flock utility"
 
     rm -f $TMPFILE
@@ -849,9 +852,6 @@ test_boost_for_abi ()
 
     run mkdir -p $TESTDIR && run mkdir -p $SRCDIR
     fail_panic "Cannot create temporary directory for $ABI testing"
-
-    local FLOCK=$TESTDIR/flock
-    generate_flock $FLOCK
 
     local STRIP=""
     local TOOLSETS=""
@@ -1314,19 +1314,21 @@ fetch()
 
     log "=== Fetching $URL to $DIR (branch $BRANCH)"
 
-    if [ ! -d $DIR ]; then
-        run mkdir -p $DIR
-        fail_panic "Cannot create $DIR"
-
-        (
-            cd $DIR || exit 1
-            run git init || exit 1
-        )
-        fail_panic "Cannot init git repository in $DIR"
-    fi
+    local PARENT=$(dirname $DIR)
+    local LOCKFILE="${DIR}.lock"
 
     (
-    run cd $DIR || exit 1
+    run mkdir -p $PARENT || exit 1
+    exec 3>$LOCKFILE
+    run $FLOCK 3 || exit 1
+
+    if [ ! -d $DIR ]; then
+        run mkdir -p $DIR || exit 1
+        run cd $DIR || exit 1
+        run git init || exit 1
+    else
+        run cd $DIR || exit 1
+    fi
     run git config remote.origin.url "$URL" || exit 1
     run git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || exit 1
     run git fetch --prune origin || exit 1
@@ -1373,6 +1375,9 @@ fetch_boost_rr()
 
     fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
 }
+
+FLOCK=$TEST_DIR/flock
+generate_flock $FLOCK
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
 BOOST_BB_SRCDIR=$TEST_DIR/$TAG/src/boost_bb
