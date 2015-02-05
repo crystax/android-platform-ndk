@@ -78,9 +78,9 @@ do_pie () { ENABLE_PIE=yes; }
 register_option "--no-pie" do_no_pie "Produce PIE-disabled binaries to test"
 do_no_pie () { ENABLE_PIE=no; }
 
-DO_FETCH=yes
-register_option "--skip-fetch" do_skip_fetch "Skip fetching of Boost sources"
-do_skip_fetch () { DO_FETCH=no; }
+DO_FETCH=no
+register_option "--fetch-sources" do_fetch_sources "Fetch&update Boost sources"
+do_fetch_sources () { DO_FETCH=yes; }
 
 DO_REGRESSION_TESTING=yes
 register_option "--skip-regression" do_skip_regression "Skip regression testing"
@@ -148,7 +148,6 @@ REPORT_DIR="$TEST_DIR/$TAG/report"
 setup_default_log_file $TEST_DIR/test.log
 
 LOCKDIR="$TEST_DIR/lock"
-rm -Rf "$LOCKDIR"
 mkdir -p "$LOCKDIR"
 fail_panic "Cannot create lock directory: $LOCKDIR"
 
@@ -192,8 +191,9 @@ mktool()
 
 adb_getprop()
 {
-    local PROPNAME=$1
-    $ADB shell getprop $PROPNAME | tr -d '\r'
+    local DEVID="$1"
+    local PROPNAME="$2"
+    $ADB -s "$DEVID" shell getprop $PROPNAME | tr -d '\r'
 }
 
 adb_devices()
@@ -209,8 +209,7 @@ adb_devices()
             continue
         fi
 
-        export ANDROID_SERIAL="$D"
-        APILEVEL=$(adb_getprop ro.build.version.sdk)
+        APILEVEL=$(adb_getprop "$D" ro.build.version.sdk)
         if [ "$ENABLE_PIE" = "yes" ]; then
             if [ $APILEVEL -le 15 ]; then
                 #echo "SKIP test on $D: android-$APILEVEL don't support PIE-enabled binaries"
@@ -223,10 +222,10 @@ adb_devices()
             fi
         fi
 
-        CPU_ABIS=$(adb_getprop ro.product.cpu.abilist)
+        CPU_ABIS=$(adb_getprop "$D" ro.product.cpu.abilist)
         if [ -z "$CPU_ABIS" ]; then
-            CPU_ABI=$(adb_getprop ro.product.cpu.abi)
-            CPU_ABI2=$(adb_getprop ro.product.cpu.abi2)
+            CPU_ABI=$(adb_getprop "$D" ro.product.cpu.abi)
+            CPU_ABI2=$(adb_getprop "$D" ro.product.cpu.abi2)
             CPU_ABIS="$CPU_ABI,$CPU_ABI2"
         fi
         CPU_ABIS=$(echo $CPU_ABIS | tr ',' ' ')
@@ -601,9 +600,6 @@ generate_adbrunner()
         echo 'EXTRAS=""'
         echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" "\\n"); do'
         echo '    for LIB in $(find $DIR -name "lib*.so*" -print 2>/dev/null); do'
-        echo '        basename $LIB | grep -q -x libcrystax.so && continue'
-        echo '        basename $LIB | grep -q -x libgnustl_shared.so && continue'
-        echo '        basename $LIB | grep -q "^libicu.*" && continue'
         echo '        EXTRAS="$EXTRAS $LIB"'
         echo '    done'
         echo 'done'
@@ -634,7 +630,9 @@ generate_adbrunner()
         echo '    log "RUN: $CMD"'
         echo '    rm -f $ADBCAP'
         echo '    $ADB shell "$CMD ; echo \$?" 2>&1 \'
-        echo '        | sed -e "s,[[:cntrl:]],,g" | $STDBUF tee $ADBCAP >>$LOG'
+        echo '        | $STDBUF sed -e "s,[[:cntrl:]],,g" \'
+        echo '        | $STDBUF tee $ADBCAP \'
+        echo '        >>$LOG'
         echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null)'
         echo '    sed -e "\$d" $ADBCAP'
         echo '    rm -f $ADBCAP'
@@ -709,6 +707,9 @@ generate_adbrunner()
         echo ''
         echo '    for E in $F $EXTRAS; do'
         echo '        BE=$(basename $E)'
+        echo '        echo $BE | grep -q -x libcrystax.so && continue'
+        echo '        echo $BE | grep -q -x libgnustl_shared.so && continue'
+        echo '        echo $BE | grep -q "^libicu.*" && continue'
         echo '        $STRIP --strip-unneeded $E >/dev/null 2>&1'
         echo '        adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
         echo '    done'
@@ -750,14 +751,18 @@ copy_boost()
 {
     local DIR="$1"
 
-    rm -Rf $DIR
-    fail_panic "Cannot remove $DIR"
+    # WARNING! This is intentionally just 'rm', not 'rm -rf'.
+    # This is needed to remove $DIR if it's symlink.
+    # Thus, we try to remove it and ignore any errors.
+    # In case it's symlink - it will be removed.
+    # In case it's directory - nothing will happen.
+    rm $DIR >/dev/null 2>&1
 
-    run mkdir -p $(dirname $DIR)
-    fail_panic "Cannot create target directory for copying Boost sources"
+    run mkdir -p $DIR
+    fail_panic "Cannot create target directory for Boost sources"
 
-    run ln -s "$BOOST_SRCDIR" "$DIR"
-    fail_panic "Cannot symlink Boost sources"
+    run rsync -a "$BOOST_SRCDIR/" "$DIR/"
+    fail_panic "Cannot copy Boost sources"
 }
 
 copy_boost_bb()
@@ -832,7 +837,6 @@ test_boost_for_abi ()
 
     dump "Run regression testing [$ABI]"
 
-    rm -Rf $TESTDIR $SRCDIR
     run mkdir -p $TESTDIR && run mkdir -p $SRCDIR
     fail_panic "Cannot create temporary directory for $ABI testing"
 
@@ -845,9 +849,10 @@ test_boost_for_abi ()
     local TOOLSET
     local TOOLCHAIN_TYPE TOOLCHAIN_VERSION
     local CXXBIN
+    local CXXBINS=""
 
     local CONFIGJAM="$TESTDIR/config.jam"
-    rm -f $CONFIGJAM
+    run rm -f $CONFIGJAM
 
     for TOOLCHAIN_VERSION in $TOOLCHAIN_VERSIONS; do
         if [ ${TOOLCHAIN_VERSION#clang} != ${TOOLCHAIN_VERSION} ]; then
@@ -870,7 +875,7 @@ test_boost_for_abi ()
         TOOLSET=${TOOLCHAIN_TYPE}-${TOOLCHAIN_VERSION}
 
         local TARGETBIN=$TESTDIR/${TOOLSET}
-        rm -Rf $TARGETBIN
+        run rm -Rf $TARGETBIN
 
         # Generate toolchain wrappers
         generate_toolchain "$ABI" "$TOOLCHAIN_TYPE" "$TOOLCHAIN_VERSION" "$TARGETBIN"
@@ -890,6 +895,8 @@ test_boost_for_abi ()
         echo "using $TOOLCHAIN_TYPE : $TOOLCHAIN_VERSION : $TARGETBIN/$CXXBIN ;" >>$CONFIGJAM
         fail_panic "Cannot add $TOOLSET to user config"
 
+        CXXBINS="$CXXBINS $TARGETBIN/$CXXBIN"
+
         if [ -z "$STRIP" -a -x $TARGETBIN/strip ]; then
             STRIP=$TARGETBIN/strip
         fi
@@ -902,11 +909,26 @@ test_boost_for_abi ()
     # Generate adbrunner tool
     generate_adbrunner "$ABI" "$TESTDIR" "$FLOCK" "$STRIP"
 
+    # Copy Boost sources
     copy_boost "$SRCDIR/boost_root"
 
+    # Prepare Boost tools (bjam, process_jam_log)
     prepare_boost_tools "$SRCDIR"
 
-    local RUNNER="CrystaX.NET-apilevel-19-$ABI"
+    local FLEVELS=$(mktemp /tmp/apilevelsXXXXXX)
+    local D
+    adb_devices $ABI | {
+        while read D; do
+            adb_getprop "$D" ro.build.version.sdk >>$FLEVELS
+        done
+    }
+    APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
+    rm -f $FLEVELS
+
+    local COMMENT="$SRCDIR/comment.html"
+    generate_runner_comment "$COMMENT" "$ABI" "$APILEVELS" "$CONFIGJAM" "$CXXBINS"
+
+    local RUNNER="CrystaX.NET-apilevel-$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')-$ABI"
 
     local RUNPY="$SRCDIR/run.py --use-local --tag=$TAG"
 
@@ -927,7 +949,7 @@ test_boost_for_abi ()
 
     BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
 
-    rm -Rf $SRCDIR/results
+    run rm -Rf $SRCDIR/results
     run mkdir $SRCDIR/results
     fail_panic "Cannot create results $ABI directory"
 
@@ -950,6 +972,7 @@ test_boost_for_abi ()
 
         run $RUNPY                         \
             --runner="$RUNNER"             \
+            --comment="$COMMENT"           \
             --toolsets=$TOOLSETS           \
             --platform=Android             \
             --timeout=15                   \
@@ -960,6 +983,105 @@ test_boost_for_abi ()
     ) || log "ERROR: $ABI tests failed"
 
     return 0
+}
+
+android_version()
+{
+    local APILEVEL="$1"
+    case $APILEVEL in
+         2) echo "1.1"   ;;
+         3) echo "1.5"   ;;
+         4) echo "1.6"   ;;
+         5) echo "2.0"   ;;
+         6) echo "2.0.1" ;;
+         7) echo "2.1"   ;;
+         8) echo "2.2"   ;;
+         9) echo "2.3"   ;;
+        10) echo "2.3.3" ;;
+        11) echo "3.0"   ;;
+        12) echo "3.1"   ;;
+        13) echo "3.2"   ;;
+        14) echo "4.0"   ;;
+        15) echo "4.0.3" ;;
+        16) echo "4.1"   ;;
+        17) echo "4.2"   ;;
+        18) echo "4.3"   ;;
+        19) echo "4.4"   ;;
+        20) echo "4.4W"  ;;
+        21) echo "5.0"   ;;
+        *)  echo "UNKNOWN"
+    esac
+}
+
+generate_runner_comment()
+{
+    local COMMENT="$1"
+    local ABI="$2"
+    local APILEVELS="$3"
+    local CONFIGJAM="$4"
+    local COMPILERS="$5"
+
+    local APILEVEL
+
+    run mkdir -p $(dirname $COMMENT)
+    fail_panic "Cannot create directory"
+
+    if [ $(echo $APILEVELS | tr ',' ' ' | wc -w) -gt 1 ]; then
+        ANAME="several Android emulators (or having several Android devices connected)"
+    else
+        ANAME="Android emulator (or having Android device connected)"
+    fi
+
+    {
+        cat <<HTML
+<h2><a href="https://www.crystax.net/" target="_blank">CrystaX .NET</a></h2>
+
+<p>
+This runner is a $(uname -s) machine, running ${ANAME}.<br/>
+</p>
+
+<p>
+ABI: ${ABI}
+</p>
+
+<p>
+Android versions:<br/>
+HTML
+        for APILEVEL in $APILEVELS; do
+            echo "&nbsp;&nbsp;&nbsp;&nbsp;$(android_version $APILEVEL) (API level $APILEVEL)<br/>"
+        done
+        cat <<HTML
+</p>
+
+<p>
+<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> used for Boost testing on Android.
+</p>
+
+<p>
+user-config.jam
+<pre>
+$(cat $CONFIGJAM 2>/dev/null)
+</pre>
+</p>
+HTML
+
+        local CXX
+        echo "<pre>"
+        for CXX in $COMPILERS; do
+            echo "\$ $CXX --version"
+            $CXX --version 2>&1 | grep -v '^$'
+            echo ""
+        done
+        echo "</pre>"
+
+        cat <<HTML
+<p>
+<a href="https://www.crystax.net/service" target="_blank">Our services</a><br/>
+<a href="https://www.crystax.net/contact" target="_blank">Contact us</a><br/>
+</p>
+HTML
+    } | cat >$COMMENT
+    fail_panic "Cannot generate runner's comment.html"
 }
 
 generate_comment()
@@ -1148,6 +1270,8 @@ fetch()
     run git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || exit 1
     run git fetch --prune origin || exit 1
     run git reset --hard || exit 1
+    run git clean -ffddx || exit 1
+    run git submodule foreach --recursive 'git reset --hard && git clean -ffddx' || exit 1
 
     SHA1=$(git rev-list --max-count=1 origin/$BRANCH)
     test -n "$SHA1" || exit 1
@@ -1156,7 +1280,7 @@ fetch()
     run git branch -D $BRANCH 2>/dev/null
 
     run git checkout -b $BRANCH || exit 1
-    run git submodule sync || exit 1
+    run git submodule sync --recursive || exit 1
     run git submodule update --recursive --init || exit 1
     )
     fail_panic "Cannot fetch $URL to $DIR"
