@@ -1260,9 +1260,7 @@ generate_report()
     if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
         local ABI
         for ABI in $ABIS; do
-            local RDIR=$REGRESSION_DIR/$ABI/test/results
-            test -d $RDIR || continue
-            for FILE in $RDIR/*.zip; do
+            for FILE in $(ls -1 $REGRESSION_DIR/$ABI/test/results/*.zip 2>/dev/null); do
                 run cp -f $FILE $INCOMING/
                 fail_panic "Cannot copy $FILE to report dir"
             done
