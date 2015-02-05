@@ -113,6 +113,10 @@ register_var_option "--boost-build-url=<url>" BOOST_BUILD_GIT_URL "Use alternati
 BOOST_REGRESSION_GIT_URL=https://github.com/boostorg/regression.git
 register_var_option "--boost-regression-url=<url>" BOOST_REGRESSION_GIT_URL "Use alternative git URL for Boost.Regression sources"
 
+CXX11_MODE=no
+register_option "--cxx11" do_cxx11 "Run Boost tests in C++11 mode"
+do_cxx11 () { CXX11_MODE=yes; }
+
 register_jobs_option
 
 extract_parameters "$@"
@@ -947,6 +951,11 @@ test_boost_for_abi ()
         testing.launcher=$TESTDIR/adbrunner \
         "
 
+    if [ "$CXX11_MODE" = "yes" ]; then
+        BJAM_OPTIONS="$BJAM_OPTIONS cxxflags='-std=c++11'"
+        RUNNER="${RUNNER}-c++11"
+    fi
+
     BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
 
     run rm -Rf $SRCDIR/results
@@ -1039,22 +1048,25 @@ generate_runner_comment()
 <p>
 This runner is a $(uname -s) machine, running ${ANAME}.<br/>
 </p>
+HTML
+        if [ "$CXX11_MODE" = "yes" ]; then
+            echo "<p>All tests were built with -std=c++11 option.</p>"
+        fi
 
+        echo "<p>"
+        echo "Android versions:<br/>"
+        for APILEVEL in $APILEVELS; do
+            echo "&nbsp;&nbsp;&nbsp;&nbsp;$(android_version $APILEVEL) (API level $APILEVEL)<br/>"
+        done
+        echo "</p>"
+
+        cat <<HTML
 <p>
 ABI: ${ABI}
 </p>
 
 <p>
-Android versions:<br/>
-HTML
-        for APILEVEL in $APILEVELS; do
-            echo "&nbsp;&nbsp;&nbsp;&nbsp;$(android_version $APILEVEL) (API level $APILEVEL)<br/>"
-        done
-        cat <<HTML
-</p>
-
-<p>
-<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> used for Boost testing on Android.
+<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> were used for testing on Android.
 </p>
 
 <p>
