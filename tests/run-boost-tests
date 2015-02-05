@@ -66,7 +66,7 @@ register_var_option "--adb=<path>" ADB "Specify which adb to use"
 LIBRARIES=all
 register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries to test"
 
-DEVICE_PATH=/data/local/tmp/boost-tests
+DEVICE_PATH=/data/local/tmp/boost-$(uuidgen)
 register_var_option "--device-path=<path>" DEVICE_PATH "Path on device where to push files"
 
 REPORTS_PATH=$TEST_DIR/reports
@@ -615,6 +615,7 @@ generate_adbrunner()
         echo ''
         echo 'panic()'
         echo '{'
+        echo '    echo "## ADBRUNNER.$$ [$ANDROID_SERIAL] $@"'
         echo '    log "$@"'
         echo '    exit 1'
         echo '}'
@@ -678,10 +679,7 @@ generate_adbrunner()
         echo '    $FLOCK 3'
         echo '    fail_panic "LOCK FAILED"'
         echo ''
-        echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
-        echo '    adb_shell "mkdir -p $DEVPATH/lib" && \'
-        echo '    adb_shell "mkdir -p $DEVPATH/tmp" && \'
-        echo '    adb_shell "mkdir -p $DSTPATH"'
+        echo '    adb_shell "mkdir -p $DEVPATH/lib && mkdir -p $DEVPATH/tmp && mkdir -p $DSTPATH"'
         echo '    fail_panic "CANNOT CREATE REQUIRED DIRECTORIES"'
         echo ''
         echo '    for LIB in \'
