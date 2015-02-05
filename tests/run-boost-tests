@@ -882,6 +882,11 @@ test_boost_for_abi ()
             continue
         fi
 
+        if [ "$TOOLCHAIN_TYPE" = "gcc" -a "$TOOLCHAIN_VERSION" = "4.8" -a ${ABI%%64*} != ${ABI} ]; then
+            # gcc-4.8 don't support 64-bit targets
+            continue
+        fi
+
         TOOLSET=${TOOLCHAIN_TYPE}-${TOOLCHAIN_VERSION}
 
         local TARGETBIN=$TESTDIR/${TOOLSET}
