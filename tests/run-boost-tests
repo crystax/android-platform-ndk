@@ -1258,12 +1258,9 @@ generate_report()
     fail_panic "Cannot create incoming directory"
 
     if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
-        local ABI
-        for ABI in $ABIS; do
-            for FILE in $(ls -1 $REGRESSION_DIR/$ABI/test/results/*.zip 2>/dev/null); do
-                run cp -f $FILE $INCOMING/
-                fail_panic "Cannot copy $FILE to report dir"
-            done
+        for FILE in $(ls -1 $REGRESSION_DIR/*/test/results/*.zip 2>/dev/null); do
+            run cp -f $FILE $INCOMING/
+            fail_panic "Cannot copy $FILE to report dir"
         done
     fi
 
