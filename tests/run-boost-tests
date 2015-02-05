@@ -561,12 +561,14 @@ EOF
 
 # $1: ABI
 # $2: target directory
-# $3: flock utility
+# $3: 'flock' utility
+# $4: 'strip' utility
 generate_adbrunner()
 {
-    local ABI=$1
-    local DIR=$2
-    local FLOCK=$3
+    local ABI="$1"
+    local DIR="$2"
+    local FLOCK="$3"
+    local STRIP="$4"
 
     local ADBRUNNER=$DIR/adbrunner
     {
@@ -578,18 +580,23 @@ generate_adbrunner()
         echo ''
         echo 'echo "## COMMAND: $MYCMD" >>$LOG'
         echo ''
-        echo 'F=$1'
+        echo 'F="$1"'
         echo 'shift'
         echo 'ARGS="$@"'
         echo 'BF=$(basename $F)'
-        echo 'DEVPATH='$DEVICE_PATH/$ABI
+        echo 'ABI="'$ABI'"'
+        echo 'DEVPATH="'$DEVICE_PATH/$ABI'"'
         echo 'DSTPATH=$DEVPATH/$(uuidgen)'
-        echo 'ADB='$ADB
-        echo 'STRIP='$DIR/strip
-        echo 'LOCKDIR='$LOCKDIR
-        echo 'FLOCK='$FLOCK
-        echo 'PREFIX="ADBRUNNER.$$"'
+        echo 'ADB="'$ADB'"'
+        echo 'LOCKDIR="'$LOCKDIR'"'
+        echo 'FLOCK="'$FLOCK'"'
+        echo 'STRIP="'$STRIP'"'
         echo 'STDBUF="'$STDBUF'"'
+        echo 'LIBDIR="'$DIR'/lib"'
+        echo ''
+        echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
+        echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
+        echo 'ICU="'$ICU'"'
         echo ''
         echo 'EXTRAS=""'
         echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" "\\n"); do'
@@ -601,11 +608,29 @@ generate_adbrunner()
         echo '    done'
         echo 'done'
         echo ''
+        echo 'log()'
+        echo '{'
+        echo '    echo "## ADBRUNNER.$$ [$ANDROID_SERIAL] $@" >>$LOG'
+        echo '}'
+        echo ''
+        echo 'panic()'
+        echo '{'
+        echo '    log "$@"'
+        echo '    exit 1'
+        echo '}'
+        echo ''
+        echo 'fail_panic()'
+        echo '{'
+        echo '    if [ $? -ne 0 ]; then'
+        echo '        panic "$@"'
+        echo '    fi'
+        echo '}'
+        echo ''
         echo 'adb_shell()'
         echo '{'
         echo '    local CMD="$@"'
         echo '    local ADBCAP=$F.adbcap.$(uuidgen)'
-        echo '    echo "## $PREFIX [$ANDROID_SERIAL] RUN: $CMD" >>$LOG'
+        echo '    log "RUN: $CMD"'
         echo '    rm -f $ADBCAP'
         echo '    $ADB shell "$CMD ; echo \$?" 2>&1 \'
         echo '        | sed -e "s,[[:cntrl:]],,g" | $STDBUF tee $ADBCAP >>$LOG'
@@ -624,26 +649,20 @@ generate_adbrunner()
         echo '    if [ -d $SRC ]; then'
         echo '        BSRC=$(basename $SRC)'
         echo '        adb_shell "mkdir -p $DST/$BSRC"'
-        echo '        RC=$?'
-        echo '        if [ $RC -ne 0 ]; then'
-        echo '            echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
+        echo '        if [ $? -ne 0 ]; then'
         echo '            $ADB shell "rm -r $DST" >/dev/null 2>&1'
-        echo '            return $RC'
+        echo '            panic "PUSH FAILED: $SRC"'
         echo '        fi'
         echo '        DST=$DST/$BSRC'
         echo '    fi'
         echo ''
         echo '    local CMD="$ADB push $SRC $DST"'
-        echo '    echo "## $PREFIX [$ANDROID_SERIAL] PUSH: $CMD" >>$LOG'
+        echo '    log "PUSH: $CMD"'
         echo '    $CMD >>$LOG 2>&1'
-        echo '    RC=$?'
-        echo '    if [ $RC -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] PUSH FAILED: $SRC" >>$LOG'
+        echo '    if [ $? -ne 0 ]; then'
         echo '        $ADB shell "rm -r $DST" >/dev/null 2>&1'
-        echo '        return $RC'
+        echo '        panic "PUSH FAILED: $SRC"'
         echo '    fi'
-        echo ''
-        echo '    return 0'
         echo '}'
         echo ''
         echo '{'
@@ -657,21 +676,43 @@ generate_adbrunner()
         echo '    export ANDROID_SERIAL="$D"'
         echo ''
         echo '    $FLOCK 3'
-        echo '    if [ $? -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] LOCK FAILED" >>$LOG'
-        echo '    fi'
+        echo '    fail_panic "LOCK FAILED"'
         echo ''
         echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
+        echo '    adb_shell "mkdir -p $DEVPATH/lib" && \'
+        echo '    adb_shell "mkdir -p $DEVPATH/tmp" && \'
         echo '    adb_shell "mkdir -p $DSTPATH"'
+        echo '    fail_panic "CANNOT CREATE REQUIRED DIRECTORIES"'
+        echo ''
+        echo '    for LIB in \'
+        echo '        $LIBCRYSTAX/libs/$ABI/libcrystax.so \'
+        echo '        $GNULIBCXX/libs/$ABI/libgnustl_shared.so \'
+        echo '        $ICU/libs/$ABI/lib*.so \'
+        echo '        ; do'
+        echo ''
+        echo '        BLIB=$(basename $LIB)'
+        echo ''
+        echo '        adb_shell "test -e $DEVPATH/lib/$BLIB"'
+        echo '        if [ $? -eq 0 ]; then'
+        echo '            continue'
+        echo '        fi'
+        echo ''
+        echo '        if [ ! -e $LIBDIR/$BLIB ]; then'
+        echo '            mkdir -p $LIBDIR'
+        echo '            fail_panic "MKDIR FAILED: $LIBDIR"'
+        echo '            cp -f $LIB $LIBDIR/'
+        echo '            fail_panic "COPY FAILED: $LIB -> $LIBDIR/"'
+        echo '            $STRIP --strip-unneeded $LIBDIR/$BLIB'
+        echo '            fail_panic "STRIP FAILED: $LIBDIR/$BLIB"'
+        echo '        fi'
+        echo ''
+        echo '        adb_push "$LIBDIR/$BLIB" "$DEVPATH/lib"'
+        echo '    done'
         echo ''
         echo '    for E in $F $EXTRAS; do'
         echo '        BE=$(basename $E)'
         echo '        $STRIP --strip-unneeded $E >/dev/null 2>&1'
         echo '        adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
-        echo '        if [ $? -ne 0 ]; then'
-        echo '            echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" >>$LOG'
-        echo '            exit 0'
-        echo '        fi'
         echo '    done'
         echo ''
         echo '    NEWARGS=""'
@@ -679,10 +720,6 @@ generate_adbrunner()
         echo '        if [ -e $E ]; then'
         echo '            BE=$(basename $E)'
         echo '            adb_push "$E" "$DSTPATH/$BE"'
-        echo '            if [ $? -ne 0 ]; then'
-        echo '                echo "## $PREFIX [$ANDROID_SERIAL] SKIP: $F" >>$LOG'
-        echo '                exit 0'
-        echo '            fi'
         echo '            NEWARGS="$NEWARGS $DSTPATH/$BE"'
         echo '        else'
         echo '            NEWARGS="$NEWARGS $E"'
@@ -693,7 +730,7 @@ generate_adbrunner()
         echo '    RC=$?'
         echo '    $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
         echo '    if [ $RC -ne 0 ]; then'
-        echo '        echo "## $PREFIX [$ANDROID_SERIAL] RUN FAILED [\$?=$RC]: $F" >>$LOG'
+        echo '        log "RUN FAILED [\$?=$RC]: $F"'
         echo '        exit $RC'
         echo '    fi'
         echo ''
@@ -708,49 +745,6 @@ generate_adbrunner()
         echo '}'
     } | mktool $ADBRUNNER
 
-}
-
-# $1: ABI
-# $2: intermediate directory to copy libraries to strip
-# $3: full path to strip utility
-prepare_device()
-{
-    local ABI=$1
-    local DIR=$2
-    local STRIP=$3
-
-    local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/4.9
-
-    {
-        adb_devices $ABI
-    } | {
-        rm -Rf $DIR
-        run mkdir -p $DIR
-        fail_panic "Cannot create temporary $ABI target libraries directory"
-
-        while read D; do
-            run $ADB -s "$D" shell "rm -r $DEVICE_PATH/$ABI 2>/dev/null"
-            run $ADB -s "$D" shell "mkdir -p $DEVICE_PATH/$ABI/tmp"
-            run $ADB -s "$D" shell "mkdir -p $DEVICE_PATH/$ABI/lib"
-
-            for F in \
-                $LIBCRYSTAX/libs/$ABI/libcrystax.so \
-                $GNULIBCXX/libs/$ABI/libgnustl_shared.so \
-                $ICU/libs/$ABI/lib*.so \
-                ; do
-
-                run cp -f $F $DIR/
-                fail_panic "Cannot copy $F to $DIR"
-            done
-
-            for F in $DIR/lib*.so; do
-                run $STRIP --strip-unneeded $F
-                fail_panic "Cannot strip $F"
-                run $ADB -s "$D" push $F $DEVICE_PATH/$ABI/lib
-                fail_panic "Cannot push $F to $D"
-            done
-        done
-    }
 }
 
 # $1: target directory
@@ -847,9 +841,6 @@ test_boost_for_abi ()
     local FLOCK=$TESTDIR/flock
     generate_flock $FLOCK
 
-    # Generate adbrunner tool
-    generate_adbrunner "$ABI" "$TESTDIR" "$FLOCK"
-
     local STRIP=""
     local TOOLSETS=""
     local TOOLSETS_PATH=""
@@ -910,8 +901,8 @@ test_boost_for_abi ()
         panic "Cannot detect strip for $ABI"
     fi
 
-    # Create directories and copy requires libraries on device
-    prepare_device $ABI $TESTDIR/lib $STRIP
+    # Generate adbrunner tool
+    generate_adbrunner "$ABI" "$TESTDIR" "$FLOCK" "$STRIP"
 
     copy_boost "$SRCDIR/boost_root"
 
