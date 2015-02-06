@@ -162,24 +162,34 @@ STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 
 f_at_exit=$(mktemp /tmp/atexit.XXXXXX)
+masterpid=$$
+
 at_exit()
 {
-    echo "$@" >>$f_at_exit
+    echo "$$:$@" >>$f_at_exit
 }
 
 cleanup()
 {
+    local mypid=$$
+    local pid
     cat $f_at_exit 2>/dev/null | {
-        while read cmd; do
+        while read line; do
+            pid=$(echo $line | cut -d: -f 1)
+            test "$pid" = "$mypid" || continue
+
+            cmd=$(echo $line | sed "s,^$pid:,,")
+            test -n "$cmd" || continue
+
             echo "## CLEANUP: $cmd"
             $cmd
         done
     }
-    rm -f $f_at_exit
+    test "$mypid" = "$masterpid" && rm -f $f_at_exit
 }
 
 trap "cleanup" EXIT QUIT ABRT TERM
-trap "echo 'INTERRUPTED'; exit 1" INT
+trap "printf '\\n\\n*** INTERRUPTED: $0\\n\\n'; exit 1" INT
 
 WLOG=$(mktemp /tmp/wrappersXXXXXX.log)
 tail -F $WLOG | catlog &
@@ -584,7 +594,6 @@ EOF
     run mkdir -p $(dirname $OUT)
     fail_panic "Cannot create directory for flock"
 
-    at_exit "rm -f $OUT"
     run cc -o $OUT $SRC
     fail_panic "Cannot create flock utility"
 }
@@ -1373,6 +1382,7 @@ fetch_boost_rr()
 }
 
 FLOCK=$(mktemp $TEST_DIR/flock.XXXXXX)
+at_exit "rm -f $FLOCK"
 generate_flock $FLOCK
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
