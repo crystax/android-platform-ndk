@@ -185,7 +185,14 @@ WLOG=$(mktemp /tmp/wrappersXXXXXX.log)
 tail -F $WLOG | catlog &
 WPID=$(jobs -p)
 
-at_exit "kill -INT $WPID 2>/dev/null; sleep 0.5; kill -KILL $WPID 2>/dev/null"
+kill_wlog()
+{
+    kill -INT  $WPID 2>/dev/null
+    sleep 0.5
+    kill -KILL $WPID 2>/dev/null
+}
+
+at_exit kill_wlog
 
 cleanup_devices()
 {
@@ -1019,7 +1026,7 @@ test_boost_for_abi ()
         run mkdir -p $SRCDIR/results
         fail_panic "Cannot create results $ABI directory"
 
-        for Z in $TMPRESULTS/*.zip; do
+        for Z in $(ls -1 $TMPRESULTS/*.zip 2>/dev/null); do
             run mv $Z $SRCDIR/results/
             fail_panic "Cannot move file"
         done
