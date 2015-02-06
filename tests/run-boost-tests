@@ -161,17 +161,34 @@ fail_panic "Cannot create results directory: $REPORTS_PATH"
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 
+f_at_exit=$(mktemp /tmp/atexit.XXXXXX)
+at_exit()
+{
+    echo "$@" >>$f_at_exit
+}
+
+cleanup()
+{
+    cat $f_at_exit 2>/dev/null | {
+        while read cmd; do
+            echo "## CLEANUP: $cmd"
+            $cmd
+        done
+    }
+    rm -f $f_at_exit
+}
+
+trap "cleanup" EXIT QUIT ABRT TERM
+trap "echo 'INTERRUPTED'; exit 1" INT
+
 WLOG=$(mktemp /tmp/wrappersXXXXXX.log)
 tail -F $WLOG | catlog &
 WPID=$(jobs -p)
 
-cleanup()
-{
-    kill -INT $WPID 2>/dev/null
-    sleep 0.5
-    kill -KILL $WPID 2>/dev/null
-    rm -f $WLOG
+at_exit "kill -INT $WPID 2>/dev/null; sleep 0.5; kill -KILL $WPID 2>/dev/null"
 
+cleanup_devices()
+{
     adb_devices | {
         while read D; do
             $ADB -s "$D" shell "rm -r $DEVICE_PATH 2>/dev/null"
@@ -179,8 +196,7 @@ cleanup()
     }
 }
 
-trap "cleanup" EXIT QUIT ABRT TERM
-trap "echo 'INTERRUPTED'; exit 1" INT
+at_exit cleanup_devices
 
 mktool()
 {
@@ -530,12 +546,11 @@ EOF
 generate_flock()
 {
     local OUT="$1"
-    local TMPFILE=$(mktemp /tmp/flockXXXXXX.c)
+    local SRC=$(mktemp /tmp/flockXXXXXX.c)
 
-    run mkdir -p $(dirname $OUT)
-    fail_panic "Cannot create directory for flock"
+    at_exit "rm -f $SRC"
 
-    cat >$TMPFILE <<EOF
+    cat >$SRC <<EOF
 #include <stdlib.h>
 #include <sys/file.h>
 
@@ -559,10 +574,12 @@ int main(int argc, char *argv[])
 EOF
     fail_panic "Cannot create temporary flock source file"
 
-    run cc -o $OUT $TMPFILE
-    fail_panic "Cannot create flock utility"
+    run mkdir -p $(dirname $OUT)
+    fail_panic "Cannot create directory for flock"
 
-    rm -f $TMPFILE
+    at_exit "rm -f $OUT"
+    run cc -o $OUT $SRC
+    fail_panic "Cannot create flock utility"
 }
 
 # $1: ABI
@@ -1348,7 +1365,7 @@ fetch_boost_rr()
     fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
 }
 
-FLOCK=$TEST_DIR/flock
+FLOCK=$(mktemp $TEST_DIR/flock.XXXXXX)
 generate_flock $FLOCK
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
