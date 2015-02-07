@@ -1096,7 +1096,8 @@ test_boost_for_abi ()
             $EXTRA_PARAMS                  \
             $ACTIONS                       \
             || exit 1
-    ) || log "ERROR: $ABI tests failed"
+    )
+    fail_panic "$ABI tests failed"
 
     return 0
 }
