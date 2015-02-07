@@ -1089,6 +1089,8 @@ test_boost_for_abi ()
         ACTIONS="$ACTIONS upload-logs"
     fi
 
+    local ACTION
+
     (
         trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
         cp -f $CONFIGJAM $SRCDIR/user-config.jam || exit 1
@@ -1098,7 +1100,9 @@ test_boost_for_abi ()
         cd $SRCDIR || exit 1
 
         for ACTION in $ACTIONS; do
+            log "=== run.py: $ACTION"
             cleanup_pjl "$SRCDIR/boost_regression"
+
             run $RUNPY                         \
                 --runner="$RUNNER"             \
                 --comment="$COMMENT"           \
