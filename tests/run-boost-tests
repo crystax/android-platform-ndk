@@ -879,8 +879,14 @@ prepare_boost_tools()
 
     local T
     for T in $TOOLS; do
-        run cp -f "$DIR/boost_regression/src/$T" "$DIR/"
+        run cp -f "$BOOST_RR/src/$T" "$DIR/"
         fail_panic "Cannot copy $T to $DIR"
+    done
+
+    local F
+    for F in $(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print); do
+        objdump -f $F | grep -q "^architecture: *i386\>" && continue
+        run rm -f $F
     done
 
     (
