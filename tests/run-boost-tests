@@ -687,7 +687,7 @@ generate_adbrunner()
         echo '    local ADBCAP=$F.adbcap.$(uuidgen)'
         echo '    log "RUN: $CMD"'
         echo '    rm -f $ADBCAP'
-        echo '    $ADB shell "$CMD ; echo \$?" 2>&1 \'
+        echo '    $ADB shell "$CMD ; echo ; echo \$?" 2>&1 \'
         echo '        | $STDBUF sed -e "s,[[:cntrl:]],,g" \'
         echo '        | $STDBUF tee $ADBCAP \'
         echo '        >>$LOG'
