@@ -735,6 +735,8 @@ generate_adbrunner()
         echo '    $FLOCK 3'
         echo '    fail_panic "LOCK FAILED"'
         echo ''
+        echo '    log "START: $F $ARGS"'
+        echo ''
         echo '    adb_shell "mkdir -p $DEVPATH/lib && mkdir -p $DEVPATH/tmp && mkdir -p $DSTPATH"'
         echo '    fail_panic "CANNOT CREATE REQUIRED DIRECTORIES"'
         echo ''
