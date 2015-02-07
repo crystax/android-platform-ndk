@@ -569,6 +569,8 @@ generate_flock()
 
     cat >$SRC <<EOF
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <sys/file.h>
 
 int main(int argc, char *argv[])
@@ -581,6 +583,9 @@ int main(int argc, char *argv[])
 
     fd = strtol(argv[1], &p, 10);
     if (fd == 0 && p == argv[1])
+        return 1;
+
+    if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
         return 1;
 
     if (flock(fd, LOCK_EX) == -1)
