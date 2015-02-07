@@ -884,9 +884,12 @@ prepare_boost_tools()
         fail_panic "Cannot copy $T to $DIR"
     done
 
+    which objdump >/dev/null 2>&1
+    fail_panic "Cannot find objdump utility"
+
     local F
     for F in $(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print); do
-        objdump -f $F | grep -q "^architecture: *i386\>" && continue
+        objdump -f $F | grep -q "^architecture: *i386:x86-64\>" && continue
         run rm -f $F
     done
 
