@@ -117,13 +117,16 @@ CXX11_MODE=no
 register_option "--cxx11" do_cxx11 "Run Boost tests in C++11 mode"
 do_cxx11 () { CXX11_MODE=yes; }
 
+ICU_VERSION=
+register_var_option "--with-icu=<version>" ICU_VERSION "Test with ICU"
+
 register_jobs_option
 
 extract_parameters "$@"
 
 LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
 
-ICU_VERSION=$(ls -1 $NDK_DIR/$ICU_SUBDIR/ 2>/dev/null | head -n 1)
+#ICU_VERSION=$(ls -1 $NDK_DIR/$ICU_SUBDIR/ 2>/dev/null | head -n 1)
 if [ -n "$ICU_VERSION" ]; then
     ICU=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
 else
@@ -640,7 +643,9 @@ generate_adbrunner()
         echo ''
         echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
         echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
-        echo 'ICU="'$ICU'"'
+        if [ -n "$ICU" ]; then
+            echo 'ICU="'$ICU'"'
+        fi
         echo ''
         echo 'EXTRAS=""'
         echo ''
@@ -734,7 +739,9 @@ generate_adbrunner()
         echo '    for LIB in \'
         echo '        $LIBCRYSTAX/libs/$ABI/libcrystax.so \'
         echo '        $GNULIBCXX/libs/$ABI/libgnustl_shared.so \'
-        echo '        $ICU/libs/$ABI/lib*.so \'
+        if [ -n "$ICU" ]; then
+            echo '        $ICU/libs/$ABI/lib*.so \'
+        fi
         echo '        ; do'
         echo ''
         echo '        BLIB=$(basename $LIB)'
@@ -760,7 +767,9 @@ generate_adbrunner()
         echo '        BE=$(basename $E)'
         echo '        echo $BE | grep -q -x libcrystax.so && continue'
         echo '        echo $BE | grep -q -x libgnustl_shared.so && continue'
-        echo '        echo $BE | grep -q "^libicu.*" && continue'
+        if [ -n "$ICU" ]; then
+            echo '        echo $BE | grep -q "^libicu.*" && continue'
+        fi
         echo '        $STRIP --strip-unneeded $E >/dev/null 2>&1'
         echo '        adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
         echo '    done'
