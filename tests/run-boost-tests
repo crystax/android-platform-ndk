@@ -617,6 +617,9 @@ generate_adbrunner()
     local FLOCK="$3"
     local STRIP="$4"
 
+    local LIBDIR="$DIR/lib"
+    run rm -Rf $LIBDIR
+
     local ADBRUNNER=$DIR/adbrunner
     {
         echo '#!/bin/bash'
@@ -639,7 +642,7 @@ generate_adbrunner()
         echo 'FLOCK="'$FLOCK'"'
         echo 'STRIP="'$STRIP'"'
         echo 'STDBUF="'$STDBUF'"'
-        echo 'LIBDIR="'$DIR'/lib"'
+        echo 'LIBDIR="'$LIBDIR'"'
         echo ''
         echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
         echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
