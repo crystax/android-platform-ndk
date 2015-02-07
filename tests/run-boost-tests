@@ -113,9 +113,8 @@ register_var_option "--boost-build-url=<url>" BOOST_BUILD_GIT_URL "Use alternati
 BOOST_REGRESSION_GIT_URL=https://github.com/boostorg/regression.git
 register_var_option "--boost-regression-url=<url>" BOOST_REGRESSION_GIT_URL "Use alternative git URL for Boost.Regression sources"
 
-CXX11_MODE=no
-register_option "--cxx11" do_cxx11 "Run Boost tests in C++11 mode"
-do_cxx11 () { CXX11_MODE=yes; }
+STD_CXX=
+register_var_option "--std=<standard>" STD_CXX "Use specified C++ standard to build tests"
 
 ICU_VERSION=
 register_var_option "--with-icu=<version>" ICU_VERSION "Test with ICU"
@@ -1041,9 +1040,9 @@ test_boost_for_abi ()
         testing.launcher=$TESTDIR/adbrunner \
         "
 
-    if [ "$CXX11_MODE" = "yes" ]; then
-        BJAM_OPTIONS="$BJAM_OPTIONS cxxflags='-std=c++11'"
-        RUNNER="${RUNNER}-c++11"
+    if [ -n "$STD_CXX" ]; then
+        BJAM_OPTIONS="$BJAM_OPTIONS cxxflags='-std=$STD_CXX'"
+        RUNNER="${RUNNER}-std-$STD_CXX"
     fi
 
     BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
@@ -1129,8 +1128,8 @@ generate_runner_comment()
 This runner is a $(uname -s) machine, running ${ANAME}.<br/>
 </p>
 HTML
-        if [ "$CXX11_MODE" = "yes" ]; then
-            echo "<p>All tests were built with -std=c++11 option.</p>"
+        if [ -n "$STD_CXX" ]; then
+            echo "<p>All tests were built with -std=$STD_CXX option.</p>"
         fi
 
         echo "<p>ABI: $ABI</p>"
