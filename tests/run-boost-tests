@@ -851,6 +851,20 @@ copy_boost_rr()
     fail_panic "Cannot copy Boost.Regression sources"
 }
 
+cleanup_pjl()
+{
+    local DIR="$1"
+
+    which objdump >/dev/null 2>&1
+    fail_panic "Cannot find objdump utility"
+
+    local F
+    for F in $(find $DIR/build/bin -type f -a -name process_jam_log -print); do
+        objdump -f $F | grep -q "^architecture: *i386:x86-64\>" && continue
+        run rm -f $F
+    done
+}
+
 prepare_boost_tools()
 {
     local DIR="$1"
@@ -884,14 +898,7 @@ prepare_boost_tools()
         fail_panic "Cannot copy $T to $DIR"
     done
 
-    which objdump >/dev/null 2>&1
-    fail_panic "Cannot find objdump utility"
-
-    local F
-    for F in $(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print); do
-        objdump -f $F | grep -q "^architecture: *i386:x86-64\>" && continue
-        run rm -f $F
-    done
+    cleanup_pjl "$BOOST_RR"
 
     (
     cd $DIR || exit 1
@@ -1090,16 +1097,19 @@ test_boost_for_abi ()
 
         cd $SRCDIR || exit 1
 
-        run $RUNPY                         \
-            --runner="$RUNNER"             \
-            --comment="$COMMENT"           \
-            --toolsets=$TOOLSETS           \
-            --platform=Android             \
-            --timeout=15                   \
-            --bjam-options="$BJAM_OPTIONS" \
-            $EXTRA_PARAMS                  \
-            $ACTIONS                       \
-            || exit 1
+        for ACTION in $ACTIONS; do
+            cleanup_pjl "$SRCDIR/boost_regression"
+            run $RUNPY                         \
+                --runner="$RUNNER"             \
+                --comment="$COMMENT"           \
+                --toolsets=$TOOLSETS           \
+                --platform=Android             \
+                --timeout=15                   \
+                --bjam-options="$BJAM_OPTIONS" \
+                $EXTRA_PARAMS                  \
+                $ACTION                        \
+                || exit 1
+        done
     )
     fail_panic "$ABI tests failed"
 
