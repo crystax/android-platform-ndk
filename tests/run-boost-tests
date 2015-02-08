@@ -695,6 +695,7 @@ generate_adbrunner()
         echo '        | $STDBUF tee $ADBCAP \'
         echo '        >>$LOG'
         echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null | sed "s,^.*${RUNTAG}:,,")'
+        echo '    log "EXIT CODE: $RC"'
         echo '    if [ -z "$RC" ]; then'
         echo '        log "ADB FAILED"'
         echo '        RC=1'
