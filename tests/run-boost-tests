@@ -619,6 +619,8 @@ generate_adbrunner()
     local LIBDIR="$DIR/lib"
     run rm -Rf $LIBDIR
 
+    local RUNTAG="EXITCODE$(uuidgen)"
+
     local ADBRUNNER=$DIR/adbrunner
     {
         echo '#!/bin/bash'
@@ -642,6 +644,7 @@ generate_adbrunner()
         echo 'STRIP="'$STRIP'"'
         echo 'STDBUF="'$STDBUF'"'
         echo 'LIBDIR="'$LIBDIR'"'
+        echo 'RUNTAG="'$RUNTAG'"'
         echo ''
         echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
         echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
@@ -687,12 +690,12 @@ generate_adbrunner()
         echo '    local ADBCAP=$F.adbcap.$(uuidgen)'
         echo '    log "RUN: $CMD"'
         echo '    rm -f $ADBCAP'
-        echo '    $ADB shell "$CMD ; echo \"\\n\$?\"" 2>&1 \'
+        echo '    $ADB shell "$CMD ; echo \"${RUNTAG}:\$?\"" 2>&1 \'
         echo '        | $STDBUF sed -e "s,[[:cntrl:]],,g" \'
         echo '        | $STDBUF tee $ADBCAP \'
         echo '        >>$LOG'
-        echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null)'
-        echo '    sed -e "\$d" $ADBCAP'
+        echo '    RC=$(sed -e "\$!d" $ADBCAP 2>/dev/null | sed "s,^.*${RUNTAG}:,,")'
+        echo '    sed -e "s,${RUNTAG}:.*\$,," $ADBCAP'
         echo '    rm -f $ADBCAP'
         echo '    return $RC'
         echo '}'
