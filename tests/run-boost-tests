@@ -90,14 +90,6 @@ PUBLISH_RESULTS=no
 register_option "--publish-results" do_publish_results "Publish test results, uploading them to the public FTP"
 do_publish_results () { PUBLISH_RESULTS=yes; }
 
-GENERATE_REPORT=no
-register_option "--generate-report" do_generate_report "Generate HTML report"
-do_generate_report () { GENERATE_REPORT=yes; }
-
-USE_LOCAL_RESULTS_FOR_REPORT=yes
-register_option "--use-remote-results-for-report" do_use_remote_results_for_report "Use public FTP results for report generation"
-do_use_remote_results_for_report () { USE_LOCAL_RESULTS_FOR_REPORT=no; }
-
 TOOLCHAIN_VERSIONS=gcc-4.9,gcc-4.8,clang-3.5,clang-3.4
 register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain versions"
 
@@ -1210,158 +1202,6 @@ HTML
     fail_panic "Cannot generate runner's comment.html"
 }
 
-generate_comment()
-{
-    local COMMENT="$1"
-    local DATE="$2"
-    local PREVIOUS="$3"
-
-    cat >$COMMENT <<HTML
-<table style="border-spacing: 0.5em;">
-HTML
-    fail_panic "Cannot generate comment.html"
-
-    {
-        echo "uname"
-        uname -a
-        echo "uptime"
-        uptime
-        echo "python"
-        python --version 2>&1
-        echo "previous run"
-        echo "$PREVIOUS"
-        echo "current run"
-        echo "$DATE"
-    } | {
-        while read name && read value; do
-            cat >>$COMMENT <<HTML
-    <tr>
-        <td style="vertical-align: top;"><tt>${name}</tt></td>
-        <td>
-            <pre style="border: 1px solid #666; overflow: auto;">
-${value}
-            </pre>
-        </td>
-    </tr>
-HTML
-        done
-    }
-
-    cat >>$COMMENT <<HTML
-</table>
-HTML
-    fail_panic "Cannot generate comment.html"
-}
-
-generate_report()
-{
-    local DIR="$1"
-
-    dump "Retrieving sources"
-
-    local BOOST_ROOT="$DIR/boost_root"
-    copy_boost "$BOOST_ROOT"
-
-    local BOOST_BB="$DIR/boost_bb"
-    copy_boost_bb "$BOOST_BB"
-
-    local BOOST_RR=$DIR/boost_regression
-    copy_boost_rr "$BOOST_RR"
-
-    local BJAM=$BOOST_BB/b2
-
-    if [ ! -x $BJAM ]; then
-        dump "Building bjam"
-
-        (
-        cd $BOOST_BB || exit 1
-        run ./bootstrap.sh 2>&1 || exit 1
-        )
-        fail_panic "Cannot build bjam"
-
-        if [ ! -x $BJAM ]; then
-            panic "Cannot find just build bjam"
-        fi
-    fi
-
-    local BREP=$BOOST_RR/build/bin_boost_report/boost_report
-
-    if [ ! -x $BREP ]; then
-        dump "Building boost_report"
-
-        (
-        cd $BOOST_RR/build || exit 1
-
-        run $BJAM                        \
-            --boost-build=$BOOST_BB/src  \
-            --boost-root=$BOOST_ROOT     \
-            --bjam-options="-j$NUM_JOBS" \
-            bin_boost_report             \
-            || exit 1
-        )
-        fail_panic "Cannot build bin_boost_report"
-
-        if [ ! -x $BREP ]; then
-            panic "Cannot find just built boost_report"
-        fi
-    fi
-
-    dump "Generating HTML report"
-
-    local RESULTS_DIR="$DIR/results"
-    run mkdir -p $RESULTS_DIR
-    fail_panic "Cannot create results directory"
-
-    local INCOMING=$RESULTS_DIR/incoming/$TAG
-    run rm -Rf $INCOMING
-    run mkdir -p $INCOMING
-    fail_panic "Cannot create incoming directory"
-
-    if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
-        for FILE in $(ls -1 $REGRESSION_DIR/*/test/results/*.zip 2>/dev/null); do
-            run cp -f $FILE $INCOMING/
-            fail_panic "Cannot copy $FILE to report dir"
-        done
-    fi
-
-    local COMMENT=$RESULTS_DIR/mycomment.html
-    local DATEFILE=$RESULTS_DIR/previous.txt
-    local DATE=$(date -u)
-    local PREVIOUS=$(cat $DATEFILE 2>/dev/null)
-
-    local EXTRA_PARAMS=""
-    if [ "$USE_LOCAL_RESULTS_FOR_REPORT" = "yes" ]; then
-        EXTRA_PARAMS="$EXTRA_PARAMS --dont-collect-logs"
-    else
-        EXTRA_PARAMS="--filter-runners=crystax"
-    fi
-
-    (
-        cd $RESULTS_DIR || exit 1
-
-        generate_comment "$COMMENT" "$DATE" "$PREVIOUS"
-
-        run python $BOOST_RR/reports/src/boost_wide_report.py                   \
-            --locate-root="$BOOST_ROOT"                                         \
-            --results-dir="$RESULTS_DIR"                                        \
-            --tag=$TAG                                                          \
-            --expected-results="$BOOST_ROOT/status/expected_results.xml"        \
-            --failures-markup="$BOOST_ROOT/status/explicit-failures-markup.xml" \
-            --comment="$COMMENT"                                                \
-            --user=""                                                           \
-            --reports="dd,ds,i,n"                                               \
-            --boost-report=$BREP                                                \
-            $EXTRA_PARAMS                                                       \
-            || exit 1
-
-        run mv -f report.zip $REPORTS_PATH/${TAG}.zip || exit 1
-    )
-    fail_panic "Cannot generate report"
-
-    echo "$DATE" >$DATEFILE
-    fail_panic "Cannot generate previous.txt"
-}
-
 fetch()
 {
     local URL="$1"
@@ -1472,10 +1312,6 @@ if [ "$DO_REGRESSION_TESTING" = "yes" ]; then
 
         test_boost_for_abi "$ABI" "$REGRESSION_DIR/$ABI"
     done
-fi
-
-if [ "$GENERATE_REPORT" = "yes" ]; then
-    generate_report "$REPORT_DIR"
 fi
 
 dump "Done!"
