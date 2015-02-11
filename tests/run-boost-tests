@@ -63,6 +63,9 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 ADB=adb
 register_var_option "--adb=<path>" ADB "Specify which adb to use"
 
+DEVICES_FROM=
+register_var_option "--devices-from=<file>" DEVICES_FROM "If specified, use device identificators from that file instead of auto-detecting them with 'adb devices'"
+
 LIBRARIES=all
 register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries to test"
 
@@ -232,6 +235,11 @@ adb_devices()
     local ABI=$1
     local D C CPU_ABI CPU_ABI2 CPU_ABIS
     local APILEVEL
+
+    if [ -n "$DEVICES_FROM" ]; then
+        cat $DEVICES_FROM 2>/dev/null
+        return
+    fi
 
     $ADB devices | tr -d '\r' | sed -e '1d' | grep '\<device$' | sed -e 's/^\([^\t]*\).*$/\1/' | {
     while read D; do
@@ -728,9 +736,13 @@ generate_adbrunner()
         echo '}'
         echo ''
         echo '{'
-        echo '    cat <<EOD'
-        adb_devices $ABI
-        echo 'EOD'
+        if [ -n "$DEVICES_FROM" ]; then
+            echo '    cat '$DEVICES_FROM' 2>/dev/null'
+        else
+            echo '    cat <<EOD'
+            adb_devices $ABI
+            echo 'EOD'
+        fi
         echo '} | {'
         echo 'while read D; do'
         echo '    mkdir -p $LOCKDIR >/dev/null 2>&1'
