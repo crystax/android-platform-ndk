@@ -757,6 +757,11 @@ generate_adbrunner()
         fi
         echo '    } | {'
         echo '    while read D; do'
+        echo '        if [ "$D" = "none" ]; then'
+        echo '            touch $ADBFAILED >>$LOG 2>&1'
+        echo '            break'
+        echo '        fi'
+        echo ''
         echo '        mkdir -p $LOCKDIR >/dev/null 2>&1'
         echo '        ('
         echo '        export ANDROID_SERIAL="$D"'
