@@ -841,6 +841,7 @@ generate_adbrunner()
         echo '    fi'
         echo '    exit $RC'
         echo '    }'
+        echo '    exit $?'
         echo 'done'
         echo ''
         echo 'exit 0'
