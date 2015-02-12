@@ -157,7 +157,8 @@ fail_panic "Cannot create results directory: $REPORTS_PATH"
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
 
-f_at_exit=$(mktemp /tmp/atexit.XXXXXX)
+f_at_exit=/tmp/atexit.$(uuidgen)
+rm -f $f_at_exit
 masterpid=$$
 
 at_exit()
@@ -187,7 +188,8 @@ cleanup()
 trap "cleanup" EXIT QUIT ABRT TERM
 trap "printf '\\n\\n*** INTERRUPTED: $0\\n\\n'; exit 1" INT
 
-WLOG=$(mktemp /tmp/wrappersXXXXXX.log)
+WLOG=/tmp/wrappers-$(uuidgen).log
+rm -f $WLOG
 tail -F $WLOG | catlog &
 WPID=$(jobs -p)
 
@@ -564,8 +566,9 @@ EOF
 generate_flock()
 {
     local OUT="$1"
-    local SRC=$(mktemp /tmp/flockXXXXXX.c)
+    local SRC=/tmp/flock-$(uuidgen).c
 
+    rm -f $SRC
     at_exit "rm -f $SRC"
 
     cat >$SRC <<EOF
@@ -644,7 +647,7 @@ generate_adbrunner()
         echo 'STDBUF="'$STDBUF'"'
         echo 'LIBDIR="'$LIBDIR'"'
         echo 'RUNTAG="'$RUNTAG'"'
-        echo 'ADBFAILED=/tmp/adbfailed.'$(uuidgen)
+        echo 'ADBFAILED=/tmp/adbfailed.$(uuidgen)'
         echo ''
         echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
         echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
@@ -1027,8 +1030,9 @@ test_boost_for_abi ()
     # Prepare Boost tools (bjam, process_jam_log)
     prepare_boost_tools "$SRCDIR"
 
-    local FLEVELS=$(mktemp /tmp/apilevelsXXXXX)
-    local DEVICES=$(mktemp /tmp/devicesXXXXXX)
+    local FLEVELS=/tmp/apilevels.$(uuidgen)
+    local DEVICES=/tmp/devices.$(uuidgen)
+    rm -f $FLEVELS $DEVICES
     adb_devices $ABI | {
         local D
         while read D; do
@@ -1093,6 +1097,8 @@ test_boost_for_abi ()
         # Remove this directory, but keep *.zip
         local TMPRESULTS=$SRCDIR/results.$(uuidgen)
 
+        rm -Rf $TMPRESULTS
+        mkdir -p $(dirname $TMPRESULTS)
         run mv $SRCDIR/results $TMPRESULTS
         fail_panic "Cannot move folder"
 
@@ -1301,7 +1307,8 @@ fetch_boost_rr()
     fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
 }
 
-FLOCK=$(mktemp $TEST_DIR/flock.XXXXXX)
+FLOCK=$TEST_DIR/flock.$(uuidgen)
+rm -f $FLOCK
 at_exit "rm -f $FLOCK"
 generate_flock $FLOCK
 
