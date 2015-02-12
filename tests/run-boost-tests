@@ -1038,9 +1038,14 @@ test_boost_for_abi ()
     adb_devices $ABI | {
         local D
         while read D; do
+            log "RUNNER: D='$D'"
             local APILEVEL=$(adb_getprop "$D" ro.build.version.sdk)
             local VERSION=$(adb_getprop "$D" ro.build.version.release)
             local DEVICE=$(adb_getprop "$D" ro.product.device)
+
+            log "RUNNER: APILEVEL: '$APILEVEL'"
+            log "RUNNER: VERSION:  '$VERSION'"
+            log "RUNNER: DEVICE:   '$DEVICE'"
 
             local MODEL
             case $DEVICE in
@@ -1050,6 +1055,8 @@ test_boost_for_abi ()
                 *)
                     MODEL=$(adb_getprop "$D" ro.product.model)
             esac
+
+            log "RUNNER: MODEL: '$MODEL'"
 
             echo $APILEVEL >>$FLEVELS
 
@@ -1062,14 +1069,18 @@ test_boost_for_abi ()
             } | cat >>$DEVICES
         done
     }
+    log "RUNNER: FLEVELS:"
+    cat $FLEVELS | sed 's,^,RUNNER: FLEVELS: ,' | catlog
     APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
     rm -f $FLEVELS
+    log "RUNNER: APILEVELS: '$APILEVELS'"
 
     local COMMENT="$SRCDIR/comment.html"
     generate_runner_comment "$COMMENT" "$ABI" "$DEVICES" "$CONFIGJAM" "$CXXBINS"
     rm -f $DEVICES
 
     local RUNNER="CrystaX.NET-apilevel-$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')-$ABI"
+    log "RUNNER: RUNNER: '$RUNNER'"
 
     local RUNPY="$SRCDIR/run.py --use-local --tag=$TAG"
 
