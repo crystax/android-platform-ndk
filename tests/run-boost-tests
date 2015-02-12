@@ -837,10 +837,10 @@ generate_adbrunner()
         echo '        continue'
         echo '    fi'
         echo '    exit $RC'
+        echo '    }'
         echo 'done'
         echo ''
         echo 'exit 0'
-        echo '}'
     } | mktool $ADBRUNNER
 
 }
