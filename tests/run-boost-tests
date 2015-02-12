@@ -1069,6 +1069,9 @@ test_boost_for_abi ()
     APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
     rm -f $FLEVELS
     log "RUNNER: APILEVELS: '$APILEVELS'"
+    if [ -z "$APILEVELS" ]; then
+        panic "Cannot detect API levels"
+    fi
 
     local COMMENT="$SRCDIR/comment.html"
     generate_runner_comment "$COMMENT" "$ABI" "$DEVICES" "$CONFIGJAM" "$CXXBINS"
