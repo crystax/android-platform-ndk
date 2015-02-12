@@ -757,6 +757,8 @@ generate_adbrunner()
         echo '        ('
         echo '        export ANDROID_SERIAL="$D"'
         echo ''
+        echo '        log "LOCKING"'
+        echo ''
         echo '        exec 3>"$LOCKDIR/$D.lock"'
         echo '        $FLOCK 3'
         echo '        fail_panic "LOCK FAILED"'
