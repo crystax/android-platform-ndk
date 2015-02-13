@@ -419,69 +419,78 @@ ensure
     Process.kill(9, pid) rescue nil unless pid.nil?
 end
 
-def run(attempt, devid, exe, args)
+def do_run(attempt, devid, exe, args)
+    log "START (attempt ##{attempt}): #{exe} #{args.join(" ")}"
+
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
+    adb_shell devid, "mkdir -p #{devpath}/lib && mkdir -p #{devpath}/tmp && mkdir -p #{dstpath}"
+
+    [
+        File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
+        File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
+    ].each do |lib|
+        blib = File.basename(lib)
+        next if adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true) == 0
+
+        tlib = File.join(LIBDIR, ABI, blib)
+        if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
+            FileUtils.rm_f tlib
+            FileUtils.mkdir_p File.dirname(tlib)
+            FileUtils.cp lib, tlib
+            system("#{STRIP} --strip-unneeded #{tlib}") unless STRIP.nil?
+        end
+
+        adb_push devid, tlib, "#{devpath}/lib"
+    end
+
+    ([EXE] + EXTRAS).each do |e|
+        be = File.basename(e)
+        next if be == 'libcrystax.so'
+        next if be == 'libgnustl_shared'
+        system("#{STRIP} --strip-unneeded #{e}") unless STRIP.nil?
+        adb_push devid, e, "#{dstpath}/#{be}"
+        adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
+    end
+
+    newargs = []
+    args.each do |arg|
+        if !File.exists?(arg)
+            newargs << arg
+            next
+        end
+
+        be = File.basename(arg)
+        adb_push devid, arg, "#{dstpath}/#{be}"
+        newargs << "#{dstpath}/#{be}"
+    end
+
+    env = {}
+    env['LD_LIBRARY_PATH'] = [
+        "#{devpath}/lib",
+        dstpath,
+    ].join(':')
+    env['TMPDIR'] = "#{devpath}/tmp"
+
+    adb_shell devid, "cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+    log "EXIT: 0"
+rescue AdbShellCommandFailed => e
+    log e.message
+    log "EXIT: #{e.exitcode}"
+    exit e.exitcode
+ensure
+    adb_rm devid, dstpath
+end
+
+def run(attempt, devid, exe, args)
     ENV['ANDROID_SERIAL'] = devid
     log "LOCK  (attempt ##{attempt})"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
         f.flock(File::LOCK_EX)
-
-        log "START (attempt ##{attempt}): #{exe} #{args.join(" ")}"
-        adb_shell devid, "mkdir -p #{devpath}/lib && mkdir -p #{devpath}/tmp && mkdir -p #{dstpath}"
-
-        [
-            File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
-            File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
-        ].each do |lib|
-            blib = File.basename(lib)
-            next if adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true) == 0
-
-            tlib = File.join(LIBDIR, ABI, blib)
-            if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
-                FileUtils.rm_f tlib
-                FileUtils.mkdir_p File.dirname(tlib)
-                FileUtils.cp lib, tlib
-                system("#{STRIP} --strip-unneeded #{tlib}") unless STRIP.nil?
-            end
-
-            adb_push devid, tlib, "#{devpath}/lib"
-        end
-
-        ([EXE] + EXTRAS).each do |e|
-            be = File.basename(e)
-            next if be == 'libcrystax.so'
-            next if be == 'libgnustl_shared'
-            system("#{STRIP} --strip-unneeded #{e}") unless STRIP.nil?
-            adb_push devid, e, "#{dstpath}/#{be}"
-            adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
-        end
-
-        newargs = []
-        args.each do |arg|
-            if !File.exists?(arg)
-                newargs << arg
-                next
-            end
-
-            be = File.basename(arg)
-            adb_push devid, arg, "#{dstpath}/#{be}"
-            newargs << "#{dstpath}/#{be}"
-        end
-
-        env = {}
-        env['LD_LIBRARY_PATH'] = [
-            "#{devpath}/lib",
-            dstpath,
-        ].join(':')
-        env['TMPDIR'] = "#{devpath}/tmp"
-
-        adb_shell devid, "cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+        do_run(attempt, devid, exe, args)
     end
-ensure
-    adb_rm devid, dstpath
 end
 
 begin
@@ -500,15 +509,10 @@ begin
                 run(attempt, id, EXE, ARGV)
             end
 
-            log "EXIT: 0"
             exit 0
         rescue AdbError => e
             log e.message
             sleep 10
-        rescue AdbShellCommandFailed => e
-            log e.message
-            log "EXIT: #{e.exitcode}"
-            exit e.exitcode
         end
     end
 rescue Interrupt
