@@ -1,0 +1,520 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'fileutils'
+require 'timeout'
+require 'securerandom'
+require 'open3'
+
+MYPID = Process.pid
+
+ROOTDIR = File.join(ENV['HOME'], '.crystax', 'adbrunner')
+
+STDOUT_PREFIX = "   > "
+STDERR_PREFIX = "   > "
+
+OPTIONS = {}
+OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
+OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
+OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
+OPTIONS[:pie] = true
+
+optparser = OptionParser.new do |o|
+    o.banner = "Usage: #{$0} [options] executable [exe-options]"
+
+    o.on("-h", "--help", "Show help screen and exit") do
+        puts o
+        exit 0
+    end
+
+    o.on("-l", "--log=FILE", "Use specified file for logging [stdout]") do |f|
+        OPTIONS[:log] = f
+    end
+
+    o.on("--abi=ABI", "Target ABI") do |a|
+        OPTIONS[:abi] = a
+    end
+
+    o.on("--devices-from=FILE", "Use device IDs from specified file [autodetect]") do |f|
+        OPTIONS[:devices_from] = f
+    end
+
+    o.on("--adb=PATH", "Path to adb [autodetect]") do |a|
+        OPTIONS[:adb] = a
+    end
+
+    o.on("--strip=PATH", "Full path to the 'strip' utility needed for stripping binaries before uploading them to device/emulator") do |s|
+        OPTIONS[:strip] = s
+    end
+
+    o.on("--ndk=PATH", "Path to NDK [autodetect]") do |p|
+        OPTIONS[:ndk] = p
+    end
+
+    o.on("--device-path=PATH", "Root path on device used for uploading binaries to [#{OPTIONS[:devpath]}]") do |d|
+        OPTIONS[:devpath] = d
+    end
+
+    o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option") do |p|
+        OPTIONS[:pie] = p
+    end
+
+    o.on("--lib-directory=PATH", "Directory to save temporary libraries before push them on device [#{OPTIONS[:libdir]}]") do |d|
+        OPTIONS[:libdir] = d
+    end
+
+    o.on("--lock-directory=PATH", "Directory used for lock files [#{OPTIONS[:lockdir]}]") do |d|
+        OPTIONS[:lockdir] = d
+    end
+
+end
+optparser.parse!(ARGV)
+
+if OPTIONS[:abi].nil?
+    $stderr.puts "ERROR: No ABI specified"
+    $stderr.puts optparser
+    exit 1
+end
+
+if OPTIONS[:devpath].nil?
+    $stderr.puts "ERROR: No device path specified"
+    $stderr.puts optparser
+    exit 1
+end
+
+EXE = ARGV.shift
+if EXE.nil?
+    $stderr.puts "ERROR: No executable specified"
+    $stderr.puts optparser
+    exit 1
+end
+
+OPTIONS[:adb] = "adb" unless OPTIONS[:adb]
+OPTIONS[:ndk] = File.dirname(File.dirname(__FILE__)) unless OPTIONS[:ndk]
+
+ABI = OPTIONS[:abi]
+ADB = OPTIONS[:adb]
+NDK = OPTIONS[:ndk]
+LOG = OPTIONS[:log]
+PIE = OPTIONS[:pie]
+LOCKDIR = OPTIONS[:lockdir]
+LIBDIR  = OPTIONS[:libdir]
+DEVPATH = OPTIONS[:devpath]
+DEVICES_FROM = OPTIONS[:devices_from]
+STRIP = OPTIONS[:strip]
+
+$stdout.sync = true
+$stderr.sync = true
+
+LIBCRYSTAX = File.join(NDK, 'sources', 'crystax')
+LIBGNUSTL  = File.join(NDK, 'sources', 'cxx-stl', 'gnu-libstdc++', '4.9')
+
+EXTRA_DIRS = []
+['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
+    EXTRA_DIRS += ENV[e].split(':') if ENV[e]
+end
+
+EXTRAS = []
+EXTRA_DIRS.each do |dir|
+    EXTRAS += Dir.glob(File.join(dir, '**', 'lib*.so*'))
+end
+
+class AdbError < Exception
+    def initialize(operation, msg)
+        @operation = operation
+        @msg = msg
+    end
+
+    def operation
+        @operation
+    end
+
+    def message
+        "ADB FAILED (#{@operation}): #{@msg}"
+    end
+end
+
+class AdbShellCommandFailed < Exception
+    def initialize(cmd, rc)
+        @cmd = cmd
+        @rc = rc
+    end
+
+    def exitcode
+        @rc
+    end
+
+    def message
+        "RUN [$?=#{@rc}]: #{@cmd}"
+    end
+end
+
+def log(msg, options = {})
+    do_log = proc do |f|
+        prefix = "## ADBRUNNER.#{MYPID} #{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N')} "
+        prefix << "[%s] " % ENV['ANDROID_SERIAL'] if ENV['ANDROID_SERIAL']
+        f.puts "#{prefix}#{msg}"
+    end
+    if LOG
+        File.open(LOG, "a") { |f| do_log.call(f) }
+    else
+        do_log.call($stdout)
+    end
+end
+
+def panic(msg)
+    $stdout.puts "## ADBRUNNER.#{MYPID} [#{ENV['ANDROID_SERIAL']}] PANIC: #{msg}" if LOG
+    log("PANIC: #{msg}")
+    exit 1
+end
+
+def fail_panic(status, msg)
+    panic msg unless status.success?
+end
+
+def adb_devices
+    devices = []
+
+    if DEVICES_FROM
+        begin
+            return File.read(DEVICES_FROM).split("\n")
+        rescue
+            return []
+        end
+    end
+
+    err = ""
+    pid = nil
+    Timeout.timeout(5) do
+        Open3.popen3("#{ADB} devices") do |i,o,e,t|
+            pid = t.pid
+
+            ot = Thread.start do
+                while line = o.gets.chomp rescue nil
+                    next unless line =~ /^([^\t]+)\tdevice$/
+                    devices << $1
+                end
+            end
+
+            et = Thread.start do
+                while line = e.gets
+                    err << "#{line}\n"
+                end
+            end
+
+            i.close
+            ot.join
+            et.join
+
+            raise AdbError.new('devices', err) unless t.value.success?
+        end
+    end
+
+    fd = []
+    devices.each do |id|
+        apilevel = adb_getprop(id, 'ro.build.version.sdk').to_i
+        next if apilevel <= 15 && PIE
+        next if apilevel >= 21 && !PIE
+
+        devabilist = []
+        devabilist += adb_getprop(id, 'ro.product.cpu.abilist').split(',')
+        if devabilist.empty?
+            devabi1 = adb_getprop(id, 'ro.product.cpu.abi')
+            devabi2 = adb_getprop(id, 'ro.product.cpu.abi2')
+            devabilist << devabi1 unless devabi1.empty?
+            devabilist << devabi2 unless devabi2.empty?
+        end
+        devabilist << "armeabi-v7a-hard" if devabilist.include?("armeabi-v7a")
+
+        devmainabi = devabilist.first
+        devabilist.each do |devabi|
+            next if devabi != ABI
+            # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
+            # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
+            # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
+            next if devabi =~ /^armeabi-v7a/ && devmainabi == 'x86' && PIE
+            fd << id
+        end
+    end
+
+    fd
+rescue Timeout::Error
+    log "WARNING: 'adb devices' timed out"
+    []
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def adb_getprop(devid, propname)
+    tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
+    adbcmd = "#{ADB} -s '#{devid}' shell 'getprop #{propname} ; echo \"#{tag}:$?\"'"
+
+    os = []
+    es = []
+    pid = nil
+    Timeout.timeout(5) do
+        Open3.popen3(adbcmd) do |i,o,e,t|
+            pid = t.pid
+
+            ot = Thread.start do
+                while line = o.gets.chomp rescue nil
+                    os << line
+                end
+            end
+
+            et = Thread.start do
+                while line = e.gets.chomp rescue nil
+                    es << line
+                end
+            end
+
+            i.close
+            ot.join
+            et.join
+
+            raise AdbError.new("geprop #{propname}", es.join("\n")) unless t.value.success?
+        end
+    end
+
+    last = os.last
+    raise AdbError.new("getprop #{propname}", os.join("\n")) unless last =~ /#{tag}:(\d+)$/
+    raise AdbError.new("getprop #{propname}", "exit code: #{$1}") unless $1.to_i == 0
+
+    last.sub!(/#{tag}:.*$/, '')
+    os = os[0..-2]
+    os << last unless last.empty?
+
+    os.join("\n")
+rescue Timeout::Error
+    log "WARNING: 'adb getprop #{propname}' timed out"
+    nil
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def adb_rm(devid, files)
+    adbcmd = "#{ADB} -s '#{devid}' shell 'rm -r #{files}'"
+
+    pid = nil
+    Timeout.timeout(10) do
+        Open3.popen3(adbcmd) do |i,o,e,t|
+            pid = t.pid
+
+            ot = Thread.start do
+                while o.getc
+                    # Nothing
+                end
+            end
+
+            et = Thread.start do
+                while e.getc
+                    # Nothing
+                end
+            end
+
+            i.close
+            ot.join
+            et.join
+
+            t.value
+        end
+    end
+rescue Timeout::Error
+    log "WARNING: 'adb rm #{files}' timed out"
+    nil
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def adb_shell(devid, cmd, options = {})
+    log "RUN: #{cmd}"
+
+    tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
+    adbcmd = "#{ADB} -s '#{devid}' shell '#{cmd} ; echo \"#{tag}:$?\"'"
+
+    os = []
+    es = []
+    pid = nil
+    Open3.popen3(adbcmd) do |i,o,e,t|
+        pid = t.pid
+
+        ot = Thread.start do
+            while line = o.gets.chomp rescue nil
+                os << line
+
+                logline = line.dup
+                if logline =~ /#{tag}:.*$/
+                    logline.sub!(/#{tag}:.*$/, '')
+                    log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
+                else
+                    log "#{STDOUT_PREFIX}#{logline}"
+                end
+            end
+        end
+
+        et = Thread.start do
+            while line = e.gets.chomp rescue nil
+                log "#{STDERR_PREFIX}#{line}"
+                es << line
+            end
+        end
+
+        i.close
+        ot.join
+        et.join
+
+        raise AdbError.new('shell', es.join("\n")) unless t.value.success?
+    end
+
+    last = os.last
+    raise AdbError.new('shell', os.join("\n")) unless last =~ /#{tag}:(\d+)$/
+
+    rc = $1.to_i
+    last.sub!(/#{tag}:.*$/, '')
+
+    os = os[0..-2]
+    os << last
+
+    $stdout.write os.join("\n")
+    raise AdbShellCommandFailed.new(cmd, rc) if rc != 0 && !options[:nothrow]
+    rc
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def adb_push(devid, src, dst)
+    raise "No such file or directory: #{src}" unless File.exists?(src)
+
+    if File.directory?(src)
+        bsrc = File.basename(src)
+        dst = File.join(dst, bsrc)
+        raise AdbError.new('push', "Can't create #{dst}") if adb_shell(devid, "mkdir -p #{dst}", nothrow: true) != 0
+    end
+
+    log "PUSH: #{src} -> #{dst}"
+
+    pid = nil
+    Open3.popen3("#{ADB} -s '#{devid}' push #{src} #{dst}") do |i,o,e,t|
+        pid = t.pid
+
+        ot = Thread.start do
+            while line = o.gets
+                log line
+            end
+        end
+
+        et = Thread.start do
+            while line = e.gets
+                log line
+            end
+        end
+
+        i.close
+        ot.join
+        et.join
+
+        raise AdbError.new('push', "Can't push #{src} to #{dst}") unless t.value.success?
+    end
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def run(attempt, devid, exe, args)
+    devpath = File.join(DEVPATH, ABI)
+    dstpath = File.join(devpath, SecureRandom.uuid)
+
+    ENV['ANDROID_SERIAL'] = devid
+    log "LOCK  (attempt ##{attempt})"
+    FileUtils.mkdir_p LOCKDIR
+    File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
+        f.flock(File::LOCK_EX)
+
+        log "START (attempt ##{attempt}): #{exe} #{args.join(" ")}"
+        adb_shell devid, "mkdir -p #{devpath}/lib && mkdir -p #{devpath}/tmp && mkdir -p #{dstpath}"
+
+        [
+            File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
+            File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
+        ].each do |lib|
+            blib = File.basename(lib)
+            next if adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true) == 0
+
+            tlib = File.join(LIBDIR, ABI, blib)
+            if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
+                FileUtils.rm_f tlib
+                FileUtils.mkdir_p File.dirname(tlib)
+                FileUtils.cp lib, tlib
+                system("#{STRIP} --strip-unneeded #{tlib}") unless STRIP.nil?
+            end
+
+            adb_push devid, tlib, "#{devpath}/lib"
+        end
+
+        ([EXE] + EXTRAS).each do |e|
+            be = File.basename(e)
+            next if be == 'libcrystax.so'
+            next if be == 'libgnustl_shared'
+            system("#{STRIP} --strip-unneeded #{e}") unless STRIP.nil?
+            adb_push devid, e, "#{dstpath}/#{be}"
+            adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
+        end
+
+        newargs = []
+        args.each do |arg|
+            if !File.exists?(arg)
+                newargs << arg
+                next
+            end
+
+            be = File.basename(arg)
+            adb_push devid, arg, "#{dstpath}/#{be}"
+            newargs << "#{dstpath}/#{be}"
+        end
+
+        env = {}
+        env['LD_LIBRARY_PATH'] = [
+            "#{devpath}/lib",
+            dstpath,
+        ].join(':')
+        env['TMPDIR'] = "#{devpath}/tmp"
+
+        adb_shell devid, "cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+    end
+ensure
+    adb_rm devid, dstpath
+end
+
+begin
+    attempt = 0
+    while true
+        begin
+            attempt += 1
+
+            devices = adb_devices
+            if devices.empty?
+                log "No device/emulator present; will try bit later"
+                sleep 10
+                next
+            end
+            devices.each do |id|
+                run(attempt, id, EXE, ARGV)
+            end
+
+            log "EXIT: 0"
+            exit 0
+        rescue AdbError => e
+            log e.message
+            sleep 10
+        rescue AdbShellCommandFailed => e
+            log e.message
+            log "EXIT: #{e.exitcode}"
+            exit e.exitcode
+        end
+    end
+rescue Interrupt
+    $stderr.puts "\n\nINTERRUPTED"
+    exit 1
+rescue RuntimeError => e
+    $stderr.puts "FATAL: #{e.message}"
+    exit 1
+end

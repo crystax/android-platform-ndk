@@ -181,6 +181,7 @@ trap "printf '\\n\\n*** INTERRUPTED: $0\\n\\n'; exit 1" INT
 
 WLOG=/tmp/wrappers-$(uuidgen).log
 rm -f $WLOG
+touch $WLOG >/dev/null 2>&1
 tail -F $WLOG | catlog &
 WPID=$(jobs -p)
 
@@ -600,261 +601,40 @@ EOF
 
 # $1: ABI
 # $2: target directory
-# $3: 'flock' utility
-# $4: 'strip' utility
+# $3: 'strip' utility
 generate_adbrunner()
 {
     local ABI="$1"
     local DIR="$2"
-    local FLOCK="$3"
-    local STRIP="$4"
+    local STRIP="$3"
 
     local LIBDIR="$DIR/lib"
     run rm -Rf $LIBDIR
-
-    local RUNTAG="EXITCODE$(uuidgen | sed 's,-,,g')"
 
     local ADBRUNNER=$DIR/adbrunner
     {
         echo '#!/bin/bash'
         echo ''
-        echo 'LOG='$WLOG
+        echo 'echo "## COMMAND: $0 $@" >>'$WLOG
         echo ''
-        echo 'MYCMD="$0 $@"'
-        echo ''
-        echo 'echo "## COMMAND: $MYCMD" >>$LOG'
-        echo ''
-        echo 'F="$1"'
-        echo 'shift'
-        echo 'ARGS="$@"'
-        echo 'MYPID=$$'
-        echo 'BF=$(basename $F)'
-        echo 'ABI="'$ABI'"'
-        echo 'DEVPATH="'$DEVICE_PATH/$ABI'"'
-        echo 'DSTPATH=$DEVPATH/$(uuidgen)'
-        echo 'ADB="'$ADB'"'
-        echo 'LOCKDIR="'$ADBRUNNER_LOCK_DIRECTORY'"'
-        echo 'FLOCK="'$FLOCK'"'
-        echo 'STRIP="'$STRIP'"'
-        echo 'STDBUF="'$STDBUF'"'
-        echo 'LIBDIR="'$LIBDIR'"'
-        echo 'RUNTAG="'$RUNTAG'"'
-        echo 'ADBFAILED=/tmp/adbfailed.$(uuidgen)'
-        echo ''
-        echo 'LIBCRYSTAX="'$LIBCRYSTAX'"'
-        echo 'GNULIBCXX="'$NDK_DIR'/sources/cxx-stl/gnu-libstdc++/4.9"'
-        if [ -n "$ICU" ]; then
-            echo 'ICU="'$ICU'"'
-        fi
-        echo ''
-        echo 'EXTRAS=""'
-        echo ''
-        echo 'EXTRAS_DIRS=""'
-        echo 'for DIR in $(echo $LD_LIBRARY_PATH $DYLD_LIBRARY_PATH | tr ":" " "); do'
-        echo '    EXTRAS_DIRS="$DIR $EXTRAS_DIRS"'
-        echo 'done'
-        echo ''
-        echo 'for DIR in $EXTRAS_DIRS; do'
-        echo '    for LIB in $(find $DIR -name "lib*.so*" -print 2>/dev/null); do'
-        echo '        EXTRAS="$EXTRAS $LIB"'
-        echo '    done'
-        echo 'done'
-        echo ''
-        echo 'log()'
-        echo '{'
-        echo '    echo "## ADBRUNNER.$MYPID [$ANDROID_SERIAL] $@" >>$LOG'
-        echo '}'
-        echo ''
-        echo 'panic()'
-        echo '{'
-        echo '    echo "## ADBRUNNER.$MYPID [$ANDROID_SERIAL] PANIC: $@"'
-        echo '    log "$@"'
-        echo '    exit 1'
-        echo '}'
-        echo ''
-        echo 'fail_panic()'
-        echo '{'
-        echo '    if [ $? -ne 0 ]; then'
-        echo '        panic "$@"'
-        echo '    fi'
-        echo '}'
-        echo ''
-        echo 'timeout()'
-        echo '{'
-        echo '    local TM="$1"'
-        echo '    shift'
-        echo '    local PID WATCHER'
-        echo '    "$@" & PID=$!'
-        echo '    ( sleep $TM; kill $PID; sleep 0.5; kill -9 $PID ) 2>/dev/null & WATCHER=$!'
-        echo '    wait $PID && kill $WATCHER 2>/dev/null'
-        echo '}'
-        echo ''
-        echo 'adb_shell()'
-        echo '{'
-        echo '    local CMD="$@"'
-        echo '    local ADBCAP=$F.adbcap.$(uuidgen)'
-        echo '    local RC'
-        echo '    log "RUN: $CMD"'
-        echo '    rm -f $ADBCAP'
-        echo '    rm -f $ADBFAILED'
-        echo '    $ADB shell "$CMD ; echo \"${RUNTAG}:\$?\"" 2>&1 \'
-        echo '        | $STDBUF sed -e "s,[[:cntrl:]],,g" \'
-        echo '        | $STDBUF tee $ADBCAP \'
-        echo '        >>$LOG'
-        echo '    sed -e "\$d" $ADBCAP'
-        echo '    local LAST=$(tail -n 1 $ADBCAP 2>/dev/null)'
-        echo '    echo "$LAST" | sed -e "s,${RUNTAG}:.*\$,,"'
-        echo '    echo "$LAST" | grep -q "$RUNTAG"'
-        echo '    if [ $? -eq 0 ]; then'
-        echo '        RC=$(echo "$LAST" | sed "s,^.*${RUNTAG}:,,")'
-        echo '        log "EXIT CODE: $RC"'
-        echo '    else'
-        echo '        log "ADB FAILED: $LAST"'
-        echo '        touch $ADBFAILED >>$LOG 2>&1'
-        echo '        RC=1'
-        echo '    fi'
-        echo '    rm -f $ADBCAP'
-        echo '    return $RC'
-        echo '}'
-        echo ''
-        echo 'adb_push()'
-        echo '{'
-        echo '    local SRC="$1"'
-        echo '    local DST="$2"'
-        echo '    local BSRC'
-        echo ''
-        echo '    if [ -d $SRC ]; then'
-        echo '        BSRC=$(basename $SRC)'
-        echo '        adb_shell "mkdir -p $DST/$BSRC"'
-        echo '        if [ $? -ne 0 ]; then'
-        echo '            timeout 10 $ADB shell "rm -r $DST" >/dev/null 2>&1'
-        echo '            touch $ADBFAILED >>$LOG 2>&1'
-        echo '            panic "PUSH FAILED: $SRC"'
-        echo '        fi'
-        echo '        DST=$DST/$BSRC'
-        echo '    fi'
-        echo ''
-        echo '    local CMD="$ADB push $SRC $DST"'
-        echo '    log "PUSH: $CMD"'
-        echo '    $CMD >>$LOG 2>&1'
-        echo '    if [ $? -ne 0 ]; then'
-        echo '        timeout 10 $ADB shell "rm -r $DST" >/dev/null 2>&1'
-        echo '        touch $ADBFAILED >>$LOG 2>&1'
-        echo '        panic "PUSH FAILED: $SRC"'
-        echo '    fi'
-        echo '}'
-        echo ''
-        echo 'ATTEMPT=0'
-        echo 'while true; do'
-        echo '    let ATTEMPT+=1'
-        echo '    {'
-        if [ -n "$DEVICES_FROM" ]; then
-            echo '        cat '$DEVICES_FROM' 2>/dev/null'
-        else
-            echo '        cat <<EOD'
-            adb_devices $ABI
-            echo 'EOD'
-        fi
-        echo '    } | {'
-        echo '    while read D; do'
-        echo '        if [ "$D" = "none" ]; then'
-        echo '            touch $ADBFAILED >>$LOG 2>&1'
-        echo '            break'
-        echo '        fi'
-        echo ''
-        echo '        mkdir -p $LOCKDIR >/dev/null 2>&1'
-        echo '        ('
-        echo '        export ANDROID_SERIAL="$D"'
-        echo ''
-        echo '        log "ACQUIRE LOCK (attempt #${ATTEMPT})..."'
-        echo ''
-        echo '        exec 3>"$LOCKDIR/$D.lock"'
-        echo '        $FLOCK 3'
-        echo '        fail_panic "LOCK FAILED"'
-        echo ''
-        echo '        log "START (attempt #${ATTEMPT}): $F $ARGS"'
-        echo ''
-        echo '        adb_shell "mkdir -p $DEVPATH/lib && mkdir -p $DEVPATH/tmp && mkdir -p $DSTPATH"'
-        echo '        fail_panic "CANNOT CREATE REQUIRED DIRECTORIES"'
-        echo ''
-        echo '        for LIB in \'
-        echo '            $LIBCRYSTAX/libs/$ABI/libcrystax.so \'
-        echo '            $GNULIBCXX/libs/$ABI/libgnustl_shared.so \'
-        if [ -n "$ICU" ]; then
-            echo '            $ICU/libs/$ABI/lib*.so \'
-        fi
-        echo '            ; do'
-        echo ''
-        echo '            BLIB=$(basename $LIB)'
-        echo ''
-        echo '            adb_shell "test -e $DEVPATH/lib/$BLIB"'
-        echo '            if [ $? -eq 0 ]; then'
-        echo '                continue'
-        echo '            fi'
-        echo ''
-        echo '            if [ ! -e $LIBDIR/$BLIB ]; then'
-        echo '                mkdir -p $LIBDIR'
-        echo '                fail_panic "MKDIR FAILED: $LIBDIR"'
-        echo '                cp -f $LIB $LIBDIR/'
-        echo '                fail_panic "COPY FAILED: $LIB -> $LIBDIR/"'
-        echo '                $STRIP --strip-unneeded $LIBDIR/$BLIB'
-        echo '                fail_panic "STRIP FAILED: $LIBDIR/$BLIB"'
-        echo '            fi'
-        echo ''
-        echo '            adb_push "$LIBDIR/$BLIB" "$DEVPATH/lib"'
-        echo '        done'
-        echo ''
-        echo '        for E in $F $EXTRAS; do'
-        echo '            BE=$(basename $E)'
-        echo '            echo $BE | grep -q -x libcrystax.so && continue'
-        echo '            echo $BE | grep -q -x libgnustl_shared.so && continue'
-        if [ -n "$ICU" ]; then
-            echo '            echo $BE | grep -q "^libicu.*" && continue'
-        fi
-        echo '            $STRIP --strip-unneeded $E >/dev/null 2>&1'
-        echo '            adb_push "$E" "$DSTPATH/$BE" && adb_shell "chmod 0755 $DSTPATH/$BE"'
-        echo '        done'
-        echo ''
-        echo '        NEWARGS=""'
-        echo '        for E in $ARGS; do'
-        echo '            if [ -e $E ]; then'
-        echo '                BE=$(basename $E)'
-        echo '                adb_push "$E" "$DSTPATH/$BE"'
-        echo '                NEWARGS="$NEWARGS $DSTPATH/$BE"'
-        echo '            else'
-        echo '                NEWARGS="$NEWARGS $E"'
-        echo '            fi'
-        echo '        done'
-        echo ''
-        echo '        adb_shell "cd $DSTPATH && LD_LIBRARY_PATH=$DEVPATH/lib:$DSTPATH TMPDIR=$DEVPATH/tmp ./$BF $NEWARGS"'
-        echo '        RC=$?'
-        echo '        timeout 10 $ADB shell "rm -r $DSTPATH" >/dev/null 2>&1'
-        echo '        if [ $RC -ne 0 ]; then'
-        echo '            log "RUN FAILED [\$?=$RC]: $F"'
-        echo '            exit $RC'
-        echo '        fi'
-        echo ''
-        echo '        exit 0'
-        echo ''
-        echo '        )'
-        echo '        RC=$?'
-        echo '        test $RC -eq 0 || break'
-        echo '    done'
-        echo '    }'
-        echo '    RC=$?'
-        echo '    if [ -f $ADBFAILED ]; then'
-        echo '        rm -f $ADBFAILED'
-        echo '        sleep 5'
-        echo '        continue'
-        echo '    fi'
-        echo '    echo "## ADBRUNNER.$MYPID EXIT: $RC" >>$LOG'
-        echo '    exit $RC'
-        echo 'done'
-        echo ''
-        echo 'echo "## ADBRUNNER.$MYPID EXIT: 0" >>$LOG'
-        echo 'exit 0'
-    } | mktool $ADBRUNNER
 
+        local PARAMS=""
+        PARAMS="$PARAMS --log=$WLOG"
+        PARAMS="$PARAMS --abi=$ABI"
+        PARAMS="$PARAMS --adb=$ADB"
+        PARAMS="$PARAMS --strip=$STRIP"
+        PARAMS="$PARAMS --lib-directory=$LIBDIR"
+        if [ "$ENABLE_PIE" = "yes" ]; then
+            PARAMS="$PARAMS --pie"
+        else
+            PARAMS="$PARAMS --no-pie"
+        fi
+        if [ -n "$DEVICES_FROM" ]; then
+            PARAMS="$PARAMS --devices-from=$DEVICES_FROM"
+        fi
+
+        echo 'exec '$NDK_DIR'/tools/adbrunner '$PARAMS' "$@"'
+    } | mktool $ADBRUNNER
 }
 
 # $1: target directory
@@ -902,8 +682,10 @@ cleanup_pjl()
 {
     local DIR="$1"
 
-    which objdump >/dev/null 2>&1
-    fail_panic "Cannot find objdump utility"
+    objdump=""
+    test -z "$objdump" && which objdump  >/dev/null 2>&1 && objdump="objdump"
+    test -z "$objdump" && which gobjdump >/dev/null 2>&1 && objdump="gobjdump"
+    test -z "$objdump" && panic "Cannot find objdump utility"
 
     local F
     for F in $(find $DIR/build/bin -type f -a -name process_jam_log -print); do
@@ -1036,7 +818,7 @@ test_boost_for_abi ()
     fi
 
     # Generate adbrunner tool
-    generate_adbrunner "$ABI" "$TESTDIR" "$FLOCK" "$STRIP"
+    generate_adbrunner "$ABI" "$TESTDIR" "$STRIP"
 
     # Copy Boost sources
     copy_boost "$SRCDIR/boost_root"
