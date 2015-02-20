@@ -1077,15 +1077,16 @@ fetch()
     run git clean -ffddx || exit 1
     run git submodule foreach --recursive 'git reset --hard && git clean -ffddx' || exit 1
 
-    SHA1=$(git rev-list --max-count=1 origin/$BRANCH)
+    SHA1=$(git rev-parse --verify origin/$BRANCH)
     test -n "$SHA1" || exit 1
 
-    run git checkout -q $SHA1 || exit 1
+    run git checkout -q -f $SHA1 || exit 1
     run git branch -D $BRANCH 2>/dev/null
 
     run git checkout -b $BRANCH || exit 1
+    run git submodule init || exit 1
     run git submodule sync --recursive || exit 1
-    run git submodule update --recursive --init || exit 1
+    run git submodule update --recursive || exit 1
     )
     fail_panic "Cannot fetch $URL to $DIR"
 }
