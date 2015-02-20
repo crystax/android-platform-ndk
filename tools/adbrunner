@@ -109,14 +109,13 @@ $stderr.sync = true
 LIBCRYSTAX = File.join(NDK, 'sources', 'crystax')
 LIBGNUSTL  = File.join(NDK, 'sources', 'cxx-stl', 'gnu-libstdc++', '4.9')
 
-EXTRA_DIRS = []
-['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
-    EXTRA_DIRS += ENV[e].split(':') if ENV[e]
-end
-
 EXTRAS = []
-EXTRA_DIRS.each do |dir|
-    EXTRAS += Dir.glob(File.join(dir, '**', 'lib*.so*'))
+['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
+    ENV[e].split(':').each do |dir|
+        Dir.glob(File.join(dir, '**', 'lib*.so*')).each do |lib|
+            EXTRAS << lib
+        end
+    end if ENV[e]
 end
 
 class AdbError < Exception
