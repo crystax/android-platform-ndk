@@ -554,51 +554,6 @@ EOF
     done
 }
 
-# $1: output file
-generate_flock()
-{
-    local OUT="$1"
-    local SRC=/tmp/flock-$(uuidgen).c
-
-    rm -f $SRC
-    at_exit "rm -f $SRC"
-
-    cat >$SRC <<EOF
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/file.h>
-
-int main(int argc, char *argv[])
-{
-    int fd;
-    char *p;
-
-    if (argc != 2)
-        return 1;
-
-    fd = strtol(argv[1], &p, 10);
-    if (fd == 0 && p == argv[1])
-        return 1;
-
-    if (fcntl(fd, F_SETFD, FD_CLOEXEC) == -1)
-        return 1;
-
-    if (flock(fd, LOCK_EX) == -1)
-        return 1;
-
-    return 0;
-}
-EOF
-    fail_panic "Cannot create temporary flock source file"
-
-    run mkdir -p $(dirname $OUT)
-    fail_panic "Cannot create directory for flock"
-
-    run cc -o $OUT $SRC
-    fail_panic "Cannot create flock utility"
-}
-
 # $1: ABI
 # $2: target directory
 # $3: 'strip' utility
@@ -1056,12 +1011,9 @@ fetch()
     log "=== Fetching $URL to $DIR (branch $BRANCH)"
 
     local PARENT=$(dirname $DIR)
-    local LOCKFILE="${DIR}.lock"
 
     (
     run mkdir -p $PARENT || exit 1
-    exec 3>$LOCKFILE
-    run $FLOCK 3 || exit 1
 
     if [ ! -d $DIR ]; then
         run mkdir -p $DIR || exit 1
@@ -1117,11 +1069,6 @@ fetch_boost_rr()
 
     fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
 }
-
-FLOCK=$TEST_DIR/flock.$(uuidgen)
-rm -f $FLOCK
-at_exit "rm -f $FLOCK"
-generate_flock $FLOCK
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
 BOOST_BB_SRCDIR=$TEST_DIR/$TAG/src/boost_bb
