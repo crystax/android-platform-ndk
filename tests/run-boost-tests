@@ -72,9 +72,6 @@ register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries t
 DEVICE_PATH=/data/local/tmp/boost-$(uuidgen)
 register_var_option "--device-path=<path>" DEVICE_PATH "Path on device where to push files"
 
-ADBRUNNER_LOCK_DIRECTORY=$TEST_DIR/lock
-register_var_option "--adbrunner-lock-directory=<path>" ADBRUNNER_LOCK_DIRECTORY "Directory where to place per-emulator lock files for adbrunner"
-
 REPORTS_PATH=$TEST_DIR/reports
 register_var_option "--reports=<path>" REPORTS_PATH "Path to store HTML reports"
 
@@ -84,13 +81,9 @@ do_pie () { ENABLE_PIE=yes; }
 register_option "--no-pie" do_no_pie "Produce PIE-disabled binaries to test"
 do_no_pie () { ENABLE_PIE=no; }
 
-DO_FETCH=no
-register_option "--fetch-sources" do_fetch_sources "Fetch&update Boost sources"
-do_fetch_sources () { DO_FETCH=yes; }
-
-DO_REGRESSION_TESTING=yes
-register_option "--skip-regression" do_skip_regression "Skip regression testing"
-do_skip_regression () { DO_REGRESSION_TESTING=no; }
+DO_FETCH=yes
+register_option "--skip-fetch-sources" do_skip_fetch_sources "Fetch&update Boost sources"
+do_skip_fetch_sources () { DO_FETCH=no; }
 
 PUBLISH_RESULTS=no
 register_option "--publish-results" do_publish_results "Publish test results, uploading them to the public FTP"
@@ -126,6 +119,10 @@ LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
 #ICU_VERSION=$(ls -1 $NDK_DIR/$ICU_SUBDIR/ 2>/dev/null | head -n 1)
 if [ -n "$ICU_VERSION" ]; then
     ICU=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
+    if [ ! -d $ICU ]; then
+        echo "ERROR: No ICU $ICU_VERSION found in $NDK_DIR" 1>&2
+        exit 1
+    fi
 else
     ICU=""
 fi
@@ -1090,18 +1087,16 @@ else
     fi
 fi
 
-if [ "$DO_REGRESSION_TESTING" = "yes" ]; then
-    for ABI in $ABIS; do
-        NUM_DEVICES=$(adb_devices $ABI | wc -l)
-        if [ $NUM_DEVICES -eq 0 ]; then
-            dump "Skip regression tests [$ABI]: no compatible devices found"
-            continue
-        fi
+for ABI in $ABIS; do
+    NUM_DEVICES=$(adb_devices $ABI | wc -l)
+    if [ $NUM_DEVICES -eq 0 ]; then
+        dump "Skip regression tests [$ABI]: no compatible devices found"
+        continue
+    fi
 
-        log "Found $NUM_DEVICES $ABI-compatible devices"
+    log "Found $NUM_DEVICES $ABI-compatible devices"
 
-        test_boost_for_abi "$ABI" "$REGRESSION_DIR/$ABI"
-    done
-fi
+    test_boost_for_abi "$ABI" "$REGRESSION_DIR/$ABI"
+done
 
 dump "Done!"
