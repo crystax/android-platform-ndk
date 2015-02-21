@@ -107,6 +107,15 @@ register_var_option "--boost-regression-url=<url>" BOOST_REGRESSION_GIT_URL "Use
 STD_CXX=
 register_var_option "--std=<standard>" STD_CXX "Use specified C++ standard to build tests"
 
+OPTION_RUNNER=
+register_var_option "--runner=<runner>" OPTION_RUNNER "Explicit runner name"
+
+RUNNER_COMMENT_HEADER=
+register_var_option "--runner-comment-header=<file>" RUNNER_COMMENT_HEADER "Header of runner comment"
+
+RUNNER_COMMENT_FOOTER=
+register_var_option "--runner-comment-footer=<file>" RUNNER_COMMENT_FOOTER "Footer of runner comment"
+
 ICU_VERSION=
 register_var_option "--with-icu=<version>" ICU_VERSION "Test with ICU"
 
@@ -689,6 +698,34 @@ prepare_boost_tools()
 }
 
 # $1: ABI
+runner_name()
+{
+    local ABI="$1"
+
+    local FLEVELS=/tmp/apilevels.$(uuidgen)
+    rm -f $FLEVELS
+    at_exit "rm -f $FLEVELS"
+    adb_devices $ABI | {
+        local D
+        while read D; do
+            adb_getprop "$D" ro.build.version.sdk >>$FLEVELS
+        done
+    }
+    cat $FLEVELS | sed 's,^,RUNNER: FLEVELS: ,' | catlog
+    local APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
+    rm -f $FLEVELS
+    if [ -z "$APILEVELS" ]; then
+        panic "Cannot detect API levels"
+    fi
+
+    APILEVELS=$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')
+
+    local RUNNER="Android-apilevel-$APILEVELS-$ABI"
+    log "RUNNER: $RUNNER"
+    echo $RUNNER
+}
+
+# $1: ABI
 # $2: test directory
 test_boost_for_abi ()
 {
@@ -778,58 +815,18 @@ test_boost_for_abi ()
     # Prepare Boost tools (bjam, process_jam_log)
     prepare_boost_tools "$SRCDIR"
 
-    local FLEVELS=/tmp/apilevels.$(uuidgen)
-    local DEVICES=/tmp/devices.$(uuidgen)
-    rm -f $FLEVELS $DEVICES
-    adb_devices $ABI | {
-        local D
-        while read D; do
-            log "RUNNER: D='$D'"
-            local APILEVEL=$(adb_getprop "$D" ro.build.version.sdk)
-            local VERSION=$(adb_getprop "$D" ro.build.version.release)
-            local DEVICE=$(adb_getprop "$D" ro.product.device)
-
-            log "RUNNER: APILEVEL: '$APILEVEL'"
-            log "RUNNER: VERSION:  '$VERSION'"
-            log "RUNNER: DEVICE:   '$DEVICE'"
-
-            local MODEL
-            case $DEVICE in
-                generic*)
-                    MODEL=emulator
-                    ;;
-                *)
-                    MODEL=$(adb_getprop "$D" ro.product.model)
-            esac
-
-            log "RUNNER: MODEL: '$MODEL'"
-
-            echo $APILEVEL >>$FLEVELS
-
-            {
-                printf '<tr>'
-                for V in "$VERSION" "$APILEVEL" "$MODEL"; do
-                    printf '<td style="border: solid 1px #ccc; padding: 0.5em;">%s</td>' "$V"
-                done
-                printf '</tr>\n'
-            } | cat >>$DEVICES
-        done
-    }
-    log "RUNNER: FLEVELS:"
-    cat $FLEVELS | sed 's,^,RUNNER: FLEVELS: ,' | catlog
-    APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
-    rm -f $FLEVELS
-    log "RUNNER: APILEVELS: '$APILEVELS'"
-    if [ -z "$APILEVELS" ]; then
-        panic "Cannot detect API levels"
+    local RUNNER
+    if [ -n "$OPTION_RUNNER" ]; then
+        RUNNER=$OPTION_RUNNER
+    else
+        RUNNER=$(runner_name)
+        if [ -n "$STD_CXX" ]; then
+            RUNNER="${RUNNER}-std-$STD_CXX"
+        fi
     fi
 
     local COMMENT="$SRCDIR/comment.html"
-    generate_runner_comment "$COMMENT" "$ABI" "$DEVICES" "$CONFIGJAM" "$CXXBINS"
-    rm -f $DEVICES
-
-    local RUNNER="CrystaX.NET-apilevel-$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')-$ABI"
-    log "RUNNER: RUNNER: '$RUNNER'"
+    generate_runner_comment "$COMMENT" "$CONFIGJAM" "$CXXBINS"
 
     local RUNPY="$SRCDIR/run.py --use-local --tag=$TAG"
 
@@ -850,7 +847,6 @@ test_boost_for_abi ()
 
     if [ -n "$STD_CXX" ]; then
         BJAM_OPTIONS="$BJAM_OPTIONS cxxflags='-std=$STD_CXX'"
-        RUNNER="${RUNNER}-std-$STD_CXX"
     fi
 
     BJAM_OPTIONS=$(echo $BJAM_OPTIONS | tr ' ' '\n' | grep -v '^$' | tr '\n' ' ')
@@ -921,53 +917,20 @@ test_boost_for_abi ()
 generate_runner_comment()
 {
     local COMMENT="$1"
-    local ABI="$2"
-    local DEVICES="$3"
-    local CONFIGJAM="$4"
-    local COMPILERS="$5"
+    local CONFIGJAM="$2"
+    local COMPILERS="$3"
 
     local APILEVEL
 
     run mkdir -p $(dirname $COMMENT)
     fail_panic "Cannot create directory"
 
-    if [ $(cat $DEVICES 2>/dev/null | wc -l) -gt 1 ]; then
-        ANAME="several Android emulators (or having several Android devices connected)"
-    else
-        ANAME="Android emulator (or having Android device connected)"
-    fi
-
     {
-        cat <<HTML
-<h2><a href="https://www.crystax.net/" target="_blank">CrystaX.NET</a></h2>
-
-<p>
-This runner is a $(uname -s) machine, running ${ANAME}.<br/>
-</p>
-HTML
-        if [ -n "$STD_CXX" ]; then
-            echo "<p>All tests were built with -std=$STD_CXX option.</p>"
+        if [ -n "$RUNNER_COMMENT_HEADER" ]; then
+            cat $RUNNER_COMMENT_HEADER 2>/dev/null
         fi
 
-        echo "<p>ABI: $ABI</p>"
-
-        echo '<p>'
-        echo 'Test devices:<br/>'
-        echo '<table style="border-collapse: collapse;">'
-        echo '<tr>'
-        for V in "Android version" "API level" "Device"; do
-            printf '<th style="border: solid 1px #ccc; padding: 0.5em;">%s</th>\n' "$V"
-        done
-        echo '</tr>'
-        cat $DEVICES 2>/dev/null | sort
-        echo '</table>'
-        echo '</p>'
-
         cat <<HTML
-<p>
-<a href="https://www.crystax.net/android/ndk" target="_blank">CrystaX NDK</a> was used to run these tests.
-</p>
-
 <p>
 user-config.jam
 <pre>
@@ -985,12 +948,9 @@ HTML
         done
         echo "</pre>"
 
-        cat <<HTML
-<p>
-<a href="https://www.crystax.net/service" target="_blank">Our services</a><br/>
-<a href="https://www.crystax.net/contact" target="_blank">Contact us</a><br/>
-</p>
-HTML
+        if [ -n "$RUNNER_COMMENT_FOOTER" ]; then
+            cat $RUNNER_COMMENT_FOOTER 2>/dev/null
+        fi
     } | cat >$COMMENT
     fail_panic "Cannot generate runner's comment.html"
 }
