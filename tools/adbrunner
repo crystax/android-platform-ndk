@@ -427,12 +427,16 @@ def do_run(attempt, devid, exe, args)
 
     adb_shell devid, "mkdir -p #{devpath}/lib && mkdir -p #{devpath}/tmp && mkdir -p #{dstpath}"
 
-    [
+    known_libs = [
         File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
         File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
-    ].each do |lib|
+    ]
+
+    known_libs.each do |lib|
         blib = File.basename(lib)
-        next if adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true) == 0
+        rc = adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true)
+        log "TEST: #{rc}"
+        next if rc == 0
 
         tlib = File.join(LIBDIR, ABI, blib)
         if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
@@ -447,8 +451,8 @@ def do_run(attempt, devid, exe, args)
 
     ([EXE] + EXTRAS).each do |e|
         be = File.basename(e)
-        next if be == 'libcrystax.so'
-        next if be == 'libgnustl_shared'
+        next if known_libs.map { |lib| File.basename(lib) }.include?(be)
+
         system("#{STRIP} --strip-unneeded #{e}") unless STRIP.nil?
         adb_push devid, e, "#{dstpath}/#{be}"
         adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
