@@ -11,7 +11,7 @@ MYPID = Process.pid
 ROOTDIR = File.join(ENV['HOME'], '.crystax', 'adbrunner')
 
 STDOUT_PREFIX = "   > "
-STDERR_PREFIX = "   > "
+STDERR_PREFIX = "   * "
 
 OPTIONS = {}
 OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
@@ -367,6 +367,7 @@ def adb_shell(devid, cmd, options = {})
 
     last = os.last
     raise AdbError.new('shell', os.join("\n")) unless last =~ /#{tag}:(\d+)$/
+    raise AdbError.new('shell', os.join("\n")) if os.first =~ /Text file busy/ || es.first =~ /Text file busy/
 
     rc = $1.to_i
     last.sub!(/#{tag}:.*$/, '')
