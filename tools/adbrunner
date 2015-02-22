@@ -341,13 +341,14 @@ def adb_shell(devid, cmd, options = {})
             while line = o.gets.chomp rescue nil
                 os << line
 
-                logline = line.dup
-                if logline =~ /#{tag}:.*$/
-                    logline.sub!(/#{tag}:.*$/, '')
-                    log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
-                else
-                    log "#{STDOUT_PREFIX}#{logline}"
-                end
+                #logline = line.dup
+                #if logline =~ /#{tag}:.*$/
+                #    logline.sub!(/#{tag}:.*$/, '')
+                #    log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
+                #else
+                #    log "#{STDOUT_PREFIX}#{logline}"
+                #end
+                log "#{STDOUT_PREFIX}#{line}"
             end
         end
 
@@ -370,6 +371,7 @@ def adb_shell(devid, cmd, options = {})
     raise AdbError.new('shell', os.join("\n")) if os.first =~ /Text file busy/ || es.first =~ /Text file busy/
 
     rc = $1.to_i
+    log "RUN: rc=#{rc}"
     last.sub!(/#{tag}:.*$/, '')
 
     os = os[0..-2]
