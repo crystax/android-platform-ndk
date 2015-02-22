@@ -692,7 +692,7 @@ prepare_boost_tools()
     done
 
     HOST_PJL=""
-    cleanup_pjl
+    cleanup_pjl "$BOOST_RR"
 
     (
     cd $DIR || exit 1
@@ -705,7 +705,7 @@ prepare_boost_tools()
         panic "Cannot find just built process_jam_log"
     fi
     log "HOST_PJL: $HOST_PJL"
-    cp -f $BOOST_RR/build/bin/$HOST_PJL $PJL
+    run cp -f $BOOST_RR/build/bin/$HOST_PJL $PJL
     fail_panic "Cannot backup host process_jam_log"
 }
 
