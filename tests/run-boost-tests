@@ -639,18 +639,17 @@ copy_boost_rr()
     fail_panic "Cannot copy Boost.Regression sources"
 }
 
+HOST_PJL=
+
 cleanup_pjl()
 {
     local DIR="$1"
 
-    objdump=""
-    test -z "$objdump" && which objdump  >/dev/null 2>&1 && objdump="objdump"
-    test -z "$objdump" && which gobjdump >/dev/null 2>&1 && objdump="gobjdump"
-    test -z "$objdump" && panic "Cannot find objdump utility"
-
     local F
     for F in $(find $DIR/build/bin -type f -a -name process_jam_log -print); do
-        objdump -f $F | grep -q "^architecture: *i386:x86-64\>" && continue
+        if [ "$F" = "$HOST_PJL" ]; then
+            continue
+        fi
         run rm -f $F
     done
 }
@@ -688,13 +687,19 @@ prepare_boost_tools()
         fail_panic "Cannot copy $T to $DIR"
     done
 
-    cleanup_pjl "$BOOST_RR"
+    find $BOOST_RR/build/bin -type f -a -name process_jam_log -delete
 
     (
     cd $DIR || exit 1
     run $RUNPY --use-local --tag=$TAG --bjam-options="-j$NUM_JOBS" setup || exit 1
     )
     fail_panic "Cannot setup regression tools"
+
+    HOST_PJL=$(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print | head -n 1)
+    if [ -z "$HOST_PJL" ]; then
+        panic "Cannot find just built process_jam_log"
+    fi
+    log "HOST_PJL: $HOST_PJL"
 }
 
 # $1: ABI
@@ -895,6 +900,7 @@ test_boost_for_abi ()
 
         for ACTION in $ACTIONS; do
             log "=== run.py: $ACTION"
+
             cleanup_pjl "$SRCDIR/boost_regression"
 
             run $RUNPY                         \
