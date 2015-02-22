@@ -639,19 +639,23 @@ copy_boost_rr()
     fail_panic "Cannot copy Boost.Regression sources"
 }
 
+PJL=/tmp/process_jam_log.$(uuidgen)
+at_exit "rm -f $PJL"
 HOST_PJL=
 
 cleanup_pjl()
 {
     local DIR="$1"
 
-    local F
-    for F in $(find $DIR/build/bin -type f -a -name process_jam_log -print); do
-        if [ "$F" = "$HOST_PJL" ]; then
-            continue
-        fi
-        run rm -f $F
-    done
+    find $DIR/build/bin -type f -a -name process_jam_log -delete
+
+    if [ -n "$HOST_PJL" ]; then
+        run mkdir -p $(dirname $DIR/build/bin/$HOST_PJL)
+        fail_panic "Cannot create directory for host process_jam_log"
+
+        run cp -f $PJL $DIR/build/bin/$HOST_PJL
+        fail_panic "Cannot copy host process_jam_log from backup"
+    fi
 }
 
 prepare_boost_tools()
@@ -687,7 +691,8 @@ prepare_boost_tools()
         fail_panic "Cannot copy $T to $DIR"
     done
 
-    find $BOOST_RR/build/bin -type f -a -name process_jam_log -delete
+    HOST_PJL=""
+    cleanup_pjl
 
     (
     cd $DIR || exit 1
@@ -695,11 +700,13 @@ prepare_boost_tools()
     )
     fail_panic "Cannot setup regression tools"
 
-    HOST_PJL=$(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print | head -n 1)
+    HOST_PJL=$(find $BOOST_RR/build/bin -type f -a -name process_jam_log -print | head -n 1 | sed "s,^$BOOST_RR/build/bin/,,")
     if [ -z "$HOST_PJL" ]; then
         panic "Cannot find just built process_jam_log"
     fi
     log "HOST_PJL: $HOST_PJL"
+    cp -f $BOOST_RR/build/bin/$HOST_PJL $PJL
+    fail_panic "Cannot backup host process_jam_log"
 }
 
 # $1: ABI
