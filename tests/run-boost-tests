@@ -128,6 +128,9 @@ extract_parameters "$@"
 
 LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
 
+LLVMGCCVERSION=4.9
+GNULIBCXX_VERSION=4.9
+
 #ICU_VERSION=$(ls -1 $NDK_DIR/$ICU_SUBDIR/ 2>/dev/null | head -n 1)
 if [ -n "$ICU_VERSION" ]; then
     ICU=$NDK_DIR/$ICU_SUBDIR/$ICU_VERSION
@@ -423,14 +426,11 @@ generate_toolchain()
         gcc)
             GCCTCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
             CCS="gcc g++"
-            GNULIBCXX_VERSION=$TOOLCHAIN_VERSION
             ;;
         clang)
-            LLVMGCCVERSION=4.9
             GCCTCPATH=$NDK_DIR/toolchains/$TCNAME-$LLVMGCCVERSION/prebuilt/$HOST_TAG
             LLVMTCPATH=$NDK_DIR/toolchains/llvm-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
             CCS="clang clang++"
-            GNULIBCXX_VERSION=$LLVMGCCVERSION
             ;;
         *)
             echo "ERROR: Unknown toolchain type: $TOOLCHAIN_TYPE" 1>&2
@@ -589,6 +589,7 @@ generate_adbrunner()
         PARAMS="$PARAMS --timeout=$(expr $TIMEOUT \* 60 - 5)"
         PARAMS="$PARAMS --strip=$STRIP"
         PARAMS="$PARAMS --lib-directory=$LIBDIR"
+        PARAMS="$PARAMS --gnu-libstdc++=$GNULIBCXX_VERSION"
         if [ "$ENABLE_PIE" = "yes" ]; then
             PARAMS="$PARAMS --pie"
         else

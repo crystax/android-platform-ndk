@@ -25,6 +25,7 @@ OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
 OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
 OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
 OPTIONS[:pie] = true
+OPTIONS[:gnulibstdcxx] = '4.9'
 
 optparser = OptionParser.new do |o|
     o.banner = "Usage: #{$0} [options] executable [exe-options]"
@@ -76,6 +77,10 @@ optparser = OptionParser.new do |o|
 
     o.on("--lock-directory=PATH", "Directory used for lock files [#{OPTIONS[:lockdir]}]") do |d|
         OPTIONS[:lockdir] = d
+    end
+
+    o.on("--gnu-libstdc++=VERSION", "Version of GNU libstdc++ used for deploy on device [#{OPTIONS[:gnulibstdcxx]}]") do |v|
+        OPTIONS[:gnulibstdcxx] = v
     end
 
 end
@@ -234,14 +239,19 @@ ensure
 end
 
 def strip(src, dst = nil)
-    return src if STRIP.nil?
-
     dst = "/tmp/adbrunner-#{File.basename(src)}.stripped.#{SecureRandom.uuid}" if dst.nil?
-    at_exit { FileUtils.rm_f dst }
+    at_exit { FileUtils.rm_f dst } if dst.nil?
+
+    log "COPY: #{src} -> #{dst}"
     FileUtils.rm_f dst
     FileUtils.mkdir_p File.dirname(dst)
     FileUtils.cp src, dst
-    run "#{STRIP} --strip-unneeded #{dst}"
+
+    if STRIP
+        log "STRIP: #{dst}"
+        run "#{STRIP} --strip-unneeded #{dst}"
+    end
+
     dst
 end
 
@@ -530,6 +540,8 @@ def do_run_test(attempt, devid, tag, exe, args)
     end
 
     binaries.each do |e|
+        raise "No such file or directory: #{e}" unless File.exists?(e)
+
         be = File.basename(e)
         next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
