@@ -419,7 +419,50 @@ ensure
     Process.kill(9, pid) rescue nil unless pid.nil?
 end
 
-def do_run(attempt, devid, exe, args)
+def adb_logcat(devid, tag, file)
+    tagfound = false
+    pid = nil
+    Timeout.timeout(5) do
+        File.open(file, "w") do |f|
+            cmd = "#{ADB} -s '#{devid}' logcat -v threadtime -d"
+            Open3.popen3(cmd) do |i,o,e,t|
+                pid = t.pid
+
+                ot = Thread.start do
+                    while line = o.gets
+                        if line.chomp =~ /\b#{tag}\b/
+                            tagfound = true
+                            next
+                        end
+                        next unless tagfound
+
+                        f.puts line
+                    end
+                end
+
+                et = Thread.start do
+                    while line = e.gets
+                        next unless tagfound
+                        f.puts line
+                    end
+                end
+
+                i.close
+                ot.join
+                et.join
+
+                raise AdbError.new('logcat', "Can't get logcat") unless t.value.success?
+            end
+        end
+    end
+rescue Timeout::Error
+    log "WARNING: 'adb logcat -d' timed out"
+    nil
+ensure
+    Process.kill(9, pid) rescue nil unless pid.nil?
+end
+
+def do_run(attempt, devid, tag, exe, args)
     log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
 
     devpath = File.join(DEVPATH, ABI)
@@ -449,12 +492,19 @@ def do_run(attempt, devid, exe, args)
         adb_push devid, tlib, "#{devpath}/lib"
     end
 
+    tmpfiles = []
+
     ([EXE] + EXTRAS).each do |e|
         be = File.basename(e)
         next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
-        system("#{STRIP} --strip-unneeded #{e}") unless STRIP.nil?
-        adb_push devid, e, "#{dstpath}/#{be}"
+        tmpf = "#{e}.stripped.#{SecureRandom.uuid}"
+        tmpfiles << tmpf
+        FileUtils.rm_f tmpf
+        FileUtils.cp e, tmpf
+        system("#{STRIP} --strip-unneeded #{tmpf}") unless STRIP.nil?
+
+        adb_push devid, tmpf, "#{dstpath}/#{be}"
         adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
     end
 
@@ -477,13 +527,56 @@ def do_run(attempt, devid, exe, args)
     ].join(':')
     env['TMPDIR'] = "#{devpath}/tmp"
 
-    adb_shell devid, "cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+    adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
     log "EXIT: 0"
-rescue AdbShellCommandFailed => e
-    log e.message
-    log "EXIT: #{e.exitcode}"
-    exit e.exitcode
+rescue AdbShellCommandFailed => err
+    log err.message
+
+    lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
+    at_exit { FileUtils.rm_f lf }
+
+    adb_logcat devid, tag, lf
+
+    File.open(lf, "r") do |f|
+        $stderr.puts ""
+        $stderr.puts "=== BEGIN OF LOGCAT ==="
+        while line = f.gets
+            log "LOGCAT > #{line}"
+            $stderr.puts "LOGCAT > #{line}"
+        end
+        $stderr.puts "=== END OF LOGCAT ==="
+    end rescue nil
+
+    Open3.popen3("#{NDK}/ndk-stack -sym #{File.dirname(EXE)} -dump #{lf}") do |i,o,e,t|
+        $stderr.puts ""
+        $stderr.puts "=== BEGIN OF NDK-STACK ==="
+
+        reader = proc do |io|
+            while line = io.gets rescue nil
+                message = "NDK-STACK > #{line}"
+                log message
+                $stderr.puts message
+            end
+        end
+
+        ot = Thread.start { reader.call(o) }
+        et = Thread.start { reader.call(e) }
+
+        i.close
+        ot.join
+        et.join
+
+        Process.kill(9, t.pid) rescue nil
+
+        $stderr.puts "=== END OF NDK-STACK ==="
+    end rescue nil
+
+    FileUtils.rm_f lf
+
+    log "EXIT: #{err.exitcode}"
+    exit err.exitcode
 ensure
+    tmpfiles.each { |f| FileUtils.rm_f f } rescue nil
     adb_rm devid, dstpath
 end
 
@@ -493,7 +586,8 @@ def run(attempt, devid, exe, args)
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
         f.flock(File::LOCK_EX)
-        do_run(attempt, devid, exe, args)
+        tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
+        do_run(attempt, devid, tag, exe, args)
     end
 end
 
