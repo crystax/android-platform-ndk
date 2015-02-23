@@ -6,6 +6,10 @@ require 'timeout'
 require 'securerandom'
 require 'open3'
 
+Encoding.default_external = Encoding::UTF_8
+ENV['LANG'] = 'en_US.UTF-8'
+ENV['LC_ALL'] = ENV['LANG']
+
 STARTED_AT = Time.now
 
 MYPID = Process.pid
