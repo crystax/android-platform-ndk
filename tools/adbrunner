@@ -546,6 +546,7 @@ def do_run_test(attempt, devid, tag, exe, args)
         next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
         tmpf = strip(e)
+        tmpfiles << tmpf
 
         adb_push devid, tmpf, "#{dstpath}/#{be}"
         adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
