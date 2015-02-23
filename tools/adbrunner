@@ -528,8 +528,6 @@ def do_run_test(attempt, devid, tag, exe, args)
         adb_push devid, tlib, "#{devpath}/lib"
     end
 
-    tmpfiles = []
-
     binaries = [EXE]
     ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
         ENV[e].split(':').each do |dir|
@@ -546,10 +544,12 @@ def do_run_test(attempt, devid, tag, exe, args)
         next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
         tmpf = strip(e)
-        tmpfiles << tmpf
-
-        adb_push devid, tmpf, "#{dstpath}/#{be}"
-        adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
+        begin
+            adb_push devid, tmpf, "#{dstpath}/#{be}"
+            adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
+        ensure
+            FileUtils.rm_f tmpf
+        end
     end
 
     newargs = []
@@ -620,7 +620,6 @@ rescue AdbShellCommandFailed => err
     log "EXIT: #{err.exitcode}"
     exit err.exitcode
 ensure
-    tmpfiles.each { |f| FileUtils.rm_f f } rescue nil
     adb_rm devid, dstpath
 end
 
