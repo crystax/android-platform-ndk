@@ -526,6 +526,7 @@ def do_run_test(attempt, devid, tag, exe, args)
         tmpf = "#{e}.stripped.#{SecureRandom.uuid}"
         tmpfiles << tmpf
         FileUtils.rm_f tmpf
+        FileUtils.mkdir_p File.dirname(tmpf)
         FileUtils.cp e, tmpf
         run "#{STRIP} --strip-unneeded #{tmpf}" unless STRIP.nil?
 
