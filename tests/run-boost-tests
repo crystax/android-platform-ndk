@@ -95,6 +95,9 @@ register_var_option "--toolchain-versions=<ver>" TOOLCHAIN_VERSIONS "Toolchain v
 TAG="master"
 register_var_option "--tag=<value>" TAG "Boost tag to test ('master' or 'develop')"
 
+TIMEOUT=15
+register_var_option "--timeout=<value>" TIMEOUT "Timeout for one separate test in minutes"
+
 BOOST_GIT_URL=https://github.com/boostorg/boost
 register_var_option "--boost-url=<url>" BOOST_GIT_URL "Use alternative git URL for Boost sources"
 
@@ -913,7 +916,7 @@ test_boost_for_abi ()
                 --comment="$COMMENT"           \
                 --toolsets=$TOOLSETS           \
                 --platform=Android             \
-                --timeout=15                   \
+                --timeout=$TIMEOUT             \
                 --bjam-options="$BJAM_OPTIONS" \
                 $EXTRA_PARAMS                  \
                 $ACTION                        \
