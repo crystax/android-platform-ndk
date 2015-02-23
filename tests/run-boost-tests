@@ -82,7 +82,7 @@ register_option "--no-pie" do_no_pie "Produce PIE-disabled binaries to test"
 do_no_pie () { ENABLE_PIE=no; }
 
 DO_FETCH=yes
-register_option "--skip-fetch-sources" do_skip_fetch_sources "Fetch&update Boost sources"
+register_option "--skip-fetch-sources" do_skip_fetch_sources "Skip fetch&update of Boost sources"
 do_skip_fetch_sources () { DO_FETCH=no; }
 
 PUBLISH_RESULTS=no
@@ -723,7 +723,6 @@ runner_name()
             adb_getprop "$D" ro.build.version.sdk >>$FLEVELS
         done
     }
-    cat $FLEVELS | sed 's,^,RUNNER: FLEVELS: ,' | catlog
     local APILEVELS=$(cat $FLEVELS | sort | uniq | tr '\n' ' ')
     rm -f $FLEVELS
     if [ -z "$APILEVELS" ]; then
@@ -733,7 +732,6 @@ runner_name()
     APILEVELS=$(echo $APILEVELS | tr -s ' ' | tr ' ' ',')
 
     local RUNNER="Android-apilevel-$APILEVELS-$ABI"
-    log "RUNNER: $RUNNER"
     echo $RUNNER
 }
 
@@ -831,7 +829,7 @@ test_boost_for_abi ()
     if [ -n "$OPTION_RUNNER" ]; then
         RUNNER=$OPTION_RUNNER
     else
-        RUNNER=$(runner_name)
+        RUNNER=$(runner_name $ABI)
         if [ -n "$STD_CXX" ]; then
             RUNNER="${RUNNER}-std-$STD_CXX"
         fi
