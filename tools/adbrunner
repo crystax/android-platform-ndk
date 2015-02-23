@@ -514,6 +514,7 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     known_libs = [
         File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
+        File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
     ]
 
     known_libs.each do |lib|
