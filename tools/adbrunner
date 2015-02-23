@@ -509,7 +509,8 @@ def do_run_test(attempt, devid, tag, exe, args)
         log "TEST: #{rc}"
         next if rc == 0
 
-        tlib = strip(lib, File.join(LIBDIR, ABI, blib)) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
+        tlib = File.join(LIBDIR, ABI, blib)
+        strip(lib, tlib) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
         adb_push devid, tlib, "#{devpath}/lib"
     end
 
