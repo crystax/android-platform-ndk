@@ -586,6 +586,7 @@ generate_adbrunner()
         PARAMS="$PARAMS --log=$WLOG"
         PARAMS="$PARAMS --abi=$ABI"
         PARAMS="$PARAMS --adb=$ADB"
+        PARAMS="$PARAMS --timeout=$(expr $TIMEOUT \* 60 - 5)"
         PARAMS="$PARAMS --strip=$STRIP"
         PARAMS="$PARAMS --lib-directory=$LIBDIR"
         if [ "$ENABLE_PIE" = "yes" ]; then

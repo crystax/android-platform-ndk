@@ -6,7 +6,10 @@ require 'timeout'
 require 'securerandom'
 require 'open3'
 
+STARTED_AT = Time.now
+
 MYPID = Process.pid
+CHILDREN = []
 
 ROOTDIR = File.join(ENV['HOME'], '.crystax', 'adbrunner')
 
@@ -33,6 +36,10 @@ optparser = OptionParser.new do |o|
 
     o.on("--abi=ABI", "Target ABI") do |a|
         OPTIONS[:abi] = a
+    end
+
+    o.on("--timeout=TIMEOUT", Integer, "Timeout (in seconds) for execution") do |t|
+        OPTIONS[:timeout] = [t, 0].max
     end
 
     o.on("--devices-from=FILE", "Use device IDs from specified file [autodetect]") do |f|
@@ -97,6 +104,7 @@ ADB = OPTIONS[:adb]
 NDK = OPTIONS[:ndk]
 LOG = OPTIONS[:log]
 PIE = OPTIONS[:pie]
+TIMEOUT = OPTIONS[:timeout]
 LOCKDIR = OPTIONS[:lockdir]
 LIBDIR  = OPTIONS[:libdir]
 DEVPATH = OPTIONS[:devpath]
@@ -171,8 +179,14 @@ def fail_panic(status, msg)
     panic msg unless status.success?
 end
 
+def killall
+    CHILDREN.each do |child|
+        Process.kill('KILL', -Process.getpgid(child)) rescue nil
+    end
+end
+
 def run(cmd, options = {}, &block)
-    log "## COMMAND: #{cmd}" unless options[:silent]
+    log "## COMMAND: #{cmd}" if options[:verbose]
 
     pid = nil
     status = nil
@@ -180,6 +194,7 @@ def run(cmd, options = {}, &block)
     th = Thread.start do
         Open3.popen3(cmd, pgroup: true) do |i,o,e,t|
             pid = t.pid
+            CHILDREN << pid
 
             if block_given?
                 yield i,o,e,t
@@ -220,6 +235,7 @@ def run(cmd, options = {}, &block)
     status
 ensure
     Process.kill('KILL', -Process.getpgid(pid)) rescue nil unless pid.nil?
+    CHILDREN.reject! { |c| c == pid } unless pid.nil?
 end
 
 def adb_devices
@@ -495,7 +511,7 @@ def do_run_test(attempt, devid, tag, exe, args)
             FileUtils.rm_f tlib
             FileUtils.mkdir_p File.dirname(tlib)
             FileUtils.cp lib, tlib
-            system("#{STRIP} --strip-unneeded #{tlib}") unless STRIP.nil?
+            run "#{STRIP} --strip-unneeded #{tlib}" unless STRIP.nil?
         end
 
         adb_push devid, tlib, "#{devpath}/lib"
@@ -511,7 +527,7 @@ def do_run_test(attempt, devid, tag, exe, args)
         tmpfiles << tmpf
         FileUtils.rm_f tmpf
         FileUtils.cp e, tmpf
-        system("#{STRIP} --strip-unneeded #{tmpf}") unless STRIP.nil?
+        run "#{STRIP} --strip-unneeded #{tmpf}" unless STRIP.nil?
 
         adb_push devid, tmpf, "#{dstpath}/#{be}"
         adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
@@ -601,6 +617,15 @@ def run_test(attempt, devid, exe, args)
 end
 
 begin
+    tmh = Thread.start do
+        now = Time.now
+        sleep [TIMEOUT - (now - STARTED_AT), 0].max
+        log "TIMEOUT (#{TIMEOUT} seconds)"
+        $stderr.puts "TIMEOUT (#{TIMEOUT} seconds)"
+        killall
+        exit 1
+    end if TIMEOUT
+
     attempt = 0
     while true
         begin
@@ -628,4 +653,6 @@ rescue Interrupt
 rescue RuntimeError => e
     $stderr.puts "FATAL: #{e.message}"
     exit 1
+ensure
+    tmh.kill rescue nil
 end
