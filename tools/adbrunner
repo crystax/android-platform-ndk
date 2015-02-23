@@ -117,15 +117,6 @@ $stderr.sync = true
 LIBCRYSTAX = File.join(NDK, 'sources', 'crystax')
 LIBGNUSTL  = File.join(NDK, 'sources', 'cxx-stl', 'gnu-libstdc++', '4.9')
 
-EXTRAS = []
-['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
-    ENV[e].split(':').each do |dir|
-        Dir.glob(File.join(dir, '**', 'lib*.so*')).each do |lib|
-            EXTRAS << lib
-        end
-    end if ENV[e]
-end
-
 class AdbError < Exception
     def initialize(operation, msg)
         @operation = operation
@@ -236,6 +227,18 @@ def run(cmd, options = {}, &block)
 ensure
     Process.kill('KILL', -Process.getpgid(pid)) rescue nil unless pid.nil?
     CHILDREN.reject! { |c| c == pid } unless pid.nil?
+end
+
+def strip(src, dst = nil)
+    return src if STRIP.nil?
+
+    dst = "/tmp/adbrunner-#{File.basename(src)}.stripped.#{SecureRandom.uuid}" if dst.nil?
+    at_exit { FileUtils.rm_f dst }
+    FileUtils.rm_f dst
+    FileUtils.mkdir_p File.dirname(dst)
+    FileUtils.cp src, dst
+    run "#{STRIP} --strip-unneeded #{dst}"
+    dst
 end
 
 def adb_devices
@@ -506,29 +509,26 @@ def do_run_test(attempt, devid, tag, exe, args)
         log "TEST: #{rc}"
         next if rc == 0
 
-        tlib = File.join(LIBDIR, ABI, blib)
-        if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
-            FileUtils.rm_f tlib
-            FileUtils.mkdir_p File.dirname(tlib)
-            FileUtils.cp lib, tlib
-            run "#{STRIP} --strip-unneeded #{tlib}" unless STRIP.nil?
-        end
-
+        tlib = strip(lib, File.join(LIBDIR, ABI, blib)) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
         adb_push devid, tlib, "#{devpath}/lib"
     end
 
     tmpfiles = []
 
-    ([EXE] + EXTRAS).each do |e|
+    binaries = [EXE]
+    ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
+        ENV[e].split(':').each do |dir|
+            Dir.glob(File.join(dir, '**', 'lib*.so*')).each do |lib|
+                binaries << lib
+            end
+        end if ENV[e]
+    end
+
+    binaries.each do |e|
         be = File.basename(e)
         next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
-        tmpf = "#{e}.stripped.#{SecureRandom.uuid}"
-        tmpfiles << tmpf
-        FileUtils.rm_f tmpf
-        FileUtils.mkdir_p File.dirname(tmpf)
-        FileUtils.cp e, tmpf
-        run "#{STRIP} --strip-unneeded #{tmpf}" unless STRIP.nil?
+        tmpf = strip(e)
 
         adb_push devid, tmpf, "#{dstpath}/#{be}"
         adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
