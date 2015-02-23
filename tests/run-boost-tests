@@ -700,6 +700,7 @@ prepare_boost_tools()
 
     (
     cd $DIR || exit 1
+    rm -f user-config.jam || exit 1
     run $RUNPY --use-local --tag=$TAG --bjam-options="-j$NUM_JOBS" setup || exit 1
     )
     fail_panic "Cannot setup regression tools"
