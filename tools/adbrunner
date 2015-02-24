@@ -84,6 +84,7 @@ optparser = OptionParser.new do |o|
     end
 
 end
+ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
 
 if OPTIONS[:abi].nil?
