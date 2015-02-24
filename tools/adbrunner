@@ -216,7 +216,7 @@ def run(cmd, options = {}, &block)
                 ot.join
                 et.join
 
-                raise "'#{cmd}' failed: #{t.value.to_i}" if !t.value.success? && !options[:nofail]
+                raise "'#{cmd}' failed: #{t.value.to_i}" if !t.value.success?
             end
             status = t.value
         end
