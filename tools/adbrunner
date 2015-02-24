@@ -634,12 +634,22 @@ def run_test(attempt, devid, exe, args)
     end
 end
 
+def time_range(v)
+    seconds = v % 60
+    minutes = (v % 3600) / 60
+    hours   = v / 3600
+    "%d:%02d:%02d" % [hours, minutes, seconds]
+end
+
 begin
     tmh = Thread.start do
         now = Time.now
         sleep [TIMEOUT - (now - STARTED_AT), 0].max
-        log "TIMEOUT (#{TIMEOUT} seconds)"
-        $stderr.puts "TIMEOUT (#{TIMEOUT} seconds)"
+
+        message = "TIMEOUT (#{time_range(TIMEOUT)} from start)"
+        log message
+        $stderr.puts message
+
         killall
         exit 1
     end if TIMEOUT
