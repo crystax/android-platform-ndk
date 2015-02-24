@@ -439,10 +439,8 @@ end
 def adb_push(devid, src, dst)
     raise "No such file or directory: #{src}" unless File.exists?(src)
 
-    if File.directory?(src)
-        bsrc = File.basename(src)
-        dst = File.join(dst, bsrc)
-        raise AdbError.new('push', "Can't create #{dst}") if adb_shell(devid, "mkdir -p #{dst}", nothrow: true) != 0
+    if File.directory?(src) && adb_shell(devid, "mkdir -p #{dst}", nothrow: true) != 0
+        raise AdbError.new('push', "Can't create #{dst}")
     end
 
     log "PUSH: #{src} -> #{dst}"
