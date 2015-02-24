@@ -949,8 +949,8 @@ generate_runner_comment()
 
         cat <<HTML
 <p>
-user-config.jam
 <pre>
+\$ cat user-config.jam
 $(cat $CONFIGJAM 2>/dev/null)
 </pre>
 </p>
