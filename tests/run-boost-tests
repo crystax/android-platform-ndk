@@ -448,6 +448,8 @@ generate_toolchain()
         LFLAGS="$LFLAGS -pie"
     fi
 
+    FLAGS="$FLAGS -g"
+
     LLIBS="-lgnustl_shared"
 
     local TOOL
