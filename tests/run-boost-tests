@@ -905,7 +905,8 @@ test_boost_for_abi ()
 
     (
         trap "rm -f $SRCDIR/user-config.jam" EXIT INT QUIT ABRT TERM
-        cp -f $CONFIGJAM $SRCDIR/user-config.jam || exit 1
+        run cp -f $CONFIGJAM $SRCDIR/user-config.jam
+        fail_panic "Cannot copy $CONFIGJAM to $SRCDIR/user-config.jam"
 
         export PATH=$TOOLSETS_PATH:$PATH
 
@@ -924,8 +925,8 @@ test_boost_for_abi ()
                 --timeout=$TIMEOUT             \
                 --bjam-options="$BJAM_OPTIONS" \
                 $EXTRA_PARAMS                  \
-                $ACTION                        \
-                || exit 1
+                $ACTION
+            fail_panic "Cannot run '$ACTION' action of run.py"
         done
     )
     fail_panic "$ABI tests failed"
