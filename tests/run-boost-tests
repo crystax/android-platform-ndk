@@ -104,7 +104,8 @@ register_var_option "--boost-url=<url>" BOOST_GIT_URL "Use alternative git URL f
 BOOST_BUILD_GIT_URL=https://github.com/boostorg/build.git
 register_var_option "--boost-build-url=<url>" BOOST_BUILD_GIT_URL "Use alternative git URL for Boost.Build sources"
 
-BOOST_REGRESSION_GIT_URL=https://github.com/boostorg/regression.git
+#BOOST_REGRESSION_GIT_URL=https://github.com/boostorg/regression.git
+BOOST_REGRESSION_GIT_URL=https://github.com/crystax/regression.git
 register_var_option "--boost-regression-url=<url>" BOOST_REGRESSION_GIT_URL "Use alternative git URL for Boost.Regression sources"
 
 STD_CXX=
@@ -924,6 +925,7 @@ test_boost_for_abi ()
                 --platform=Android             \
                 --timeout=$TIMEOUT             \
                 --bjam-options="$BJAM_OPTIONS" \
+                --verbose-log-processing       \
                 $EXTRA_PARAMS                  \
                 $ACTION
             fail_panic "Cannot run '$ACTION' action of run.py"
