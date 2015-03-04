@@ -887,7 +887,7 @@ test_boost_for_abi ()
             fail_panic "Cannot move file"
         done
 
-        run rm -Rf $TMPRESULTS
+        rm -Rf $TMPRESULTS &
     else
         run mkdir -p $SRCDIR/results
         fail_panic "Cannot create results $ABI directory"
