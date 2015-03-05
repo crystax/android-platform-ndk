@@ -506,6 +506,8 @@ end
 def do_run_test(attempt, devid, tag, exe, args)
     log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
 
+    ENV['ANDROID_SERIAL'] = devid
+
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
@@ -623,11 +625,10 @@ ensure
 end
 
 def run_test(attempt, devid, exe, args)
-    ENV['ANDROID_SERIAL'] = devid
     log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
-        f.flock(File::LOCK_EX)
+        Timeout.timeout(5) { f.flock(File::LOCK_EX) }
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         do_run_test(attempt, devid, tag, exe, args)
     end
@@ -658,21 +659,20 @@ begin
         begin
             attempt += 1
 
-            devices = adb_devices
-            if devices.empty?
-                log "No device/emulator present; will try bit later"
-                sleep 10
-                next
-            end
-            devices.each do |id|
-                run_test(attempt, id, EXE, ARGV)
+            adb_devices.each do |id|
+                begin
+                    run_test(attempt, id, EXE, ARGV)
+                    exit 0
+                rescue Timeout::Error
+                    # Ignore. Just switch to next device
+                end
             end
 
-            exit 0
+            log "No free device/emulator present; will try bit later"
         rescue AdbError => e
             log e.message
-            sleep 10
         end
+        sleep 10
     end
 rescue Interrupt
     $stderr.puts "\n\nINTERRUPTED"
