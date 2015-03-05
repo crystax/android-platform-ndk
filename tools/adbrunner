@@ -630,10 +630,16 @@ end
 def run_test(attempt, devid, exe, args)
     ENV['ANDROID_SERIAL'] = devid
 
-    log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
-        Timeout.timeout(DEVICE_LOCK_TIMEOUT) { f.flock(File::LOCK_EX) }
+        begin
+            log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
+            Timeout.timeout(DEVICE_LOCK_TIMEOUT) { f.flock(File::LOCK_EX) }
+        rescue Timeout::Error => e
+            log "LOCK  (attempt ##{attempt}): BUSY"
+            raise e
+        end
+
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         do_run_test(attempt, devid, tag, exe, args)
     end
