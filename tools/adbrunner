@@ -509,8 +509,6 @@ rescue Timeout::Error
 end
 
 def do_run_test(attempt, devid, tag, exe, args)
-    log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
-
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
@@ -575,8 +573,6 @@ def do_run_test(attempt, devid, tag, exe, args)
     env['TMPDIR'] = "#{devpath}/tmp"
 
     adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
-    log "EXIT: 0"
-    0
 rescue AdbShellCommandFailed => err
     log err.message
 
@@ -621,7 +617,6 @@ rescue AdbShellCommandFailed => err
 
     FileUtils.rm_f lf
 
-    log "EXIT: #{err.exitcode}"
     err.exitcode
 ensure
     adb_rm devid, dstpath
@@ -640,8 +635,13 @@ def run_test(attempt, devid, exe, args)
             raise e
         end
 
+        log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
+
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
-        do_run_test(attempt, devid, tag, exe, args)
+        rc = do_run_test(attempt, devid, tag, exe, args)
+
+        log "EXIT: #{rc} (took #{time_range(Time.now - STARTED_AT)})"
+        rc
     end
 end
 
