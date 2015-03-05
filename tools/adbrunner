@@ -511,8 +511,6 @@ end
 def do_run_test(attempt, devid, tag, exe, args)
     log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
 
-    ENV['ANDROID_SERIAL'] = devid
-
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
@@ -630,6 +628,8 @@ ensure
 end
 
 def run_test(attempt, devid, exe, args)
+    ENV['ANDROID_SERIAL'] = devid
+
     log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
