@@ -628,7 +628,7 @@ def run_test(attempt, devid, exe, args)
     log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
-        Timeout.timeout(5) { f.flock(File::LOCK_EX) }
+        Timeout.timeout(1) { f.flock(File::LOCK_EX) }
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         do_run_test(attempt, devid, tag, exe, args)
     end
