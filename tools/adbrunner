@@ -26,6 +26,7 @@ OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
 OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
 OPTIONS[:pie] = true
 OPTIONS[:gnulibstdcxx] = '4.9'
+OPTIONS[:device_lock_timeout] = 1
 
 optparser = OptionParser.new do |o|
     o.banner = "Usage: #{$0} [options] executable [exe-options]"
@@ -83,6 +84,9 @@ optparser = OptionParser.new do |o|
         OPTIONS[:gnulibstdcxx] = v
     end
 
+    o.on("--device-lock-timeout=TIMEOUT", Numeric, "Timeout (in seconds) for device lock") do |t|
+        OPTIONS[:device_lock_timeout] = t
+    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -120,6 +124,7 @@ LIBDIR  = OPTIONS[:libdir]
 DEVPATH = OPTIONS[:devpath]
 DEVICES_FROM = OPTIONS[:devices_from]
 STRIP = OPTIONS[:strip]
+DEVICE_LOCK_TIMEOUT = OPTIONS[:device_lock_timeout]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -628,7 +633,7 @@ def run_test(attempt, devid, exe, args)
     log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
-        Timeout.timeout(1) { f.flock(File::LOCK_EX) }
+        Timeout.timeout(DEVICE_LOCK_TIMEOUT) { f.flock(File::LOCK_EX) }
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         do_run_test(attempt, devid, tag, exe, args)
     end
