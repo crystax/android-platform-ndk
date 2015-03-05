@@ -661,22 +661,20 @@ begin
 
     attempt = 0
     while true
-        begin
-            attempt += 1
+        attempt += 1
 
-            adb_devices.each do |id|
-                begin
-                    rc = run_test(attempt, id, EXE, ARGV)
-                    exit rc
-                rescue Timeout::Error
-                    # Ignore. Just switch to next device
-                end
+        adb_devices.each do |id|
+            begin
+                rc = run_test(attempt, id, EXE, ARGV)
+                exit rc
+            rescue Timeout::Error
+                # Ignore. Just switch to next device
+            rescue AdbError => e
+                log e.message
             end
-
-            log "No free device/emulator present; will try bit later"
-        rescue AdbError => e
-            log e.message
         end
+
+        log "No free device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
         sleep 10
     end
 rescue Interrupt
