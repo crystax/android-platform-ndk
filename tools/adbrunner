@@ -565,9 +565,8 @@ def do_run_test(attempt, devid, tag, exe, args)
             next
         end
 
-        be = File.basename(arg)
-        adb_push devid, arg, "#{dstpath}/#{be}"
-        newargs << "#{dstpath}/#{be}"
+        newargs << File.join(dstpath, File.basename(arg))
+        adb_push devid, arg, newargs.last
     end
 
     env = {}
@@ -579,6 +578,7 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
     log "EXIT: 0"
+    0
 rescue AdbShellCommandFailed => err
     log err.message
 
@@ -624,7 +624,7 @@ rescue AdbShellCommandFailed => err
     FileUtils.rm_f lf
 
     log "EXIT: #{err.exitcode}"
-    exit err.exitcode
+    err.exitcode
 ensure
     adb_rm devid, dstpath
 end
@@ -666,8 +666,8 @@ begin
 
             adb_devices.each do |id|
                 begin
-                    run_test(attempt, id, EXE, ARGV)
-                    exit 0
+                    rc = run_test(attempt, id, EXE, ARGV)
+                    exit rc
                 rescue Timeout::Error
                     # Ignore. Just switch to next device
                 end
