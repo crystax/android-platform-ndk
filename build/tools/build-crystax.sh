@@ -63,7 +63,8 @@ TOOLCHAIN_VERSION=gcc4.9
 register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
 PATCH_SYSROOT=
-register_var_option "--patch-sysroot" PATCH_SYSROOT "Patch sysroot with CrystaX libraries after build"
+register_option "--patch-sysroot" do_patch_sysroot "Patch sysroot with CrystaX libraries after build"
+do_patch_sysroot() { PATCH_SYSROOT=yes; }
 
 register_jobs_option
 
