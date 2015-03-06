@@ -1216,6 +1216,17 @@ if is_testable device; then
                 DEVID=$DEVICE
             fi
 
+            if [ -n "$CRYSTAX_EMULATOR_TAG" ]; then
+                if echo "$DEVICE" | grep -q "^emulator\>"; then
+                    EMUTAG=""
+                    adb_var_shell_cmd "$DEVICE" EMUTAG getprop crystax.emulator.tag
+                    if [ "$EMUTAG" != "$CRYSTAX_EMULATOR_TAG" ]; then
+                        dump "SKIP test on $DEVID: crystax.emulator.tag don't match"
+                        continue
+                    fi
+                fi
+            fi
+
             adb_var_shell_cmd "$DEVICE" APILEVEL getprop ro.build.version.sdk
 
             for CPU_ABI in $CPU_ABIS; do
