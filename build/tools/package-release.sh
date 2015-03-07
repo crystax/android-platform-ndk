@@ -404,6 +404,10 @@ else
     fail_panic "Could not copy platform files. Aborting."
 fi
 
+# Patch sysroot
+$REFERENCE/sources/crystax/bin/patch-sysroot --libraries
+fail_panic "Could not patch sysroot"
+
 # Remove auto-generated libcrystax.* stubs from platforms
 find $REFERENCE/platforms -name 'libcrystax.*' -delete
 

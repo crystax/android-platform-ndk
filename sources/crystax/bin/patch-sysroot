@@ -143,9 +143,11 @@ if [ "$FAST_COPY" != "yes" ]; then
     NDK_DIR=$(realpath $NDK_DIR)
 fi
 
-dump "Generating CrystaX headers   in \$DST/sources/crystax"
-$CRYSTAX_DIR/bin/gen-sources -q
-fail_panic "Couldn't generate CrystaX headers"
+if [ "$PATCH_HEADERS" = "yes" ]; then
+    dump "Generating CrystaX headers   in \$DST/sources/crystax"
+    $CRYSTAX_DIR/bin/gen-sources -q
+    fail_panic "Couldn't generate CrystaX headers"
+fi
 
 if [ "x$APILEVEL" = "x" ]; then
     APILEVELS=$({ for p in $(ls -d $NDK_DIR/platforms/android-* 2>/dev/null); do expr "$(basename $p)" : "^android-\(.*\)$"; done; } | sed 's,L,,' | sort -n)
