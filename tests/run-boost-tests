@@ -847,7 +847,13 @@ test_boost_for_abi ()
     local COMMENT="$SRCDIR/comment.html"
     generate_runner_comment "$COMMENT" "$CONFIGJAM" "$CXXBINS"
 
-    local RUNPY="$SRCDIR/run.py --use-local --tag=$TAG"
+    local RUNPY="$SRCDIR/run.py \
+        --use-local \
+        --tag=$TAG \
+        --runner='$RUNNER' \
+        --platform=Android \
+        --toolsets=$TOOLSETS \
+        "
 
     EXTRA_PARAMS=""
     if [ -n "$LIBRARIES" -a "$LIBRARIES" != "all" ]; then
@@ -921,10 +927,7 @@ test_boost_for_abi ()
             case $ACTION in
                 test-run)
                     run $RUNPY                         \
-                        --runner="$RUNNER"             \
                         --comment="$COMMENT"           \
-                        --toolsets=$TOOLSETS           \
-                        --platform=Android             \
                         --timeout=$TIMEOUT             \
                         --bjam-options="$BJAM_OPTIONS" \
                         $EXTRA_PARAMS                  \
@@ -941,6 +944,21 @@ test_boost_for_abi ()
                                 let total+=$cnt
                                 cnt=0
                                 echo "$total lines processed"
+                            fi
+                        done
+                    }
+                    test ${PIPESTATUS[0]} -eq 0
+                    ;;
+                collect-logs)
+                    run $RUNPY $ACTION 2>&1 | {
+                        cnt=0
+                        total=0
+                        while read line; do
+                            let cnt+=1
+                            if [ $cnt -ge 5000 ]; then
+                                let total+=$cnt
+                                cnt=0
+                                echo "$total logs collected"
                             fi
                         done
                     }
