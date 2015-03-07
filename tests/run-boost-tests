@@ -850,7 +850,7 @@ test_boost_for_abi ()
     local RUNPY="$SRCDIR/run.py \
         --use-local \
         --tag=$TAG \
-        --runner='$RUNNER' \
+        --runner=$RUNNER \
         --platform=Android \
         --toolsets=$TOOLSETS \
         "
