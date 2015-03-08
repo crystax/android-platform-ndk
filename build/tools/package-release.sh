@@ -404,13 +404,6 @@ else
     fail_panic "Could not copy platform files. Aborting."
 fi
 
-# Patch sysroot
-$REFERENCE/sources/crystax/bin/patch-sysroot --libraries
-fail_panic "Could not patch sysroot"
-
-# Remove auto-generated libcrystax.* stubs from platforms
-find $REFERENCE/platforms -name 'libcrystax.*' -delete
-
 # Remove the source for host tools to make the final package smaller
 rm -rf $REFERENCE/sources/host-tools
 
@@ -481,6 +474,13 @@ if [ "$TRY64" = "yes" ]; then
 else
     echo "$RELEASE_VERSION" > $REFERENCE/RELEASE.TXT
 fi
+
+# Patch sysroot
+$REFERENCE/sources/crystax/bin/patch-sysroot --libraries
+fail_panic "Could not patch sysroot"
+
+# Remove auto-generated libcrystax.* stubs from platforms
+find $REFERENCE/platforms -name 'libcrystax.*' -delete
 
 # Remove un-needed files
 rm -f $REFERENCE/CleanSpec.mk
