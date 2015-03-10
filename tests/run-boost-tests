@@ -938,6 +938,10 @@ test_boost_for_abi ()
                         cnt=0
                         total=0
                         while read line; do
+                            if echo $line | grep -q "^## COMMAND:"; then
+                                echo $line
+                                continue
+                            fi
                             echo $line | grep -q "line_start:" || continue
                             let cnt+=1
                             if [ $cnt -ge 5000 ]; then
@@ -954,6 +958,10 @@ test_boost_for_abi ()
                         cnt=0
                         total=0
                         while read line; do
+                            if echo $line | grep -q "^## COMMAND:"; then
+                                echo $line
+                                continue
+                            fi
                             let cnt+=1
                             if [ $cnt -ge 5000 ]; then
                                 let total+=$cnt
