@@ -55,6 +55,8 @@ module Common
   # todo: calculates as NUM_CPU * 2
   NUM_JOBS = 16
 
+  MACOSX_VERSION_MIN = '10.6'
+
   def self.make_archive_name
     "crystax-#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{Common::TARGET_PLATFORM}.7z"
   end

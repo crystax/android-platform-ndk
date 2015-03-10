@@ -50,7 +50,8 @@ module Builder
   def self.cflags(platform)
     case platform
     when 'darwin-x86_64'
-      "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk"
+      "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
+      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
     else
       raise "unsupported CFLAGS platform: #{platform}"
     end

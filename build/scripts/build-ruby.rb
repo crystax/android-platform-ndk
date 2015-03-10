@@ -62,35 +62,6 @@ begin
     exit 0
   end
 
-  # build libffi
-  # Logger.msg("building libffi")
-  # RUBY_LIBS_DIR = "#{Common::NDK_BUILD_DIR}/libs"
-  # ffibuilddir = File.join(Common::NDK_BUILD_DIR, 'libffi')
-  # FileUtils.mkdir_p(ffibuilddir)
-  # FileUtils.cd(ffibuilddir) do
-  #   env = { 'CC' => Builder.gcc(Common::TARGET_PLATFORM),
-  #           'CFLAGS' => "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk"
-  #         }
-  #   Commander::run env, "#{Common::VENDOR_DIR}/libffi/configure --prefix=#{RUBY_LIBS_DIR} --disable-debug --disable-dependency-tracking"
-  #   Commander::run "make -j 16"
-  #   Commander::run "make install"
-  # end
-  # FileUtils.mkdir("#{RUBY_LIBS_DIR}/include")
-  # Commander::run "cp #{RUBY_LIBS_DIR}/lib/libffi-3.2.1/include/* #{RUBY_LIBS_DIR}/include"
-
-  # build libyaml
-  # Logger.msg("building libyaml")
-  # yamlbuilddir = File.join(Common::NDK_BUILD_DIR, 'libyaml')
-  # FileUtils.mkdir_p(yamlbuilddir)
-  # FileUtils.cd(yamlbuilddir) do
-  #   env = { 'CC' => Builder.gcc(Common::TARGET_PLATFORM),
-  #           'CFLAGS' => "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk"
-  #         }
-  #   Commander::run env, "#{Common::VENDOR_DIR}/libyaml/configure --prefix=#{RUBY_LIBS_DIR} --disable-dependency-tracking"
-  #   Commander::run "make -j 16"
-  #   Commander::run "make install"
-  # end
-
   Logger.msg "building #{archive}"
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
@@ -101,9 +72,12 @@ begin
     Commander::run env, "#{Common::SRC_DIR}/configure --prefix=#{Common::INSTALL_DIR} --disable-install-doc"
 
     Commander::run "make -j #{Common::NUM_JOBS}"
+    Commander::run "make check"
     Commander::run "make install"
   end
-  Commander::run "#{Common::INSTALL_DIR}/bin/gem install rspec"
+
+  gems = ['rspec', 'minitest']
+  Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
 
   Cache.add(archive)
   Cache.unpack(archive)
