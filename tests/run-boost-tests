@@ -1105,7 +1105,7 @@ fetch_boost_rr()
     local attempt
     for attempt in 1 2; do
         dump "Fetching Boost regression sources"
-        fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
+        fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop" && return 0
         log "Cannot fetch $BOOST_REGRESSION_GIT_URL to $DIR, trying again"
         run rm -Rf $DIR
     done
