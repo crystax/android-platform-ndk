@@ -38,18 +38,24 @@ module Common
   NDK_ROOT_DIR = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.dirname.dirname.to_s
 
   NDK_DIR = "#{NDK_ROOT_DIR}/platform/ndk"
+  NDK_BUILD_DIR = "/tmp/ndk-#{ENV['USER']}/vendor"
   VENDOR_DIR = "#{NDK_ROOT_DIR}/vendor"
-  SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
-  DST_DIR = "#{NDK_DIR}/tools"
 
   # todo: calculate target platform
   TARGET_PLATFORM = "darwin-x86_64"
 
-  BUILD_BASE = "/tmp/ndk-#{ENV['USER']}/vendor/#{Crystax::PKG_NAME}"
+  BUILD_BASE = "#{NDK_BUILD_DIR}/#{Crystax::PKG_NAME}"
   BUILD_DIR = "#{BUILD_BASE}/build"
+  SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
+  DST_DIR = "#{NDK_DIR}/tools"
   INSTALL_DIR = "#{BUILD_BASE}/#{Crystax::PKG_NAME}"
 
+  LOG_FILE = "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}.log"
+
+  # todo: calculates as NUM_CPU * 2
+  NUM_JOBS = 16
+
   def self.make_archive_name
-    "#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{Common::TARGET_PLATFORM}.7z"
+    "crystax-#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{Common::TARGET_PLATFORM}.7z"
   end
 end

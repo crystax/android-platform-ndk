@@ -37,12 +37,32 @@ require_relative 'common.rb'
 
 
 module Builder
-  def self.gcc(platform)
+  def self.cc(platform)
     case platform
     when 'darwin-x86_64'
-      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      ''
     else
-      raise "unsupported GCC platform: #{platform}"
+      raise "unsupported CC platform: #{platform}"
+    end
+  end
+
+  def self.cflags(platform)
+    case platform
+    when 'darwin-x86_64'
+      "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk"
+    else
+      raise "unsupported CFLAGS platform: #{platform}"
+    end
+  end
+
+  def self.ldflags(platform)
+    case platform
+    when 'darwin-x86_64'
+      #"-L#{RUBY_LIBS_DIR}/lib"
+      ''
+    else
+      raise "unsupported LDFLAGS platform: #{platform}"
     end
   end
 end

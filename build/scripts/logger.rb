@@ -31,15 +31,46 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+require 'fileutils'
+require_relative 'common.rb'
+
+
 module Logger
-  def self.log_msg(msg)
-    # todo: all
+  def self.open_log_file(name)
+    if File.exists?(name)
+      rename_logfile(name)
+    else
+      dir = File.dirname(name)
+      FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
+    end
+    $log_file = File.open(name, 'a')
+  end
+
+  def self.close_log_file
+    $log_file.close
+  end
+
+  def self.msg(msg)
     puts msg
+    log_msg msg
+  end
+
+  def self.log_msg(msg)
+    $log_file.puts msg
   end
 
   def self.log_exception(exc)
-    # todo: all
     puts "error: #{exc}"
     puts exc.backtrace
+    $log_file.puts "error: #{exc}"
+    $log_file.puts exc.backtrace
+  end
+
+  private
+
+  def self.rename_logfile(name)
+    n = 1
+    n += 1 while File.exists?("#{name}.#{n}")
+    File.rename(name, "#{name}.#{n}")
   end
 end

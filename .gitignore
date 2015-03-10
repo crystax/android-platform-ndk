@@ -26,4 +26,4 @@ prebuilt/windows-x86_64/
 prebuilt/common/scan-build/
 prebuilt/common/scan-view/
 tests/abcc/prebuilts/
-tools/openssl
+tools/ruby

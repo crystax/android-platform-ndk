@@ -46,7 +46,7 @@ module Cache
     if !exists?(archive)
       false
     else
-      Logger.log_msg "found cached file: #{archive}"
+      Logger.msg "found cached file: #{archive}"
       unpack(archive)
       true
     end

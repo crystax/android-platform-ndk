@@ -54,13 +54,13 @@ end
 
 module Commander
 
-  def self.run(cmd)
-    Logger.log_msg "command started: #{cmd}"
+  def self.run(*cmd)
+    Logger.msg "  command started: #{cmd}"
 
     exitstatus = nil
     err = ''
 
-    Open3.popen3(cmd) do |_, stdout, stderr, waitthr|
+    Open3.popen3(*cmd) do |_, stdout, stderr, waitthr|
       ot = Thread.start do
         str = ''
         while c = stdout.getc
@@ -85,7 +85,7 @@ module Commander
       exitstatus = waitthr && waitthr.value.exitstatus
     end
 
-    Logger.log_msg "command finished: exit code: #{exitstatus} cmd: #{cmd}"
+    Logger.log_msg "  command finished: exit code: #{exitstatus} cmd: #{cmd}"
     raise CommandFailed.new(cmd, exitstatus, err) if exitstatus != 0
   end
 end

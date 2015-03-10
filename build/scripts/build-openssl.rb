@@ -34,7 +34,6 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-# common for all build scripts
 require 'fileutils'
 
 
@@ -54,7 +53,6 @@ require_relative 'cache.rb'
 
 
 begin
-
   archive = Common.make_archive_name
   Logger.log_msg "building #{archive}"
 
