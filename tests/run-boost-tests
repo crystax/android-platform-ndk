@@ -938,6 +938,10 @@ test_boost_for_abi ()
                         cnt=0
                         total=0
                         while read line; do
+                            if echo $line | grep -q "^## COMMAND:"; then
+                                echo $line
+                                continue
+                            fi
                             echo $line | grep -q "line_start:" || continue
                             let cnt+=1
                             if [ $cnt -ge 5000 ]; then
@@ -954,6 +958,10 @@ test_boost_for_abi ()
                         cnt=0
                         total=0
                         while read line; do
+                            if echo $line | grep -q "^## COMMAND:"; then
+                                echo $line
+                                continue
+                            fi
                             let cnt+=1
                             if [ $cnt -ge 5000 ]; then
                                 let total+=$cnt
@@ -1057,35 +1065,51 @@ fetch()
     run git submodule init || exit 1
     run git submodule sync --recursive || exit 1
     run git submodule update --recursive || exit 1
-    )
-    fail_panic "Cannot fetch $URL to $DIR"
+    ) || return 1
+
+    return 0
 }
 
 fetch_boost()
 {
     local DIR="$1"
 
-    dump "Fetching Boost sources"
-
-    fetch "$BOOST_GIT_URL" "$DIR" "$TAG"
+    local attempt
+    for attempt in 1 2; do
+        dump "Fetching Boost sources"
+        fetch "$BOOST_GIT_URL" "$DIR" "$TAG" && return 0
+        log "Cannot fetch $BOOST_GIT_URL to $DIR, trying again"
+        run rm -Rf $DIR
+    done
+    panic "Cannot fetch $BOOST_GIT_URL to $DIR"
 }
 
 fetch_boost_bb()
 {
     local DIR="$1"
 
-    dump "Fetching Boost build sources"
-
-    fetch "$BOOST_BUILD_GIT_URL" "$DIR" "develop"
+    local attempt
+    for attempt in 1 2; do
+        dump "Fetching Boost build sources"
+        fetch "$BOOST_BUILD_GIT_URL" "$DIR" "develop" && return 0
+        log "Cannot fetch $BOOST_BUILD_GIT_URL to $DIR, trying again"
+        run rm -Rf $DIR
+    done
+    panic "Cannot fetch $BOOST_BUILD_GIT_URL to $DIR"
 }
 
 fetch_boost_rr()
 {
     local DIR="$1"
 
-    dump "Fetching Boost regression sources"
-
-    fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop"
+    local attempt
+    for attempt in 1 2; do
+        dump "Fetching Boost regression sources"
+        fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop" && return 0
+        log "Cannot fetch $BOOST_REGRESSION_GIT_URL to $DIR, trying again"
+        run rm -Rf $DIR
+    done
+    panic "Cannot fetch $BOOST_REGRESSION_GIT_URL to $DIR"
 }
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
