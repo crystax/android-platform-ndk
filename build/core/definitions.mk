@@ -103,7 +103,7 @@ ifeq (,$$(__ndk_dir_flag__$$(__ndk_dir)))
 #
 __ndk_dir_flag__$$(__ndk_dir) := true
 $1:
-	@$$(call host-mkdir,$$@)
+	$$(hide) $$(call host-mkdir,$$@)
 endif
 endef
 

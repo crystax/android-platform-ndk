@@ -5,10 +5,15 @@ require 'fileutils'
 require 'timeout'
 require 'securerandom'
 require 'open3'
+require 'json'
 
 Encoding.default_external = Encoding::UTF_8
 ENV['LANG'] = 'en_US.UTF-8'
 ENV['LC_ALL'] = ENV['LANG']
+
+WINDOWS = RUBY_PLATFORM =~ /(cygwin|mingw|win32)/ ? true : false
+
+USE_SELECT_BASED_IO = true
 
 STARTED_AT = Time.now
 
@@ -25,8 +30,8 @@ OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
 OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
 OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
 OPTIONS[:pie] = true
-OPTIONS[:gnulibstdcxx] = '4.9'
 OPTIONS[:device_lock_timeout] = 1
+OPTIONS[:print_timestamps] = true
 
 optparser = OptionParser.new do |o|
     o.banner = "Usage: #{$0} [options] executable [exe-options]"
@@ -36,8 +41,21 @@ optparser = OptionParser.new do |o|
         exit 0
     end
 
+    o.on("-v", "--[no-]verbose", "Enable verbose logging") do |v|
+        OPTIONS[:verbose] = v
+    end
+
     o.on("-l", "--log=FILE", "Use specified file for logging [stdout]") do |f|
         OPTIONS[:log] = f
+    end
+
+    o.on("-k", "--[no-]keep-going", "If specified, don't exit on first fail. ",
+         "Instead, run remaining executables and fail when all of them are finished") do |k|
+        OPTIONS[:keepgoing] = k
+    end
+
+    o.on("--[no-]print-timestamps", "Print timestamps in log [#{OPTIONS[:print_timestamps]}]") do |p|
+        OPTIONS[:print_timestamps] = p
     end
 
     o.on("--abi=ABI", "Target ABI") do |a|
@@ -46,10 +64,6 @@ optparser = OptionParser.new do |o|
 
     o.on("--timeout=TIMEOUT", Integer, "Timeout (in seconds) for execution") do |t|
         OPTIONS[:timeout] = [t, 0].max
-    end
-
-    o.on("--devices-from=FILE", "Use device IDs from specified file [autodetect]") do |f|
-        OPTIONS[:devices_from] = f
     end
 
     o.on("--adb=PATH", "Path to adb [autodetect]") do |a|
@@ -80,12 +94,24 @@ optparser = OptionParser.new do |o|
         OPTIONS[:lockdir] = d
     end
 
-    o.on("--gnu-libstdc++=VERSION", "Version of GNU libstdc++ used for deploy on device [#{OPTIONS[:gnulibstdcxx]}]") do |v|
-        OPTIONS[:gnulibstdcxx] = v
-    end
-
     o.on("--device-lock-timeout=TIMEOUT", Numeric, "Timeout (in seconds) for device lock") do |t|
         OPTIONS[:device_lock_timeout] = t
+    end
+
+    o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |tag|
+        OPTIONS[:emutag] = tag
+    end
+
+    o.on("--run-from=FILE", "Run executables listed in FILE (one per line)") do |f|
+        OPTIONS[:runfrom] = f
+    end
+
+    o.on("--run-on-all-devices", "If specified, run on all compatible devices") do |r|
+        OPTIONS[:run_on_all_devices] = r
+    end
+
+    o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
+        OPTIONS[:mroprefix] = p
     end
 end
 ENV['POSIXLY_CORRECT'] = '1'
@@ -103,16 +129,37 @@ if OPTIONS[:devpath].nil?
     exit 1
 end
 
-EXE = ARGV.shift
-if EXE.nil?
+cmds = []
+if !OPTIONS[:runfrom].nil?
+    File.open(OPTIONS[:runfrom], 'r') do |f|
+        while line = f.gets.chomp.strip rescue nil
+            next if line.empty?
+            cmds << line.split(/\s+/)
+        end
+    end
+else
+    cmds << ARGV.dup unless ARGV.empty?
+    ARGV.clear
+end
+
+if cmds.empty?
     $stderr.puts "ERROR: No executable specified"
     $stderr.puts optparser
     exit 1
 end
 
+if !ARGV.empty?
+    $stderr.puts "ERROR: Extra arguments in command line"
+    $stderr.puts optparser
+    exit 1
+end
+
+CMDS = cmds
+
 OPTIONS[:adb] = "adb" unless OPTIONS[:adb]
 OPTIONS[:ndk] = File.dirname(File.dirname(__FILE__)) unless OPTIONS[:ndk]
 
+VERBOSE = OPTIONS[:verbose]
 ABI = OPTIONS[:abi]
 ADB = OPTIONS[:adb]
 NDK = OPTIONS[:ndk]
@@ -122,15 +169,16 @@ TIMEOUT = OPTIONS[:timeout]
 LOCKDIR = OPTIONS[:lockdir]
 LIBDIR  = OPTIONS[:libdir]
 DEVPATH = OPTIONS[:devpath]
-DEVICES_FROM = OPTIONS[:devices_from]
+EMUTAG  = OPTIONS[:emutag]
 STRIP = OPTIONS[:strip]
 DEVICE_LOCK_TIMEOUT = OPTIONS[:device_lock_timeout]
+PRINT_TIMESTAMPS = OPTIONS[:print_timestamps]
+RUN_ON_ALL_DEVICES = OPTIONS[:run_on_all_devices]
+KEEPGOING = OPTIONS[:keepgoing]
+MROPREFIX = OPTIONS[:mroprefix]
 
 $stdout.sync = true
 $stderr.sync = true
-
-LIBCRYSTAX = File.join(NDK, 'sources', 'crystax')
-LIBGNUSTL  = File.join(NDK, 'sources', 'cxx-stl', 'gnu-libstdc++', OPTIONS[:gnulibstdcxx])
 
 class AdbError < Exception
     def initialize(operation, msg)
@@ -162,9 +210,17 @@ class AdbShellCommandFailed < Exception
     end
 end
 
+class MRO
+    def self.dump(object)
+        return if MROPREFIX.nil? || MROPREFIX.empty?
+        $stdout.puts "%s%s" % [MROPREFIX, object.to_json.to_s]
+    end
+end
+
 def log(msg, options = {})
     do_log = proc do |f|
-        prefix = "## ADBRUNNER.#{MYPID} #{Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N')} "
+        prefix = "## ADBRUNNER.#{MYPID} "
+        prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC ') if PRINT_TIMESTAMPS
         prefix << "[%s] " % ENV['ANDROID_SERIAL'] if ENV['ANDROID_SERIAL']
         f.puts "#{prefix}#{msg}"
     end
@@ -175,51 +231,41 @@ def log(msg, options = {})
     end
 end
 
-def panic(msg)
-    $stdout.puts "## ADBRUNNER.#{MYPID} [#{ENV['ANDROID_SERIAL']}] PANIC: #{msg}" if LOG
-    log("PANIC: #{msg}")
-    exit 1
-end
-
-def fail_panic(status, msg)
-    panic msg unless status.success?
-end
-
 def killall
     CHILDREN.each do |child|
-        Process.kill('KILL', -Process.getpgid(child)) rescue nil
+        Process.kill('KILL', WINDOWS ? child : -Process.getpgid(child)) rescue nil
     end
 end
 
-def run(cmd, options = {}, &block)
+def run(*args, &block)
+    options = args.last.is_a?(Hash) ? args.pop : {}
+    cmd = args.join(' ')
     log "## COMMAND: #{cmd}" if options[:verbose]
 
     pid = nil
     status = nil
 
     th = Thread.start do
-        Open3.popen3(cmd, pgroup: true) do |i,o,e,t|
+        po = {}
+        po[:pgroup] = true unless WINDOWS
+        Open3.popen3(*args, po) do |i,o,e,t|
             pid = t.pid
             CHILDREN << pid
+
+            [i,o,e].each { |io| io.sync = true }
 
             if block_given?
                 yield i,o,e,t
             else
-                ot = Thread.start do
-                    while line = o.gets.chomp rescue nil
-                        log "   > #{line}"
-                    end
-                end
-
-                et = Thread.start do
-                    while line = e.gets.chomp rescue nil
-                        log "   * #{line}"
-                    end
-                end
-
                 i.close
-                ot.join
-                et.join
+
+                {o => STDOUT_PREFIX, e => STDERR_PREFIX}.map do |io,prefix|
+                    Thread.start do
+                        while line = io.gets.chomp rescue nil
+                            log "#{prefix}#{line}"
+                        end
+                    end
+                end.each(&:join)
 
                 raise "'#{cmd}' failed: #{t.value.to_i}" if !t.value.success?
             end
@@ -232,7 +278,7 @@ def run(cmd, options = {}, &block)
     rescue Timeout::Error => err
         log "WARNING: '#{cmd}' timed out (#{options[:timeout]} seconds)"
         ['TERM', 'KILL'].each do |sig|
-            Process.kill(sig, -Process.getpgid(pid)) rescue nil unless pid.nil?
+            Process.kill(sig, WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
         end
         th.kill
         raise err
@@ -240,11 +286,13 @@ def run(cmd, options = {}, &block)
 
     status
 ensure
-    Process.kill('KILL', -Process.getpgid(pid)) rescue nil unless pid.nil?
+    Process.kill('KILL', WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
     CHILDREN.reject! { |c| c == pid } unless pid.nil?
 end
 
 def strip(src, dst = nil)
+    return src if !STRIP && dst.nil?
+
     dst = "/tmp/adbrunner-#{File.basename(src)}.stripped.#{SecureRandom.uuid}" if dst.nil?
     at_exit { FileUtils.rm_f dst } if dst.nil?
 
@@ -255,7 +303,7 @@ def strip(src, dst = nil)
 
     if STRIP
         log "STRIP: #{dst}"
-        run "#{STRIP} --strip-unneeded #{dst}"
+        run STRIP, '--strip-unneeded', dst
     end
 
     dst
@@ -264,124 +312,200 @@ end
 def adb_devices
     devices = []
 
-    if DEVICES_FROM
-        begin
-            return File.read(DEVICES_FROM).split("\n")
-        rescue
-            return []
-        end
-    end
-
     err = ""
-    run "#{ADB} devices", timeout: 5 do |i,o,e,t|
-        ot = Thread.start do
-            while line = o.gets.chomp rescue nil
+    run ADB, 'devices', timeout: 5 do |i,o,e,t|
+        if USE_SELECT_BASED_IO
+            i.close
+
+            out = ""
+            while true
+                rs = []
+                rs << o unless o.eof?
+                rs << e unless e.eof?
+                break if rs.empty?
+
+                ios, = IO.select(rs)
+                ios.each do |io|
+                    c = io.read_nonblock(4096) rescue nil
+                    next if c.nil?
+
+                    case io
+                    when e
+                        err << c
+                    when o
+                        out << c
+                    end
+                end
+            end
+
+            out.split("\n").map(&:chomp).each do |line|
                 next unless line =~ /^([^\t]+)\tdevice$/
                 devices << $1
             end
-        end
-
-        et = Thread.start do
-            while line = e.gets
-                err << "#{line}\n"
+        else
+            ot = Thread.start do
+                while line = o.gets.chomp rescue nil
+                    next unless line =~ /^([^\t]+)\tdevice$/
+                    devices << $1
+                end
             end
-        end
 
-        i.close
-        ot.join
-        et.join
+            et = Thread.start do
+                while line = e.gets
+                    err << "#{line}\n"
+                end
+            end
+
+            i.close
+            ot.join
+            et.join
+        end
 
         raise AdbError.new('devices', err) unless t.value.success?
     end
 
     fd = []
     devices.each do |id|
-        apilevel = adb_getprop(id, 'ro.build.version.sdk').to_i
-        next if apilevel <= 15 && PIE
-        next if apilevel >= 21 && !PIE
+        begin
+            next if !EMUTAG.nil? && adb_getprop(id, 'crystax.emulator.tag') != EMUTAG
+            next if adb_getprop(id, 'sys.boot_completed') != "1"
 
-        devabilist = []
-        devabilist += adb_getprop(id, 'ro.product.cpu.abilist').split(',')
-        if devabilist.empty?
-            devabi1 = adb_getprop(id, 'ro.product.cpu.abi')
-            devabi2 = adb_getprop(id, 'ro.product.cpu.abi2')
-            devabilist << devabi1 unless devabi1.empty?
-            devabilist << devabi2 unless devabi2.empty?
-        end
-        devabilist << "armeabi-v7a-hard" if devabilist.include?("armeabi-v7a")
+            apilevel = adb_getprop(id, 'ro.build.version.sdk').to_i
+            next if apilevel == 0
+            next if apilevel <= 15 && PIE
+            next if apilevel >= 21 && !PIE
 
-        devmainabi = devabilist.first
-        devabilist.each do |devabi|
-            next if devabi != ABI
-            # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
-            # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
-            # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
-            next if devabi =~ /^armeabi-v7a/ && devmainabi == 'x86' && PIE
-            fd << id
+            devabilist = []
+            devabilist += adb_getprop(id, 'ro.product.cpu.abilist').split(',')
+            if devabilist.empty?
+                devabi1 = adb_getprop(id, 'ro.product.cpu.abi')
+                devabi2 = adb_getprop(id, 'ro.product.cpu.abi2')
+                devabilist << devabi1 unless devabi1.empty?
+                devabilist << devabi2 unless devabi2.empty?
+            end
+            devabilist << "armeabi" if devabilist.empty?
+            devabilist << "armeabi-v7a-hard" if devabilist.include?("armeabi-v7a")
+
+            if id =~ /^emulator\b/
+                devmodel = id
+            else
+                devmodel = adb_getprop(id, 'ro.product.model') rescue id
+            end
+
+            devmainabi = devabilist.first
+            devabilist.each do |devabi|
+                # Skip incompatible ABI
+                next if devabi != ABI
+
+                # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
+                # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
+                # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
+                next if PIE && devabi =~ /^armeabi-v7a/ && devmainabi == 'x86'
+
+                fd << {id: id, model: devmodel, apilevel: apilevel}
+            end
+        rescue AdbError => e
+            log e.message
+            next
         end
     end
 
     fd
 rescue Timeout::Error
+    log "WARNING: 'adb devices' timed out"
+    []
+rescue AdbError => e
+    log e.message
     []
 end
 
 def adb_getprop(devid, propname)
     tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
-    adbcmd = "#{ADB} -s '#{devid}' shell 'getprop #{propname} ; echo \"#{tag}:$?\"'"
 
     os = []
     es = []
-    run adbcmd, timeout: 5 do |i,o,e,t|
-        ot = Thread.start do
-            while line = o.gets.chomp rescue nil
-                os << line
-            end
-        end
-
-        et = Thread.start do
-            while line = e.gets.chomp rescue nil
-                es << line
-            end
-        end
-
+    run ADB, '-s', devid, 'shell', "getprop #{propname} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
         i.close
-        ot.join
-        et.join
+
+        if USE_SELECT_BASED_IO
+            out = ""
+            err = ""
+            while true
+                rs = []
+                rs << o unless o.eof?
+                rs << e unless e.eof?
+                break if rs.empty?
+
+                ios, = IO.select(rs)
+                ios.each do |io|
+                    c = io.read_nonblock(4096) rescue nil
+                    next if c.nil?
+
+                    case io
+                    when e
+                        err << c
+                    when o
+                        out << c
+                    end
+                end
+            end
+
+            os = out.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
+            es = err.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
+        else
+            {o => os, e => es}.map do |io,sink|
+                Thread.start do
+                    while line = io.gets.chomp rescue nil
+                        line.chop! while line[-1] == "\r"
+                        sink << line
+                    end
+                end
+            end.each(&:join)
+        end
 
         raise AdbError.new("getprop #{propname}", es.join("\n")) unless t.value.success?
     end
 
     last = os.last
-    raise AdbError.new("getprop #{propname}", os.join("\n")) unless last =~ /#{tag}:(\d+)$/
+    raise AdbError.new("getprop #{propname}", "no tag in stdout: #{os.inspect}") unless last =~ /#{tag}:(\d+)$/
     raise AdbError.new("getprop #{propname}", "exit code: #{$1}") unless $1.to_i == 0
 
     last.sub!(/#{tag}:.*$/, '')
     os = os[0..-2]
     os << last unless last.empty?
 
-    os.join("\n")
+    out = os.join("\n")
+    log "[#{devid}] #{propname}: #{out.inspect}" if VERBOSE
+    out
 rescue Timeout::Error
     nil
 end
 
 def adb_rm(devid, files)
-    run "#{ADB} -s '#{devid}' shell 'rm -r #{files}'", timeout: 10 do |i,o,e,t|
-        ot = Thread.start do
-            while o.getc
-                # Nothing
-            end
-        end
-
-        et = Thread.start do
-            while e.getc
-                # Nothing
-            end
-        end
-
+    run ADB, '-s', devid, 'shell', "rm -r #{files}", timeout: 10, verbose: VERBOSE do |i,o,e,t|
         i.close
-        ot.join
-        et.join
+
+        if USE_SELECT_BASED_IO
+            while true
+                rs = []
+                rs << o unless o.eof?
+                rs << e unless e.eof?
+                break if rs.empty?
+
+                ios, = IO.select(rs)
+                ios.each do |io|
+                    io.read_nonblock(4096) rescue nil
+                end
+            end
+        else
+            [o,e].map do |io|
+                Thread.start do
+                    while io.getc
+                        # Nothing
+                    end
+                end
+            end.each(&:join)
+        end
 
         t.value
     end
@@ -390,30 +514,37 @@ rescue Timeout::Error
 end
 
 def adb_shell(devid, cmd, options = {})
-    log "RUN: #{cmd}"
+    log "RUN:  #{cmd}"
 
     tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
-    adbcmd = "#{ADB} -s '#{devid}' shell '#{cmd} ; echo \"#{tag}:$?\"'"
 
     os = []
     es = []
-    run adbcmd do |i,o,e,t|
+    run ADB, '-s', devid, 'shell', "#{cmd} ; echo #{tag}:$?" do |i,o,e,t|
         ot = Thread.start do
+            have_tag = false
             while line = o.gets.chomp rescue nil
+                next if have_tag
+
+                line.chop! while line[-1] == "\r"
                 os << line
 
                 logline = line.dup
                 if logline =~ /#{tag}:.*$/
+                    have_tag = true
                     logline.sub!(/#{tag}:.*$/, '')
                     log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
+                    $stdout.puts logline if !LOG.nil? && !logline.empty?
                 else
                     log "#{STDOUT_PREFIX}#{logline}"
+                    $stdout.puts logline if !LOG.nil?
                 end
             end
         end
 
         et = Thread.start do
             while line = e.gets.chomp rescue nil
+                line.chop! while line[-1] == "\r"
                 log "#{STDERR_PREFIX}#{line}"
                 es << line
             end
@@ -427,16 +558,8 @@ def adb_shell(devid, cmd, options = {})
     end
 
     raise AdbError.new('shell', os.join("\n")) if os.first =~ /Text file busy/
-
-    last = os.last
-    raise AdbError.new('shell', os.join("\n")) unless last =~ /#{tag}:(\d+)$/
+    raise AdbError.new('shell', "no tag in stdout: #{os.inspect}") if os.last !~ /#{tag}:(\d+)$/
     rc = $1.to_i
-    last.sub!(/#{tag}:.*$/, '')
-
-    os = os[0..-2]
-    os << last
-
-    $stdout.write os.join("\n")
     raise AdbShellCommandFailed.new(cmd, rc) if rc != 0 && !options[:nothrow]
     rc
 end
@@ -450,22 +573,16 @@ def adb_push(devid, src, dst)
 
     log "PUSH: #{src} -> #{dst}"
 
-    run "#{ADB} -s '#{devid}' push #{src} #{dst}", timeout: 60 do |i,o,e,t|
-        ot = Thread.start do
-            while line = o.gets
-                log line
-            end
-        end
-
-        et = Thread.start do
-            while line = e.gets
-                log line
-            end
-        end
-
+    run ADB, '-s', devid, 'push', src, dst, timeout: 60 do |i,o,e,t|
         i.close
-        ot.join
-        et.join
+
+        [o,e].map do |io|
+            Thread.start do
+                while line = io.gets
+                    log line
+                end
+            end
+        end.each(&:join)
 
         raise AdbError.new('push', "Can't push #{src} to #{dst}") unless t.value.success?
     end
@@ -476,8 +593,7 @@ end
 def adb_logcat(devid, tag, file)
     tagfound = false
     File.open(file, "w") do |f|
-        cmd = "#{ADB} -s '#{devid}' logcat -v threadtime -d"
-        run cmd, timeout: 30 do |i,o,e,t|
+        run ADB, '-s', devid, 'logcat', '-v', 'threadtime', '-d', timeout: 30 do |i,o,e,t|
             ot = Thread.start do
                 while line = o.gets
                     if line.chomp =~ /\b#{tag}\b/
@@ -512,45 +628,63 @@ def do_run_test(attempt, devid, tag, exe, args)
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
-    adb_shell devid, "mkdir -p #{devpath}/lib && mkdir -p #{devpath}/tmp && mkdir -p #{dstpath}"
+    #known_libs = []
+    #if OPTIONS[:without_known_libs].nil?
+    #    known_libs << File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so')
+    #    known_libs << File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so')
+    #end
 
-    known_libs = [
-        File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so'),
-        File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so'),
-    ]
+    dstdirs = []
+    #dstdirs << "#{devpath}/lib" if known_libs.size > 0
+    dstdirs << "#{devpath}/tmp"
+    dstdirs << dstpath
 
-    known_libs.each do |lib|
-        blib = File.basename(lib)
-        rc = adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true)
-        log "TEST: #{rc}"
-        next if rc == 0
+    adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
 
-        tlib = File.join(LIBDIR, ABI, blib)
-        strip(lib, tlib) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
-        adb_push devid, tlib, "#{devpath}/lib"
-    end
+    #known_libs.each do |lib|
+    #    blib = File.basename(lib)
+    #    rc = adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true)
+    #    log "TEST: #{rc}"
+    #    next if rc == 0
 
-    binaries = [EXE]
+    #    tlib = File.join(LIBDIR, ABI, blib)
+    #    strip(lib, tlib) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
+    #    adb_push devid, tlib, "#{devpath}/lib"
+    #end
+
+    binaries = [exe]
+
+    File.open("#{exe}.ldlp", "r") do |tf|
+        while dir = tf.gets.chomp rescue nil
+            next if dir.empty?
+            Dir.glob(File.join(dir, 'lib*.so*')).each do |lib|
+                binaries << lib
+            end
+        end
+    end if File.exists?("#{exe}.ldlp")
+
     ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
         ENV[e].split(':').each do |dir|
-            Dir.glob(File.join(dir, '**', 'lib*.so*')).each do |lib|
+            Dir.glob(File.join(dir, 'lib*.so*')).each do |lib|
                 binaries << lib
             end
         end if ENV[e]
     end
 
+    binaries.reject! { |b| b =~ /\.ldlp$/ }
+
     binaries.each do |e|
         raise "No such file or directory: #{e}" unless File.exists?(e)
 
         be = File.basename(e)
-        next if known_libs.map { |lib| File.basename(lib) }.include?(be)
+        #next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
         tmpf = strip(e)
         begin
             adb_push devid, tmpf, "#{dstpath}/#{be}"
             adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
         ensure
-            FileUtils.rm_f tmpf
+            FileUtils.rm_f tmpf if tmpf != e
         end
     end
 
@@ -567,20 +701,26 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     env = {}
     env['LD_LIBRARY_PATH'] = [
-        "#{devpath}/lib",
+        #known_libs.size > 0 ? "#{devpath}/lib" : nil,
         dstpath,
-    ].join(':')
+    ].reject(&:nil?).join(':')
     env['TMPDIR'] = "#{devpath}/tmp"
 
     adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
 rescue AdbShellCommandFailed => err
     log err.message
 
-    $stderr.puts ""
-    $stderr.puts "=== BEGIN OF LAUNCHER PARAMETERS ==="
-    $stderr.puts "ARGV: #{exe} #{args.join(' ')}"
-    $stderr.puts "PWD: #{dstpath}"
-    $stderr.puts "=== END OF LAUNCHER PARAMETERS ==="
+    logerr = proc do |msg|
+        log "#{STDERR_PREFIX}#{msg}"
+        $stderr.puts msg unless LOG.nil?
+    end
+
+    logerr.call ""
+    logerr.call ""
+    logerr.call "=== BEGIN OF LAUNCHER PARAMETERS ==="
+    logerr.call "ARGV: #{exe} #{args.join(' ')}"
+    logerr.call "PWD: #{dstpath}"
+    logerr.call "=== END OF LAUNCHER PARAMETERS ==="
 
     lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
     at_exit { FileUtils.rm_f lf }
@@ -588,36 +728,31 @@ rescue AdbShellCommandFailed => err
     adb_logcat devid, tag, lf
 
     File.open(lf, "r") do |f|
-        $stderr.puts ""
-        $stderr.puts "=== BEGIN OF LOGCAT ==="
+        logerr.call ""
+        logerr.call "=== BEGIN OF LOGCAT ==="
         while line = f.gets
-            log "LOGCAT > #{line}"
-            $stderr.puts line
+            logerr.call line
         end
-        $stderr.puts "=== END OF LOGCAT ==="
+        logerr.call "=== END OF LOGCAT ==="
     end rescue nil
 
-    run "#{NDK}/ndk-stack -sym #{File.dirname(EXE)} -dump #{lf}", timeout: 30 do |i,o,e,t|
-        $stderr.puts ""
-        $stderr.puts "=== BEGIN OF NDK-STACK ==="
-
-        reader = proc do |io|
-            while line = io.gets rescue nil
-                log "NDK-STACK > #{line}"
-                $stderr.puts line
-            end
-        end
-
-        ot = Thread.start { reader.call(o) }
-        et = Thread.start { reader.call(e) }
+    run File.join(NDK, 'ndk-stack'), '-sym', File.dirname(exe), '-dump', lf, timeout: 30 do |i,o,e,t|
+        logerr.call ""
+        logerr.call "=== BEGIN OF NDK-STACK ==="
 
         i.close
-        ot.join
-        et.join
+
+        [o,e].map do |io|
+            Thread.start do
+                while line = io.gets rescue nil
+                    logerr.call line
+                end
+            end
+        end.each(&:join)
 
         Process.kill(9, t.pid) rescue nil
 
-        $stderr.puts "=== END OF NDK-STACK ==="
+        logerr.call "=== END OF NDK-STACK ==="
     end rescue nil
 
     FileUtils.rm_f lf
@@ -662,6 +797,8 @@ begin
         now = Time.now
         sleep [TIMEOUT - (now - STARTED_AT), 0].max
 
+        MRO.dump event: "timeout", timeout: TIMEOUT
+
         message = "TIMEOUT (#{time_range(TIMEOUT)} from start)"
         log message
         $stderr.puts message
@@ -670,29 +807,89 @@ begin
         exit 1
     end if TIMEOUT
 
-    attempt = 0
-    while true
-        attempt += 1
+    fails = 0
 
-        adb_devices.each do |id|
-            begin
-                rc = run_test(attempt, id, EXE, ARGV)
-                exit rc
-            rescue Timeout::Error
-                # Ignore. Just switch to next device
-            rescue AdbError => e
-                log e.message
+    # Get list of devices
+    devices = adb_devices
+
+    cmdnum = 0
+    CMDS.each do |cmd|
+        cmdnum += 1
+
+        log "EXEC: #{cmd.join(' ')}"
+
+        exe = cmd.shift
+        args = cmd
+
+        mrofields = {number: cmdnum, total: CMDS.size, exe: exe, args: args}
+
+        paused = false
+
+        attempt = 0
+        while true
+            attempt += 1
+
+            rc = nil
+            devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
+                begin
+                    rc = nil
+                    paused = false if paused
+
+                    id = d[:id]
+                    devmodel = d[:model]
+                    apilevel = d[:apilevel]
+
+                    MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
+
+                    rc = run_test(attempt, id, exe, args)
+                    if rc != 0
+                        MRO.dump mrofields.merge({event: "fail", exitcode: rc})
+                        if KEEPGOING
+                            fails += 1
+                        else
+                            exit rc
+                        end
+                    end
+
+                    break if rc != 0 || !RUN_ON_ALL_DEVICES
+                rescue Timeout::Error
+                    # Ignore. Just switch to next device
+                rescue AdbError => e
+                    log e.message
+                    # Refresh list of devices
+                    devices = adb_devices
+                end
             end
-        end
 
-        log "No free device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
-        sleep 10
+            # Switch to next CMD if current one was executed and exited with any exit code
+            break if !rc.nil?
+
+            if EMUTAG.nil?
+                MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
+                log "EXIT: no device/emulator"
+                break
+            end
+
+            if !paused
+                MRO.dump mrofields.merge({event: "pause"})
+                paused = true
+            end
+
+            log "No ready device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
+            sleep 10
+
+            # Refresh list of devices
+            devices = adb_devices
+        end
     end
+
+    exit fails
 rescue Interrupt
     $stderr.puts "\n\nINTERRUPTED"
     exit 1
 rescue RuntimeError => e
     $stderr.puts "FATAL: #{e.message}"
+    $stderr.puts e.backtrace.join("\n")
     exit 1
 ensure
     tmh.kill rescue nil

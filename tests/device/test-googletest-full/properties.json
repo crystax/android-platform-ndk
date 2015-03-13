@@ -1,0 +1,4 @@
+{
+    "broken-run": "gtest_all_test",
+    "long": true
+}

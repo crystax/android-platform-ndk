@@ -546,8 +546,6 @@ ifndef LOCAL_SHORT_COMMANDS
     LOCAL_SHORT_COMMANDS := $(strip $(NDK_APP_SHORT_COMMANDS))
 endif
 
-$(call generate-file-dir,$(LOCAL_BUILT_MODULE))
-
 define libcrystax-link-type
 $(strip \
     $(call assert-defined,LOCAL_LDFLAGS NDK_APP_LIBCRYSTAX)\
@@ -608,6 +606,8 @@ $(strip \
     -lc \
 )
 endef
+
+$(call generate-file-dir,$(LOCAL_BUILT_MODULE))
 
 $(LOCAL_BUILT_MODULE): PRIVATE_OBJECTS := $(LOCAL_OBJECTS)
 $(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC)
@@ -802,7 +802,7 @@ $(LOCAL_INSTALLED): PRIVATE_STRIP_CMD   := $(call cmd-strip, $(PRIVATE_DST))
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY     := $(TARGET_OBJCOPY)
 $(LOCAL_INSTALLED): PRIVATE_OBJCOPY_CMD := $(call cmd-add-gnu-debuglink, $(PRIVATE_DST), $(PRIVATE_SRC))
 
-LIBCRYSTAX_INSTALLED := $(call parent-dir,$(LOCAL_INSTALLED))/libcrystax.so
+LIBCRYSTAX_INSTALLED := $(subst //,/,$(call parent-dir,$(LOCAL_INSTALLED))/libcrystax.so)
 
 $(LOCAL_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries $(if $(filter dynamic,$(libcrystax-link-type)),$(LIBCRYSTAX_INSTALLED))
 	$(call host-echo-build-step,$(PRIVATE_ABI),Install) "$(PRIVATE_NAME) => $(call pretty-dir,$(PRIVATE_DST))"
@@ -817,10 +817,12 @@ ifeq (,$(GLOBAL_LIBCRYSTAX_INSTALL_RULE_DEFINED.$(TARGET_ARCH_ABI)))
 
 $(LIBCRYSTAX_INSTALLED): PRIVATE_LIBCRYSTAX_ABI := $(TARGET_ARCH_ABI)
 
-$(LIBCRYSTAX_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries | $(call parent-dir,$(LIBCRYSTAX_INSTALLED))
-	$(call host-echo-build-step,$(PRIVATE_LIBCRYSTAX_ABI),Install) "$(notdir $@) => $(call pretty-dir,$(subst //,/,$@))"
-	$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_LIBCRYSTAX_ABI))/libcrystax.so,$(subst //,/,$@))
-	$(hide) $(call cmd-strip,$(subst //,/,$@))
+$(LIBCRYSTAX_INSTALLED): $(LOCAL_BUILT_MODULE) clean-installed-binaries
+	$(call host-echo-build-step,$(PRIVATE_LIBCRYSTAX_ABI),Install) "$(notdir $@) => $(call pretty-dir,$@)"
+	$(hide) $(call host-install,$(call libcrystax-libpath,$(PRIVATE_LIBCRYSTAX_ABI))/libcrystax.so,$@)
+	$(hide) $(call cmd-strip,$@)
+
+$(call generate-file-dir,$(LIBCRYSTAX_INSTALLED))
 
 GLOBAL_LIBCRYSTAX_INSTALL_RULE_DEFINED.$(TARGET_ARCH_ABI) := true
 

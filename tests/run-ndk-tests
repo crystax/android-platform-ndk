@@ -1,0 +1,171 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2011-2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+require 'optparse'
+require_relative 'lib/log'
+require_relative 'lib/awk'
+require_relative 'lib/samples'
+require_relative 'lib/tests'
+require_relative 'lib/mro'
+
+$stdout.sync = true
+$stderr.sync = true
+
+options = {}
+options[:verbose] = false
+options[:outdir] = "/tmp/ndk-#{ENV['USER']}/tests"
+options[:log] = File.join(options[:outdir], 'tests.log')
+options[:keep_going] = false
+options[:ndk] = ENV['NDK'] || File.expand_path(File.join(File.dirname(__FILE__), '..'))
+if ENV['ANDROID_SDK_ROOT']
+    options[:adb] = File.join(ENV['ANDROID_SDK_ROOT'], 'platform-tools', "adb#{'.exe' if RUBY_PLATFORM =~ /win32/}")
+else
+    options[:adb] = 'adb'
+end
+options[:types] = ['awk', 'samples', 'build', 'device']
+options[:stimeout] = 15*60
+
+optparser = OptionParser.new do |o|
+    o.separator "Parameters:"
+
+    o.on("-h", "--help", "Show help screen and exit") do
+        puts optparser
+        exit 0
+    end
+
+    o.on("-v", "--[no-]verbose", "Enable verbose mode [#{options[:verbose]}]") do |v|
+        options[:verbose] = v
+    end
+
+    o.on("--log=FILE", "Use this file for logging [#{options[:log]}]") do |f|
+        options[:log] = f
+    end
+
+    o.on("-k", "--[no-]keep-going", "Keep going even if some tests failed [#{options[:keep_going]}]") do |k|
+        options[:keep_going] = k
+    end
+
+    o.on("--ndk=DIR", "Use specified directory as NDK root [#{options[:ndk]}]") do |n|
+        options[:ndk] = n
+    end
+
+    o.on("--adb=PATH", "Use specified adb [#{options[:adb]}]") do |a|
+        options[:adb] = a
+    end
+
+    o.on("-jN", "--jobs=N", "Build jobs [autodetect]") do |j|
+        options[:jobs] = j
+    end
+
+    o.on("--tests=TESTS", Array, "Run only specified tests") do |t|
+        options[:tests] = t
+    end
+
+    o.on("--out-dir=PATH", "Test output directory [#{options[:outdir]}]") do |t|
+        options[:outdir] = t
+    end
+
+    o.on("--toolchain-version=V", "Specify toolchain version to test [all]") do |v|
+        options[:toolchain_version] = v
+    end
+
+    o.on("--types=LIST", Array, "Test types to run [#{options[:types].join(',')}]") do |l|
+        options[:types] = l
+    end
+
+    o.on("--mro-prefix=PREFIX", "Machine-readable output prefix") do |p|
+        options[:mroprefix] = p
+    end
+
+    o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |t|
+        options[:emutag] = t
+    end
+
+    o.on("--only-abis=LIST", Array, "Only test specified ABIs") do |a|
+        options[:abis] = a
+    end
+
+    o.on("--single-test-timeout=TIMEOUT", "Timeout (in seconds) for running single test on device") do |t|
+        options[:stimeout] = t
+    end
+
+    o.on("--full", "Run all tests, including those marked as 'long'") do |f|
+        options[:full_testing] = f
+    end
+end
+optparser.parse!(ARGV)
+
+if !ARGV.empty?
+    $stderr.puts "ERROR: Unknown options: #{ARGV.join(" ")}"
+    $stderr.puts optparser
+    exit 1
+end
+
+Log.add StdLogger.new(options[:verbose] ? Log::DEBUG : Log::NOTICE)
+Log.add FileLogger.new(options[:log], Log::DEBUG) if options[:log]
+
+MRO.prefix = options[:mroprefix]
+
+def prepare_environment(options)
+    ENV['ANDROID_NDK_ROOT'] = nil
+    ENV['NDK'] = options[:ndk]
+    ENV['V'] = options[:verbose] ? '1' : '0'
+    ENV['NDK_TOOLCHAIN_VERSION'] = options[:toolchain_version].sub(/^gcc/, '') rescue nil
+    ENV['NDK_LOGFILE'] = options[:log]
+    ENV['_NDK_TESTING_ALL_'] = 'all' if ENV['_NDK_TESTING_ALL_'].nil?
+end
+
+def elapsed(seconds)
+    s = seconds % 60
+    m = (seconds / 60) % 60
+    h = seconds / 3600
+    "%d:%02d:%02d" % [h,m,s]
+end
+
+def run_all(options)
+    started = Time.now
+
+    Log.notice "=== START NDK TESTING"
+
+    prepare_environment(options)
+    options[:types].each do |type|
+        tests = Object.const_get("#{type.capitalize}Tests").new(options[:ndk], options)
+        tests.run
+    end
+rescue Interrupt
+    Log.notice "INTERRUPTED"
+    exit 1
+rescue => e
+    Log.error e.message
+    exit 1
+ensure
+    Log.notice "=== DONE (took #{elapsed(Time.now - started)})"
+end
+
+run_all options

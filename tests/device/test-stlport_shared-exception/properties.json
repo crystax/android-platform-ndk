@@ -1,0 +1,4 @@
+{
+    "broken-run": ["elide2", "new3", "terminate1", "weak1", "badalloc1", "filter1"],
+    "long": true
+}
