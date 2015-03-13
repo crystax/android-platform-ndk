@@ -1,0 +1,3 @@
+[submodule "crew"]
+	path = crew
+	url = git@git.crystax.net:android/crew.git
