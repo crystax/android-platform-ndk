@@ -49,14 +49,14 @@ module Common
 
   LOG_FILE = "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}.log"
 
-  # todo: calculates as NUM_CPU * 2
-  NUM_JOBS = 16
-
   MACOSX_VERSION_MIN = '10.6'
 
-  # todo: calculate target platform
   def self.target_platform
     "#{target_os}-#{target_cpu}"
+  end
+
+  def self.num_jobs
+    @@num_jobs
   end
 
   def self.make_archive_name
@@ -70,6 +70,8 @@ module Common
         @@target_os = $1
       when /^--target-cpu=(\w+)/
         @@target_cpu = $1
+      when /^--num-jobs=(\w+)/
+        @@num_jobs = $1
       else
         raise "unknown option: #{opt}"
       end
@@ -80,6 +82,8 @@ module Common
 
   @@target_os = nil
   @@target_cpu = nil
+  # todo: calculates as NUM_CPU * 2
+  @@num_jobs = 16
 
   def self.target_os
     raise "target OS was never set" unless @@target_os
