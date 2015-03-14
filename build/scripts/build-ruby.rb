@@ -49,6 +49,31 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+def prepare_openssl(os, cpu)
+  case os
+  when 'linux'
+    openssldir = "#{Common::BUILD_BASE}/openssl"
+    incdir = "#{openssldir}/include/openssl"
+    libdir = "#{openssldir}/lib"
+    FileUtils.mkdir_p(incdir)
+    FileUtils.mkdir_p(libdir)
+    FileUtils.cd(openssldir) do
+      FileUtils.cp_r '/usr/include/openssl/.', incdir
+    end
+    case cpu
+    when 'x86_64'
+      FileUtils.cp '/usr/include/x86_64-linux-gnu/openssl/opensslconf.h', incdir
+      FileUtils.cp ['/usr/lib/x86_64-linux-gnu/libcrypto.a', '/usr/lib/x86_64-linux-gnu/libssl.a'], libdir
+    else
+      raise "unknown CPU #{cpu} in prepare_openssl method"
+    end
+    openssldir
+  else
+    raise "unknown OS #{os} in prepare_openssl method"
+  end
+end
+
+
 begin
   Common.parse_options
 
@@ -61,20 +86,22 @@ begin
   end
 
   Logger.msg "building #{archive}"
+  FileUtils.cd(Common::SRC_DIR) { Commander::run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
+  openssldir = prepare_openssl(Common::target_os, Common::target_cpu)
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
-    if not File.exists?("#{Common::SRC_DIR}/configure")
-      FileUtils.cd(Common::SRC_DIR) { Commander::run "autoconf" }
-    end
     env = { 'CC' => Builder.cc(Common::target_platform),
             'CFLAGS' => Builder.cflags(Common::target_platform),
-            'LDFLAGS' => Builder.ldflags(Common::target_platform),
             'DESTDIR' => Common::BUILD_BASE
           }
-    Commander::run env, "#{Common::SRC_DIR}/configure --prefix=/ruby --disable-install-doc --enable-load-relative"
-
-    Commander::run "make -j #{Common::NUM_JOBS}"
-    #Commander::run "make check"
+    args = ["--prefix=/ruby",
+            "--disable-install-doc",
+            "--enable-load-relative",
+            "--with-openssl-dir=#{openssldir}",
+            "--with-static-linked-ext"]
+    Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
+    Commander::run "make -j #{Common::num_jobs}"
+    Commander::run "make check" unless Common::no_check?
     Commander::run "make install"
   end
 
@@ -90,7 +117,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true)
+  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common::no_clean?
 ensure
   Logger.close_log_file
 end

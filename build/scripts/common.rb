@@ -51,12 +51,30 @@ module Common
 
   MACOSX_VERSION_MIN = '10.6'
 
+  def self.target_os
+    raise "target OS was never set" unless @@target_os
+    @@target_os
+  end
+
+  def self.target_cpu
+    raise "target CPU was never set" unless @@target_cpu
+    @@target_cpu
+  end
+
   def self.target_platform
     "#{target_os}-#{target_cpu}"
   end
 
   def self.num_jobs
     @@num_jobs
+  end
+
+  def self.no_clean?
+    @@no_clean
+  end
+
+  def self.no_check?
+    @@no_check
   end
 
   def self.make_archive_name
@@ -72,6 +90,10 @@ module Common
         @@target_cpu = $1
       when /^--num-jobs=(\w+)/
         @@num_jobs = $1
+      when '--no-clean'
+        @@no_clean = true
+      when '--no-check'
+        @@no_check = true
       else
         raise "unknown option: #{opt}"
       end
@@ -84,14 +106,6 @@ module Common
   @@target_cpu = nil
   # todo: calculates as NUM_CPU * 2
   @@num_jobs = 16
-
-  def self.target_os
-    raise "target OS was never set" unless @@target_os
-    @@target_os
-  end
-
-  def self.target_cpu
-    raise "target CPU was never set" unless @@target_cpu
-    @@target_cpu
-  end
+  @@no_clean = false
+  @@no_check = false
 end
