@@ -63,9 +63,12 @@ begin
   Logger.msg "building #{archive}"
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc(Common::TARGET_PLATFORM),
-            'CFLAGS' => Builder.cflags(Common::TARGET_PLATFORM),
-            'LDFLAGS' => Builder.ldflags(Common::TARGET_PLATFORM),
+    if not File.exists?("#{Common::SRC_DIR}/configure")
+      FileUtils.cd(Common::SRC_DIR) { Commander::run "autoconf" }
+    end
+    env = { 'CC' => Builder.cc(Common::target_platform),
+            'CFLAGS' => Builder.cflags(Common::target_platform),
+            'LDFLAGS' => Builder.ldflags(Common::target_platform),
             'DESTDIR' => Common::BUILD_BASE
           }
     Commander::run env, "#{Common::SRC_DIR}/configure --prefix=/ruby --disable-install-doc --enable-load-relative"

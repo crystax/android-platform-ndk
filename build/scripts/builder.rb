@@ -40,7 +40,11 @@ module Builder
   def self.cc(platform)
     case platform
     when 'darwin-x86_64'
+      # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      ''
+    when 'linux-x86_64'
+      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
       ''
     else
       raise "unsupported CC platform: #{platform}"
@@ -52,6 +56,9 @@ module Builder
     when 'darwin-x86_64'
       "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
       "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
+    when 'linux-x86_64'
+      #"--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot"
+      ''
     else
       raise "unsupported CFLAGS platform: #{platform}"
     end
@@ -60,7 +67,8 @@ module Builder
   def self.ldflags(platform)
     case platform
     when 'darwin-x86_64'
-      #"-L#{RUBY_LIBS_DIR}/lib"
+      ''
+    when 'linux-x86_64'
       ''
     else
       raise "unsupported LDFLAGS platform: #{platform}"
