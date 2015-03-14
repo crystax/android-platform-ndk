@@ -68,6 +68,8 @@ def prepare_openssl(os, cpu)
       raise "unknown CPU #{cpu} in prepare_openssl method"
     end
     openssldir
+  when 'darwin'
+    "/usr/local/Cellar/openssl/1.0.2"
   else
     raise "unknown OS #{os} in prepare_openssl method"
   end
