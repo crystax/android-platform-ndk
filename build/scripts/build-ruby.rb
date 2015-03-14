@@ -34,9 +34,7 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-
 require 'fileutils'
-
 
 module Crystax
 
@@ -45,8 +43,6 @@ module Crystax
 
 end
 
-
-require_relative 'common.rb'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
@@ -54,8 +50,10 @@ require_relative 'cache.rb'
 
 
 begin
-  archive = Common.make_archive_name
+  Common.parse_options
+
   Logger.open_log_file Common::LOG_FILE
+  archive = Common.make_archive_name
 
   if Cache.try?(archive)
     Logger.msg "done"
@@ -67,12 +65,13 @@ begin
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc(Common::TARGET_PLATFORM),
             'CFLAGS' => Builder.cflags(Common::TARGET_PLATFORM),
-            'LDFLAGS' => Builder.ldflags(Common::TARGET_PLATFORM)
+            'LDFLAGS' => Builder.ldflags(Common::TARGET_PLATFORM),
+            'DESTDIR' => Common::BUILD_BASE
           }
-    Commander::run env, "#{Common::SRC_DIR}/configure --prefix=#{Common::INSTALL_DIR} --disable-install-doc"
+    Commander::run env, "#{Common::SRC_DIR}/configure --prefix=/ruby --disable-install-doc --enable-load-relative"
 
     Commander::run "make -j #{Common::NUM_JOBS}"
-    Commander::run "make check"
+    #Commander::run "make check"
     Commander::run "make install"
   end
 

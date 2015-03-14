@@ -41,9 +41,6 @@ module Common
   NDK_BUILD_DIR = "/tmp/ndk-#{ENV['USER']}/vendor"
   VENDOR_DIR = "#{NDK_ROOT_DIR}/vendor"
 
-  # todo: calculate target platform
-  TARGET_PLATFORM = "darwin-x86_64"
-
   BUILD_BASE = "#{NDK_BUILD_DIR}/#{Crystax::PKG_NAME}"
   BUILD_DIR = "#{BUILD_BASE}/build"
   SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
@@ -57,7 +54,40 @@ module Common
 
   MACOSX_VERSION_MIN = '10.6'
 
+  # todo: calculate target platform
+  def self.target_platform
+    "#{target_os}-#{target_cpu}"
+  end
+
   def self.make_archive_name
-    "crystax-#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{Common::TARGET_PLATFORM}.7z"
+    "crystax-#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{target_platform}.7z"
+  end
+
+  def self.parse_options
+    ARGV.each do |opt|
+      case opt
+      when /^--target-os=(\w+)/
+        @@target_os = $1
+      when /^--target-cpu=(\w+)/
+        @@target_cpu = $1
+      else
+        raise "unknown option: #{opt}"
+      end
+    end
+  end
+
+  private
+
+  @@target_os = nil
+  @@target_cpu = nil
+
+  def self.target_os
+    raise "target OS was never set" unless @@target_os
+    @@target_os
+  end
+
+  def self.target_cpu
+    raise "target CPU was never set" unless @@target_cpu
+    @@target_cpu
   end
 end
