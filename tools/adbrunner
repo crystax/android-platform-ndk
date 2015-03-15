@@ -586,7 +586,7 @@ rescue AdbShellCommandFailed => err
         $stderr.puts "=== BEGIN OF LOGCAT ==="
         while line = f.gets
             log "LOGCAT > #{line}"
-            $stderr.puts "LOGCAT > #{line}"
+            $stderr.puts line
         end
         $stderr.puts "=== END OF LOGCAT ==="
     end rescue nil
@@ -597,9 +597,8 @@ rescue AdbShellCommandFailed => err
 
         reader = proc do |io|
             while line = io.gets rescue nil
-                message = "NDK-STACK > #{line}"
-                log message
-                $stderr.puts message
+                log "NDK-STACK > #{line}"
+                $stderr.puts line
             end
         end
 
