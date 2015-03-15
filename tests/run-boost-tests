@@ -493,6 +493,7 @@ else
         FLAGS="\$FLAGS -I$ICU/include"
     fi
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
+    FLAGS="\$FLAGS -I$GNULIBCXX/include/backward"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
     FLAGS="\$FLAGS -Wno-long-long"
