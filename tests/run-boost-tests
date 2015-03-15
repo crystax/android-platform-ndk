@@ -72,9 +72,6 @@ register_var_option "--libraries=<list>" LIBRARIES "Explicit list of libraries t
 DEVICE_PATH=/data/local/tmp/boost-$(uuidgen)
 register_var_option "--device-path=<path>" DEVICE_PATH "Path on device where to push files"
 
-REPORTS_PATH=$TEST_DIR/reports
-register_var_option "--reports=<path>" REPORTS_PATH "Path to store HTML reports"
-
 ENABLE_PIE=yes
 register_option "--pie" do_pie "Produce PIE-enabled binaries to test (default)"
 do_pie () { ENABLE_PIE=yes; }
@@ -162,9 +159,6 @@ REGRESSION_DIR="$TEST_DIR/$TAG/regression"
 REPORT_DIR="$TEST_DIR/$TAG/report"
 
 setup_default_log_file $TEST_DIR/test.log
-
-mkdir -p $REPORTS_PATH
-fail_panic "Cannot create results directory: $REPORTS_PATH"
 
 STDBUF=
 which stdbuf >/dev/null 2>&1 && STDBUF="stdbuf -o0"
