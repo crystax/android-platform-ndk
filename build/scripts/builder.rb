@@ -45,6 +45,8 @@ module Builder
       ''
     when 'linux-x86_64'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
+    when 'windows-x86_64'
+      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc"
     else
       raise "unsupported CC platform: #{platform}"
     end
@@ -57,6 +59,8 @@ module Builder
       "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
     when 'linux-x86_64'
       "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot "
+    when 'windows-x86_64'
+      ''
     else
       raise "unsupported CFLAGS platform: #{platform}"
     end

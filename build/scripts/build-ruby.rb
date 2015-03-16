@@ -70,6 +70,12 @@ def prepare_openssl(os, cpu)
     openssldir
   when 'darwin'
     "/usr/local/Cellar/openssl/1.0.2"
+  when 'windows'
+    openssldir = "#{Common::BUILD_BASE}/openssl"
+    FileUtils.mkdir_p(openssldir)
+    arch = Common::make_archive_name('openssl', '1.0.2')
+    Cache.unpack(arch, 'openssl', openssldir)
+    openssldir
   else
     raise "unknown OS #{os} in prepare_openssl method"
   end
@@ -101,14 +107,27 @@ begin
             "--enable-load-relative",
             "--with-openssl-dir=#{openssldir}",
             "--with-static-linked-ext"]
+    if Common::target_os == 'windows'
+      args << '--host=x86_64-linux'
+      args << '--target=x86_64-mingw64'
+      args << '--with-baseruby=/usr/bin/ruby'
+      path = "/home/zuav/src/ndk/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin:#{ENV['PATH']}"
+      env['PATH'] = path
+    end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
-    Commander::run "make -j #{Common::num_jobs}"
-    Commander::run "make check" unless Common::no_check?
-    Commander::run "make install"
+    Commander::run env, "make -j #{Common::num_jobs}"
+    Commander::run env, "make check" unless Common::no_check?
+    Commander::run env, "make install"
   end
 
   gems = ['rspec', 'minitest']
-  Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
+
+  # if Common::target_os != 'windows'
+  #   Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
+  # else
+  #   FileUtils.cp '/usr/bin/gem', "#{Common::INSTALL_DIR}/bin/gem.rb"
+  #   Commander::run "wine #{Common::INSTALL_DIR}/bin/ruby.exe #{Common::INSTALL_DIR}/bin/gem.rb install #{gems.join(' ')}"
+  # end
 
   Cache.add(archive)
   Cache.unpack(archive)

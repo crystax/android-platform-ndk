@@ -65,6 +65,20 @@ module Common
     "#{target_os}-#{target_cpu}"
   end
 
+  def self.host_os
+    raise "host OS was never set" unless @@host_os
+    @@host_os
+  end
+
+  def self.host_cpu
+    raise "host CPU was never set" unless @@host_cpu
+    @@host_cpu
+  end
+
+  def self.host_platform
+    "#{host_os}-#{host_cpu}"
+  end
+
   def self.num_jobs
     @@num_jobs
   end
@@ -77,8 +91,8 @@ module Common
     @@no_check
   end
 
-  def self.make_archive_name
-    "crystax-#{Crystax::PKG_NAME}-#{Crystax::PKG_VERSION}-#{target_platform}.7z"
+  def self.make_archive_name(pkgname = Crystax::PKG_NAME, pkgversion = Crystax::PKG_VERSION)
+    "crystax-#{pkgname}-#{pkgversion}-#{target_platform}.7z"
   end
 
   def self.parse_options
@@ -102,8 +116,23 @@ module Common
 
   private
 
+  def self.set_host_platform
+    h = RUBY_PLATFORM.split('-')
+    cpu = h[0]
+    case h[1]
+    when /linux/
+      os = 'linux'
+    when /darwin/
+      os = 'darwin'
+    else
+      raise "unsupported host OS: #{h[1]}"
+    end
+    [os, cpu]
+  end
+
   @@target_os = nil
   @@target_cpu = nil
+  @@host_os, @@host_cpu = set_host_platform
   # todo: calculates as NUM_CPU * 2
   @@num_jobs = 16
   @@no_clean = false

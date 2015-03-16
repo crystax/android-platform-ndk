@@ -45,7 +45,6 @@ module Crystax
 end
 
 
-require_relative 'common.rb'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
@@ -53,14 +52,21 @@ require_relative 'cache.rb'
 
 
 begin
+  Common.parse_options
+  if Common::target_os != 'windows'
+    Logger.msg "openssl should be built only for windows"
+    exit 0
+  end
+
+  Logger.open_log_file Common::LOG_FILE
   archive = Common.make_archive_name
-  Logger.log_msg "building #{archive}"
 
   if Cache.try?(archive)
     Logger.log_msg "done"
     exit 0
   end
 
+  Logger.log_msg "building #{archive}"
   # since openssl does not support builds in non-source directory
   # we must copy source to build directory
   FileUtils.mkdir_p(Common::BUILD_BASE)
@@ -68,14 +74,22 @@ begin
   FileUtils.move "#{Common::BUILD_BASE}/#{Crystax::PKG_NAME}", Common::BUILD_DIR
 
   FileUtils.cd(Common::BUILD_DIR) do
-    CC = Builder.gcc(Common::TARGET_PLATFORM)
-    Commander::run "CC=#{CC} #{Common::SRC_DIR}/config --prefix=#{Common::INSTALL_DIR} no-shared threads"
+    env = { 'CC' => Builder.cc(Common::target_platform) }
+    args = ["--prefix=#{Common::INSTALL_DIR}",
+            "no-idea",
+            "no-mdc2",
+            "no-rc5",
+            "no-shared",
+            "mingw64"]
+    Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
+    Commander::run "make depend"
     Commander::run "make"
     Commander::run "make install"
   end
 
+  # no need to unpack archive
+  # it'll be unpacked in build-ruby.rb
   Cache.add(archive)
-  Cache.unpack(archive)
 
 rescue SystemExit => e
   exit e.status
@@ -83,5 +97,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  # todo: clean tmp files
+  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common::no_clean?
+ensure
+  Logger.close_log_file
 end

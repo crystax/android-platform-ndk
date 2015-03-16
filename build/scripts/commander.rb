@@ -55,7 +55,12 @@ end
 module Commander
 
   def self.run(*cmd)
-    Logger.msg "  command started: #{cmd}"
+    if cmd[0].class != Hash
+      Logger.msg "  command started: #{cmd}"
+    else
+      Logger.msg "  command started: #{cmd.slice(1, cmd.size)}"
+      Logger.msg "              env: #{cmd[0]}"
+    end
 
     exitstatus = nil
     err = ''
