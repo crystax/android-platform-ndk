@@ -54,14 +54,12 @@ require_relative 'exceptions.rb'
 
 def openssl_platform
   case Common.target_platform
-  when 'darwin-x86_64'
-    'darwin64-x86_64-cc'
-  when 'darwin-x86'
-    'darwin-i386-cc'
-  when 'windows-x86_64'
-    'mingw64'
-  when 'windows-x86'
-    'mingw32'
+  when 'darwin-x86_64'  then 'darwin64-x86_64-cc'
+  when 'darwin-x86'     then 'darwin-i386-cc'
+  when 'linux-x86_64'   then 'linux-x86_64'
+  when 'linux-x86'      then 'linux-generic32'
+  when 'windows-x86_64' then 'mingw64'
+  when 'windows-x86'    then 'mingw32'
   else
     raise UnknownTargetPlatform, Common.target_platform, caller
   end
@@ -88,7 +86,14 @@ begin
 
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc }
-    args = ["--prefix=#{Common::INSTALL_DIR}", "no-idea", "no-mdc2", "no-rc5", "no-shared", openssl_platform]
+    args = ["--prefix=#{Common::INSTALL_DIR}",
+            "no-idea",
+            "no-mdc2",
+            "no-rc5",
+            "no-shared",
+            openssl_platform,
+            Builder.cflags
+           ]
     Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
     Commander::run "make depend"
     Commander::run "make" # -j N breaks build on OS X

@@ -39,7 +39,7 @@ require_relative 'common.rb'
 
 module Builder
   def self.cc
-    case Common::target_platform
+    case Common.target_platform
     when 'darwin-x86_64'
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
@@ -48,30 +48,39 @@ module Builder
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
       ''
-    when 'linux-x86_64'
-      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
+    when 'linux-x86_64', 'linux-x86'
+      "#{Common::NDK_ROOT_DIR}/" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
     when 'windows-x86_64'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc"
     when 'windows-x86'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin/i686-w64-mingw32-gcc"
     else
-      raise UnknownTargetPlatform, Common::target_platform, caller
+      raise UnknownTargetPlatform, Common.target_platform, caller
     end
   end
 
-  def self.cflags(platform)
-    case platform
+  def self.cflags
+    case Common.target_platform
     when 'darwin-x86_64'
-      "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
+      "--sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
+      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
+    when 'darwin-x86'
+      "--sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
       "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
     when 'linux-x86_64'
-      "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot "
+      "--sysroot=#{Common::NDK_ROOT_DIR}/" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot "
+    when 'linux-x86'
+      "--sysroot=#{Common::NDK_ROOT_DIR}/" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot " \
+      "-m32"
     when 'windows-x86_64'
       ''
     when 'windows-x86'
       ''
     else
-      raise "unsupported CFLAGS platform: #{platform}"
+      raise UnknownTargetPlatform, Common.target_platform, caller
     end
   end
 
