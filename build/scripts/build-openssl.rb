@@ -97,7 +97,7 @@ begin
     Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
     Commander::run "make depend"
     Commander::run "make" # -j N breaks build on OS X
-    Commander::run "make test" unless Common.no_check?
+    Commander::run "make test" unless Common.no_check? or Builder.cross_compiling?
     Commander::run "make install"
   end
 
