@@ -35,6 +35,19 @@
 #
 
 
+class CommandFailed < RuntimeError
+  def initialize(cmd, exitstatus)
+    @cmd = cmd
+    @exitstatus = exitstatus
+  end
+
+  def to_s
+    "command failed:  #{@cmd}\n"
+    "   exit status:  #{@exitstatus}\n"
+  end
+end
+
+
 class UnknownTargetPlatform < RuntimeError
   def initialize(platform)
     @platform = platform

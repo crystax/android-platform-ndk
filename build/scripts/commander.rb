@@ -35,21 +35,7 @@
 
 require 'open3'
 require_relative 'logger.rb'
-
-
-class CommandFailed < RuntimeError
-  def initialize(cmd, exitstatus, err)
-    @cmd = cmd
-    @exitstatus = exitstatus
-    @err = err
-  end
-
-  def to_s
-    "command failed:  #{@cmd}\n"
-    "   exit status:  #{@exitstatus}\n"
-    "   error output: #{@err}\n"
-  end
-end
+require_relative 'exceptions.rb'
 
 
 module Commander
@@ -65,10 +51,10 @@ module Commander
     exitstatus = nil
     err = ''
 
-    Open3.popen3(*cmd) do |_, stdout, stderr, waitthr|
+    Open3.popen2e(*cmd) do |_, stdouterr, waitthr|
       ot = Thread.start do
         str = ''
-        while c = stdout.getc
+        while c = stdouterr.getc
           if "#{c}" != "\n"
             str += "#{c}"
           else
@@ -78,19 +64,12 @@ module Commander
         end
       end
 
-      et = Thread.start do
-        while c = stderr.getc
-          err += "#{c}"
-        end
-      end
-
       ot.join
-      et.join
 
       exitstatus = waitthr && waitthr.value.exitstatus
     end
 
     Logger.log_msg "  command finished: exit code: #{exitstatus} cmd: #{cmd}"
-    raise CommandFailed.new(cmd, exitstatus, err) if exitstatus != 0
+    raise CommandFailed.new(cmd, exitstatus) if exitstatus != 0
   end
 end
