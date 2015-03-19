@@ -433,6 +433,7 @@ generate_toolchain()
 
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
     local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$GNULIBCXX_VERSION
+    local COMPILERRT=$NDK_DIR/sources/android/compiler-rt
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
 
@@ -445,6 +446,10 @@ generate_toolchain()
     FLAGS="$FLAGS -g"
 
     LLIBS="-lgnustl_shared"
+    case $TOOLCHAIN_TYPE in
+        clang)
+            LLIBS="$LLIBS -lcompiler_rt_static"
+    esac
 
     local TOOL
     for TOOL in $CCS; do
@@ -482,6 +487,7 @@ if [ "x\$LINKER" = "xyes" ]; then
     fi
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
+    FLAGS="\$FLAGS -L$COMPILERRT/libs/$ABI"
 else
     if [ "x$ICU" != "x" ]; then
         FLAGS="\$FLAGS -I$ICU/include"
