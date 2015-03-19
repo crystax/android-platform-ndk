@@ -38,6 +38,11 @@
 #include <sys/limits.h>
 #include <signal.h> /* for sigevent */
 
+#ifdef CLOCKS_PER_SEC
+#undef CLOCKS_PER_SEC
+#endif
+#define CLOCKS_PER_SEC 1000000
+
 __BEGIN_DECLS
 
 extern int daylight;
