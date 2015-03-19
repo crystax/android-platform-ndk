@@ -74,13 +74,20 @@ begin
   FileUtils.move "#{Common::BUILD_BASE}/#{Crystax::PKG_NAME}", Common::BUILD_DIR
 
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc(Common::target_platform) }
+    env = { 'CC' => Builder.cc }
     args = ["--prefix=#{Common::INSTALL_DIR}",
             "no-idea",
             "no-mdc2",
             "no-rc5",
-            "no-shared",
-            "mingw64"]
+            "no-shared"]
+    case target_cpu
+    when 'x86_64'
+      args << "mingw64"
+    when 'x86'
+      args << "mingw32"
+    else
+      raise "unknown target cpu #{target_cpu}"
+    end
     Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
     Commander::run "make depend"
     Commander::run "make"

@@ -37,8 +37,8 @@ require_relative 'common.rb'
 
 
 module Builder
-  def self.cc(platform)
-    case platform
+  def self.cc
+    case Common::target_platform
     when 'darwin-x86_64'
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
@@ -47,6 +47,8 @@ module Builder
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
     when 'windows-x86_64'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc"
+    when 'windows-x86'
+      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin/i686-w64-mingw32-gcc"
     else
       raise "unsupported CC platform: #{platform}"
     end
@@ -61,8 +63,25 @@ module Builder
       "--sysroot #{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot "
     when 'windows-x86_64'
       ''
+    when 'windows-x86'
+      ''
     else
       raise "unsupported CFLAGS platform: #{platform}"
+    end
+  end
+
+  def self.toolchain_path_and_path
+    case Common.target_platform
+    when 'windows-x86_64'
+      "#{Common::NDK_ROOT_DIR}/" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin" \
+      ":#{ENV['PATH']}"
+    when 'windows-x86'
+      "#{Common::NDK_ROOT_DIR}/" \
+      "platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin" \
+      ":#{ENV['PATH']}"
+    else
+      raise "unsupported target platform: #{Common.target_platform}"
     end
   end
 end

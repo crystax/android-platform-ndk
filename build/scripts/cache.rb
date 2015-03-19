@@ -57,10 +57,8 @@ module Cache
   end
 
   def self.unpack(archive, pkgname = Crystax::PKG_NAME, dstdir = Common::DST_DIR)
-    if Common::host_os == Common::target_os
-      FileUtils.remove_dir("#{dstdir}/#{pkgname}", true)
-      Commander::run "7z x -o#{dstdir} #{PATH}/#{archive}"
-    end
+    FileUtils.remove_dir("#{dstdir}/#{pkgname}", true)
+    Commander::run "7z x -o#{dstdir} #{PATH}/#{archive}"
   end
 
   def self.add(archive)

@@ -74,10 +74,52 @@ def prepare_openssl(os, cpu)
     openssldir = "#{Common::BUILD_BASE}/openssl"
     FileUtils.mkdir_p(openssldir)
     arch = Common::make_archive_name('openssl', '1.0.2')
-    Cache.unpack(arch, 'openssl', openssldir)
+    Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
     openssldir
   else
     raise "unknown OS #{os} in prepare_openssl method"
+  end
+end
+
+
+def build_libffi(installdir)
+  Logger.msg "building libffi"
+  srcdir = "#{Common::VENDOR_DIR}/libffi"
+  FileUtils.cd(srcdir) { Commander::run "./autogen.sh" } unless File.exists?("#{srcdir}/configure")
+  builddir = "#{Common::BUILD_BASE}/libffi"
+  FileUtils.mkdir_p(builddir)
+  FileUtils.cd(builddir) do
+    env = { 'CC' => Builder.cc,
+            'CFLAGS' => Builder.cflags(Common::target_platform)
+          }
+    # todo: use Builder.host
+    args = ["--prefix=#{installdir}",
+            "--host=x86_64-mingw64"
+           ]
+    Commander::run env, "#{srcdir}/configure #{args.join(' ')}"
+    Commander::run "make -j #{Common::num_jobs}"
+    # here make check requires DejaGNU installed
+    #Commander::run env, "make check" unless Common::no_check?
+    Commander::run "make install"
+  end
+  # todo: libffi version
+  FileUtils.cp_r "#{installdir}/lib/libffi-3.2.1/include", "#{installdir}/"
+  FileUtils.rm ["#{installdir}/lib/libffi.dll.a", "#{installdir}/lib/libffi.la"]
+end
+
+
+def build_zlib(installdir)
+  Logger.msg "building zlib"
+  FileUtils.cp_r "#{Common::VENDOR_DIR}/zlib", Common::BUILD_BASE
+  FileUtils.cd("#{Common::BUILD_BASE}/zlib") do
+    fname = 'win32/Makefile.gcc'
+    text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
+    File.open(fname, "w") {|f| f.puts text }
+    # chop 'gcc' from the end of the string
+    env = { 'PREFIX' => Builder.cc.chop.chop.chop }
+    Commander::run env, "make -j #{Common::num_jobs} -f win32/Makefile.gcc"
+    FileUtils.cp 'libz.a', "#{installdir}/lib/"
+    FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
   end
 end
 
@@ -93,44 +135,51 @@ begin
     exit 0
   end
 
+  if Common.target_os == 'windows'
+    libsdir = "#{Common::BUILD_BASE}/libs"
+    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+    build_libffi(libsdir)
+    build_zlib(libsdir)
+  end
+
   Logger.msg "building #{archive}"
-  FileUtils.cd(Common::SRC_DIR) { Commander::run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
-  openssldir = prepare_openssl(Common::target_os, Common::target_cpu)
+  FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
+  openssldir = prepare_openssl(Common.target_os, Common.target_cpu)
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc(Common::target_platform),
-            'CFLAGS' => Builder.cflags(Common::target_platform),
+    env = { 'CC' => Builder.cc,
+            'CFLAGS' => Builder.cflags(Common.target_platform),
             'DESTDIR' => Common::BUILD_BASE
           }
     args = ["--prefix=/ruby",
             "--disable-install-doc",
             "--enable-load-relative",
             "--with-openssl-dir=#{openssldir}",
-            "--with-static-linked-ext"]
+            "--with-static-linked-ext"
+           ]
     if Common::target_os == 'windows'
-      args << '--host=x86_64-linux'
-      args << '--target=x86_64-mingw64'
-      args << '--with-baseruby=/usr/bin/ruby'
-      path = "/home/zuav/src/ndk/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin:#{ENV['PATH']}"
-      env['PATH'] = path
+      args << '--host=x86_64-mingw64'
+      env['PATH'] = Builder.toolchain_path_and_path
+      env['CFLAGS'] += " -I#{libsdir}/include"
+      env['LDFLAGS'] = "-L#{libsdir}/lib"
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
-    Commander::run env, "make -j #{Common::num_jobs}"
+    Commander::run env, "make -j #{Common::num_jobs} V=1"
     Commander::run env, "make check" unless Common::no_check?
     Commander::run env, "make install"
   end
 
   gems = ['rspec', 'minitest']
 
-  # if Common::target_os != 'windows'
-  #   Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
-  # else
-  #   FileUtils.cp '/usr/bin/gem', "#{Common::INSTALL_DIR}/bin/gem.rb"
-  #   Commander::run "wine #{Common::INSTALL_DIR}/bin/ruby.exe #{Common::INSTALL_DIR}/bin/gem.rb install #{gems.join(' ')}"
-  # end
+  if Common::target_os != 'windows'
+    Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
+  else
+    FileUtils.cp '/usr/bin/gem', "#{Common::INSTALL_DIR}/bin/gem.rb"
+    Commander::run "wine #{Common::INSTALL_DIR}/bin/ruby.exe #{Common::INSTALL_DIR}/bin/gem.rb install #{gems.join(' ')}"
+  end
 
   Cache.add(archive)
-  Cache.unpack(archive)
+  Cache.unpack(archive) if Common::host_os == Common::target_os
 
 rescue SystemExit => e
   exit e.status
