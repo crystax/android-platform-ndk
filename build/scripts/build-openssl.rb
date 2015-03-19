@@ -49,14 +49,27 @@ require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
 require_relative 'cache.rb'
+require_relative 'exceptions.rb'
+
+
+def openssl_platform
+  case Common.target_platform
+  when 'darwin-x86_64'
+    'darwin64-x86_64-cc'
+  when 'darwin-x86'
+    'darwin-i386-cc'
+  when 'windows-x86_64'
+    'mingw64'
+  when 'windows-x86'
+    'mingw32'
+  else
+    raise UnknownTargetPlatform, Common.target_platform, caller
+  end
+end
 
 
 begin
   Common.parse_options
-  if Common::target_os != 'windows'
-    Logger.msg "openssl should be built only for windows"
-    exit 0
-  end
 
   Logger.open_log_file Common::LOG_FILE
   archive = Common.make_archive_name
@@ -75,22 +88,11 @@ begin
 
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc }
-    args = ["--prefix=#{Common::INSTALL_DIR}",
-            "no-idea",
-            "no-mdc2",
-            "no-rc5",
-            "no-shared"]
-    case target_cpu
-    when 'x86_64'
-      args << "mingw64"
-    when 'x86'
-      args << "mingw32"
-    else
-      raise "unknown target cpu #{target_cpu}"
-    end
+    args = ["--prefix=#{Common::INSTALL_DIR}", "no-idea", "no-mdc2", "no-rc5", "no-shared", openssl_platform]
     Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
     Commander::run "make depend"
-    Commander::run "make"
+    Commander::run "make" # -j N breaks build on OS X
+    Commander::run "make test" unless Common.no_check?
     Commander::run "make install"
   end
 
@@ -104,7 +106,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common::no_clean?
+  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common.no_clean?
 ensure
   Logger.close_log_file
 end

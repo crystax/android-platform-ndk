@@ -33,6 +33,7 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+require_relative 'exceptions.rb'
 require_relative 'common.rb'
 
 
@@ -43,6 +44,10 @@ module Builder
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
       ''
+    when 'darwin-x86'
+      # todo: builds ruby with not working psych library (gem isntall fails)
+      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      ''
     when 'linux-x86_64'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
     when 'windows-x86_64'
@@ -50,7 +55,7 @@ module Builder
     when 'windows-x86'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin/i686-w64-mingw32-gcc"
     else
-      raise "unsupported CC platform: #{platform}"
+      raise UnknownTargetPlatform, Common::target_platform, caller
     end
   end
 
