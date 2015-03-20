@@ -97,7 +97,7 @@ module Builder
       ":#{ENV['PATH']}"
     when 'windows-x86'
       "#{Common::NDK_ROOT_DIR}/" \
-      "platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin" \
+      "platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/i686-w64-mingw32/bin" \
       ":#{ENV['PATH']}"
     else
       raise UnknownTargetPlatform, Common.target_platform, caller
@@ -110,6 +110,14 @@ module Builder
       'x86_64-darwin10'
     when 'darwin-x86'
       'i686-darwin10'
+    when 'linux-x86_64'
+      'x86_64-linux'
+    when 'linux-x86'
+      'i686-linux'
+    when 'windows-x86_64'
+      'x86_64-mingw64'
+    when 'windows-x86'
+      'mingw32'
     else
       raise UnknownTargetPlatform, Common.target_platform, caller
     end

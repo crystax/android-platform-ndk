@@ -66,11 +66,11 @@ def build_libffi(installdir)
   FileUtils.mkdir_p(builddir)
   FileUtils.cd(builddir) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags(Common::target_platform)
+            'CFLAGS' => Builder.cflags
           }
     # todo: use Builder.host
     args = ["--prefix=#{installdir}",
-            "--host=x86_64-mingw64"
+            "--host=#{Builder.configure_host}"
            ]
     Commander::run env, "#{srcdir}/configure #{args.join(' ')}"
     Commander::run "make -j #{Common::num_jobs}"
