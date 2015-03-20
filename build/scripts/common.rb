@@ -47,9 +47,12 @@ module Common
   DST_DIR = "#{NDK_DIR}/tools"
   INSTALL_DIR = "#{BUILD_BASE}/#{Crystax::PKG_NAME}"
 
-  LOG_FILE = "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}.log"
-
   MACOSX_VERSION_MIN = '10.6'
+
+
+  def self.log_file
+    "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}-#{target_platform}.log"
+  end
 
   def self.target_os
     raise "target OS was never set" unless @@target_os
