@@ -576,6 +576,11 @@ def do_run_test(attempt, devid, tag, exe, args)
 rescue AdbShellCommandFailed => err
     log err.message
 
+    $stderr.puts "=== BEGIN OF LAUNCHER PARAMETERS ==="
+    $stderr.puts "ARGV: #{exe} #{args.join(' ')}"
+    $stderr.puts "PWD: #{dstpath}"
+    $stderr.puts "=== END OF LAUNCHER PARAMETERS ==="
+
     lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
     at_exit { FileUtils.rm_f lf }
 
