@@ -69,10 +69,10 @@ end
 begin
   Common.parse_options
 
-  Logger.open_log_file Common::LOG_FILE
+  Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
 
-  if Cache.try?(archive)
+  if Cache.try?(archive, :nounpack)
     Logger.log_msg "done"
     exit 0
   end
