@@ -38,6 +38,10 @@ require_relative 'common.rb'
 
 
 module Builder
+  def self.cross_compiling?
+    Common.target_os != Common.host_os
+  end
+
   def self.cc
     case Common.target_platform
     when 'darwin-x86_64'
@@ -79,7 +83,7 @@ module Builder
     when 'windows-x86_64'
       ''
     when 'windows-x86'
-      ''
+      '-m32'
     else
       raise UnknownTargetPlatform, Common.target_platform, caller
     end
