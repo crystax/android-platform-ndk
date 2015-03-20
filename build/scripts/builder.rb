@@ -67,7 +67,8 @@ module Builder
       "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
     when 'darwin-x86'
       "--sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
-      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
+      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN} " \
+      "-m32"
     when 'linux-x86_64'
       "--sysroot=#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot "
@@ -95,7 +96,18 @@ module Builder
       "platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin" \
       ":#{ENV['PATH']}"
     else
-      raise "unsupported target platform: #{Common.target_platform}"
+      raise UnknownTargetPlatform, Common.target_platform, caller
+    end
+  end
+
+  def self.configure_host
+    case Common.target_platform
+    when 'darwin-x86_64'
+      'x86_64-darwin10'
+    when 'darwin-x86'
+      'i686-darwin10'
+    else
+      raise UnknownTargetPlatform, Common.target_platform, caller
     end
   end
 end

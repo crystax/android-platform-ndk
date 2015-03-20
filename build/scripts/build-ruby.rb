@@ -49,36 +49,12 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-def prepare_openssl(os, cpu)
-  case os
-  when 'linux'
-    openssldir = "#{Common::BUILD_BASE}/openssl"
-    incdir = "#{openssldir}/include/openssl"
-    libdir = "#{openssldir}/lib"
-    FileUtils.mkdir_p(incdir)
-    FileUtils.mkdir_p(libdir)
-    FileUtils.cd(openssldir) do
-      FileUtils.cp_r '/usr/include/openssl/.', incdir
-    end
-    case cpu
-    when 'x86_64'
-      FileUtils.cp '/usr/include/x86_64-linux-gnu/openssl/opensslconf.h', incdir
-      FileUtils.cp ['/usr/lib/x86_64-linux-gnu/libcrypto.a', '/usr/lib/x86_64-linux-gnu/libssl.a'], libdir
-    else
-      raise "unknown CPU #{cpu} in prepare_openssl method"
-    end
-    openssldir
-  when 'darwin'
-    "/usr/local/Cellar/openssl/1.0.2"
-  when 'windows'
+def prepare_openssl
     openssldir = "#{Common::BUILD_BASE}/openssl"
     FileUtils.mkdir_p(openssldir)
     arch = Common::make_archive_name('openssl', '1.0.2')
     Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
     openssldir
-  else
-    raise "unknown OS #{os} in prepare_openssl method"
-  end
 end
 
 
@@ -124,6 +100,21 @@ def build_zlib(installdir)
 end
 
 
+def install_gems(*gems)
+  args = ['--no-document']
+  env = {}
+
+  if Common::target_os != 'windows'
+    gem = "#{Common::INSTALL_DIR}/bin/gem"
+  else
+    gem = "/usr/bin/gem"
+    env['GEM_HOME'] = "#{Common::INSTALL_DIR}/lib/ruby/gems/2.2.0"
+  end
+
+  Commander::run env, "#{gem} install #{gems.join(' ')} #{args.join(' ')}"
+end
+
+
 begin
   Common.parse_options
 
@@ -144,14 +135,15 @@ begin
 
   Logger.msg "building #{archive}"
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
-  openssldir = prepare_openssl(Common.target_os, Common.target_cpu)
+  openssldir = prepare_openssl
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags(Common.target_platform),
+            'CFLAGS' => Builder.cflags,
             'DESTDIR' => Common::BUILD_BASE
           }
     args = ["--prefix=/ruby",
+            "--host=#{Builder.configure_host}",
             "--disable-install-doc",
             "--enable-load-relative",
             "--with-openssl-dir=#{openssldir}",
@@ -165,18 +157,11 @@ begin
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
-    Commander::run env, "make check" unless Common::no_check?
+    #Commander::run env, "make check" unless Common::no_check?
     Commander::run env, "make install"
   end
 
-  gems = ['rspec', 'minitest']
-
-  if Common::target_os != 'windows'
-    Commander::run "#{Common::INSTALL_DIR}/bin/gem install #{gems.join(' ')}"
-  else
-    FileUtils.cp '/usr/bin/gem', "#{Common::INSTALL_DIR}/bin/gem.rb"
-    Commander::run "wine #{Common::INSTALL_DIR}/bin/ruby.exe #{Common::INSTALL_DIR}/bin/gem.rb install #{gems.join(' ')}"
-  end
+  install_gems 'rspec', 'minitest'
 
   Cache.add(archive)
   Cache.unpack(archive) if Common::host_os == Common::target_os
