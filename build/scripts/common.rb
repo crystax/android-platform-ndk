@@ -31,6 +31,7 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+
 require 'pathname'
 
 module Common
@@ -51,16 +52,17 @@ module Common
 
 
   def self.log_file
-    "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}-#{target_platform}.log"
+    if not @@log_file
+      @@log_file = "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}-#{target_platform}.log"
+    end
+    @@log_file
   end
 
   def self.target_os
-    raise "target OS was never set" unless @@target_os
     @@target_os
   end
 
   def self.target_cpu
-    raise "target CPU was never set" unless @@target_cpu
     @@target_cpu
   end
 
@@ -69,12 +71,10 @@ module Common
   end
 
   def self.host_os
-    raise "host OS was never set" unless @@host_os
     @@host_os
   end
 
   def self.host_cpu
-    raise "host CPU was never set" unless @@host_cpu
     @@host_cpu
   end
 
@@ -105,12 +105,17 @@ module Common
         @@target_os = $1
       when /^--target-cpu=(\w+)/
         @@target_cpu = $1
-      when /^--num-jobs=(\w+)/
+      when /^--num-jobs=(\d+)/
         @@num_jobs = $1
       when '--no-clean'
         @@no_clean = true
       when '--no-check'
         @@no_check = true
+      when /^--log-file=(\S+)/
+        @@log_file = $1
+      when '--help'
+        show_help
+        exit 1
       else
         raise "unknown option: #{opt}"
       end
@@ -133,11 +138,28 @@ module Common
     [os, cpu]
   end
 
-  @@target_os = nil
-  @@target_cpu = nil
+  def self.show_help
+    puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                               \
+         "where OPTIONS are:\n"                                                             \
+         "  --target-os=STR   set target OS; one of linux, darwin, windows;\n"              \
+         "                    default #{host_os}\n"                                         \
+         "  --target-cpu=STR  set target CPU; one of x86_64, x86;\n"                        \
+         "                    default #{host_cpu}\n"                                        \
+         "  --num-jobs=N      specifies the number of make's jobs to run simultaneously;\n" \
+         "                    default #{num_jobs}\n"                                        \
+         "  --no-clean        do not remove temporary files\n"                              \
+         "  --no-check        do not run make check or make test\n"                         \
+         "  --log-file=NAME   set log filename\n"                                           \
+         "                    default #{log_file}\n"                                        \
+         "  --help            show this message and exit\n"
+  end
+
   @@host_os, @@host_cpu = set_host_platform
+  @@target_os = @@host_os
+  @@target_cpu = @@host_cpu
   # todo: calculates as NUM_CPU * 2
   @@num_jobs = 16
   @@no_clean = false
   @@no_check = false
+  @@log_file = nil
 end

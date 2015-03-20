@@ -47,7 +47,7 @@ module Logger
   end
 
   def self.close_log_file
-    $log_file.close
+    $log_file.close if $log_file
   end
 
   def self.msg(msg)
