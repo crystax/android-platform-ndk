@@ -59,7 +59,7 @@ def openssl_platform
   when 'linux-x86_64'   then 'linux-x86_64'
   when 'linux-x86'      then 'linux-generic32'
   when 'windows-x86_64' then 'mingw64'
-  when 'windows-x86'    then 'mingw32'
+  when 'windows-x86'    then 'mingw'
   else
     raise UnknownTargetPlatform, Common.target_platform, caller
   end
