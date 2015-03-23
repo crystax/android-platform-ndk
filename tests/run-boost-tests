@@ -1002,6 +1002,10 @@ generate_runner_comment()
         cat <<HTML
 <p>
 <pre>
+\$ uname -a
+$(uname -a 2>/dev/null)
+</pre>
+<pre>
 \$ cat user-config.jam
 $(cat $CONFIGJAM 2>/dev/null)
 </pre>
