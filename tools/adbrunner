@@ -576,6 +576,7 @@ def do_run_test(attempt, devid, tag, exe, args)
 rescue AdbShellCommandFailed => err
     log err.message
 
+    $stderr.puts ""
     $stderr.puts "=== BEGIN OF LAUNCHER PARAMETERS ==="
     $stderr.puts "ARGV: #{exe} #{args.join(' ')}"
     $stderr.puts "PWD: #{dstpath}"
