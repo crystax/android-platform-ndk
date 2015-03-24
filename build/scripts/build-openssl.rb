@@ -73,11 +73,11 @@ begin
   archive = Common.make_archive_name
 
   if Cache.try?(archive, :nounpack)
-    Logger.log_msg "done"
+    Logger.msg "done"
     exit 0
   end
 
-  Logger.log_msg "building #{archive}"
+  Logger.msg "building #{archive}"
   # since openssl does not support builds in non-source directory
   # we must copy source to build directory
   FileUtils.mkdir_p(Common::BUILD_BASE)
