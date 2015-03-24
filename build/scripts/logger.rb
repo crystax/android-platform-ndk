@@ -37,7 +37,7 @@ require_relative 'common.rb'
 
 module Logger
   def self.open_log_file(name)
-    if File.exists?(name)
+    if File.exists?(name) and $do_rename
       rename_logfile(name)
     else
       dir = File.dirname(name)
@@ -66,7 +66,13 @@ module Logger
     $log_file.puts exc.backtrace
   end
 
+  def self.set_no_rename
+    $do_rename = false
+  end
+
   private
+
+  $do_rename = true
 
   def self.rename_logfile(name)
     n = 1

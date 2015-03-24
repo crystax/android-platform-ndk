@@ -113,6 +113,7 @@ module Common
         @@no_check = true
       when /^--log-file=(\S+)/
         @@log_file = $1
+        Logger.set_no_rename
       when '--help'
         show_help
         exit 1
