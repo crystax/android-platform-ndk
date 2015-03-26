@@ -34,17 +34,18 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
 
+require_relative 'versions.rb'
 
 module Crystax
 
-  PKG_VERSION = '1.0.2'
   PKG_NAME = 'openssl'
+  PKG_VERSION = version PKG_NAME
 
 end
 
 
+require 'fileutils'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
@@ -78,6 +79,7 @@ begin
   end
 
   Logger.msg "building #{archive}"
+  # todo: check that the specified version and the repository version are the same
   # since openssl does not support builds in non-source directory
   # we must copy source to build directory
   FileUtils.mkdir_p(Common::BUILD_BASE)

@@ -34,15 +34,15 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
+require_relative 'versions.rb'
 
 module Crystax
 
-  PKG_VERSION = '2.2.1'
   PKG_NAME = 'ruby'
-
+  PKG_VERSION = version PKG_NAME
 end
 
+require 'fileutils'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
@@ -52,7 +52,7 @@ require_relative 'cache.rb'
 def prepare_openssl
     openssldir = "#{Common::BUILD_BASE}/openssl"
     FileUtils.mkdir_p(openssldir)
-    arch = Common::make_archive_name('openssl', '1.0.2')
+    arch = Common::make_archive_name('openssl', Crystax.version('openssl'))
     Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
     openssldir
 end
@@ -134,6 +134,7 @@ begin
   end
 
   Logger.msg "building #{archive}"
+  # todo: check that the specified version and the repository version are the same
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
   openssldir = prepare_openssl
   FileUtils.mkdir_p(Common::BUILD_DIR)

@@ -18,7 +18,7 @@
 #
 
 PROGDIR=$(dirname $0)
-SCRIPTSDIR=$(dirname $PROGDIR)/scripts
+SCRIPTS_DIR=$(dirname $PROGDIR)/scripts
 . $PROGDIR/prebuilt-common.sh
 
 
@@ -367,8 +367,8 @@ for SYSTEM in $SYSTEMS; do
     #echo "target_os  = $target_os"
     #echo "target_cpu = $target_cpu"
     #echo "log_file   = $TMPLOG"
-    $SCRIPTSDIR/build-openssl.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
-    $SCRIPTSDIR/build-ruby.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
+    $SCRIPTS_DIR/build-openssl.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    $SCRIPTS_DIR/build-ruby.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
     
     # We're done for this system
 done

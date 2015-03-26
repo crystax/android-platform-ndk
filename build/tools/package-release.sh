@@ -264,7 +264,7 @@ name64 ()
         *windows)
             NAME=${NAME}-x86_64
             ;;
-        *linux-x86|*darwin-x86)
+        *linux-x86|*darwin-x86|*windows-x86)
             NAME=${NAME}_64
             ;;
     esac
@@ -482,6 +482,13 @@ fi
 rm -f $REFERENCE/CleanSpec.mk
 rm -Rf $REFERENCE/sources/crystax/vendor
 
+# remove crystax utils if they were installed and crew files
+# later versions required for the system in question will be unpacked from the cache
+# and appropriate version of the crew will be cloned
+# todo: add git, curl, 7z
+rm -rf $REFERENCE/tools/{ruby}
+rm -rf $REFERENCE/crew
+
 # now, for each system, create a package
 #
 DSTDIR=$TMPDIR/$RELEASE_PREFIX
@@ -489,6 +496,8 @@ DSTDIR64=${DSTDIR}
 if [ "$SEPARATE_64" = "yes" ] ; then
     DSTDIR64=$TMPDIR/64/${RELEASE_PREFIX}
 fi
+
+SCRIPTS_DIR=$(dirname $(dirname $0))/scripts
 
 for SYSTEM in $SYSTEMS; do
     echo "Preparing package for system $SYSTEM."
@@ -660,6 +669,14 @@ for SYSTEM in $SYSTEMS; do
     # Remove include-fixed/linux/a.out.h.   See b.android.com/73728
     find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm -f
 
+    # unpack vendor utils
+    echo "$SCRIPTS_DIR/install-vendor-utils.rb --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    $SCRIPTS_DIR/install-vendor-utils.rb --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    fail_panic "Could not install vendor utils"
+    echo "$SCRIPTS_DIR/install-crew.rb --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    $SCRIPTS_DIR/install-crew.rb --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    fail_panic "Could not install CREW"
+
     # Create an archive for the final package. Extension depends on the
     # host system.
     ARCHIVE=$BIN_RELEASE
@@ -668,7 +685,7 @@ for SYSTEM in $SYSTEMS; do
     elif [ "$SYSTEM" = "windows" ]; then
         ARCHIVE=$ARCHIVE-x86
     fi
-    case "$SYSTEM" in
+     case "$SYSTEM" in
         windows)
             ARCHIVE64="${ARCHIVE}_64.exe"
             ARCHIVE="${ARCHIVE}.exe"
@@ -693,6 +710,8 @@ for SYSTEM in $SYSTEMS; do
     if [ "$SEPARATE_64" = "yes" ] ; then
         rm -rf "$DSTDIR/prebuilt/common"
         rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"
+        rm -rf "$DSTDIR/crew"
+        rm -rf "$DSTDIR/tools/ruby"
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"

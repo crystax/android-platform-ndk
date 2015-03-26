@@ -1,4 +1,6 @@
 #
+# List of vendor's utils and their versions
+#
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
 #
@@ -31,54 +33,18 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
-require_relative 'common.rb'
+module Crystax
 
+  UTILS = ['ruby']
 
-module Logger
-  def self.open_log_file(name)
-    if File.exists?(name) and $do_rename
-      rename_logfile(name)
-    else
-      dir = File.dirname(name)
-      FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
-    end
-    $log_file = File.open(name, 'a')
-  end
+  VERSIONS = {
+    'openssl' => '1.0.2',
+    'ruby'    => '2.2.1'
+  }
 
-  def self.close_log_file
-    $log_file.close if $log_file
-  end
-
-  def self.msg(msg)
-    puts msg
-    log_msg msg
-  end
-
-  def self.log_msg(msg)
-    $log_file.puts msg
-  end
-
-  def self.log_exception(exc)
-    puts "error: #{exc}"
-    puts exc.backtrace
-    if $log_file
-      $log_file.puts "error: #{exc}"
-      $log_file.puts exc.backtrace
-    end
-  end
-
-  def self.set_no_rename
-    $do_rename = false
-  end
-
-  private
-
-  $do_rename = true
-
-  def self.rename_logfile(name)
-    n = 1
-    n += 1 while File.exists?("#{name}.#{n}")
-    File.rename(name, "#{name}.#{n}")
+  def self.version(name)
+    ver = VERSIONS[name]
+    raise "no version for #{name}" unless ver
+    ver
   end
 end
