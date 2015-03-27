@@ -1074,46 +1074,39 @@ fetch()
     return 0
 }
 
+fetch_boost_impl()
+{
+    local URL="$1"
+    local DIR="$2"
+    local NAME="$3"
+
+    local attempt
+    for attempt in 1 2 3 4 5 6; do
+        dump "Fetching $NAME sources (attempt #$attempt)"
+        fetch "$URL" "$DIR" "$TAG" && return 0
+        log "Cannot fetch $URL to $DIR (attempt #$attempt)"
+        run rm -Rf $DIR
+        sleep $(expr $attempt \* 30)
+    done
+    panic "Cannot fetch $URL to $DIR due continuous errors"
+}
+
 fetch_boost()
 {
     local DIR="$1"
-
-    local attempt
-    for attempt in 1 2; do
-        dump "Fetching Boost sources"
-        fetch "$BOOST_GIT_URL" "$DIR" "$TAG" && return 0
-        log "Cannot fetch $BOOST_GIT_URL to $DIR, trying again"
-        run rm -Rf $DIR
-    done
-    panic "Cannot fetch $BOOST_GIT_URL to $DIR"
+    fetch_boost_impl "$BOOST_GIT_URL" "$DIR" "Boost"
 }
 
 fetch_boost_bb()
 {
     local DIR="$1"
-
-    local attempt
-    for attempt in 1 2; do
-        dump "Fetching Boost build sources"
-        fetch "$BOOST_BUILD_GIT_URL" "$DIR" "develop" && return 0
-        log "Cannot fetch $BOOST_BUILD_GIT_URL to $DIR, trying again"
-        run rm -Rf $DIR
-    done
-    panic "Cannot fetch $BOOST_BUILD_GIT_URL to $DIR"
+    fetch_boost_impl "$BOOST_BUILD_GIT_URL" "$DIR" "Boost.Build"
 }
 
 fetch_boost_rr()
 {
     local DIR="$1"
-
-    local attempt
-    for attempt in 1 2; do
-        dump "Fetching Boost regression sources"
-        fetch "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop" && return 0
-        log "Cannot fetch $BOOST_REGRESSION_GIT_URL to $DIR, trying again"
-        run rm -Rf $DIR
-    done
-    panic "Cannot fetch $BOOST_REGRESSION_GIT_URL to $DIR"
+    fetch_boost_impl "$BOOST_REGRESSION_GIT_URL" "$DIR" "Boost.Regression"
 }
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
