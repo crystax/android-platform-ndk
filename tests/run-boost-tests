@@ -1057,7 +1057,8 @@ fetch()
     run git fetch --prune origin || exit 1
     run git reset --hard || exit 1
     run git clean -ffddx || exit 1
-    run git submodule foreach --recursive 'git reset --hard && git clean -ffddx' || exit 1
+    run git submodule foreach --recursive 'git reset --hard' || exit 1
+    run git submodule foreach --recursive 'git clean -ffddx' || exit 1
 
     SHA1=$(git rev-parse --verify origin/$BRANCH)
     test -n "$SHA1" || exit 1
@@ -1088,7 +1089,7 @@ fetch_boost_impl()
         run rm -Rf $DIR
         sleep $(expr $attempt \* 30)
     done
-    panic "Cannot fetch $URL to $DIR due continuous errors"
+    panic "Cannot fetch $URL to $DIR due to continuous errors"
 }
 
 fetch_boost()
