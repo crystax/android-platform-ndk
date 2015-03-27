@@ -364,11 +364,12 @@ for SYSTEM in $SYSTEMS; do
     else
         target_cpu="x86"
     fi
-    #echo "target_os  = $target_os"
-    #echo "target_cpu = $target_cpu"
-    #echo "log_file   = $TMPLOG"
+
+    # build crystax vendor utils
     $SCRIPTS_DIR/build-openssl.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    fail_panic "Failed to build openssh"
     $SCRIPTS_DIR/build-ruby.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
+    fail_panic "Failed to build ruby"
     
     # We're done for this system
 done
