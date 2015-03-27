@@ -349,7 +349,7 @@ def adb_getprop(devid, propname)
         ot.join
         et.join
 
-        raise AdbError.new("geprop #{propname}", es.join("\n")) unless t.value.success?
+        raise AdbError.new("getprop #{propname}", es.join("\n")) unless t.value.success?
     end
 
     last = os.last
