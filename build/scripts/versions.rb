@@ -39,6 +39,7 @@ module Crystax
 
   VERSIONS = {
     'openssl' => '1.0.2',
+    'curl'    => '7.41.0',
     'ruby'    => '2.2.1'
   }
 
