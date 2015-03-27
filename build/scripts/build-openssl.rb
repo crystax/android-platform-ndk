@@ -78,7 +78,7 @@ begin
     exit 0
   end
 
-  Logger.msg "building #{archive}"
+  Logger.msg "building #{archive}; args: #{ARGV}"
   # todo: check that the specified version and the repository version are the same
   # since openssl does not support builds in non-source directory
   # we must copy source to build directory

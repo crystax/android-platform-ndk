@@ -50,16 +50,17 @@ require_relative 'cache.rb'
 
 
 def prepare_openssl
-    openssldir = "#{Common::BUILD_BASE}/openssl"
-    FileUtils.mkdir_p(openssldir)
-    arch = Common::make_archive_name('openssl', Crystax.version('openssl'))
-    Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
-    openssldir
+  Logger.msg "= preparing openssl"
+  openssldir = "#{Common::BUILD_BASE}/openssl"
+  FileUtils.mkdir_p(openssldir)
+  arch = Common::make_archive_name('openssl', Crystax.version('openssl'))
+  Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
+  openssldir
 end
 
 
 def build_libffi(installdir)
-  Logger.msg "building libffi"
+  Logger.msg "= building libffi"
   srcdir = "#{Common::VENDOR_DIR}/libffi"
   FileUtils.cd(srcdir) { Commander::run "./autogen.sh" } unless File.exists?("#{srcdir}/configure")
   builddir = "#{Common::BUILD_BASE}/libffi"
@@ -85,7 +86,7 @@ end
 
 
 def build_zlib(installdir)
-  Logger.msg "building zlib"
+  Logger.msg "= building zlib"
   FileUtils.cp_r "#{Common::VENDOR_DIR}/zlib", Common::BUILD_BASE
   FileUtils.cd("#{Common::BUILD_BASE}/zlib") do
     fname = 'win32/Makefile.gcc'
@@ -120,6 +121,7 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
+  Logger.msg "building #{archive}; args: #{ARGV}"
 
   if Cache.try?(archive)
     Logger.msg "done"
@@ -133,10 +135,11 @@ begin
     build_zlib(libsdir)
   end
 
-  Logger.msg "building #{archive}"
+  openssldir = prepare_openssl
+
+  Logger.msg "= building ruby"
   # todo: check that the specified version and the repository version are the same
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
-  openssldir = prepare_openssl
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
