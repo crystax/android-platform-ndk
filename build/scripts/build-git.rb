@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Build OpenSSL libraries to use it to build Crystax NDK utilities
+# Build GIT to use it with Crystax NDK
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -34,37 +34,19 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-
 require_relative 'versions.rb'
 
 module Crystax
 
-  PKG_NAME = 'openssl'
+  PKG_NAME = 'git'
   PKG_VERSION = version PKG_NAME
-
 end
-
 
 require 'fileutils'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
 require_relative 'cache.rb'
-require_relative 'exceptions.rb'
-
-
-def openssl_platform
-  case Common.target_platform
-  when 'darwin-x86_64'  then 'darwin64-x86_64-cc'
-  when 'darwin-x86'     then 'darwin-i386-cc'
-  when 'linux-x86_64'   then 'linux-x86_64'
-  when 'linux-x86'      then 'linux-generic32'
-  when 'windows-x86_64' then 'mingw64'
-  when 'windows-x86'    then 'mingw'
-  else
-    raise UnknownTargetPlatform, Common.target_platform, caller
-  end
-end
 
 
 begin
@@ -72,37 +54,58 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
+  Logger.msg "building #{archive}; args: #{ARGV}"
 
-  if Cache.try?(archive, :nounpack)
+  if Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  Logger.msg "building #{archive}; args: #{ARGV}"
+  # if Common.target_os == 'windows'
+  #   libsdir = "#{Common::BUILD_BASE}/libs"
+  #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+  #   build_libffi(libsdir)
+  #   build_zlib(libsdir)
+  # end
+
+  openssldir = Builder.prepare_dependency('openssl')
+  curldir = Builder.prepare_dependency('curl')
+
+  Logger.msg "= building git"
   # todo: check that the specified version and the repository version are the same
-  # since openssl does not support builds in non-source directory
+  # since git does not support builds in non-source directory
   # we must copy source to build directory
   Builder.copy_sources
+  FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc }
-    args = ["--prefix=#{Common::INSTALL_DIR}",
-            "no-idea",
-            "no-mdc2",
-            "no-rc5",
-            "no-shared",
-            openssl_platform,
-            Builder.cflags
-           ]
-    Commander::run env, "#{Common::SRC_DIR}/Configure #{args.join(' ')}"
-    Commander::run "make depend"
-    Commander::run "make" # -j N breaks build on OS X
-    Commander::run "make test" unless Common.no_check? or Common.different_os?
-    Commander::run "make install"
+    env = { 'CC' => Builder.cc,
+            'CFLAGS' => Builder.cflags,
+            'V' => '1',
+            'NO_SVN_TESTS' => '1',
+            'CURLDIR' => curldir,
+            'OPENSSLDIR' => openssldir
+          }
+    # if Common::target_os == 'windows'
+    #   args << '--host=x86_64-mingw64'
+    #   env['PATH'] = Builder.toolchain_path_and_path
+    #   env['CFLAGS'] += " -I#{libsdir}/include"
+    #   env['LDFLAGS'] = "-L#{libsdir}/lib"
+    # end
+    if Common.target_os == 'darwin'
+      env["NO_EXPAT"] = "1"
+      env["NO_GETTEXT"] = "1"
+      env["NO_FINK"] = "1"
+      env["NO_DARWIN_PORTS"] = "1"
+      env["NO_R_TO_GCC_LINKER"] = "1"
+      env["NEEDS_SSL_WITH_CURL"] = "1"
+      env["NEEDS_LIBICONV"] = "1"
+    end
+    Commander.run env, "make all -j #{Common::num_jobs}"
+    Commander.run env, "make install prefix=#{Common::BUILD_BASE}/git"
   end
 
-  # no need to unpack archive
-  # it'll be unpacked in build-ruby.rb
   Cache.add(archive)
+  Cache.unpack(archive) if Common.same_platform?
 
 rescue SystemExit => e
   exit e.status
@@ -110,7 +113,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common.no_clean?
+  Builder.clean
 ensure
   Logger.close_log_file
 end

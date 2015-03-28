@@ -49,16 +49,6 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-def prepare_openssl
-  Logger.msg "= preparing openssl"
-  openssldir = "#{Common::BUILD_BASE}/openssl"
-  FileUtils.mkdir_p(openssldir)
-  arch = Common::make_archive_name('openssl', Crystax.version('openssl'))
-  Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
-  openssldir
-end
-
-
 begin
   Common.parse_options
 
@@ -66,7 +56,7 @@ begin
   archive = Common.make_archive_name
   Logger.msg "building #{archive}; args: #{ARGV}"
 
-  if Cache.try?(archive)
+  if not Common.force? and Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
@@ -78,7 +68,7 @@ begin
   #   build_zlib(libsdir)
   # end
 
-  openssldir = prepare_openssl
+  openssldir = Builder.prepare_dependency('openssl')
 
   Logger.msg "= building #{Crystax::PKG_NAME}"
   # todo: check that the specified version and the repository version are the same
@@ -92,6 +82,7 @@ begin
     args = ["--prefix=/curl",
             "--host=#{Builder.configure_host}",
             "--disable-shared",
+            "--disable-ldap",
             "--with-openssl-dir=#{openssldir}"
            ]
     # if Common::target_os == 'windows'

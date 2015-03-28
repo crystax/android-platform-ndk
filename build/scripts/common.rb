@@ -82,6 +82,14 @@ module Common
     "#{host_os}-#{host_cpu}"
   end
 
+  def self.different_os?
+    target_os != host_os
+  end
+
+  def self.same_platform?
+    target_platform == host_platform
+  end
+
   def self.num_jobs
     @@num_jobs
   end
@@ -92,6 +100,10 @@ module Common
 
   def self.no_check?
     @@no_check
+  end
+
+  def self.force?
+    @@force
   end
 
   def self.make_archive_name(pkgname = Crystax::PKG_NAME, pkgversion = Crystax::PKG_VERSION)
@@ -111,6 +123,8 @@ module Common
         @@no_clean = true
       when '--no-check'
         @@no_check = true
+      when '--force'
+        @@force = true
       when /^--log-file=(\S+)/
         @@log_file = $1
         Logger.set_no_rename
@@ -150,6 +164,7 @@ module Common
          "                    default #{num_jobs}\n"                                        \
          "  --no-clean        do not remove temporary files\n"                              \
          "  --no-check        do not run make check or make test\n"                         \
+         "  --force           do not check cache, force build\n"                            \
          "  --log-file=NAME   set log filename\n"                                           \
          "                    default #{log_file}\n"                                        \
          "  --help            show this message and exit\n"
@@ -162,5 +177,6 @@ module Common
   @@num_jobs = 16
   @@no_clean = false
   @@no_check = false
+  @@force = false
   @@log_file = nil
 end

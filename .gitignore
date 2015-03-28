@@ -28,3 +28,4 @@ prebuilt/common/scan-view/
 tests/abcc/prebuilts/
 tools/ruby
 tools/curl
+tools/git
