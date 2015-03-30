@@ -92,6 +92,9 @@ begin
     #   env['CFLAGS'] += " -I#{libsdir}/include"
     #   env['LDFLAGS'] = "-L#{libsdir}/lib"
     # end
+    if Common::target_os == 'linux'
+      env['LDFLAGS'] = '-ldl'
+    end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs}"
     Commander::run env, "make test" unless Common::no_check?
