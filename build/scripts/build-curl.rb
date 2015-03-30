@@ -77,7 +77,8 @@ begin
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
             'CFLAGS' => Builder.cflags,
-            'DESTDIR' => Common::BUILD_BASE
+            'DESTDIR' => Common::BUILD_BASE,
+            'LANG' => 'C'
           }
     args = ["--prefix=/curl",
             "--host=#{Builder.configure_host}",
