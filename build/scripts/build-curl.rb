@@ -56,7 +56,7 @@ begin
   archive = Common.make_archive_name
   Logger.msg "building #{archive}; args: #{ARGV}"
 
-  if not Common.force? and Cache.try?(archive)
+  if Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end

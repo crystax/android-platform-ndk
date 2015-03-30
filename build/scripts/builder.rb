@@ -45,11 +45,11 @@ module Builder
     when 'darwin-x86_64'
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
-      ''
+      'clang'
     when 'darwin-x86'
-      # todo: builds ruby with not working psych library (gem isntall fails)
+      # todo: prebuilt toolchain builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
-      ''
+      'clang'
     when 'linux-x86_64', 'linux-x86'
       "#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
@@ -131,9 +131,12 @@ module Builder
   end
 
   def self.copy_sources
+    dir = "#{Common::BUILD_BASE}/#{Crystax::PKG_NAME}"
+    FileUtils.remove_dir(Common::BUILD_DIR, true)
+    FileUtils.remove_dir(dir, true)
     FileUtils.mkdir_p(Common::BUILD_BASE)
     FileUtils.cp_r Common::SRC_DIR, Common::BUILD_BASE
-    FileUtils.move "#{Common::BUILD_BASE}/#{Crystax::PKG_NAME}", Common::BUILD_DIR
+    FileUtils.move dir, Common::BUILD_DIR
   end
 
   def self.clean

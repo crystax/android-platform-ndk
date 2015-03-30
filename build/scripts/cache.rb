@@ -43,7 +43,7 @@ module Cache
   PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
 
   def self.try?(archive, action = :unpack)
-    if !exists?(archive)
+    if Common.force? or !exists?(archive)
       false
     else
       Logger.msg "found cached file: #{archive}"

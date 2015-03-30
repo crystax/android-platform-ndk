@@ -78,12 +78,10 @@ begin
   Builder.copy_sources
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags,
-            'V' => '1',
-            'NO_SVN_TESTS' => '1',
-            'CURLDIR' => curldir,
-            'OPENSSLDIR' => openssldir
+    env = {'V' => '1',
+           'NO_SVN_TESTS' => '1',
+           'CURLDIR' => curldir,
+           'OPENSSLDIR' => openssldir
           }
     # if Common::target_os == 'windows'
     #   args << '--host=x86_64-mingw64'
@@ -100,8 +98,16 @@ begin
       env["NEEDS_SSL_WITH_CURL"] = "1"
       env["NEEDS_LIBICONV"] = "1"
     end
-    Commander.run env, "make all -j #{Common::num_jobs}"
-    Commander.run env, "make install prefix=#{Common::BUILD_BASE}/git"
+    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{Builder.cflags}\""]
+
+    Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::BUILD_BASE}/git #{args.join(' ')}"
+
+    if Common.target_os == 'darwin'
+      FileUtils.cd('contrib/credential/osxkeychain') do
+        Commander.run env, "make #{args.join(' ')}"
+        FileUtils.cp 'git-credential-osxkeychain', "#{Common::BUILD_BASE}/git/bin"
+      end
+    end
   end
 
   Cache.add(archive)
