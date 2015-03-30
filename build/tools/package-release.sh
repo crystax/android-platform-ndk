@@ -711,7 +711,7 @@ for SYSTEM in $SYSTEMS; do
         rm -rf "$DSTDIR/prebuilt/common"
         rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"
         rm -rf "$DSTDIR/crew"
-        rm -rf "$DSTDIR/tools/ruby"
+        rm -rf "$DSTDIR/tools/{ruby,curl,git}"
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"

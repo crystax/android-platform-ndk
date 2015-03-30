@@ -370,6 +370,10 @@ for SYSTEM in $SYSTEMS; do
     fail_panic "Failed to build openssh"
     $SCRIPTS_DIR/build-ruby.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
     fail_panic "Failed to build ruby"
+    $SCRIPTS_DIR/build-curl.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
+    fail_panic "Failed to build curl"
+    $SCRIPTS_DIR/build-git.rb     --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
+    fail_panic "Failed to build git"
     
     # We're done for this system
 done

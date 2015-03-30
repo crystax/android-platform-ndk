@@ -35,7 +35,7 @@
 
 module Crystax
 
-  UTILS = ['ruby']
+  UTILS = ['ruby', 'curl', 'git']
 
   VERSIONS = {
     'openssl' => '1.0.2',
