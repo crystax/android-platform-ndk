@@ -72,7 +72,7 @@ begin
 
   Logger.msg "= building #{Crystax::PKG_NAME}"
   # todo: check that the specified version and the repository version are the same
-  FileUtils.cd(Common::SRC_DIR) { Commander.run "./buildconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
+  FileUtils.cd(Common::SRC_DIR) { Commander.run "./buildconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
@@ -84,7 +84,7 @@ begin
             "--host=#{Builder.configure_host}",
             "--disable-shared",
             "--disable-ldap",
-            "--with-openssl-dir=#{openssldir}"
+            "--with-ssl=#{openssldir}"
            ]
     # if Common::target_os == 'windows'
     #   args << '--host=x86_64-mingw64'
@@ -107,7 +107,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common::no_clean?
+  Builder.clean
 ensure
   Logger.close_log_file
 end
