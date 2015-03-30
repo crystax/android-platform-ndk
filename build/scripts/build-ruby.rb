@@ -139,7 +139,7 @@ begin
 
   Logger.msg "= building ruby"
   # todo: check that the specified version and the repository version are the same
-  FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" } unless File.exists?("#{Common::SRC_DIR}/configure")
+  FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
@@ -176,7 +176,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common::no_clean?
+  Builder.clean
 ensure
   Logger.close_log_file
 end
