@@ -81,7 +81,9 @@ begin
     env = {'V' => '1',
            'NO_SVN_TESTS' => '1',
            'CURLDIR' => curldir,
-           'OPENSSLDIR' => openssldir
+           'OPENSSLDIR' => openssldir,
+           'NO_R_TO_GCC_LINKER' => '1',
+           'NO_EXPAT' => '1'
           }
     # if Common::target_os == 'windows'
     #   args << '--host=x86_64-mingw64'
@@ -89,16 +91,17 @@ begin
     #   env['CFLAGS'] += " -I#{libsdir}/include"
     #   env['LDFLAGS'] = "-L#{libsdir}/lib"
     # end
-    if Common.target_os == 'darwin'
-      env["NO_EXPAT"] = "1"
+    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{Builder.cflags}\""]
+    case Common.target_os
+    when 'darwin'
       env["NO_GETTEXT"] = "1"
       env["NO_FINK"] = "1"
       env["NO_DARWIN_PORTS"] = "1"
-      env["NO_R_TO_GCC_LINKER"] = "1"
       env["NEEDS_SSL_WITH_CURL"] = "1"
       env["NEEDS_LIBICONV"] = "1"
+    when 'linux'
+      args << "LDFLAGS=-ldl"
     end
-    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{Builder.cflags}\""]
 
     Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::BUILD_BASE}/git #{args.join(' ')}"
 
