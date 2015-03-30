@@ -1102,7 +1102,7 @@ fetch_boost()
 fetch_boost_bb()
 {
     local DIR="$1"
-    fetch_boost_impl "$BOOST_BUILD_GIT_URL" "$DIR" "$TAG" "Boost.Build"
+    fetch_boost_impl "$BOOST_BUILD_GIT_URL" "$DIR" "develop" "Boost.Build"
 }
 
 fetch_boost_rr()
