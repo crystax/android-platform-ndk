@@ -36,6 +36,7 @@
 require_relative 'exceptions.rb'
 require_relative 'common.rb'
 require_relative 'cache.rb'
+require_relative 'commander.rb'
 require_relative 'logger.rb'
 
 
@@ -123,11 +124,12 @@ module Builder
 
   def self.prepare_dependency(name)
     Logger.msg "= preparing #{name}"
-    dir = "#{Common::BUILD_BASE}/#{name}"
+    dir = "#{Common::NDK_BUILD_DIR}/#{name}"
     FileUtils.mkdir_p(dir)
     arch = Common.make_archive_name(name, Crystax.version(name))
-    Cache.unpack(arch, name, Common::BUILD_BASE)
-    dir
+    Cache.unpack(arch, name, dir)
+    @@dependencies << name
+    "#{dir}/#{name}"
   end
 
   def self.copy_sources
@@ -141,8 +143,18 @@ module Builder
 
   def self.clean
     unless Common.no_clean?
-      FileUtils.remove_dir(Common::BUILD_BASE, true)
+      Logger.msg "= cleaning"
+      Commander.run "rm -rf #{Common::BUILD_BASE}"
+      @@dependencies.each { |name| clean_dependency(name) }
       FileUtils.cd(Common::SRC_DIR) { Commander.run "git clean -ffdx" }
     end
+  end
+
+  private
+
+  @@dependencies = []
+
+  def self.clean_dependency(name)
+    Commander.run "rm -rf #{Common::NDK_BUILD_DIR}/#{name}"
   end
 end
