@@ -1079,12 +1079,13 @@ fetch_boost_impl()
 {
     local URL="$1"
     local DIR="$2"
-    local NAME="$3"
+    local BRANCH="$3"
+    local NAME="$4"
 
     local attempt
     for attempt in 1 2 3 4 5 6; do
         dump "Fetching $NAME sources (attempt #$attempt)"
-        fetch "$URL" "$DIR" "$TAG" && return 0
+        fetch "$URL" "$DIR" "$BRANCH" && return 0
         log "Cannot fetch $URL to $DIR (attempt #$attempt)"
         run rm -Rf $DIR
         sleep $(expr $attempt \* 30)
@@ -1095,19 +1096,19 @@ fetch_boost_impl()
 fetch_boost()
 {
     local DIR="$1"
-    fetch_boost_impl "$BOOST_GIT_URL" "$DIR" "Boost"
+    fetch_boost_impl "$BOOST_GIT_URL" "$DIR" "$TAG" "Boost"
 }
 
 fetch_boost_bb()
 {
     local DIR="$1"
-    fetch_boost_impl "$BOOST_BUILD_GIT_URL" "$DIR" "Boost.Build"
+    fetch_boost_impl "$BOOST_BUILD_GIT_URL" "$DIR" "$TAG" "Boost.Build"
 }
 
 fetch_boost_rr()
 {
     local DIR="$1"
-    fetch_boost_impl "$BOOST_REGRESSION_GIT_URL" "$DIR" "Boost.Regression"
+    fetch_boost_impl "$BOOST_REGRESSION_GIT_URL" "$DIR" "develop" "Boost.Regression"
 }
 
 BOOST_SRCDIR=$TEST_DIR/$TAG/src/boost
