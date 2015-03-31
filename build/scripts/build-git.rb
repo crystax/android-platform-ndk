@@ -34,6 +34,73 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+MINGW_CONFIG_MAK= <<-EOS
+pathsep = ;
+
+NO_ICONV                    = YesPlease
+NO_REGEX                    = YesPlease
+NO_PYTHON                   = YesPlease
+NO_POLL                     = YesPlease
+NO_NSEC                     = YesPlease
+NO_UNIX_SOCKETS             = YesPlease
+NO_PREAD                    = YesPlease
+NO_SETENV                   = YesPlease
+NO_MEMMEM                   = YesPlease
+NO_POSIX_GOODIES            = UnfortunatelyYes
+NO_PERL                     = YesPlease
+NO_TCLTK                    = YesPlease
+NO_STRCASESTR               = YesPlease
+NO_ST_BLOCKS_IN_STRUCT_STAT = YesPlease
+NO_D_INO_IN_DIRENT          = YesPlease
+NO_MKDTEMP                  = YesPlease
+
+undefine HAVE_PATHS_H
+undefine HAVE_DEV_TTY
+undefine HAVE_CLOCK_GETTIME
+
+USE_WIN32_MMAP = YesPlease
+
+NEEDS_CRYPTO_WITH_SSL = YesPlease
+
+COMPAT_CFLAGS += -Icompat/win32
+COMPAT_OBJS   += compat/mingw.o compat/winansi.o
+COMPAT_OBJS   += compat/win32/pthread.o compat/win32/syslog.o compat/win32/dirent.o
+
+PTHREAD_LIBS =
+MINGW_LIBS  += -lws2_32 -lgdi32
+
+X = .exe
+
+
+### COMPAT_CFLAGS += -D__USE_MINGW_ACCESS -DNOGDI -Icompat -Icompat/win32
+### COMPAT_CFLAGS += -DSTRIP_EXTENSION=".exe"
+
+
+### HAVE_ALLOCA_H = YesPlease
+### NO_LIBGEN_H = YesPlease
+### NO_SYMLINK_HEAD = YesPlease
+### NO_STRLCPY = YesPlease
+### NO_STRTOUMAX = YesPlease
+### NO_MKSTEMPS = YesPlease
+### NO_PERL_MAKEMAKER = YesPlease
+### RUNTIME_PREFIX = YesPlease
+### USE_NED_ALLOCATOR = YesPlease
+### UNRELIABLE_FSTAT = UnfortunatelyYes
+### OBJECT_CREATION_USES_RENAMES = UnfortunatelyNeedsTo
+### ETAGS_TARGET = ETAGS
+### NO_INET_PTON = YesPlease
+### NO_INET_NTOP = YesPlease
+### DEFAULT_HELP_FORMAT = html
+### BASIC_CFLAGS += -DPROTECT_NTFS_DEFAULT=1
+### BASIC_LDFLAGS += -Wl,--large-address-aware
+### GITLIBS += git.res
+### RC = windres -O coff
+### NATIVE_CRLF = YesPlease
+### SPARSE_FLAGS = -Wno-one-bit-signed-bitfield
+
+
+EOS
+
 require_relative 'versions.rb'
 
 module Crystax
@@ -49,6 +116,14 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+def create_config_mak
+  raise "target OS must be windows" unless Common.target_os == 'windows'
+  file = File.open('config.mak', 'w')
+  file.puts MINGW_CONFIG_MAK
+  file.close
+end
+
+
 begin
   Common.parse_options
 
@@ -61,12 +136,11 @@ begin
     exit 0
   end
 
-  # if Common.target_os == 'windows'
-  #   libsdir = "#{Common::BUILD_BASE}/libs"
-  #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-  #   build_libffi(libsdir)
-  #   build_zlib(libsdir)
-  # end
+  if Common.target_os == 'windows'
+    libsdir = "#{Common::BUILD_BASE}/libs"
+    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+    Builder.build_zlib(libsdir)
+  end
 
   openssldir = Builder.prepare_dependency('openssl')
   curldir = Builder.prepare_dependency('curl')
@@ -83,25 +157,29 @@ begin
            'CURLDIR' => curldir,
            'OPENSSLDIR' => openssldir,
            'NO_R_TO_GCC_LINKER' => '1',
-           'NO_EXPAT' => '1'
+           'NO_EXPAT' => '1',
+           'NO_GETTEXT' => '1',
+           'NEEDS_SSL_WITH_CURL' => '1'
           }
-    # if Common::target_os == 'windows'
-    #   args << '--host=x86_64-mingw64'
-    #   env['PATH'] = Builder.toolchain_path_and_path
-    #   env['CFLAGS'] += " -I#{libsdir}/include"
-    #   env['LDFLAGS'] = "-L#{libsdir}/lib"
-    # end
-    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{Builder.cflags}\""]
+    cflags = Builder.cflags
     case Common.target_os
     when 'darwin'
-      env["NO_GETTEXT"] = "1"
       env["NO_FINK"] = "1"
       env["NO_DARWIN_PORTS"] = "1"
-      env["NEEDS_SSL_WITH_CURL"] = "1"
       env["NEEDS_LIBICONV"] = "1"
     when 'linux'
       args << "LDFLAGS=-ldl"
+      env['NEEDS_CRYPTO_WITH_SSL'] = '1'
+    when 'windows'
+      env['ZLIB_PATH'] = libsdir
+      env['PATH'] = Builder.toolchain_path_and_path
+      cflags += " -D_POSIX -DCURL_STATICLIB"
+      create_config_mak
+      if Common.target_cpu == 'x86'
+        env['COMPAT_CFLAGS'] = "-D_USE_32BIT_TIME_T"
+      end
     end
+    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{cflags}\""]
 
     Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::BUILD_BASE}/git #{args.join(' ')}"
 
@@ -122,7 +200,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  Builder.clean
+  #Builder.clean
 ensure
   Logger.close_log_file
 end
