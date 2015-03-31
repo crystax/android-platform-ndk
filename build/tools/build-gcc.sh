@@ -272,14 +272,21 @@ if [ $? != 0 ] ; then
 fi
 
 dump "Sysroot  : Copying empty libcrystax stubs --> $TOOLCHAIN_BUILD_SYSROOT"
-mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/lib"
-for lib in libcrystax.a libstdc++.a libm.a; do
-    test -f "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/$lib" && continue
-    cp "$NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a" "$TOOLCHAIN_BUILD_SYSROOT/usr/lib/$lib"
-    if [ $? != 0 ] ; then
-        echo "Error while copying libcrystax stubs. See $TMPLOG for details."
-        exit 1
-    fi
+case "$TOOLCHAIN" in
+    mips64el-*)
+        dirlist="lib lib64 lib64r2 libr2 libr6"
+        ;;
+    *)
+        dirlist="lib"
+esac
+
+for dir in $dirlist; do
+    mkdir -p "$TOOLCHAIN_BUILD_SYSROOT/usr/$dir"
+    for lib in libcrystax.a libstdc++.a libm.a; do
+        test -f "$TOOLCHAIN_BUILD_SYSROOT/usr/$dir/$lib" && continue
+        cp "$NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a" "$TOOLCHAIN_BUILD_SYSROOT/usr/$dir/$lib"
+        fail_panic "Error while copying libcrystax stubs ($dir, $lib). See $TMPLOG for details."
+    done
 done
 
 # configure the toolchain

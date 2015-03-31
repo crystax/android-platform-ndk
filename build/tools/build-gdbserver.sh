@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2014 The Android Open Source Project
+# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -171,8 +171,12 @@ run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
 ABI=$(echo $(commas_to_spaces $(convert_arch_to_abi $ARCH)) | tr -s ' ' '\n' | head -n 1)
 run mkdir -p "$BUILD_SYSROOT/usr/lib"
 
-run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a "$BUILD_SYSROOT/usr/lib"
-fail_panic "Couldn't copy libcrystax.a stub to $BUILD_SYSROOT/usr/lib"
+for DIR in lib lib64 lib64r2 libr2 libr6 ; do
+    if [ -n "$BUILD_SYSROOT/usr/$LIB" ] ; then
+        run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a "$BUILD_SYSROOT/usr/$DIR"
+        fail_panic "Couldn't copy libcrystax.a stub to $BUILD_SYSROOT/usr/$DIR"
+    fi
+done
 
 # Don't use CrystaX headers when building gdbserver
 log "Restore Google's headers in $BUILD_SYSROOT ..."
