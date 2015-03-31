@@ -150,6 +150,22 @@ module Builder
     end
   end
 
+  def self.build_zlib(installdir)
+    Logger.msg "= building zlib"
+    raise "zlib build supported only for windows" unless Common.target_os == 'windows'
+    FileUtils.cp_r "#{Common::VENDOR_DIR}/zlib", Common::BUILD_BASE
+    FileUtils.cd("#{Common::BUILD_BASE}/zlib") do
+      fname = 'win32/Makefile.gcc'
+      text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
+      File.open(fname, "w") {|f| f.puts text }
+      # chop 'gcc' from the end of the string
+      env = { 'PREFIX' => cc.chop.chop.chop }
+      Commander::run env, "make -j #{Common::num_jobs} -f win32/Makefile.gcc"
+      FileUtils.cp 'libz.a', "#{installdir}/lib/"
+      FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
+    end
+  end
+
   private
 
   @@dependencies = []

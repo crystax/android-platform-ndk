@@ -85,22 +85,6 @@ def build_libffi(installdir)
 end
 
 
-def build_zlib(installdir)
-  Logger.msg "= building zlib"
-  FileUtils.cp_r "#{Common::VENDOR_DIR}/zlib", Common::BUILD_BASE
-  FileUtils.cd("#{Common::BUILD_BASE}/zlib") do
-    fname = 'win32/Makefile.gcc'
-    text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
-    File.open(fname, "w") {|f| f.puts text }
-    # chop 'gcc' from the end of the string
-    env = { 'PREFIX' => Builder.cc.chop.chop.chop }
-    Commander::run env, "make -j #{Common::num_jobs} -f win32/Makefile.gcc"
-    FileUtils.cp 'libz.a', "#{installdir}/lib/"
-    FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
-  end
-end
-
-
 def install_gems(*gems)
   args = ['--no-document']
   env = {}
@@ -132,7 +116,7 @@ begin
     libsdir = "#{Common::BUILD_BASE}/libs"
     FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
     build_libffi(libsdir)
-    build_zlib(libsdir)
+    Builder.build_zlib(libsdir)
   end
 
   openssldir = prepare_openssl

@@ -61,12 +61,11 @@ begin
     exit 0
   end
 
-  # if Common.target_os == 'windows'
-  #   libsdir = "#{Common::BUILD_BASE}/libs"
-  #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-  #   build_libffi(libsdir)
-  #   build_zlib(libsdir)
-  # end
+  if Common.target_os == 'windows'
+    libsdir = "#{Common::BUILD_BASE}/libs"
+    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+    Builder.build_zlib(libsdir)
+  end
 
   openssldir = Builder.prepare_dependency('openssl')
 
@@ -86,23 +85,21 @@ begin
             "--disable-ldap",
             "--with-ssl=#{openssldir}"
            ]
-    # if Common::target_os == 'windows'
-    #   args << '--host=x86_64-mingw64'
-    #   env['PATH'] = Builder.toolchain_path_and_path
-    #   env['CFLAGS'] += " -I#{libsdir}/include"
-    #   env['LDFLAGS'] = "-L#{libsdir}/lib"
-    # end
-    if Common::target_os == 'linux'
+    case Common::target_os
+    when 'windows'
+      env['CFLAGS'] += " -I#{libsdir}/include -DCURL_STATICLIB"
+      env['LDFLAGS'] = "-L#{libsdir}/lib"
+    when 'linux'
       env['LDFLAGS'] = '-ldl'
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs}"
-    Commander::run env, "make test" unless Common::no_check?
+    Commander::run env, "make test" unless Common::no_check? or Common.different_os?
     Commander::run env, "make install"
   end
 
   Cache.add(archive)
-  Cache.unpack(archive) if Common.host_platform == Common.target_platform
+  Cache.unpack(archive) if Common.same_platform?
 
 rescue SystemExit => e
   exit e.status
