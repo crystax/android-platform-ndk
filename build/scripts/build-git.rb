@@ -152,12 +152,16 @@ begin
            'NO_R_TO_GCC_LINKER' => '1',
            'NO_EXPAT' => '1',
            'NO_GETTEXT' => '1',
-           'NEEDS_SSL_WITH_CURL' => '1'
+           'NO_PERL' => '1',
+           'NO_PYTHON' => '1',
+           'NEEDS_SSL_WITH_CURL' => '1',
+           'NEEDS_CRYPTO_WITH_SSL' => '1'
           }
-    cflags = Builder.cflags
+    cflags = "#{Builder.cflags} -DCURL_STATICLIB"
     args = ["CC=#{Builder.cc}"]
     case Common.target_os
     when 'darwin'
+      args << "LDFLAGS=-L#{openssldir}/lib"
       env["NO_FINK"] = "1"
       env["NO_DARWIN_PORTS"] = "1"
       env["NEEDS_LIBICONV"] = "1"
@@ -166,9 +170,8 @@ begin
       env['NEEDS_CRYPTO_WITH_SSL'] = '1'
     when 'windows'
       env['ZLIB_PATH'] = libsdir
-      #env['PATH'] = Builder.toolchain_path_and_path
-      cflags += " -D_POSIX -DCURL_STATICLIB"
       env['GIT_CROSS_COMPILE'] = '1'
+      cflags += " -D_POSIX"
       create_config_mak
       if Common.target_cpu == 'x86'
         cflags += "-D_USE_32BIT_TIME_T"
