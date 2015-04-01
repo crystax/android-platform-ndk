@@ -39,7 +39,7 @@ require_relative 'versions.rb'
 module Crystax
 
   PKG_NAME = 'ruby'
-  PKG_VERSION = version PKG_NAME
+
 end
 
 require 'fileutils'
@@ -49,20 +49,10 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-def prepare_openssl
-  Logger.msg "= preparing openssl"
-  openssldir = "#{Common::BUILD_BASE}/openssl"
-  FileUtils.mkdir_p(openssldir)
-  arch = Common::make_archive_name('openssl', Crystax.version('openssl'))
-  Cache.unpack(arch, 'openssl', Common::BUILD_BASE)
-  openssldir
-end
-
-
 def build_libffi(installdir)
   Logger.msg "= building libffi"
   srcdir = "#{Common::VENDOR_DIR}/libffi"
-  FileUtils.cd(srcdir) { Commander::run "./autogen.sh" } unless File.exists?("#{srcdir}/configure")
+  FileUtils.cd(srcdir) { Commander::run "./autogen.sh" }
   builddir = "#{Common::BUILD_BASE}/libffi"
   FileUtils.mkdir_p(builddir)
   FileUtils.cd(builddir) do
@@ -79,9 +69,9 @@ def build_libffi(installdir)
     #Commander::run env, "make check" unless Common::no_check?
     Commander::run "make install"
   end
-  # todo: libffi version
-  FileUtils.cp_r "#{installdir}/lib/libffi-3.2.1/include", "#{installdir}/"
+  FileUtils.cp_r "#{installdir}/lib/libffi-#{Crystax.version('libffi')}/include", "#{installdir}/"
   FileUtils.rm ["#{installdir}/lib/libffi.dll.a", "#{installdir}/lib/libffi.la"]
+  Builder.clean_src(srcdir) unless Common.no_clean?
 end
 
 
@@ -119,7 +109,7 @@ begin
     Builder.build_zlib(libsdir)
   end
 
-  openssldir = prepare_openssl
+  openssldir = Builder.prepare_dependency('openssl')
 
   Logger.msg "= building ruby"
   # todo: check that the specified version and the repository version are the same
