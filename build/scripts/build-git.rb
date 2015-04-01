@@ -53,53 +53,46 @@ NO_STRCASESTR               = YesPlease
 NO_ST_BLOCKS_IN_STRUCT_STAT = YesPlease
 NO_D_INO_IN_DIRENT          = YesPlease
 NO_MKDTEMP                  = YesPlease
+NO_STRLCPY                  = YesPlease
+NO_MKSTEMPS                 = YesPlease
 
-undefine HAVE_PATHS_H
-undefine HAVE_DEV_TTY
-undefine HAVE_CLOCK_GETTIME
-
-USE_WIN32_MMAP = YesPlease
+USE_WIN32_MMAP    = YesPlease
 
 NEEDS_CRYPTO_WITH_SSL = YesPlease
 
-COMPAT_CFLAGS += -Icompat/win32
+BASIC_CFLAGS  += -DPROTECT_NTFS_DEFAULT=1
+COMPAT_CFLAGS += -Icompat/win32 -D__USE_MINGW_ACCESS -DSTRIP_EXTENSION='".exe"'
 COMPAT_OBJS   += compat/mingw.o compat/winansi.o
 COMPAT_OBJS   += compat/win32/pthread.o compat/win32/syslog.o compat/win32/dirent.o
 
 PTHREAD_LIBS =
 MINGW_LIBS  += -lws2_32 -lgdi32
 
+NATIVE_CRLF                  = YesPlease
+OBJECT_CREATION_USES_RENAMES = UnfortunatelyNeedsTo
+UNRELIABLE_FSTAT             = UnfortunatelyYes
+RUNTIME_PREFIX               = YesPlease
+
 X = .exe
+EOS
 
 
-### COMPAT_CFLAGS += -D__USE_MINGW_ACCESS -DNOGDI -Icompat -Icompat/win32
-### COMPAT_CFLAGS += -DSTRIP_EXTENSION=".exe"
-
+### COMPAT_CFLAGS += -DNOGDI -Icompat
 
 ### HAVE_ALLOCA_H = YesPlease
 ### NO_LIBGEN_H = YesPlease
 ### NO_SYMLINK_HEAD = YesPlease
-### NO_STRLCPY = YesPlease
 ### NO_STRTOUMAX = YesPlease
-### NO_MKSTEMPS = YesPlease
 ### NO_PERL_MAKEMAKER = YesPlease
-### RUNTIME_PREFIX = YesPlease
-### USE_NED_ALLOCATOR = YesPlease
-### UNRELIABLE_FSTAT = UnfortunatelyYes
-### OBJECT_CREATION_USES_RENAMES = UnfortunatelyNeedsTo
 ### ETAGS_TARGET = ETAGS
 ### NO_INET_PTON = YesPlease
-### NO_INET_NTOP = YesPlease
 ### DEFAULT_HELP_FORMAT = html
-### BASIC_CFLAGS += -DPROTECT_NTFS_DEFAULT=1
 ### BASIC_LDFLAGS += -Wl,--large-address-aware
 ### GITLIBS += git.res
 ### RC = windres -O coff
-### NATIVE_CRLF = YesPlease
 ### SPARSE_FLAGS = -Wno-one-bit-signed-bitfield
+### USE_NED_ALLOCATOR = YesPlease
 
-
-EOS
 
 require_relative 'versions.rb'
 
@@ -172,11 +165,13 @@ begin
       env['NEEDS_CRYPTO_WITH_SSL'] = '1'
     when 'windows'
       env['ZLIB_PATH'] = libsdir
-      env['PATH'] = Builder.toolchain_path_and_path
+      #env['PATH'] = Builder.toolchain_path_and_path
       cflags += " -D_POSIX -DCURL_STATICLIB"
+      env['GIT_CROSS_COMPILE'] = '1'
       create_config_mak
       if Common.target_cpu == 'x86'
-        env['COMPAT_CFLAGS'] = "-D_USE_32BIT_TIME_T"
+        cflags += "-D_USE_32BIT_TIME_T"
+        env['NO_INET_NTOP'] = '1'
       end
     end
     args = ["CC=#{Builder.cc}", "CFLAGS=\"#{cflags}\""]
