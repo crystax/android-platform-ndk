@@ -41,6 +41,7 @@ module Crystax
 end
 
 require_relative 'versions.rb'
+require_relative 'common.rb'
 require_relative 'cache.rb'
 require_relative 'logger.rb'
 
@@ -99,7 +100,7 @@ begin
 
   # unpack utils
   Crystax::UTILS.each do |name|
-    base = "crystax-#{name}-#{Crystax.version(name)}-#{os}"
+    base = "#{Common.make_archive_base(name)}-#{os}"
     arch32 = "#{base}-x86.7z"
     arch64 = "#{base}-x86_64.7z"
     Cache.unpack(arch32, name, out32_dir)

@@ -33,6 +33,7 @@
 
 
 require 'pathname'
+require_relative 'versions.rb'
 
 module Common
 
@@ -106,8 +107,12 @@ module Common
     @@force
   end
 
-  def self.make_archive_name(pkgname = Crystax::PKG_NAME, pkgversion = Crystax::PKG_VERSION)
-    "crystax-#{pkgname}-#{pkgversion}-#{target_platform}.7z"
+  def self.make_archive_base(pkgname = Crystax::PKG_NAME)
+    "vendor-#{pkgname}-#{Crystax.version(pkgname)}"
+  end
+
+  def self.make_archive_name(pkgname = Crystax::PKG_NAME)
+    "#{make_archive_base(pkgname)}-#{target_platform}.7z"
   end
 
   def self.parse_options
