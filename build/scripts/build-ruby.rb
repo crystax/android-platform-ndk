@@ -117,7 +117,7 @@ begin
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags,
+            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
             'DESTDIR' => Common::BUILD_BASE
           }
     args = ["--prefix=/ruby",

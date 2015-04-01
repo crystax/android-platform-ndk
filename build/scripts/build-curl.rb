@@ -75,7 +75,7 @@ begin
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags,
+            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
             'DESTDIR' => Common::BUILD_BASE,
             'LANG' => 'C'
           }
@@ -87,7 +87,7 @@ begin
            ]
     case Common::target_os
     when 'windows'
-      env['CFLAGS'] += " -I#{libsdir}/include -DCURL_STATICLIB"
+      env['CFLAGS'] += " -I#{libsdir}/include"
       env['LDFLAGS'] = "-L#{libsdir}/lib"
     when 'linux'
       env['LDFLAGS'] = '-ldl'
