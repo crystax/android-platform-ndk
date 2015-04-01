@@ -38,6 +38,7 @@ module Crystax
   UTILS = ['ruby', 'curl', 'git']
 
   VERSIONS = {
+    'libffi'  => '3.2.1',
     'openssl' => '1.0.2',
     'curl'    => '7.41.0',
     'git'     => '2.3.4',
