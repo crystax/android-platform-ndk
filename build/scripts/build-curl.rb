@@ -39,7 +39,7 @@ require_relative 'versions.rb'
 module Crystax
 
   PKG_NAME = 'curl'
-  PKG_VERSION = version PKG_NAME
+
 end
 
 require 'fileutils'
