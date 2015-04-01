@@ -57,3 +57,14 @@ class UnknownTargetPlatform < RuntimeError
     "unknown target platform #{@platform}"
   end
 end
+
+
+class UnknownTargetOS < RuntimeError
+  def initialize(os)
+    @os = os
+  end
+
+  def to_s
+    "unknown target OS #{@os}"
+  end
+end

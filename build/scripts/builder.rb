@@ -42,24 +42,18 @@ require_relative 'logger.rb'
 
 module Builder
   def self.cc
-    case Common.target_platform
-    when 'darwin-x86_64'
+    case Common.target_os
+    when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
       #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
       'clang'
-    when 'darwin-x86'
-      # todo: prebuilt toolchain builds ruby with not working psych library (gem isntall fails)
-      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
-      'clang'
-    when 'linux-x86_64', 'linux-x86'
+    when 'linux'
       "#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
-    when 'windows-x86_64'
+    when 'windows'
       "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc"
-    when 'windows-x86'
-      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin/i686-w64-mingw32-gcc"
     else
-      raise UnknownTargetPlatform, Common.target_platform, caller
+      raise UnknownTargetOS, Common.target_os, caller
     end
   end
 
@@ -126,7 +120,7 @@ module Builder
     Logger.msg "= preparing #{name}"
     dir = "#{Common::NDK_BUILD_DIR}/#{name}"
     FileUtils.mkdir_p(dir)
-    arch = Common.make_archive_name(name, Crystax.version(name))
+    arch = Common.make_archive_name(name)
     Cache.unpack(arch, name, dir)
     @@dependencies << name
     "#{dir}/#{name}"
@@ -141,12 +135,16 @@ module Builder
     FileUtils.move dir, Common::BUILD_DIR
   end
 
+  def self.clean_src(srcdir)
+      FileUtils.cd(srcdir) { Commander.run "git clean -ffdx" }
+  end
+
   def self.clean
     unless Common.no_clean?
       Logger.msg "= cleaning"
       Commander.run "rm -rf #{Common::BUILD_BASE}"
       @@dependencies.each { |name| clean_dependency(name) }
-      FileUtils.cd(Common::SRC_DIR) { Commander.run "git clean -ffdx" }
+      clean_src Common::SRC_DIR
     end
   end
 
