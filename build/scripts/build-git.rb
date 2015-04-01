@@ -99,7 +99,7 @@ require_relative 'versions.rb'
 module Crystax
 
   PKG_NAME = 'git'
-  PKG_VERSION = version PKG_NAME
+
 end
 
 require 'fileutils'
@@ -155,6 +155,7 @@ begin
            'NEEDS_SSL_WITH_CURL' => '1'
           }
     cflags = Builder.cflags
+    args = ["CC=#{Builder.cc}"]
     case Common.target_os
     when 'darwin'
       env["NO_FINK"] = "1"
@@ -174,7 +175,7 @@ begin
         env['NO_INET_NTOP'] = '1'
       end
     end
-    args = ["CC=#{Builder.cc}", "CFLAGS=\"#{cflags}\""]
+    args << "CFLAGS=\"#{cflags}\""
 
     Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::BUILD_BASE}/git #{args.join(' ')}"
 
