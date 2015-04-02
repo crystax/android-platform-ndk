@@ -59,18 +59,21 @@ def build_libffi(installdir)
     env = { 'CC' => Builder.cc,
             'CFLAGS' => Builder.cflags
           }
-    # todo: use Builder.host
+    if Common.target_os == 'windows'
+      env['PATH'] = Builder.toolchain_path_and_path
+    end
     args = ["--prefix=#{installdir}",
-            "--host=#{Builder.configure_host}"
+            "--host=#{Builder.configure_host}",
+            "--disable-shared"
            ]
-    Commander::run env, "#{srcdir}/configure #{args.join(' ')}"
-    Commander::run "make -j #{Common::num_jobs}"
-    # here make check requires DejaGNU installed
-    #Commander::run env, "make check" unless Common::no_check?
-    Commander::run "make install"
+    Commander.run env, "#{srcdir}/configure #{args.join(' ')}"
+    Commander.run env, "make -j #{Common::num_jobs}"
+    # here 'make check' requires DejaGNU installed so we do not run it
+    # Commander::run env, "make check" unless Common::no_check?
+    Commander.run env, "make install"
   end
   FileUtils.cp_r "#{installdir}/lib/libffi-#{Crystax.version('libffi')}/include", "#{installdir}/"
-  FileUtils.rm ["#{installdir}/lib/libffi.dll.a", "#{installdir}/lib/libffi.la"]
+  FileUtils.rm "#{installdir}/lib/libffi.la"
   Builder.clean_src(srcdir) unless Common.no_clean?
 end
 
