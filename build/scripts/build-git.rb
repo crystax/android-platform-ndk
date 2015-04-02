@@ -199,7 +199,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  #Builder.clean
+  Builder.clean
 ensure
   Logger.close_log_file
 end
