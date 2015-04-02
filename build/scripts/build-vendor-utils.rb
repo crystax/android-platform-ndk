@@ -1,5 +1,6 @@
+#!/usr/bin/env ruby
 #
-# List of vendor's utils and their versions
+# Build all vendors utils used with Crystax NDK
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -35,20 +36,19 @@
 
 module Crystax
 
-  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'git']
-  INSTALL_UTILS = ['ruby', 'curl', 'git']
+  PKG_NAME = 'dummy'
 
-  VERSIONS = {
-    'libffi'  => '3.2.1',
-    'openssl' => '1.0.2',
-    'curl'    => '7.41.0',
-    'git'     => '2.3.4',
-    'ruby'    => '2.2.1'
-  }
+end
 
-  def self.version(name)
-    ver = VERSIONS[name]
-    raise "no version for #{name}" unless ver
-    ver
-  end
+require_relative 'versions.rb'
+require_relative 'common.rb'
+require_relative 'commander.rb'
+
+
+Common.parse_options
+
+path = File.dirname($0)
+
+Crystax::BUILD_UTILS.each do |name|
+  Commander.run "#{path}/build-#{name}.rb #{ARGV.join(' ')}"
 end

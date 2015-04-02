@@ -99,7 +99,7 @@ begin
   raise "use --out64-dir=STR to set output dir for 64 bit release" unless out64_dir
 
   # unpack utils
-  Crystax::UTILS.each do |name|
+  Crystax::INSTALL_UTILS.each do |name|
     base = "#{Common.make_archive_base(name)}-#{os}"
     arch32 = "#{base}-x86.7z"
     arch64 = "#{base}-x86_64.7z"
