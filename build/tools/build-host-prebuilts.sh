@@ -366,15 +366,8 @@ for SYSTEM in $SYSTEMS; do
     fi
 
     # build crystax vendor utils
-    $SCRIPTS_DIR/build-openssl.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
-    fail_panic "Failed to build openssh"
-    $SCRIPTS_DIR/build-ruby.rb    --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
-    fail_panic "Failed to build ruby"
-    # todo: curl tests fail for linux-x86
-    $SCRIPTS_DIR/build-curl.rb  --no-check --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
-    fail_panic "Failed to build curl"
-    $SCRIPTS_DIR/build-git.rb     --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG --num-jobs=$BUILD_NUM_CPUS
-    fail_panic "Failed to build git"
+    $SCRIPTS_DIR/build-vendor-utils.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    fail_panic "Failed to build vendor utils"
     
     # We're done for this system
 done
