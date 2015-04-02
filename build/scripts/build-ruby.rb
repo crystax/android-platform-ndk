@@ -73,7 +73,8 @@ def build_libffi(installdir)
     Commander.run env, "make install"
   end
   FileUtils.cp_r "#{installdir}/lib/libffi-#{Crystax.version('libffi')}/include", "#{installdir}/"
-  FileUtils.rm "#{installdir}/lib/libffi.la"
+  ilib = Common.target_cpu == 'x86' ? 'lib32' : 'lib'
+  FileUtils.rm "#{installdir}/#{ilib}/libffi.la"
   Builder.clean_src(srcdir) unless Common.no_clean?
 end
 
