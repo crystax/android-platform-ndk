@@ -158,7 +158,8 @@ module Builder
       File.open(fname, "w") {|f| f.puts text }
       # chop 'gcc' from the end of the string
       env = { 'PREFIX' => cc.chop.chop.chop }
-      Commander::run env, "make -j #{Common::num_jobs} -f win32/Makefile.gcc"
+      loc = Common.target_cpu == 'x86' ? 'LOC=-m32' : ''
+      Commander::run env, "make -j #{Common::num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
       FileUtils.cp 'libz.a', "#{installdir}/lib/"
       FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
     end
