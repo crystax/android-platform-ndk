@@ -36,7 +36,7 @@
 
 module Crystax
 
-  PKG_NAME = 'dummy'
+  PKG_NAME = 'build-vendor-utils'
 
 end
 
@@ -45,10 +45,22 @@ require_relative 'common.rb'
 require_relative 'commander.rb'
 
 
-Common.parse_options
+begin
+  Common.parse_options
+  Logger.open_log_file Common.log_file
+  Logger.msg "Building vendor utils"
 
-path = File.dirname($0)
+  path = File.dirname($0)
 
-Crystax::BUILD_UTILS.each do |name|
-  Commander.run "#{path}/build-#{name}.rb #{ARGV.join(' ')}"
+  Crystax::BUILD_UTILS.each do |name|
+    args = name == 'curl' ? ARGV << '--no-check' : ARGV
+    Commander.run "#{path}/build-#{name}.rb #{args.join(' ')}"
+  end
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
+ensure
+  Logger.close_log_file
 end
