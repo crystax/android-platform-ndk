@@ -146,7 +146,7 @@ begin
   install_gems 'rspec', 'minitest'
 
   Cache.add(archive)
-  Cache.unpack(archive) if Common.host_platform == Common.target_platform
+  Cache.unpack(archive) if Common.same_platform?
 
 rescue SystemExit => e
   exit e.status
