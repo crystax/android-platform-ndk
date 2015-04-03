@@ -109,7 +109,7 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.remove_dir(Common::BUILD_BASE, true) unless Common.no_clean?
+  Builder.clean
 ensure
   Logger.close_log_file
 end
