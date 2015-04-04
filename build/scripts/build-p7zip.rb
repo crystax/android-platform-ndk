@@ -76,22 +76,32 @@ begin
   end
 
   Logger.msg "building #{archive}; args: #{ARGV}"
-  # todo: check that the specified version and the repository version are the same
-  Builder.copy_sources
-  FileUtils.cd(Common::BUILD_DIR) do
-    FileUtils.cp makefile_name, 'makefile.machine'
-    # "CC=#{Builder.cc}",
-    # "CXX=#{Builder.cxx}",
-
-    args = ["CRYSTAX_CC=#{Builder.cc}",
-            "CRYSTAX_CXX=#{Builder.cxx}",
-            "CRYSTAX_FLAGS=\"#{Builder.cflags}\""
-           ]
-    Commander::run "make -j #{Common.num_jobs} #{args.join(' ')}"
-    Commander::run "make test #{args.join(' ')}" unless Common.no_check? or Common.different_os?
-  end
   FileUtils.mkdir_p(Common::INSTALL_DIR)
-  FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common::INSTALL_DIR}/"
+  if Common.target_os == 'windows'
+    Logger.msg "= coping windows prebuilts"
+    pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
+    if Common.target_cpu == 'x86'
+      FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{Common::INSTALL_DIR}/7za.exe" }
+    else
+      FileUtils.cd("#{pdir}/64") do
+        FileUtils.cp '7z.exe', "#{Common::INSTALL_DIR}/7za.exe"
+        FileUtils.cp '7z.dll', "#{Common::INSTALL_DIR}/7z.dll"
+      end
+    end
+  else
+    # todo: check that the specified version and the repository version are the same
+    Builder.copy_sources
+    FileUtils.cd(Common::BUILD_DIR) do
+      FileUtils.cp makefile_name, 'makefile.machine'
+      args = ["CRYSTAX_CC=#{Builder.cc}",
+              "CRYSTAX_CXX=#{Builder.cxx}",
+              "CRYSTAX_FLAGS=\"#{Builder.cflags}\""
+             ]
+      Commander::run "make -j #{Common.num_jobs} #{args.join(' ')}"
+      Commander::run "make test #{args.join(' ')}" unless Common.no_check? or Common.different_os?
+    end
+    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common::INSTALL_DIR}/"
+  end
 
   Cache.add(archive)
   Cache.unpack(archive) if Common.same_platform?
