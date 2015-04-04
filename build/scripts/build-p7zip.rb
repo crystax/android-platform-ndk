@@ -76,9 +76,9 @@ begin
   end
 
   Logger.msg "building #{archive}; args: #{ARGV}"
-  FileUtils.mkdir_p(Common::INSTALL_DIR)
   if Common.target_os == 'windows'
     Logger.msg "= coping windows prebuilts"
+    FileUtils.mkdir_p(Common::INSTALL_DIR)
     pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
     if Common.target_cpu == 'x86'
       FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{Common::INSTALL_DIR}/7za.exe" }
@@ -100,7 +100,8 @@ begin
       Commander::run "make -j #{Common.num_jobs} #{args.join(' ')}"
       Commander::run "make test #{args.join(' ')}" unless Common.no_check? or Common.different_os?
     end
-    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common::INSTALL_DIR}/"
+    FileUtils.mkdir_p(Common::INSTALL_DIR)
+    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common::INSTALL_DIR}/7za"
   end
 
   Cache.add(archive)
