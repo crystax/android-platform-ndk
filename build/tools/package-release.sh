@@ -336,7 +336,7 @@ pack_release ()
     local chmod_flags="a+x"
     local pack_cmd=
     if [ "$ext" = "exe" ] ; then
-        pack_cmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/7z.exe"
+        pack_cmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe"
     else
         pack_cmd="7z"
     fi
