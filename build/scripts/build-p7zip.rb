@@ -56,6 +56,8 @@ def makefile_name
   case Common.target_os
   when 'darwin'
     Common.target_cpu == 'x86' ? "makefile.macosx_32bits" : "makefile.macosx_64bits"
+  when 'linux'
+    Common.target_cpu == 'x86' ? "makefile.linux_x86" : "makefile.linux_amd64"
   else
     raise "unsupported"
   end
