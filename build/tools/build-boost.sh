@@ -87,6 +87,8 @@ if [ ! -d "$BOOST_SRCDIR/$BOOST_VERSION" ]; then
     exit 1
 fi
 
+BOOST_SRCDIR=$BOOST_SRCDIR/$BOOST_VERSION
+
 BOOST_DSTDIR=$NDK_DIR/$BOOST_SUBDIR/$BOOST_VERSION
 mkdir -p $BOOST_DSTDIR
 fail_panic "Could not create Boost $BOOST_VERSION destination directory: $BOOST_DSTDIR"
@@ -221,7 +223,7 @@ build_boost_for_abi ()
     local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
 
     local SRCDIR=$BUILDDIR/src
-    copy_directory $BOOST_SRCDIR/$BOOST_VERSION $SRCDIR
+    copy_directory $BOOST_SRCDIR $SRCDIR
 
     cd $SRCDIR
     fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
