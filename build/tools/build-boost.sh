@@ -80,6 +80,8 @@ if [ ! -d "$BOOST_SRCDIR" ]; then
     exit 1
 fi
 
+BOOST_SRCDIR=$BOOST_SRCDIR/$BOOST_VERSION
+
 BOOST_DSTDIR=$NDK_DIR/$BOOST_SUBDIR/$BOOST_VERSION
 mkdir -p $BOOST_DSTDIR
 fail_panic "Could not create Boost $BOOST_VERSION destination directory: $BOOST_DSTDIR"
