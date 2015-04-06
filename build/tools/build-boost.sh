@@ -59,15 +59,22 @@ register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary bui
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
+BOOST_VERSION=
+register_var_option "--version=<ver>" BOOST_VERSION "Boost version to build"
+
 TOOLCHAIN_VERSION=4.9
 #register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
-BOOST_VERSION=1.57.0
 ICU_VERSION=54.1
 
 register_jobs_option
 
 extract_parameters "$@"
+
+if [ -z "$BOOST_VERSION" ]; then
+    echo "ERROR: Please specify Boost version"
+    exit 1
+fi
 
 BOOST_SRCDIR=$(echo $PARAMETERS | sed 1q)
 if [ -z "$BOOST_SRCDIR" ]; then
@@ -75,8 +82,8 @@ if [ -z "$BOOST_SRCDIR" ]; then
     exit 1
 fi
 
-if [ ! -d "$BOOST_SRCDIR" ]; then
-    echo "ERROR: Not a directory: '$BOOST_SRCDIR'"
+if [ ! -d "$BOOST_SRCDIR/$BOOST_VERSION" ]; then
+    echo "ERROR: No such directory: '$BOOST_SRCDIR/$BOOST_VERSION'"
     exit 1
 fi
 
@@ -214,7 +221,7 @@ build_boost_for_abi ()
     local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
 
     local SRCDIR=$BUILDDIR/src
-    copy_directory $BOOST_SRCDIR $SRCDIR
+    copy_directory $BOOST_SRCDIR/$BOOST_VERSION $SRCDIR
 
     cd $SRCDIR
     fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
