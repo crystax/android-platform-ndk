@@ -852,9 +852,10 @@ def test_for_abi(abi, testdir)
             FileUtils.mv zip, resultsdir
         end
 
-        Thread.start do
+        rth = Thread.start do
             FileUtils.rm_rf tmpresults
         end
+        at_exit { rth.kill }
     else
         FileUtils.mkdir_p resultsdir
     end
