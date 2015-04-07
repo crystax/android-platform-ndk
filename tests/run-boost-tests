@@ -107,6 +107,11 @@ By default, this will try with the current NDK directory, unless you use the --n
         OPTIONS[:log] = File.expand_path(l)
     end
 
+    OPTIONS[:print_timestamps] = true
+    o.on("--[no-]print-timestamps", "Print timestamps in log [#{OPTIONS[:print_timestamps]}]") do |p|
+        OPTIONS[:print_timestamps] = p
+    end
+
     o.separator "\nRequired parameters:\n\n"
 
     o.on("--runner=RUNNER", "Explicit runner name") do |r|
@@ -243,6 +248,8 @@ FileUtils.rm_f WLOG
 FileUtils.touch WLOG
 
 FileUtils.mkdir_p OPTIONS[:testdir]
+
+Log.timestamps = OPTIONS[:print_timestamps]
 
 Log.add StdLogger.new(OPTIONS[:verbose] ? Log::DEBUG : Log::NOTICE)
 Log.add FileLogger.new(OPTIONS[:log], Log::DEBUG) if OPTIONS[:log]

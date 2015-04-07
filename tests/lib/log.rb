@@ -32,6 +32,12 @@ class Log
     @@loggers = []
     @@mtx = Mutex.new
 
+    @@print_timestamps = true
+
+    def self.timestamps=(v)
+        @@print_timestamps = v
+    end
+
     def self.add(logger)
         @@mtx.synchronize do
             @@loggers << logger
@@ -54,7 +60,9 @@ class Log
             end
             ls.each do |l|
                 message = ""
-                message << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC: ') unless options[:noprefix]
+                prefix = ""
+                prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC: ') if @@print_timestamps
+                message << prefix unless options[:noprefix]
                 case level
                 when FATAL
                     message << "FATAL: "

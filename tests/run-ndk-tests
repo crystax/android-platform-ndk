@@ -67,6 +67,11 @@ optparser = OptionParser.new do |o|
         options[:log] = f
     end
 
+    options[:print_timestamps] = true
+    o.on("--[no-]print-timestamps", "Print timestamps in log [#{options[:print_timestamps]}]") do |p|
+        options[:print_timestamps] = p
+    end
+
     o.on("-k", "--[no-]keep-going", "Keep going even if some tests failed [#{options[:keep_going]}]") do |k|
         options[:keep_going] = k
     end
@@ -126,6 +131,8 @@ if !ARGV.empty?
     $stderr.puts optparser
     exit 1
 end
+
+Log.timestamps = options[:print_timestamps]
 
 Log.add StdLogger.new(options[:verbose] ? Log::DEBUG : Log::NOTICE)
 Log.add FileLogger.new(options[:log], Log::DEBUG) if options[:log]
