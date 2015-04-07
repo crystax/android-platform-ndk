@@ -676,7 +676,7 @@ def prepare_boost_tools(dir)
     FileUtils.mkdir_p dir
 
     runpy = File.join(dir, 'run.py')
-    FileUtils.rm runpy
+    FileUtils.rm_f runpy
     FileUtils.cp File.join(BOOST_RR_SRCDIR, 'src', 'run.py'), runpy
     FileUtils.chmod 'a+x', runpy
 
