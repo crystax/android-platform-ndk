@@ -161,10 +161,19 @@ def run_all(options)
     Log.notice "=== START NDK TESTING"
 
     prepare_environment(options)
+
+    fails = 0
     options[:types].each do |type|
-        tests = Object.const_get("#{type.capitalize}Tests").new(options[:ndk], options)
-        tests.run
+        begin
+            tests = Object.const_get("#{type.capitalize}Tests").new(options[:ndk], options)
+            tests.run
+        rescue
+            raise unless options[:keep_going]
+            fails += 1
+        end
     end
+
+    raise "Testing failed" if fails > 0
 rescue Interrupt
     Log.notice "INTERRUPTED"
     exit 1
