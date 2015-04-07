@@ -266,7 +266,7 @@ def run(*args, &block)
             end.each(&:join)
         end
         t.join
-        raise "'#{cmd}' failed with exit code #{t.value.exitcode}" unless t.value.success?
+        raise "'#{cmd}' failed with exit code #{t.value.to_i}" unless t.value.success?
     end
 end
 
