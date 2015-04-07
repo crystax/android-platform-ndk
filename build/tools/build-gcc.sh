@@ -355,13 +355,16 @@ case "$TOOLCHAIN" in
     ;;
     aarch64*)
         # Enable ld.gold but ld.bfd remain the default
-        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold --enable-ld=default --enable-threads"
+        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold --enable-ld=default"
     ;;
     *)
         # Enable ld.gold as default
-        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold=default --enable-threads"
+        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold=default"
     ;;
 esac
+if [ "$MINGW" != "yes" ] ; then
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
+fi
 
 # Enable Graphite
 case "$TOOLCHAIN" in
