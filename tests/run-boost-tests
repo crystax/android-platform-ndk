@@ -874,7 +874,7 @@ def test_for_abi(abi, testdir)
                     "--timeout=#{OPTIONS[:timeout]}",
                     "--bjam-options=#{bjam_options.join(' ')}",
                 ]
-                args << "--libraries=#{OPTIONS[:libraries].join(',')}"
+                args << "--libraries=#{OPTIONS[:libraries].join(',')}" unless OPTIONS[:libraries].nil?
                 args << action
                 run(*args)
             when 'test-process'
