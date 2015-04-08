@@ -493,8 +493,9 @@ ldflags_for_abi()
 
     echo "-Wl,--no-undefined"
     echo "-Wl,-z,noexecstack"
-    echo "-Wl,-z,interpose"
-    echo "-Wl,-z,nodelete"
+    # Android dynamic linker don't support DF_1_INTERPOSE and DF_1_NODELETE ELF flags
+    #echo "-Wl,-z,interpose"
+    #echo "-Wl,-z,nodelete"
 
     echo "-Wl,-Bstatic,-lgcc"
     echo "-Wl,-Bdynamic,-lc"
