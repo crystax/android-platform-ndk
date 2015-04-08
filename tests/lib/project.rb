@@ -84,7 +84,7 @@ class Project
 
     def tmpdir(options = {})
         return @tmpdir if options[:pie].nil?
-        File.join(@tmpdir, options[:pie] ? '+PIE' : '-PIE')
+        File.join(@tmpdir, "target#{"+PIE" if options[:pie]}")
     end
 
     def broken?
@@ -214,12 +214,15 @@ class Project
             dcc = [dcc] unless dcc.is_a?(Array)
             next if dcc.select { |d| d == cc }.size > 0
 
-            FileUtils.rm_rf tmpdir
-            FileUtils.mkdir_p File.dirname(tmpdir)
-            FileUtils.cp_r path, tmpdir
+            dir = File.join(tmpdir, "host-#{cc}")
+            FileUtils.rm_rf dir
+            FileUtils.mkdir_p File.dirname(dir)
+            FileUtils.cp_r path, dir
 
-            cmd = "#{ENV['GNUMAKE'] || 'make'} -C #{File.join(tmpdir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
+            cmd = "#{ENV['GNUMAKE'] || 'make'} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
             run_cmd cmd, errmsg: "On-host test of #{name} failed"
+
+            FileUtils.rm_rf dir
         end
 
         Log.info "== OK: all on-host tests PASSED"
@@ -231,8 +234,16 @@ class Project
     end
     private :run_on_host
 
+    def variants(options = {})
+        v = ""
+        v << " #{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
+        v << " +PIE" if options[:pie]
+        v
+    end
+    private :variants
+
     def build(options = {})
-        Log.notice "BLD #{@display_type} [#{name}]#{" +PIE" if options[:pie]}"
+        Log.notice "BLD #{@display_type} [#{name}]#{variants(options)}"
 
         dstdir = tmpdir(pie: options[:pie])
 
@@ -302,7 +313,7 @@ class Project
 
         dstdir = tmpdir(pie: pie)
 
-        logprefix = "#{@display_type} [#{name}]#{" +PIE" if pie}"
+        logprefix = "#{@display_type} [#{name}]#{variants(options)}"
 
         binaries = Dir.glob(File.join(dstdir, 'libs', abi, '*'))
         executables = binaries.reject { |e| e =~ /\.so$/ }
@@ -322,15 +333,20 @@ class Project
 
         fields = {path: path, name: name, abi: abi}
 
-        runfrom = File.join(dstdir, "#{abi}-#{SecureRandom.uuid}")
-        FileUtils.mkdir_p File.dirname(runfrom)
-        File.open(runfrom, "w") do |f|
+        objdirs = [
+            File.join(@ndk, 'sources', 'crystax', 'libs', abi),
+            File.join(dstdir, 'obj', 'local', abi),
+        ].select { |e| File.directory?(e) }
+
+        cmdslist = File.join(dstdir, "executables-#{abi}.txt")
+        FileUtils.mkdir_p File.dirname(cmdslist)
+        File.open(cmdslist, "w") do |f|
             executables.each do |e|
                 f.puts e
             end
         end
 
-        mroprefix = "CRYSTAX-MRO-#{SecureRandom.uuid}"
+        mroprefix = "CRYSTAX-MRO-#{SecureRandom.uuid.gsub('-', '')}"
 
         args = []
         args << "ruby"
@@ -351,8 +367,9 @@ class Project
         else
             args << "--no-pie"
         end
-        args << "--run-from=#{runfrom}"
         args << "--mro-prefix=#{mroprefix}"
+        args << "--symbols-directories=#{objdirs.join(',')}"
+        args << "@#{cmdslist}"
 
         env = {}
         env['LD_LIBRARY_PATH'] = File.join(dstdir, 'libs', abi)
@@ -398,7 +415,7 @@ class Project
             return
         end
 
-        if long? && !@options[:full_testing]
+        if long? && !@options[:full_testing] && (@options[:tests].nil? || !@options[:tests].include?(name))
             Log.notice "SKP #{@display_type} [#{name}]: this is long test, but we're running in quick mode"
             return
         end
@@ -407,7 +424,11 @@ class Project
 
         fails = 0
 
-        [false, true].each do |pie|
+        pies = []
+        pies << false unless @options[:toolchain_version].to_s =~ /^clang/
+        pies << true
+
+        pies.each do |pie|
             begin
                 build pie: pie
             rescue => err
@@ -425,6 +446,9 @@ class Project
                     next if !@abis.nil? && !@abis.include?(abi)
                     # 64-bit targets don't support non-PIE executables
                     next if !pie && ['arm64-v8a', 'x86_64'].include?(abi)
+                    # clang have problems with 'armeabi' support
+                    next if abi == 'armeabi' && @options[:toolchain_version].to_s =~ /^clang/
+
                     begin
                         run_on_device abi: abi, pie: pie
                     rescue => err

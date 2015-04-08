@@ -6,6 +6,7 @@ require 'timeout'
 require 'securerandom'
 require 'open3'
 require 'json'
+require 'pathname'
 
 Encoding.default_external = Encoding::UTF_8
 ENV['LANG'] = 'en_US.UTF-8'
@@ -102,16 +103,16 @@ optparser = OptionParser.new do |o|
         OPTIONS[:emutag] = tag
     end
 
-    o.on("--run-from=FILE", "Run executables listed in FILE (one per line)") do |f|
-        OPTIONS[:runfrom] = f
-    end
-
     o.on("--run-on-all-devices", "If specified, run on all compatible devices") do |r|
         OPTIONS[:run_on_all_devices] = r
     end
 
     o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
         OPTIONS[:mroprefix] = p
+    end
+
+    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
+        OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
     end
 end
 ENV['POSIXLY_CORRECT'] = '1'
@@ -130,6 +131,9 @@ if OPTIONS[:devpath].nil?
 end
 
 cmds = []
+
+OPTIONS[:runfrom] = ARGV.shift.sub(/^@/, '') if ARGV.first.to_s =~ /^@/
+
 if !OPTIONS[:runfrom].nil?
     File.open(OPTIONS[:runfrom], 'r') do |f|
         while line = f.gets.chomp.strip rescue nil
@@ -176,6 +180,7 @@ PRINT_TIMESTAMPS = OPTIONS[:print_timestamps]
 RUN_ON_ALL_DEVICES = OPTIONS[:run_on_all_devices]
 KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
+SYMDIRS = OPTIONS[:symdirs]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -736,7 +741,28 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF LOGCAT ==="
     end rescue nil
 
-    run File.join(NDK, 'ndk-stack'), '-sym', File.dirname(exe), '-dump', lf, timeout: 30 do |i,o,e,t|
+    # Prepare temporary directory where all unstripped binaries would be accumulated
+    symdirs = SYMDIRS || [File.dirname(exe)]
+    tmpdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
+    at_exit { FileUtils.rm_rf tmpdir }
+
+    FileUtils.rm_rf tmpdir
+    FileUtils.mkdir_p tmpdir
+    symdirs.each do |symdir|
+        Dir.glob(File.join(symdir, '*')).select { |e| File.file?(e) }.each do |src|
+            next if src =~ /\.a$/
+
+            relpath = Pathname.new(src).relative_path_from(Pathname.new(symdir)).to_s
+            dst = File.join(tmpdir, relpath)
+
+            next if File.exists?(dst)
+
+            FileUtils.mkdir_p File.dirname(dst)
+            FileUtils.cp src, dst
+        end
+    end
+
+    run File.join(NDK, 'ndk-stack'), '-sym', tmpdir, '-dump', lf, timeout: 30 do |i,o,e,t|
         logerr.call ""
         logerr.call "=== BEGIN OF NDK-STACK ==="
 
@@ -755,6 +781,7 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF NDK-STACK ==="
     end rescue nil
 
+    FileUtils.rm_rf tmpdir
     FileUtils.rm_f lf
 
     err.exitcode

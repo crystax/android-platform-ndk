@@ -143,7 +143,7 @@ def prepare_environment(options)
     ENV['ANDROID_NDK_ROOT'] = nil
     ENV['NDK'] = options[:ndk]
     ENV['V'] = options[:verbose] ? '1' : '0'
-    ENV['NDK_TOOLCHAIN_VERSION'] = options[:toolchain_version].sub(/^gcc/, '') rescue nil
+    ENV['NDK_TOOLCHAIN_VERSION'] = options[:toolchain_version].sub(/^(gcc|clang)-/, '\1').sub(/^gcc/, '') rescue nil
     ENV['NDK_LOGFILE'] = options[:log]
     ENV['_NDK_TESTING_ALL_'] = 'all' if ENV['_NDK_TESTING_ALL_'].nil?
 end
