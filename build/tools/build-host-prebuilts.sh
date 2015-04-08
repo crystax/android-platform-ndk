@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2014 The Android Open Source Project
+# Copyright (C) 2011, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@
 #
 
 PROGDIR=$(dirname $0)
+SCRIPTS_DIR=$(dirname $PROGDIR)/scripts
 . $PROGDIR/prebuilt-common.sh
+
 
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
@@ -355,6 +357,18 @@ for SYSTEM in $SYSTEMS; do
         fail_panic "Could not deploy ld.mcld for $SYSNAME"
     fi
 
+    # build crystax host tools
+    target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
+    if [ "$TRY64" = "yes" ]; then
+        target_cpu="x86_64"
+    else
+        target_cpu="x86"
+    fi
+
+    # build crystax vendor utils
+    $SCRIPTS_DIR/build-vendor-utils.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    fail_panic "Failed to build vendor utils"
+    
     # We're done for this system
 done
 
