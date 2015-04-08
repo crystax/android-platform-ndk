@@ -154,6 +154,7 @@ begin
            'NO_GETTEXT' => '1',
            'NO_PERL' => '1',
            'NO_PYTHON' => '1',
+           'NO_TCLTK' => '1',
            'NEEDS_SSL_WITH_CURL' => '1',
            'NEEDS_CRYPTO_WITH_SSL' => '1'
           }
