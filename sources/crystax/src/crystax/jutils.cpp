@@ -31,6 +31,7 @@
 #include <crystax/jutils.hpp>
 #include <crystax/memory.hpp>
 #include <crystax/private.h>
+#include <errno.h>
 
 namespace crystax
 {
