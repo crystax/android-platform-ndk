@@ -721,26 +721,30 @@ rescue AdbShellCommandFailed => err
 
     # Prepare temporary directory where all unstripped binaries would be accumulated
     symdirs = SYMDIRS || [File.dirname(exe)]
-    tmpdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
-    at_exit { FileUtils.rm_rf tmpdir }
+    if symdirs.size > 1
+        symdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
+        at_exit { FileUtils.rm_rf symdir }
 
-    FileUtils.rm_rf tmpdir
-    FileUtils.mkdir_p tmpdir
-    symdirs.each do |symdir|
-        Dir.glob(File.join(symdir, '*')).select { |e| File.file?(e) }.each do |src|
-            next if src =~ /\.a$/
+        FileUtils.rm_rf symdir
+        FileUtils.mkdir_p symdir
+        symdirs.each do |dir|
+            Dir.glob(File.join(dir, '*')).select { |e| File.file?(e) }.each do |src|
+                next if src =~ /\.a$/
 
-            relpath = Pathname.new(src).relative_path_from(Pathname.new(symdir)).to_s
-            dst = File.join(tmpdir, relpath)
+                relpath = Pathname.new(src).relative_path_from(Pathname.new(dir)).to_s
+                dst = File.join(symdir, relpath)
 
-            next if File.exists?(dst)
+                next if File.exists?(dst)
 
-            FileUtils.mkdir_p File.dirname(dst)
-            FileUtils.cp src, dst
+                FileUtils.mkdir_p File.dirname(dst)
+                FileUtils.cp src, dst
+            end
         end
+    else
+        symdir = symdirs.first
     end
 
-    run File.join(NDK, 'ndk-stack'), '-sym', tmpdir, '-dump', lf, timeout: 30 do |i,o,e,t|
+    run File.join(NDK, 'ndk-stack'), '-sym', symdir, '-dump', lf, timeout: 30 do |i,o,e,t|
         logerr.call ""
         logerr.call "=== BEGIN OF NDK-STACK ==="
 
@@ -759,7 +763,7 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF NDK-STACK ==="
     end rescue nil
 
-    FileUtils.rm_rf tmpdir
+    FileUtils.rm_rf symdir if symdirs.size > 1
     FileUtils.rm_f lf
 
     err.exitcode
