@@ -411,6 +411,12 @@ build_stl_libs_for_abi ()
                 EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
             fi
             ;;
+        x86|x86_64)
+            # ToDo: remove the following once all x86-based device call JNI function with
+            #       stack aligned to 16-byte
+            EXTRA_CFLAGS="-mstackrealign"
+            EXTRA_CXXFLAGS="-mstackrealign"
+            ;;
         mips32r6)
             EXTRA_CFLAGS="-mips32r6"
             EXTRA_CXXFLAGS="-mips32r6"

@@ -141,7 +141,7 @@ set_parameters $PARAMETERS
 
 # Disable x86_64 build for toolchains older than 4.7
 case "$TOOLCHAIN" in
-  x86_64-4.4.3|x86_64-4.6)
+  x86_64-4.6)
     echo "ERROR: x86_64 toolchain is enabled in 4.7+. Please try to build newer version."
     exit 1
     ;;
@@ -331,30 +331,14 @@ if [ "$DARWIN" = "yes" ]; then
     # ToDo
     EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-plugin"
 else
-    # Plugins are not supported well before 4.7. On 4.7 it's required to have
-    # -flto working. Flag --enable-plugins (note 's') is actually for binutils,
-    # this is compiler requirement to have binutils configured this way. Flag
-    # --disable-plugin is for gcc.
-    case "$GCC_VERSION" in
-        4.4.3)
-            EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-plugin"
-            ;;
-        *)
-            EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-plugins"
-            ;;
-    esac
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-plugins"
 fi
 
 # Enable OpenMP
-case "$TOOLCHAIN" in
-    *) EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-libgomp" ;;
-esac
+EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-libgomp"
 
 # Enable indirect functions in the compilers that support it (4.6 and above)
-case "$TOOLCHAIN" in
-    *-4.4.3) ;;
-    *) EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gnu-indirect-function" ;;
-esac
+EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gnu-indirect-function"
 
 # Disable libcilkrts which needs C++ for now, because libstdlibc++ in NDK is built separately...
 case "$TOOLCHAIN" in
@@ -364,21 +348,26 @@ esac
 # Disable libsanitizer (which depends on libstdc++ built separately) for now
 EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-libsanitizer"
 
-# Enable Gold as default
+# Enable Gold
 case "$TOOLCHAIN" in
-    # Note that only ARM and X86 >= GCC 4.6 are supported
+    # Note that only ARM/X86 >= GCC 4.6 and AARCH64 >= GCC 4.9 are supported
     mips*)
     ;;
-    *-4.4.3)
+    aarch64*)
+        # Enable ld.gold but ld.bfd remain the default
+        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold --enable-ld=default"
     ;;
     *)
+        # Enable ld.gold as default
         EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold=default"
     ;;
 esac
+if [ "$MINGW" != "yes" ] ; then
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
+fi
 
 # Enable Graphite
 case "$TOOLCHAIN" in
-    *-4.4.3) ;;
     *-4.6|*-4.7)
         EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-graphite=yes --with-cloog-version=$CLOOG_VERSION --with-ppl-version=$PPL_VERSION"
     ;;
@@ -512,7 +501,7 @@ unwind_library_for_abi ()
     ;;
     x86|mips|mips32r6)
     BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
-    if [ "$GCC_VERSION" = "4.6" -o "$GCC_VERSION" = "4.4.3" ]; then
+    if [ "$GCC_VERSION" = "4.6" ]; then
        OBJS="unwind-c.o \
           unwind-dw2-fde-glibc.o \
           unwind-dw2.o"
@@ -602,7 +591,7 @@ if [ -n "$WITH_PYTHON" -a "$MINGW" = "yes" ] ; then
 fi
 
 # don't forget to copy the GPL and LGPL license files
-run cp -f $TOOLCHAIN_LICENSES/COPYING $TOOLCHAIN_LICENSES/COPYING.LIB $TOOLCHAIN_PATH
+run cp -f $TOOLCHAIN_LICENSES/COPYING* $TOOLCHAIN_PATH
 
 # remove some unneeded files
 run rm -f $TOOLCHAIN_PATH/bin/*-gccbug
@@ -694,7 +683,15 @@ do_relink_bin () {
 do_relink_bin c++ g++
 do_relink_bin gcc-$GCC_VERSION gcc
 # symlink ld to either ld.gold or ld.bfd
-do_relink_bin ld ld.gold ld.bfd
+case "$TOOLCHAIN" in
+    aarch64*)
+    # Don't make ld.gold as default for now because it's new
+    do_relink_bin ld ld.bfd ld.gold 
+    ;;
+    *)
+    do_relink_bin ld ld.gold ld.bfd
+    ;;
+esac
 
 # copy SOURCES file if present
 if [ -f "$SRC_DIR/SOURCES" ]; then

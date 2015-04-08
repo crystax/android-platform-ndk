@@ -1112,8 +1112,6 @@ parse_toolchain_name ()
         ARCH="arm64"
         ABI="arm64-v8a"
         ABI_CONFIGURE_TARGET="aarch64-linux-android"
-        # Note: --disable-gold because gold doesn't support aarch64 yet
-        ABI_CONFIGURE_EXTRA_FLAGS="--disable-gold"
         ;;
     x86-*)
         ARCH="x86"
