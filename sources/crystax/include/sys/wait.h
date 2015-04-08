@@ -27,31 +27,11 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
-#define __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
+#ifndef __CRYSTAX_SYS_WAIT_H_F9DF1DC299814368BADB2B895DD7ECB4
+#define __CRYSTAX_SYS_WAIT_H_F9DF1DC299814368BADB2B895DD7ECB4
 
 #include <crystax/id.h>
-/* Enable extended locale interfaces */
-#include <xlocale.h>
-
-#define __LIBCRYSTAX_STDLIB_H_XLOCALE_H_INCLUDED 1
-
-/* For WEXITSTATUS, WIFEXITED and other constants as required by IEEE Std 1003.1, 2013 Edition */
+#include <crystax/google/sys/wait.h>
 #include <crystax/sys/wait.h>
 
-#include <malloc.h>
-
-__BEGIN_DECLS
-
-int ptsname_r(int, char*, size_t);
-int getpt(void);
-int clearenv(void);
-
-static __inline__ int  rand() { return (int)lrand48(); }
-static __inline__ void srand(unsigned int s) { srand48(s); }
-static __inline__ long random() { return lrand48(); }
-static __inline__ void srandom(unsigned long s) { srand48(s); }
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50 */
+#endif /* __CRYSTAX_SYS_WAIT_H_F9DF1DC299814368BADB2B895DD7ECB4 */
