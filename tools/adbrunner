@@ -633,29 +633,11 @@ def do_run_test(attempt, devid, tag, exe, args)
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
-    #known_libs = []
-    #if OPTIONS[:without_known_libs].nil?
-    #    known_libs << File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so')
-    #    known_libs << File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so')
-    #end
-
     dstdirs = []
-    #dstdirs << "#{devpath}/lib" if known_libs.size > 0
     dstdirs << "#{devpath}/tmp"
     dstdirs << dstpath
 
     adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
-
-    #known_libs.each do |lib|
-    #    blib = File.basename(lib)
-    #    rc = adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true)
-    #    log "TEST: #{rc}"
-    #    next if rc == 0
-
-    #    tlib = File.join(LIBDIR, ABI, blib)
-    #    strip(lib, tlib) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
-    #    adb_push devid, tlib, "#{devpath}/lib"
-    #end
 
     binaries = [exe]
 
@@ -682,7 +664,6 @@ def do_run_test(attempt, devid, tag, exe, args)
         raise "No such file or directory: #{e}" unless File.exists?(e)
 
         be = File.basename(e)
-        #next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
         tmpf = strip(e)
         begin
@@ -705,10 +686,7 @@ def do_run_test(attempt, devid, tag, exe, args)
     end
 
     env = {}
-    env['LD_LIBRARY_PATH'] = [
-        #known_libs.size > 0 ? "#{devpath}/lib" : nil,
-        dstpath,
-    ].reject(&:nil?).join(':')
+    env['LD_LIBRARY_PATH'] = dstpath
     env['TMPDIR'] = "#{devpath}/tmp"
 
     adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
