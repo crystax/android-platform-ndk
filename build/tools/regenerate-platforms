@@ -1,0 +1,26 @@
+#!/bin/bash
+
+cd $(dirname $0)/../../ || exit 1
+
+NDK=$(pwd)
+export NDK
+
+run()
+{
+    echo "## COMMAND: $@"
+    "$@"
+}
+
+echo "=== Generating platforms headers and libraries..."
+run ./build/tools/gen-platforms.sh --fast-copy || exit 1
+
+echo "=== Patching sysroot..."
+run ./sources/crystax/bin/patch-sysroot --libraries || exit 1
+
+echo "=== Cleanup sysroot..."
+run find platforms -name 'libcrystax.*' -delete || exit 1
+
+echo "=== Check sysroot..."
+run ./tests/build/crystax-test-patched-sysroot/build.sh || exit 1
+
+echo "=== DONE"
