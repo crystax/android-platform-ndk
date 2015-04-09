@@ -66,7 +66,7 @@ PUBLIC_CREW_URL   = ''
 begin
   out32_dir = nil
   out64_dir = nil
-  logfile = ENV['TMPLOG'] ? ENV['TMPLOG'] : ENV['NDK_LOGFILE']
+  logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
 
   # parse command line options
   ARGV.each do |arg|
@@ -105,8 +105,8 @@ begin
     raise "public CREW repository not ready yet"
   end
 
-  FileUtils.cd(out32_dir) { Commander.run "git clone -b master #{crewurl}" }
-  FileUtils.cd(out64_dir) { Commander.run "git clone -b master #{crewurl}" }
+  FileUtils.cd(out32_dir) { Commander.run "git clone -b master #{crewurl} crew" }
+  FileUtils.cd(out64_dir) { Commander.run "git clone -b master #{crewurl} crew" }
 
 rescue SystemExit => e
   exit e.status

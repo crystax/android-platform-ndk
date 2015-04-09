@@ -54,7 +54,7 @@ begin
 
   Crystax::BUILD_UTILS.each do |name|
     args = name == 'curl' ? ARGV << '--no-check' : ARGV
-    Commander.run "#{path}/build-#{name}.rb #{args.join(' ')}"
+    Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
 rescue SystemExit => e
   exit e.status

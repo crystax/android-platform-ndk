@@ -675,10 +675,10 @@ for SYSTEM in $SYSTEMS; do
 
     # unpack vendor utils
     echo "$SCRIPTS_DIR/install-vendor-utils.rb --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-vendor-utils.rb --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
     fail_panic "Could not install vendor utils"
     echo "$SCRIPTS_DIR/install-crew.rb --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-crew.rb --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    $SCRIPTS_DIR/install-crew --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
     fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the

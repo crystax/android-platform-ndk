@@ -65,7 +65,7 @@ begin
   out32_dir = nil
   out64_dir = nil
   systems = ['linux', 'darwin', 'windows']
-  logfile = ENV['TMPLOG'] ? ENV['TMPLOG'] : ENV['NDK_LOGFILE']
+  logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
 
   # parse command line options
   ARGV.each do |arg|

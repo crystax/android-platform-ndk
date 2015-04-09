@@ -366,7 +366,7 @@ for SYSTEM in $SYSTEMS; do
     fi
 
     # build crystax vendor utils
-    $SCRIPTS_DIR/build-vendor-utils.rb --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    $SCRIPTS_DIR/build-vendor-utils --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
     fail_panic "Failed to build vendor utils"
     
     # We're done for this system
