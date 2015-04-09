@@ -40,6 +40,7 @@
 #include <crystax/sys/wait.h>
 
 #include <malloc.h>
+#include <string.h>
 
 __BEGIN_DECLS
 
