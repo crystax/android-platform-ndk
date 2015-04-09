@@ -6,6 +6,7 @@ require 'timeout'
 require 'securerandom'
 require 'open3'
 require 'json'
+require 'pathname'
 
 Encoding.default_external = Encoding::UTF_8
 ENV['LANG'] = 'en_US.UTF-8'
@@ -102,16 +103,16 @@ optparser = OptionParser.new do |o|
         OPTIONS[:emutag] = tag
     end
 
-    o.on("--run-from=FILE", "Run executables listed in FILE (one per line)") do |f|
-        OPTIONS[:runfrom] = f
-    end
-
     o.on("--run-on-all-devices", "If specified, run on all compatible devices") do |r|
         OPTIONS[:run_on_all_devices] = r
     end
 
     o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
         OPTIONS[:mroprefix] = p
+    end
+
+    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
+        OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
     end
 end
 ENV['POSIXLY_CORRECT'] = '1'
@@ -130,6 +131,9 @@ if OPTIONS[:devpath].nil?
 end
 
 cmds = []
+
+OPTIONS[:runfrom] = ARGV.shift.sub(/^@/, '') if ARGV.first.to_s =~ /^@/
+
 if !OPTIONS[:runfrom].nil?
     File.open(OPTIONS[:runfrom], 'r') do |f|
         while line = f.gets.chomp.strip rescue nil
@@ -176,6 +180,7 @@ PRINT_TIMESTAMPS = OPTIONS[:print_timestamps]
 RUN_ON_ALL_DEVICES = OPTIONS[:run_on_all_devices]
 KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
+SYMDIRS = OPTIONS[:symdirs]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -628,29 +633,11 @@ def do_run_test(attempt, devid, tag, exe, args)
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
 
-    #known_libs = []
-    #if OPTIONS[:without_known_libs].nil?
-    #    known_libs << File.join(LIBCRYSTAX, 'libs', ABI, 'libcrystax.so')
-    #    known_libs << File.join(LIBGNUSTL,  'libs', ABI, 'libgnustl_shared.so')
-    #end
-
     dstdirs = []
-    #dstdirs << "#{devpath}/lib" if known_libs.size > 0
     dstdirs << "#{devpath}/tmp"
     dstdirs << dstpath
 
     adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
-
-    #known_libs.each do |lib|
-    #    blib = File.basename(lib)
-    #    rc = adb_shell(devid, "test -e #{devpath}/lib/#{blib}", nothrow: true)
-    #    log "TEST: #{rc}"
-    #    next if rc == 0
-
-    #    tlib = File.join(LIBDIR, ABI, blib)
-    #    strip(lib, tlib) if !File.exists?(tlib) || File.mtime(tlib) < File.mtime(lib)
-    #    adb_push devid, tlib, "#{devpath}/lib"
-    #end
 
     binaries = [exe]
 
@@ -677,7 +664,6 @@ def do_run_test(attempt, devid, tag, exe, args)
         raise "No such file or directory: #{e}" unless File.exists?(e)
 
         be = File.basename(e)
-        #next if known_libs.map { |lib| File.basename(lib) }.include?(be)
 
         tmpf = strip(e)
         begin
@@ -700,10 +686,7 @@ def do_run_test(attempt, devid, tag, exe, args)
     end
 
     env = {}
-    env['LD_LIBRARY_PATH'] = [
-        #known_libs.size > 0 ? "#{devpath}/lib" : nil,
-        dstpath,
-    ].reject(&:nil?).join(':')
+    env['LD_LIBRARY_PATH'] = dstpath
     env['TMPDIR'] = "#{devpath}/tmp"
 
     adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
@@ -736,7 +719,32 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF LOGCAT ==="
     end rescue nil
 
-    run File.join(NDK, 'ndk-stack'), '-sym', File.dirname(exe), '-dump', lf, timeout: 30 do |i,o,e,t|
+    # Prepare temporary directory where all unstripped binaries would be accumulated
+    symdirs = SYMDIRS || [File.dirname(exe)]
+    if symdirs.size > 1
+        symdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
+        at_exit { FileUtils.rm_rf symdir }
+
+        FileUtils.rm_rf symdir
+        FileUtils.mkdir_p symdir
+        symdirs.each do |dir|
+            Dir.glob(File.join(dir, '*')).select { |e| File.file?(e) }.each do |src|
+                next if src =~ /\.a$/
+
+                relpath = Pathname.new(src).relative_path_from(Pathname.new(dir)).to_s
+                dst = File.join(symdir, relpath)
+
+                next if File.exists?(dst)
+
+                FileUtils.mkdir_p File.dirname(dst)
+                FileUtils.cp src, dst
+            end
+        end
+    else
+        symdir = symdirs.first
+    end
+
+    run File.join(NDK, 'ndk-stack'), '-sym', symdir, '-dump', lf, timeout: 30 do |i,o,e,t|
         logerr.call ""
         logerr.call "=== BEGIN OF NDK-STACK ==="
 
@@ -755,6 +763,7 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF NDK-STACK ==="
     end rescue nil
 
+    FileUtils.rm_rf symdir if symdirs.size > 1
     FileUtils.rm_f lf
 
     err.exitcode

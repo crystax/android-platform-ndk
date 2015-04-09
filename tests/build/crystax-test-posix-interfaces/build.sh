@@ -35,7 +35,7 @@ if [ -z "$NDK" ]; then
 fi
 
 if [ -z "$PLATFORMS" ]; then
-    PLATFORMS=$(cd $NDK/platforms && ls -d android-*)
+    PLATFORMS=$(cd $NDK/platforms && ls -d android-* | sort)
 else
     PLATFORMS=$(echo $PLATFORMS | sed 's/,/ /g')
 fi
@@ -46,9 +46,24 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+run()
+{
+    echo "## COMMAND: $@"
+    "$@"
+}
+
 for PLATFORM in $PLATFORMS; do
     echo "===== Checking standard headers for $PLATFORM"
-    $NDK/ndk-build -C $MYDIR -B APP_PLATFORM=$PLATFORM
+    APILEVEL=$(echo $PLATFORM | sed 's,^android-,,')
+    if [ $APILEVEL -lt 9 ]; then
+        ABIS="armeabi armeabi-v7a armeabi-v7a-hard"
+    elif [ $APILEVEL -lt 21 ]; then
+        ABIS="all32"
+    else
+        ABIS="all"
+    fi
+
+    run $NDK/ndk-build -C $MYDIR -B APP_PLATFORM=$PLATFORM APP_ABI="$ABIS"
     if [ $? -ne 0 ]; then
         echo "ERROR: Standard headers checks failed for $PLATFORM" 1>&2
         exit 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX .NET.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,32 +27,23 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
-#define __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
+#include <endian.h>
 
-#include <crystax/id.h>
-/* Enable extended locale interfaces */
-#include <xlocale.h>
+#undef swap16
+#undef swap32
+#undef swap64
 
-#define __LIBCRYSTAX_STDLIB_H_XLOCALE_H_INCLUDED 1
+uint16_t swap16(uint16_t x)
+{
+    return bswap16(x);
+}
 
-/* For WEXITSTATUS, WIFEXITED and other constants as required by IEEE Std 1003.1, 2013 Edition */
-#include <crystax/sys/wait.h>
+uint32_t swap32(uint32_t x)
+{
+    return bswap32(x);
+}
 
-#include <malloc.h>
-#include <string.h>
-
-__BEGIN_DECLS
-
-int ptsname_r(int, char*, size_t);
-int getpt(void);
-int clearenv(void);
-
-static __inline__ int  rand() { return (int)lrand48(); }
-static __inline__ void srand(unsigned int s) { srand48(s); }
-static __inline__ long random() { return lrand48(); }
-static __inline__ void srandom(unsigned long s) { srand48(s); }
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50 */
+uint64_t swap64(uint64_t x)
+{
+    return bswap64(x);
+}

@@ -7,6 +7,11 @@ FAST_COPY=
 PATCH_HEADERS=
 PATCH_LIBRARIES=
 
+usage()
+{
+    echo "Usage: $0 [options]" 1>&2
+}
+
 while [ "x$1" != "x" ]; do
     arg=$1
     shift
@@ -21,7 +26,20 @@ while [ "x$1" != "x" ]; do
             ARCH=$(expr "x$arg" : "x--arch=\(.*\)$")
             ;;
         --fast-copy)
+            if [ "$FAST_COPY" = "no" ]; then
+                echo "ERROR: Both --fast-copy and --no-fast-copy specified" 1>&2
+                usage
+                exit 1
+            fi
             FAST_COPY=yes
+            ;;
+        --no-fast-copy)
+            if [ "$FAST_COPY" = "yes" ]; then
+                echo "ERROR: Both --fast-copy and --no-fast-copy specified" 1>&2
+                usage
+                exit 1
+            fi
+            FAST_COPY=no
             ;;
         --headers)
             PATCH_HEADERS=yes
@@ -30,7 +48,7 @@ while [ "x$1" != "x" ]; do
             PATCH_LIBRARIES=yes
             ;;
         *)
-            echo "Usage: $0 [options]" 1>&2;
+            usage
             exit 1
             ;;
     esac
@@ -127,6 +145,10 @@ is_valid_abi()
 
 if [ "$PATCH_HEADERS" != "yes" -a "$PATCH_LIBRARIES" != "yes" ]; then
     panic "Neither one of --headers or --libraries were specified"
+fi
+
+if [ -z "$FAST_COPY" ]; then
+    FAST_COPY=yes
 fi
 
 if [ "$FAST_COPY" != "yes" ]; then
