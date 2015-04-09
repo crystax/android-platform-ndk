@@ -35,46 +35,45 @@ require 'fileutils'
 require_relative 'common.rb'
 
 
-module Logger
+class Logger
   def self.open_log_file(name)
-    if File.exists?(name) and $do_rename
+    if File.exists?(name) and @@do_rename
       rename_logfile(name)
     else
       dir = File.dirname(name)
       FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
     end
-    $log_file = File.open(name, 'a')
-  end
-
-  def self.close_log_file
-    $log_file.close if $log_file
+    @@log_file = File.open(name, 'a')
   end
 
   def self.msg(msg)
     puts msg
-    log_msg msg
+    file_msg msg
   end
 
   def self.log_msg(msg)
-    $log_file.puts msg
+    file_msg msg
+    puts msg if Common.verbose?
+  end
+
+  def self.file_msg(msg)
+    @@log_file.puts msg if @@log_file
   end
 
   def self.log_exception(exc)
     puts "error: #{exc}"
     puts exc.backtrace
-    if $log_file
-      $log_file.puts "error: #{exc}"
-      $log_file.puts exc.backtrace
-    end
+    file_msg "error: #{exc}"
+    file_msg exc.backtrace
   end
 
-  def self.set_no_rename
-    $do_rename = false
+  def self.rename=(v)
+    @@do_rename = v
   end
 
   private
 
-  $do_rename = true
+  @@do_rename = true
 
   def self.rename_logfile(name)
     n = 1

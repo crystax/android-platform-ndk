@@ -114,6 +114,4 @@ rescue Exception => e
   exit 1
 else
   Builder.clean
-ensure
-  Logger.close_log_file
 end

@@ -77,7 +77,8 @@ begin
     exit 0
   end
 
-  Logger.msg "building #{archive}; args: #{ARGV}"
+  Logger.msg "Building openssl for #{Common.target_platform}"
+  Logger.log_msg "  args: #{ARGV}"
   # todo: check that the specified version and the repository version are the same
   # since openssl does not support builds in non-source directory
   # we must copy source to build directory
@@ -110,6 +111,4 @@ rescue Exception => e
   exit 1
 else
   Builder.clean
-ensure
-  Logger.close_log_file
 end

@@ -157,7 +157,7 @@ module Builder
 
   def self.clean
     unless Common.no_clean?
-      Logger.msg "= cleaning"
+      Logger.log_msg "= cleaning"
       Commander.run "rm -rf #{Common::BUILD_BASE}"
       @@dependencies.each { |name| clean_dependency(name) }
       clean_src Common::SRC_DIR

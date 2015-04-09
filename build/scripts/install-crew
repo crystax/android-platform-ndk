@@ -80,7 +80,7 @@ begin
 
   Logger.rename = false
   Logger.open_log_file logfile
-  Logger.msg "Intalling CREW"
+  Logger.msg "Installing CREW"
 
   # test that all vars are set
   raise "use --out-dir=STR to set output dir" unless out_dir

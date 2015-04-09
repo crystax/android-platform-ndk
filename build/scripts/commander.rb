@@ -42,10 +42,10 @@ module Commander
 
   def self.run(*cmd)
     if cmd[0].class != Hash
-      Logger.msg "  command started: #{cmd}"
+      Logger.log_msg "  command started: #{cmd}"
     else
-      Logger.msg "  command started: #{cmd.slice(1, cmd.size)}"
-      Logger.msg "              env: #{cmd[0]}"
+      Logger.log_msg "  command started: #{cmd.slice(1, cmd.size)}"
+      Logger.log_msg "              env: #{cmd[0]}"
     end
 
     exitstatus = nil
@@ -58,7 +58,7 @@ module Commander
           if "#{c}" != "\n"
             str += "#{c}"
           else
-            Logger.log_msg str
+            Logger.file_msg str
             str = ''
           end
         end

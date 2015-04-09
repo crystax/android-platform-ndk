@@ -88,7 +88,7 @@ begin
     end
   end
 
-  Logger.set_no_rename
+  Logger.rename = false
   Logger.open_log_file logfile
   Logger.msg "Installing vendor utilities"
 
@@ -111,6 +111,4 @@ rescue SystemExit => e
 rescue Exception => e
   Logger.log_exception(e)
   exit 1
-ensure
-  Logger.close_log_file
 end

@@ -48,12 +48,13 @@ require_relative 'commander.rb'
 begin
   Common.parse_options
   Logger.open_log_file Common.log_file
-  Logger.msg "Building vendor utils"
+  Logger.msg "Building #{Common.target_platform} vendor utils"
 
   path = File.dirname($0)
 
   Crystax::BUILD_UTILS.each do |name|
     args = name == 'curl' ? ARGV << '--no-check' : ARGV
+    Logger.msg "Building #{Common.target_platform} #{name}"
     Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
 rescue SystemExit => e
@@ -61,6 +62,4 @@ rescue SystemExit => e
 rescue Exception => e
   Logger.log_exception(e)
   exit 1
-ensure
-  Logger.close_log_file
 end

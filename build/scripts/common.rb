@@ -107,6 +107,10 @@ module Common
     @@force
   end
 
+  def self.verbose?
+    @@verbose
+  end
+
   def self.make_archive_base(pkgname = Crystax::PKG_NAME)
     "vendor-#{pkgname}-#{Crystax.version(pkgname)}"
   end
@@ -132,7 +136,9 @@ module Common
         @@force = true
       when /^--log-file=(\S+)/
         @@log_file = $1
-        Logger.set_no_rename
+        Logger.rename = false
+      when '--verbose'
+        @@verbose = true
       when '--help'
         show_help
         exit 1
@@ -159,7 +165,7 @@ module Common
   end
 
   def self.show_help
-    puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                               \
+    puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                              \
          "where OPTIONS are:\n"                                                             \
          "  --target-os=STR   set target OS; one of linux, darwin, windows;\n"              \
          "                    default #{host_os}\n"                                         \
@@ -172,6 +178,7 @@ module Common
          "  --force           do not check cache, force build\n"                            \
          "  --log-file=NAME   set log filename\n"                                           \
          "                    default #{log_file}\n"                                        \
+         "  --verbose         output more info to console\n"                                \
          "  --help            show this message and exit\n"
   end
 
@@ -184,4 +191,5 @@ module Common
   @@no_check = false
   @@force = false
   @@log_file = nil
+  @@verbose = false
 end
