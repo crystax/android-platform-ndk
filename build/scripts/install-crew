@@ -49,32 +49,25 @@ require_relative 'logger.rb'
 USAGE_STR = <<-EOS
 Usage: #{$PROGRAM_NAME} [OPTIONS]
 where OPTIONS are:
-  --out32-dir=STR  destination dir for 32-bit release, as defined in
-                   package-release.sh build script
-  --out64-dir=STR  destination dir for 64-bit release, as defined in
-                   package-release.sh build script
+  --out-dir=STR    destination dir, as defined in package-release.sh build script
   --log-file=STR   log filename; default value is taken from environment
-                   variable 'TMPLOG'
+                   variable 'TMPLOG' or 'NDK_LOGFILE'
   --help           output this message and exit
 EOS
 
 
-INTERNAL_CREW_URL = 'git@git.crystax.net:android/crew.git'
-PUBLIC_CREW_URL   = ''
+CREW_URL = ENV['CREW_DEVEL_URL'] || 'https://github.com/crystax/android-platform-ndk-crew.git'
 
 
 begin
-  out32_dir = nil
-  out64_dir = nil
+  out_dir = nil
   logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
 
   # parse command line options
   ARGV.each do |arg|
     case arg
-    when /^--out32-dir=(\S+)/
-      out32_dir = $1
-    when /^--out64-dir=(\S+)/
-      out64_dir = $1
+    when /^--out-dir=(\S+)/
+      out_dir = $1
     when /^--log-file=(\S+)/
       logfile = $1
     when '--help'
@@ -85,34 +78,18 @@ begin
     end
   end
 
-  Logger.set_no_rename
+  Logger.rename = false
   Logger.open_log_file logfile
   Logger.msg "Intalling CREW"
 
   # test that all vars are set
-  raise "use --out32-dir=STR to set output dir for 32 bit release" unless out32_dir
-  raise "use --out64-dir=STR to set output dir for 64 bit release" unless out64_dir
+  raise "use --out-dir=STR to set output dir" unless out_dir
 
-  # find out what we are packaging: public release or internal build
-  # if version in RELEASE.TXT looks like crystax-ndk-N.N.N then were are packagin a public build
-  # if version has the form crystax-ndk-N.N.N-something then it's internal build
-  text = File.read("#{out32_dir}/RELEASE.TXT")
-  ndkver = text.split(' ')[0]
-  if (ndkver.split('-').size == 4)
-    crewurl = INTERNAL_CREW_URL
-  else
-    crewurl = PUBLIC_CREW_URL
-    raise "public CREW repository not ready yet"
-  end
-
-  FileUtils.cd(out32_dir) { Commander.run "git clone -b master #{crewurl} crew" }
-  FileUtils.cd(out64_dir) { Commander.run "git clone -b master #{crewurl} crew" }
+  FileUtils.cd(out_dir) { Commander.run "git clone -b master #{CREW_URL} crew" }
 
 rescue SystemExit => e
   exit e.status
 rescue Exception => e
   Logger.log_exception(e)
   exit 1
-ensure
-  Logger.close_log_file
 end

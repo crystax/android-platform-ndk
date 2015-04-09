@@ -674,11 +674,11 @@ for SYSTEM in $SYSTEMS; do
     find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm -f
 
     # unpack vendor utils
-    echo "$SCRIPTS_DIR/install-vendor-utils.rb --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
     $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
     fail_panic "Could not install vendor utils"
-    echo "$SCRIPTS_DIR/install-crew.rb --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-crew --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR"
+    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR"
     fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the
@@ -721,6 +721,8 @@ for SYSTEM in $SYSTEMS; do
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"
+        echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR"
+        $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR"
         pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_PREFIX"
         fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
     fi
