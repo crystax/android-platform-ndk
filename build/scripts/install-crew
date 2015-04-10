@@ -56,7 +56,7 @@ where OPTIONS are:
 EOS
 
 
-CREW_URL = ENV['CREW_DEVEL_URL'] || 'https://github.com/crystax/android-platform-ndk-crew.git'
+CREW_URL = ENV['CREW_DEVEL_URL'] || 'https://github.com/crystax/android-crew.git'
 
 
 begin
