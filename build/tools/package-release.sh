@@ -490,8 +490,11 @@ rm -Rf $REFERENCE/sources/crystax/vendor
 # later versions required for the system in question will be unpacked from the cache
 # and appropriate version of the crew will be cloned
 # todo: add git, curl, 7z
-rm -rf $REFERENCE/tools/{ruby}
-rm -rf $REFERENCE/crew
+rm -rf $REFERENCE/tools/ruby
+rm -rf $REFERENCE/tools/git
+rm -rf $REFERENCE/tools/curl
+rm -rf $REFERENCE/tools/p7zip
+rm -rf $REFERENCE/tools/crew
 
 # now, for each system, create a package
 #
@@ -677,8 +680,8 @@ for SYSTEM in $SYSTEMS; do
     echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
     $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
     fail_panic "Could not install vendor utils"
-    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR"
-    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR"
+    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
+    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
     fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the
@@ -714,15 +717,13 @@ for SYSTEM in $SYSTEMS; do
     if [ "$SEPARATE_64" = "yes" ] ; then
         rm -rf "$DSTDIR/prebuilt/common"
         rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"
-        rm -rf "$DSTDIR/crew"
         rm -rf "$DSTDIR/tools/ruby"
         rm -rf "$DSTDIR/tools/curl"
         rm -rf "$DSTDIR/tools/git"
+        rm -rf "$DSTDIR/tools/p7zip"
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"
-        echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR"
-        $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR"
         pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_PREFIX"
         fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
     fi
