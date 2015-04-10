@@ -47,7 +47,7 @@ module Cache
       false
     else
       Logger.msg "found cached file: #{archive}"
-      unpack(archive) if action == :unpack
+      unpack(archive) if action == :unpack and Common.same_platform?
       true
     end
   end
