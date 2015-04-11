@@ -909,6 +909,10 @@ def test_for_abi(abi, testdir)
                             cnt = 0
                             Log.info "#{total} lines processed"
                         end
+                        if cnt > 0
+                            total += cnt
+                            Log.info "#{total} lines processed"
+                        end
                     end
 
                     et = Thread.start do
@@ -939,6 +943,10 @@ def test_for_abi(abi, testdir)
 
                                 total += cnt
                                 cnt = 0
+                                Log.info "#{total} logs collected"
+                            end
+                            if cnt > 0
+                                total += cnt
                                 Log.info "#{total} logs collected"
                             end
                         end
