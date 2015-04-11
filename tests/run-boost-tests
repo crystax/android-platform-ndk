@@ -852,10 +852,35 @@ def test_for_abi(abi, testdir)
             FileUtils.mv zip, resultsdir
         end
 
-        rth = Thread.start do
-            FileUtils.rm_rf tmpresults
+        run("rm -Rfv #{tmpresults}") do |i,o,e|
+            i.close
+
+            ot = Thread.start do
+                cnt = 0
+                total = 0
+                while !o.gets.nil?
+                    cnt += 1
+                    if cnt >= 5000
+                        total += cnt
+                        cnt = 0
+                        Log.info "#{total} files removed"
+                    end
+                end
+                if cnt > 0
+                    total += cnt
+                    Log.info "#{total} files removed"
+                end
+            end
+
+            et = Thread.start do
+                while line = e.gets
+                    Log.info "   * #{line}"
+                end
+            end
+
+            ot.join
+            et.join
         end
-        at_exit { rth.kill }
     else
         FileUtils.mkdir_p resultsdir
     end
