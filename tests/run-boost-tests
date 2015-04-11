@@ -923,7 +923,7 @@ def test_for_abi(abi, testdir)
                 args << action
                 run(*args)
 
-                bjamlog = File.join(srcdir, 'bjam.log')
+                bjamlog = File.join(resultsdir, 'bjam.log')
                 raise "Can't find #{bjamlog} after finishing 'test-run'" unless File.exists?(bjamlog)
                 raise "Testing failed (see #{bjamlog} for details)" if `tail -n 1 #{bjamlog}`.chomp =~ /^error:/
             when 'test-process'
