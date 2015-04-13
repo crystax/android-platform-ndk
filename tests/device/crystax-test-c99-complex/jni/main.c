@@ -1,3 +1,6 @@
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <complex.h>
@@ -29,7 +32,11 @@ int main()
 {
     printf("sizeof(long double) = %zu\n", sizeof(long double));
 #ifdef __ANDROID__
-    assert(sizeof(long double) == sizeof(double));
+#if __LP64__
+    assert(sizeof(long double) == 16);
+#else
+    assert(sizeof(long double) == 8);
+#endif
 #else
     assert(sizeof(long double) >= sizeof(double));
 #endif

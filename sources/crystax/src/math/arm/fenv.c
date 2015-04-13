@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX .NET.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -29,6 +29,9 @@
 
 #include <fenv.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <unistd.h>
 
 #if __SOFTFP__
 
@@ -39,8 +42,13 @@ const fenv_t __crystax_softfloat_fe_dfl_env = 0;
 
 void __softfloat_float_raise(int e)
 {
-    (void)e;
-    abort();
+    if ((e & __softfloat_float_exception_mask) == 0)
+        return;
+    kill(getpid(), SIGFPE);
 }
 
-#endif /* __SOFTFP__ */
+#else /* !__SOFTFP__ */
+
+const fenv_t __fe_dfl_env = 0;
+
+#endif /* !__SOFTFP__ */

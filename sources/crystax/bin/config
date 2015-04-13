@@ -157,6 +157,9 @@ sources_for_abi()
 
     arch=""
     case $a in
+        armeabi*)
+            arch=arm
+            ;;
         arm64*)
             arch=arm64
             ;;
@@ -165,6 +168,9 @@ sources_for_abi()
             ;;
         x86_64)
             arch=x86_64
+            ;;
+        mips)
+            arch=mips
             ;;
         mips64)
             arch=mips64

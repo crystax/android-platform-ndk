@@ -47,7 +47,7 @@ typedef __uint32_t fexcept_t;
 
 /* Default floating-point environment. */
 extern const fenv_t __crystax_softfloat_fe_dfl_env;
-#define FE_DFL_ENV (&__crystax_softfloat_fe_dfl_env);
+#define FE_DFL_ENV &__crystax_softfloat_fe_dfl_env
 
 /* Exception flags. */
 #define FE_INVALID    0x01
