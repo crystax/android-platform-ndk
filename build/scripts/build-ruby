@@ -137,6 +137,8 @@ begin
       env['PATH'] = Builder.toolchain_path_and_path
       env['CFLAGS'] += " -I#{libsdir}/include"
       env['LDFLAGS'] = "-L#{libsdir}/lib"
+    else
+      env['PATH'] = '/bin:/usr/bin:/sbin:/usr/sbin'
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
