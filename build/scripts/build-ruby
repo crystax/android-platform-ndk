@@ -129,7 +129,8 @@ begin
             "--disable-install-doc",
             "--enable-load-relative",
             "--with-openssl-dir=#{openssldir}",
-            "--with-static-linked-ext"
+            "--with-static-linked-ext",
+            "--without-gmp",
            ]
     if Common::target_os == 'windows'
       args << '--host=x86_64-mingw64'
