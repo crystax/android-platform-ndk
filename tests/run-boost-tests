@@ -987,16 +987,19 @@ def test_for_abi(abi, testdir)
                         end
                     end
 
-                    {o => '>', e => '*'}.map do |io,s|
-                        Thread.start do
-                            cnt = 0
-                            total = 0
-                            while line = o.gets.chomp rescue nil
-                                if line !~ /Processing test log/
-                                    Log.info "   #{s} #{line}"
-                                    next
-                                end
+                    ot = Thread.start do
+                        while line = o.gets
+                            Log.info "   > #{line}"
+                        end
+                    end
 
+                    et = Thread.start do
+                        cnt = 0
+                        total = 0
+                        while line = e.gets
+                            if line !~ /Processing test log/
+                                Log.info "   * #{line}"
+                            else
                                 cnt += 1
                                 next if cnt < 5000
 
@@ -1004,13 +1007,12 @@ def test_for_abi(abi, testdir)
                                 cnt = 0
                                 Log.info "#{total} logs collected"
                             end
-                            if cnt > 0
-                                total += cnt
-                                Log.info "#{total} logs collected"
-                            end
                         end
-                    end.each(&:join)
+                        Log.info "#{total + cnt} logs collected" if cnt > 0
+                    end
 
+                    ot.join
+                    et.join
                     wt.kill
                 end
             else
