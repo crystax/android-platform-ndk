@@ -39,6 +39,8 @@ endif
 
 PRETEST := generate-checks
 
+DISABLE_RUN := true
+
 include $(or $(NDK),../../../..)/tests/onhost.mk
 
 .PHONY: generate-checks
