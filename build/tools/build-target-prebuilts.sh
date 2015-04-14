@@ -209,7 +209,7 @@ if [ ! -z "$GCC_VERSION_LIST" ]; then
 fi
 
 dump "Building $ABIS sqlite3 binaries..."
-run $BUILDTOOLS/build-sqlite3.sh --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
+run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
 fail_panic "Could not build sqlite3"
 
 dump "Building $ABIS ICU binaries..."
