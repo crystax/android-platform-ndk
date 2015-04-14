@@ -56,7 +56,7 @@ BUILD_DIR=
 OPTION_BUILD_DIR=
 register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir"
 
-ABIS=$(echo $PREBUILT_ABIS | tr ' ' '\n' | grep -v -x -e mips64 | tr '\n' ' ')
+ABIS=$PREBUILT_ABIS
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
 TOOLCHAIN_VERSION=4.9
@@ -82,7 +82,7 @@ SQLITE3_DSTDIR=$NDK_DIR/$SQLITE3_SUBDIR
 mkdir -p $SQLITE3_DSTDIR
 fail_panic "Can't create sqlite3 destination directory: $SQLITE3_DSTDIR"
 
-ABIS=$(commas_to_spaces $ABIS)
+ABIS=$(commas_to_spaces $ABIS | tr ' ' '\n' | grep -v -x -e mips64 | tr '\n' ' ')
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-sqlite3
