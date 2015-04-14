@@ -254,6 +254,13 @@ Log.timestamps = OPTIONS[:print_timestamps]
 Log.add StdLogger.new(OPTIONS[:verbose] ? Log::DEBUG : Log::NOTICE)
 Log.add FileLogger.new(OPTIONS[:log], Log::DEBUG) if OPTIONS[:log]
 
+def elapsed(seconds)
+    s = seconds % 60
+    m = (seconds / 60) % 60
+    h = seconds / 3600
+    "%d:%02d:%02d" % [h,m,s]
+end
+
 def run(*args, &block)
     env = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
@@ -307,6 +314,39 @@ def fetch(url, dir, branch)
     end
 end
 
+def rm_rf(path)
+    if File.directory?(path)
+        run("rm -Rfv #{path}") do |i,o,e|
+            i.close
+
+            ot = Thread.start do
+                cnt = 0
+                total = 0
+                while !o.gets.nil?
+                    cnt += 1
+                    next if cnt < 5000
+
+                    total += cnt
+                    cnt = 0
+                    Log.info "#{total} files removed"
+                end
+                Log.info "#{total + cnt} files removed" if cnt > 0
+            end
+
+            et = Thread.start do
+                while line = e.gets
+                    Log.info "   * #{line}"
+                end
+            end
+
+            ot.join
+            et.join
+        end
+    else
+        FileUtils.rm_rf path
+    end
+end
+
 def fetch_boost_impl(url, dir, branch, name)
     6.times do |i|
         attempt = i + 1
@@ -316,7 +356,7 @@ def fetch_boost_impl(url, dir, branch, name)
             return true
         rescue => err
             Log.warning "Can't fetch #{url} to #{dir}: #{err.message}"
-            FileUtils.rm_rf dir
+            rm_rf dir
             sleep attempt * 30
         end
     end
@@ -852,10 +892,7 @@ def test_for_abi(abi, testdir)
             FileUtils.mv zip, resultsdir
         end
 
-        rth = Thread.start do
-            FileUtils.rm_rf tmpresults
-        end
-        at_exit { rth.kill }
+        rm_rf tmpresults
     else
         FileUtils.mkdir_p resultsdir
     end
@@ -885,9 +922,22 @@ def test_for_abi(abi, testdir)
                 args << "--libraries=#{OPTIONS[:libraries].join(',')}" unless OPTIONS[:libraries].nil?
                 args << action
                 run(*args)
+
+                bjamlog = File.join(resultsdir, 'bjam.log')
+                raise "Can't find #{bjamlog} after finishing 'test-run'" unless File.exists?(bjamlog)
+                bjamlast = `tail -n 20 #{bjamlog}`.split("\n").map(&:chomp).reject(&:empty?)
+                raise "Bjam failed (see #{bjamlog} for full details):\n#{bjamlast.join("\n")}" if bjamlast.last.to_s =~ /^error:/
             when 'test-process'
                 run(*runpy, '--verbose-log-processing', action) do |i,o,e|
                     i.close
+
+                    wt = Thread.start do
+                        s = Time.now
+                        while true
+                            sleep 120
+                            Log.info "test-process: #{elapsed(Time.now - s)}"
+                        end
+                    end
 
                     ot = Thread.start do
                         cnt = 0
@@ -909,6 +959,10 @@ def test_for_abi(abi, testdir)
                             cnt = 0
                             Log.info "#{total} lines processed"
                         end
+                        if cnt > 0
+                            total += cnt
+                            Log.info "#{total} lines processed"
+                        end
                     end
 
                     et = Thread.start do
@@ -919,21 +973,33 @@ def test_for_abi(abi, testdir)
 
                     ot.join
                     et.join
+                    wt.kill
                 end
             when 'collect-logs'
                 run(*runpy, action) do |i,o,e|
                     i.close
 
-                    {o => '>', e => '*'}.map do |io,s|
-                        Thread.start do
-                            cnt = 0
-                            total = 0
-                            while line = o.gets.chomp rescue nil
-                                if line !~ /Processing test log/
-                                    Log.info "   #{s} #{line}"
-                                    next
-                                end
+                    wt = Thread.start do
+                        s = Time.now
+                        while true
+                            sleep 120
+                            Log.info "collect-logs: #{elapsed(Time.now - s)}"
+                        end
+                    end
 
+                    ot = Thread.start do
+                        while line = o.gets
+                            Log.info "   > #{line}"
+                        end
+                    end
+
+                    et = Thread.start do
+                        cnt = 0
+                        total = 0
+                        while line = e.gets
+                            if line !~ /Processing test log/
+                                Log.info "   * #{line}"
+                            else
                                 cnt += 1
                                 next if cnt < 5000
 
@@ -942,7 +1008,12 @@ def test_for_abi(abi, testdir)
                                 Log.info "#{total} logs collected"
                             end
                         end
-                    end.each(&:join)
+                        Log.info "#{total + cnt} logs collected" if cnt > 0
+                    end
+
+                    ot.join
+                    et.join
+                    wt.kill
                 end
             else
                 run(*runpy, action)
@@ -987,13 +1058,6 @@ def test
     OPTIONS[:abis].each do |abi|
         test_for_abi abi, File.join(REGRESSION_DIR, abi)
     end
-end
-
-def elapsed(seconds)
-    s = seconds % 60
-    m = (seconds / 60) % 60
-    h = seconds / 3600
-    "%d:%02d:%02d" % [h,m,s]
 end
 
 begin

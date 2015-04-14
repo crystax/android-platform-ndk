@@ -129,13 +129,16 @@ begin
             "--disable-install-doc",
             "--enable-load-relative",
             "--with-openssl-dir=#{openssldir}",
-            "--with-static-linked-ext"
+            "--with-static-linked-ext",
+            "--without-gmp",
            ]
     if Common::target_os == 'windows'
       args << '--host=x86_64-mingw64'
       env['PATH'] = Builder.toolchain_path_and_path
       env['CFLAGS'] += " -I#{libsdir}/include"
       env['LDFLAGS'] = "-L#{libsdir}/lib"
+    else
+      env['PATH'] = '/bin:/usr/bin:/sbin:/usr/sbin'
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"

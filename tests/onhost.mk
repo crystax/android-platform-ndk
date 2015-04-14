@@ -126,22 +126,6 @@ CC ?= cc
 
 TESTDIR := $(shell pwd)
 
-is-device-test := $(shell test -d $(dir $(lastword $(MAKEFILE_LIST)))/device/$(notdir $(realpath $(TESTDIR)/..)) && echo yes)
-
-#ifeq (,$(wildcard $(TESTDIR)/DISABLED))
-is-test-disabled :=
-#else
-#is-test-disabled := $(strip \
-#    $(eval __disabled := $(shell cat DISABLED 2>/dev/null))\
-#    $(or \
-#        $(call match,"\<$(call host-os)\>",$(__disabled)),\
-#        $(and $(call is-clang,$(CC)),$(call match,"\<clang\>",$(__disabled))),\
-#        $(and $(call is-gcc,$(CC)),$(call match,"\<gcc\>",$(__disabled))),\
-#        $(and $(call is-gcc,$(CC)),$(call match,"\<$(subst .,\.,gcc-$(call gcc-version,$(CC)))\>",$(__disabled)))\
-#    )\
-#)
-#endif
-
 ifeq (,$(strip $(SRCFILES)))
 $(error SRCFILES are not defined)
 endif
@@ -179,14 +163,9 @@ TARGETNAME := $(or $(strip $(TARGETNAME)),test)
 TARGET := $(TARGETDIR)/$(TARGETNAME)
 
 .PHONY: test
-ifneq (,$(is-test-disabled))
-test:
-	@echo "On-host test disabled"
-else
 test: $(TARGET)
-ifeq (yes,$(is-device-test))
+ifeq (,$(strip $(DISABLE_RUN)))
 	$(realpath $(TARGET))
-endif
 endif
 
 .PHONY: clean

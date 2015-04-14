@@ -208,6 +208,10 @@ if [ ! -z "$GCC_VERSION_LIST" ]; then
   fail_panic "Could not build gnustl with debug info!"
 fi
 
+dump "Building $ABIS sqlite3 binaries..."
+run $BUILDTOOLS/build-sqlite3.sh --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
+fail_panic "Could not build sqlite3"
+
 dump "Building $ABIS ICU binaries..."
 run $BUILDTOOLS/build-icu.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)
 fail_panic "Could not build ICU!"

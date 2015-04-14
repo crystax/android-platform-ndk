@@ -430,6 +430,8 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
+    unpack_prebuilt sqlite3-build-files "$REFERENCE"
+    unpack_prebuilt sqlite3-headers "$REFERENCE"
     for VERSION in $ICU_VERSIONS; do
         unpack_prebuilt icu-$VERSION-build-files "$REFERENCE"
         unpack_prebuilt icu-$VERSION-headers "$REFERENCE"
@@ -451,6 +453,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
+        unpack sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $ICU_VERSIONS; do
             unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
         done
@@ -571,6 +574,12 @@ for SYSTEM in $SYSTEMS; do
             for OBJC_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
+        done
+
+        copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
+        for SQLITE3_ABI in $PREBUILT_ABIS; do
+            test "$SQLITE3_ABI" = "mips64" && continue
+            copy_prebuilt "$SQLITE3_SUBDIR/libs/$SQLITE3_ABI" "$SQLITE3_SUBDIR/libs"
         done
 
         for VERSION in $ICU_VERSIONS; do
