@@ -501,10 +501,10 @@ rm -rf $REFERENCE/tools/crew
 
 # now, for each system, create a package
 #
-DSTDIR=$TMPDIR/$RELEASE_PREFIX
+DSTDIR=$TMPDIR/$RELEASE_VERSION
 DSTDIR64=${DSTDIR}
 if [ "$SEPARATE_64" = "yes" ] ; then
-    DSTDIR64=$TMPDIR/64/${RELEASE_PREFIX}
+    DSTDIR64=$TMPDIR/64/${RELEASE_VERSION}
 fi
 
 SCRIPTS_DIR=$(dirname $(dirname $0))/scripts
@@ -721,7 +721,7 @@ for SYSTEM in $SYSTEMS; do
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
     find $DSTDIR $DSTDIR64 -executable -exec chmod a+x {} \;
-    pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_PREFIX"
+    pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_VERSION"
     fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
     if [ "$SEPARATE_64" = "yes" ] ; then
         rm -rf "$DSTDIR/prebuilt/common"
@@ -733,7 +733,7 @@ for SYSTEM in $SYSTEMS; do
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"
-        pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_PREFIX"
+        pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_VERSION"
         fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
     fi
 done
