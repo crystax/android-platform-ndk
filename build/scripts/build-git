@@ -181,12 +181,12 @@ begin
     end
     args << "CFLAGS=\"#{cflags}\""
 
-    Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::BUILD_BASE}/git #{args.join(' ')}"
+    Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::INSTALL_DIR} #{args.join(' ')}"
 
     if Common.target_os == 'darwin'
       FileUtils.cd('contrib/credential/osxkeychain') do
         Commander.run env, "make #{args.join(' ')}"
-        FileUtils.cp 'git-credential-osxkeychain', "#{Common::BUILD_BASE}/git/bin"
+        FileUtils.cp 'git-credential-osxkeychain', "#{Common::INSTALL_DIR}/bin"
       end
     end
   end

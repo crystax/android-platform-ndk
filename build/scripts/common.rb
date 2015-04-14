@@ -46,8 +46,8 @@ module Common
   BUILD_BASE = "#{NDK_BUILD_DIR}/#{Crystax::PKG_NAME}"
   BUILD_DIR = "#{BUILD_BASE}/build"
   SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
-  DST_DIR = "#{NDK_DIR}/tools"
-  INSTALL_DIR = "#{BUILD_BASE}/#{Crystax::PKG_NAME}"
+  DST_DIR = "#{NDK_DIR}"
+  INSTALL_DIR = "#{BUILD_BASE}/tools/#{Crystax::PKG_NAME}"
 
   MACOSX_VERSION_MIN = '10.6'
 

@@ -57,12 +57,12 @@ module Cache
   end
 
   def self.unpack(archive, pkgname = Crystax::PKG_NAME, dstdir = Common::DST_DIR)
-    FileUtils.remove_dir("#{dstdir}/#{pkgname}", true)
+    FileUtils.remove_dir("#{dstdir}/tools/#{pkgname}", true)
     Commander::run "7z x -o#{dstdir} #{PATH}/#{archive}"
   end
 
   def self.add(archive)
-    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} #{Crystax::PKG_NAME}" }
+    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} tools" }
     FileUtils.move("#{Common::BUILD_BASE}/#{archive}", PATH)
   end
 end

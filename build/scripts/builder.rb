@@ -134,12 +134,11 @@ module Builder
 
   def self.prepare_dependency(name)
     Logger.msg "= preparing #{name}"
-    dir = "#{Common::NDK_BUILD_DIR}/#{name}"
-    FileUtils.mkdir_p(dir)
+    FileUtils.mkdir_p(Common::NDK_BUILD_DIR) unless Dir.exists?(Common::NDK_BUILD_DIR)
     arch = Common.make_archive_name(name)
-    Cache.unpack(arch, name, dir)
+    Cache.unpack(arch, name, Common::NDK_BUILD_DIR)
     @@dependencies << name
-    "#{dir}/#{name}"
+    "#{Common::NDK_BUILD_DIR}/tools/#{name}"
   end
 
   def self.copy_sources
@@ -186,6 +185,6 @@ module Builder
   @@dependencies = []
 
   def self.clean_dependency(name)
-    Commander.run "rm -rf #{Common::NDK_BUILD_DIR}/#{name}"
+    Commander.run "rm -rf #{Common::NDK_BUILD_DIR}/tools/#{name}"
   end
 end

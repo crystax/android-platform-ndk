@@ -122,7 +122,7 @@ begin
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
             'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
-            'DESTDIR' => Common::BUILD_BASE
+            'DESTDIR' => "#{Common::INSTALL_DIR}/.."
           }
     args = ["--prefix=/ruby",
             "--host=#{Builder.configure_host}",

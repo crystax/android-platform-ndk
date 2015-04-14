@@ -75,9 +75,9 @@ begin
       a = system.split('-')
       os = a[0]
     when /^--out32-dir=(\S+)/
-      out32_dir = "#{$1}/tools"
+      out32_dir = $1
     when /^--out64-dir=(\S+)/
-      out64_dir = "#{$1}/tools"
+      out64_dir = $1
     when /^--log-file=(\S+)/
       logfile = $1
     when '--help'
