@@ -4,14 +4,14 @@ Thank you to everyone who backed our [Bountysource fundraiser](https://www.bount
 
 ### Your name in BACKERS.md.
 
-- sword1024
 - pj
+- sword1024
 
 ### Your name and URL in BACKERS.md.
 
-- Antony Polukhin (https://github.com/apolukhin)
 - 1bsyl (https://github.com/1bsyl)
 - Alex Besogonov (https://github.com/Cyberax)
+- Antony Polukhin (https://github.com/apolukhin)
 
 ### Anonymous Supporters
 
