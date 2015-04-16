@@ -944,20 +944,24 @@ def test_for_abi(abi, testdir)
                         total = 0
                         have_start_line = false
                         while line = o.gets.chomp rescue nil
-                            if !have_start_line && line =~ /^## COMMAND:/
-                                Log.info "   > #{line}"
-                                have_start_line = true
-                                next
+                            begin
+                                if !have_start_line && line =~ /^## COMMAND:/
+                                    Log.info "   > #{line}"
+                                    have_start_line = true
+                                    next
+                                end
+
+                                next unless line =~ /line_start:/
+
+                                cnt += 1
+                                next if cnt < 5000
+
+                                total += cnt
+                                cnt = 0
+                                Log.info "#{total} lines processed"
+                            rescue
+                                # Ignore
                             end
-
-                            next unless line =~ /line_start:/
-
-                            cnt += 1
-                            next if cnt < 5000
-
-                            total += cnt
-                            cnt = 0
-                            Log.info "#{total} lines processed"
                         end
                         if cnt > 0
                             total += cnt
@@ -966,7 +970,7 @@ def test_for_abi(abi, testdir)
                     end
 
                     et = Thread.start do
-                        while line = e.gets
+                        while line = e.gets.chomp rescue nil
                             Log.info "   * #{line}"
                         end
                     end
@@ -988,7 +992,7 @@ def test_for_abi(abi, testdir)
                     end
 
                     ot = Thread.start do
-                        while line = o.gets
+                        while line = o.gets.chomp rescue nil
                             Log.info "   > #{line}"
                         end
                     end
@@ -996,16 +1000,20 @@ def test_for_abi(abi, testdir)
                     et = Thread.start do
                         cnt = 0
                         total = 0
-                        while line = e.gets
-                            if line !~ /Processing test log/
-                                Log.info "   * #{line}"
-                            else
-                                cnt += 1
-                                next if cnt < 5000
+                        while line = e.gets.chomp rescue nil
+                            begin
+                                if line !~ /Processing test log/
+                                    Log.info "   * #{line}"
+                                else
+                                    cnt += 1
+                                    next if cnt < 5000
 
-                                total += cnt
-                                cnt = 0
-                                Log.info "#{total} logs collected"
+                                    total += cnt
+                                    cnt = 0
+                                    Log.info "#{total} logs collected"
+                                end
+                            rescue
+                                # Ignore
                             end
                         end
                         Log.info "#{total + cnt} logs collected" if cnt > 0
