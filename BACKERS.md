@@ -2,7 +2,7 @@
 
 Thank you to everyone who backed our [Bountysource fundraiser](https://www.bountysource.com/teams/crystaxndk/fundraiser)!
 
-### Your name BACKERS.md.
+### Your name in BACKERS.md.
 
 - sword1024
 - pj
