@@ -28,7 +28,3 @@ prebuilt/common/scan-view/
 tests/abcc/prebuilts/
 tests/device/crystax-test-big-switch/jni/main.c
 tests/device/crystax-test-big-switch/jni/switch.c
-tools/ruby
-tools/curl
-tools/git
-tools/p7zip

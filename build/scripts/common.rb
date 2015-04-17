@@ -47,7 +47,6 @@ module Common
   BUILD_DIR = "#{BUILD_BASE}/build"
   SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
   DST_DIR = "#{NDK_DIR}"
-  INSTALL_DIR = "#{BUILD_BASE}/tools/#{Crystax::PKG_NAME}"
 
   MACOSX_VERSION_MIN = '10.6'
 
@@ -87,8 +86,12 @@ module Common
     target_os != host_os
   end
 
-  def self.same_platform?
-    target_platform == host_platform
+  def self.prebuilt_dir
+    "prebuilt/#{(target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform}"
+  end
+
+  def self.install_dir
+    "#{BUILD_BASE}/#{prebuilt_dir}"
   end
 
   def self.num_jobs

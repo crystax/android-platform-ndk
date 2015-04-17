@@ -47,7 +47,7 @@ module Cache
       false
     else
       Logger.msg "found cached file: #{archive}"
-      unpack(archive) if action == :unpack and Common.same_platform?
+      unpack(archive) if action == :unpack
       true
     end
   end
@@ -56,13 +56,12 @@ module Cache
     File.exists? "#{PATH}/#{archive}"
   end
 
-  def self.unpack(archive, pkgname = Crystax::PKG_NAME, dstdir = Common::DST_DIR)
-    FileUtils.remove_dir("#{dstdir}/tools/#{pkgname}", true)
-    Commander::run "7z x -o#{dstdir} #{PATH}/#{archive}"
+  def self.unpack(archive, dstdir = Common::DST_DIR)
+    Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
   end
 
   def self.add(archive)
-    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} tools" }
+    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} prebuilt" }
     FileUtils.move("#{Common::BUILD_BASE}/#{archive}", PATH)
   end
 end

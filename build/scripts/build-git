@@ -181,18 +181,18 @@ begin
     end
     args << "CFLAGS=\"#{cflags}\""
 
-    Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common::INSTALL_DIR} #{args.join(' ')}"
+    Commander.run env, "make install -j #{Common::num_jobs} prefix=#{Common.install_dir} #{args.join(' ')}"
 
     if Common.target_os == 'darwin'
       FileUtils.cd('contrib/credential/osxkeychain') do
         Commander.run env, "make #{args.join(' ')}"
-        FileUtils.cp 'git-credential-osxkeychain', "#{Common::INSTALL_DIR}/bin"
+        FileUtils.cp 'git-credential-osxkeychain', "#{Common.install_dir}/bin"
       end
     end
   end
 
   Cache.add(archive)
-  Cache.unpack(archive) if Common.same_platform?
+  Cache.unpack(archive)
 
 rescue SystemExit => e
   exit e.status

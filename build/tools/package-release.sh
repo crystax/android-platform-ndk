@@ -489,14 +489,8 @@ find $REFERENCE/platforms -name 'libcrystax.*' -delete
 rm -f $REFERENCE/CleanSpec.mk
 rm -Rf $REFERENCE/sources/crystax/vendor
 
-# remove crystax utils if they were installed and crew files
-# later versions required for the system in question will be unpacked from the cache
-# and appropriate version of the crew will be cloned
-# todo: add git, curl, 7z
-rm -rf $REFERENCE/tools/ruby
-rm -rf $REFERENCE/tools/git
-rm -rf $REFERENCE/tools/curl
-rm -rf $REFERENCE/tools/p7zip
+# remove crew files
+# later appropriate version of the crew will be cloned
 rm -rf $REFERENCE/tools/crew
 
 # now, for each system, create a package
@@ -726,10 +720,6 @@ for SYSTEM in $SYSTEMS; do
     if [ "$SEPARATE_64" = "yes" ] ; then
         rm -rf "$DSTDIR/prebuilt/common"
         rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"
-        rm -rf "$DSTDIR/tools/ruby"
-        rm -rf "$DSTDIR/tools/curl"
-        rm -rf "$DSTDIR/tools/git"
-        rm -rf "$DSTDIR/tools/p7zip"
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"

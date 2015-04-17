@@ -84,10 +84,10 @@ def install_gems(*gems)
   env = {}
 
   if Common::target_os != 'windows'
-    gem = "#{Common::INSTALL_DIR}/bin/gem"
+    gem = "#{Common.install_dir}/bin/gem"
   else
     gem = "/usr/bin/gem"
-    env['GEM_HOME'] = "#{Common::INSTALL_DIR}/lib/ruby/gems/2.2.0"
+    env['GEM_HOME'] = "#{Common.install_dir}/lib/ruby/gems/2.2.0"
   end
 
   Commander::run env, "#{gem} install #{gems.join(' ')} #{args.join(' ')}"
@@ -119,12 +119,13 @@ begin
   # todo: check that the specified version and the repository version are the same
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
+  FileUtils.mkdir_p(Common.install_dir)
+  prefix = Pathname.new(Common.install_dir).realpath
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
-            'DESTDIR' => "#{Common::INSTALL_DIR}/.."
+            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB"
           }
-    args = ["--prefix=/ruby",
+    args = ["--prefix=#{prefix}",
             "--host=#{Builder.configure_host}",
             "--disable-install-doc",
             "--enable-load-relative",
@@ -149,7 +150,7 @@ begin
   install_gems 'rspec', 'minitest'
 
   Cache.add(archive)
-  Cache.unpack(archive) if Common.same_platform?
+  Cache.unpack(archive)
 
 rescue SystemExit => e
   exit e.status

@@ -78,14 +78,14 @@ begin
   Logger.msg "building #{archive}; args: #{ARGV}"
   if Common.target_os == 'windows'
     Logger.msg "= coping windows prebuilts"
-    FileUtils.mkdir_p(Common::INSTALL_DIR)
+    FileUtils.mkdir_p(Common.install_dir)
     pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
     if Common.target_cpu == 'x86'
-      FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{Common::INSTALL_DIR}/7za.exe" }
+      FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{Common.install_dir}/7za.exe" }
     else
       FileUtils.cd("#{pdir}/64") do
-        FileUtils.cp '7z.exe', "#{Common::INSTALL_DIR}/7za.exe"
-        FileUtils.cp '7z.dll', "#{Common::INSTALL_DIR}/7z.dll"
+        FileUtils.cp '7z.exe', "#{Common.install_dir}/7za.exe"
+        FileUtils.cp '7z.dll', "#{Common.install_dir}/7z.dll"
       end
     end
   else
@@ -100,12 +100,12 @@ begin
       Commander::run "make -j #{Common.num_jobs} #{args.join(' ')}"
       Commander::run "make test #{args.join(' ')}" unless Common.no_check? or Common.different_os?
     end
-    FileUtils.mkdir_p(Common::INSTALL_DIR)
-    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common::INSTALL_DIR}/7za"
+    FileUtils.mkdir_p("#{Common.install_dir}/bin")
+    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common.install_dir}/bin/7za"
   end
 
   Cache.add(archive)
-  Cache.unpack(archive) if Common.same_platform?
+  Cache.unpack(archive)
 
 rescue SystemExit => e
   exit e.status

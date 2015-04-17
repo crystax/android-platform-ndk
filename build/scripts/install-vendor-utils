@@ -103,8 +103,8 @@ begin
     base = "#{Common.make_archive_base(name)}-#{os}"
     arch32 = "#{base}-x86.7z"
     arch64 = "#{base}-x86_64.7z"
-    Cache.unpack(arch32, name, out32_dir)
-    Cache.unpack(arch64, name, out64_dir)
+    Cache.unpack(arch32, out32_dir)
+    Cache.unpack(arch64, out64_dir)
   end
 rescue SystemExit => e
   exit e.status

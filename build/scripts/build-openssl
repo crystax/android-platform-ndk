@@ -85,7 +85,7 @@ begin
   Builder.copy_sources
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc }
-    args = ["--prefix=#{Common::INSTALL_DIR}",
+    args = ["--prefix=#{Common.install_dir}",
             "no-idea",
             "no-mdc2",
             "no-rc5",
