@@ -80,8 +80,10 @@ end
 
 
 def install_gems(*gems)
-  args = ['--no-document']
-  env = { 'GEM_HOME' => "#{Common.install_dir}/lib/ruby/gems/2.2.0" }
+  args = ["--no-document", "--bindir #{Common.install_dir}/bin"]
+  env = { 'GEM_HOME' => "#{Common.install_dir}/lib/ruby/gems/2.2.0",
+          'GEM_PATH' => "#{Common.install_dir}/lib/ruby/gems/2.2.0"
+        }
 
   if Common::target_os != 'windows'
     gem = "#{Common.install_dir}/bin/gem"
