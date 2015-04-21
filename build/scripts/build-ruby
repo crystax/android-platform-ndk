@@ -145,7 +145,8 @@ begin
             "--with-static-linked-ext",
             "--without-gmp",
             "--without-tk",
-            "--without-gdbm"
+            "--without-gdbm",
+            "--enable-bundled-libyaml"
            ]
     if Common::target_os == 'windows'
       args << '--host=x86_64-mingw64'
