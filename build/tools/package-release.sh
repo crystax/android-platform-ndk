@@ -710,11 +710,11 @@ for SYSTEM in $SYSTEMS; do
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi
-    echo "Creating $ARCHIVE"
     # make all file universally readable, and all executable (including directory)
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
     find $DSTDIR $DSTDIR64 -executable -exec chmod a+x {} \;
+    echo "Creating $ARCHIVE"
     pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_VERSION"
     fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
     if [ "$SEPARATE_64" = "yes" ] ; then
@@ -723,6 +723,7 @@ for SYSTEM in $SYSTEMS; do
         find "$DSTDIR/toolchains" -type d -name prebuilt | xargs rm -rf
         cp -r "$DSTDIR64"/* "$DSTDIR"/
         rm -rf "$DSTDIR64"
+        echo "Creating $ARCHIVE64"
         pack_release "$OUT_DIR/$ARCHIVE64" "$TMPDIR" "$RELEASE_VERSION"
         fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE64"
     fi
