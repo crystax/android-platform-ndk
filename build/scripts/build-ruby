@@ -49,6 +49,17 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+def check_version
+  v = File.read("#{Common::SRC_DIR}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
+  if !v or v.size == 0
+    raise "can't find '#define RUBY_VERSION' string"
+  end
+  ver = v[0].split(' ')[2].split('"')[1]
+  if ver != Crystax::VERSIONS['ruby']
+    raise "bad ruby version: repository: #{ver}; expected: #{Crystax::VERSIONS['ruby']}"
+  end
+end
+
 def build_libffi(installdir)
   Logger.msg "= building libffi"
   srcdir = "#{Common::VENDOR_DIR}/libffi"
@@ -117,7 +128,7 @@ begin
   openssldir = Builder.prepare_dependency('openssl')
 
   Logger.msg "= building ruby"
-  # todo: check that the specified version and the repository version are the same
+  check_version
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
