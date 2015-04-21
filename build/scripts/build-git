@@ -116,6 +116,17 @@ def create_config_mak
   file.close
 end
 
+def check_version
+  v = File.read("#{Common::SRC_DIR}/GIT-VERSION-GEN").split("\n").select { |s| s =~ /DEF_VER/ }
+  if !v or v.size == 0
+    raise "can't find DEV_VER string"
+  end
+  ver = v[0].split('=')[1].slice(1, 100)
+  if ver != Crystax::VERSIONS['git']
+    raise "bad git version: repository: #{ver}; expected: #{Crystax::VERSIONS['git']}"
+  end
+end
+
 
 begin
   Common.parse_options
@@ -139,7 +150,7 @@ begin
   curldir = Builder.prepare_dependency('curl')
 
   Logger.msg "= building git"
-  # todo: check that the specified version and the repository version are the same
+  check_version
   # since git does not support builds in non-source directory
   # we must copy source to build directory
   Builder.copy_sources
