@@ -68,7 +68,7 @@ end
 def check_version
   v = File.read("#{Common::SRC_DIR}/crypto/opensslv.h").split("\n").select { |s| s =~ /define OPENSSL_VERSION_TEXT/ }
   if !v or v.size == 0
-    raise "can't find '#define RUBY_VERSION' string"
+    raise "can't find '#define OPENSSL_VERSION_TEXT' string"
   end
   ver = v[1].split(' ')[4]
   if ver != Crystax::VERSIONS['openssl']
