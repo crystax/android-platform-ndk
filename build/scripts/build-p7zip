@@ -52,6 +52,19 @@ require_relative 'cache.rb'
 require_relative 'exceptions.rb'
 
 
+# Version 9.20.1
+#
+def check_version
+  v = File.read("#{Common::SRC_DIR}/ChangeLog").split("\n").select { |s| s =~ /^Version/ }
+  if !v or v.size == 0
+    raise "can't find 'Version' string"
+  end
+  ver = v[0].split(' ')[1]
+  if ver != Crystax::VERSIONS['p7zip']
+    raise "bad p7zip version: repository: #{ver}; expected: #{Crystax::VERSIONS['p7zip']}"
+  end
+end
+
 def makefile_name
   case Common.target_os
   when 'darwin'
@@ -76,6 +89,7 @@ begin
   end
 
   Logger.msg "building #{archive}; args: #{ARGV}"
+  check_version
   if Common.target_os == 'windows'
     Logger.msg "= coping windows prebuilts"
     FileUtils.mkdir_p(Common.install_dir)
@@ -89,7 +103,6 @@ begin
       end
     end
   else
-    # todo: check that the specified version and the repository version are the same
     Builder.copy_sources
     FileUtils.cd(Common::BUILD_DIR) do
       FileUtils.cp makefile_name, 'makefile.machine'
