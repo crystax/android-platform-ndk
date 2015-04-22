@@ -63,6 +63,10 @@ end
 def build_libffi(installdir)
   Logger.msg "= building libffi"
   srcdir = "#{Common::VENDOR_DIR}/libffi"
+  libver = File.read("#{srcdir}/doc/version.texi").split("\n")[3].split(' ')[2]
+  if libver != Crystax::VERSIONS['libffi']
+    raise "bad libffi version: repository: #{libver}; expected: #{Crystax::VERSIONS['libffi']}"
+  end
   FileUtils.cd(srcdir) { Commander::run "./autogen.sh" }
   builddir = "#{Common::BUILD_BASE}/libffi"
   FileUtils.mkdir_p(builddir)
