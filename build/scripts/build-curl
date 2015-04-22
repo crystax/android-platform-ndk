@@ -49,6 +49,20 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+# #define LIBCURL_VERSION "7.41.0-DEV"
+#
+def check_version
+  v = File.read("#{Common::SRC_DIR}/include/curl/curlver.h").split("\n").select { |s| s =~ /LIBCURL_VERSION/ }
+  if !v or v.size == 0
+    raise "can't find 'LIBCURL_VERSION' string"
+  end
+  ver = v[0].split(' ')[2].delete('"').split('-')[0]
+  if ver != Crystax::VERSIONS['curl']
+    raise "bad curl version: repository: #{ver}; expected: #{Crystax::VERSIONS['curl']}"
+  end
+end
+
+
 begin
   Common.parse_options
 
@@ -70,7 +84,7 @@ begin
   openssldir = Builder.prepare_dependency('openssl')
 
   Logger.msg "= building #{Crystax::PKG_NAME}"
-  # todo: check that the specified version and the repository version are the same
+  check_version
   FileUtils.cd(Common::SRC_DIR) { Commander.run "./buildconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.mkdir_p(Common.install_dir)
