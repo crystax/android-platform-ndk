@@ -373,8 +373,7 @@ def adb_devices
     devices.each do |id|
         begin
             next if !EMUTAG.nil? && adb_getprop(id, 'crystax.emulator.tag') != EMUTAG
-            #next if adb_getprop(id, 'sys.boot_completed') != "1"
-            next if adb_getprop(id, 'init.svc.bootanim') != 'stopped'
+            next if adb_getprop(id, 'sys.boot_completed') != "1"
 
             apilevel = adb_getprop(id, 'ro.build.version.sdk').to_i
             next if apilevel == 0
