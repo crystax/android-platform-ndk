@@ -843,7 +843,7 @@ def test_for_abi(abi, testdir)
             f.puts "using #{ttype} : #{tversion} : #{targetbin}/#{cxxbin} ;"
         end
 
-        cxxbins << cxxbin
+        cxxbins << File.join(targetbin, cxxbin)
 
         strip = File.join(targetbin, 'strip') if strip.nil? && File.executable?(File.join(targetbin, 'strip'))
     end
