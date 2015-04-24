@@ -24,6 +24,7 @@ int main()
                 ::fprintf(stderr, "ERROR: we've got NULL from 'new' instead of std::bad_alloc\n");
                 return 1;
             }
+            fprintf(stderr, "p=%p\n", p);
         }
         ::fprintf(stderr, "ERROR: we somehow finished infinite loop (how it could be?)\n");
         return 1;
