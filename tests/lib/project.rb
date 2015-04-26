@@ -101,11 +101,21 @@ class Project
         @properties['long'].to_s =~ /^(true|yes|1)/i ? true : false
     end
 
+    def elapsed(seconds)
+        s = seconds.to_i % 60
+        m = (seconds.to_i / 60) % 60
+        h = seconds.to_i / 3600
+        "%d:%02d:%02d" % [h,m,s]
+    end
+    private :elapsed
+
     def run_cmd(cmd, options = {}, &block)
         Log.info "## COMMAND: #{cmd}"
         Log.info "## CWD: #{Dir.pwd}"
         Open3.popen3(options[:env] || {}, cmd) do |i,o,e,t|
             [i,o,e].each { |io| io.sync = true }
+
+            lt = Time.now
 
             ot = Thread.start do
                 while line = o.gets.chomp rescue nil
@@ -119,6 +129,7 @@ class Project
                         end
                         next
                     end
+                    lt = Time.now
                     Log.info "   > #{line}"
                 end
             end
@@ -126,14 +137,26 @@ class Project
             mkdir_error = false
             et = Thread.start do
                 while line = e.gets.chomp rescue nil
+                    lt = Time.now
                     Log.info "   * #{line}"
                     mkdir_error = true if options[:track_mkdir_errors] && line =~ /^mkdir:/
+                end
+            end
+
+            wt = Thread.start do
+                while ot.alive? || et.alive?
+                    sleep 5
+                    now = Time.now
+                    next if now - lt < 30
+                    Log.info "## STILL RUNNING (#{elapsed(now - lt)} since last stdout/stderr activity, but working in background)"
+                    lt = now
                 end
             end
 
             i.close
             ot.join
             et.join
+            wt.kill
 
             errmsg = options[:errmsg] || "'#{cmd}' failed"
             raise MkdirFailed.new(errmsg) if mkdir_error && !t.value.success?
