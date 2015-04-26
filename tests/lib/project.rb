@@ -115,8 +115,6 @@ class Project
         Open3.popen3(options[:env] || {}, cmd) do |i,o,e,t|
             [i,o,e].each { |io| io.sync = true }
 
-            lt = Time.now
-
             ot = Thread.start do
                 while line = o.gets.chomp rescue nil
                     if !options[:mroprefix].nil? && line =~ /^#{options[:mroprefix]}/
@@ -129,7 +127,6 @@ class Project
                         end
                         next
                     end
-                    lt = Time.now
                     Log.info "   > #{line}"
                 end
             end
@@ -137,18 +134,17 @@ class Project
             mkdir_error = false
             et = Thread.start do
                 while line = e.gets.chomp rescue nil
-                    lt = Time.now
                     Log.info "   * #{line}"
                     mkdir_error = true if options[:track_mkdir_errors] && line =~ /^mkdir:/
                 end
             end
 
             wt = Thread.start do
+                lt = Time.now
                 while ot.alive? || et.alive?
-                    sleep 5
+                    sleep 30
                     now = Time.now
-                    next if now - lt < 30
-                    Log.info "## STILL RUNNING (#{elapsed(now - lt)} since last stdout/stderr activity, but working in background)"
+                    Log.notice "## STILL RUNNING (#{elapsed(now - lt)})"
                     lt = now
                 end
             end
