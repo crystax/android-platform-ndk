@@ -145,7 +145,6 @@ class Project
                     sleep 30
                     now = Time.now
                     Log.notice "## STILL RUNNING (#{elapsed(now - lt)})"
-                    lt = now
                 end
             end
 
