@@ -27,8 +27,8 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB
-#define __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB
+#ifndef __CRYSTAX_INCLUDE_CRYSTAX_ARM64_FENV_H_D3DAD51063A24B51814D36A084D98AA7
+#define __CRYSTAX_INCLUDE_CRYSTAX_ARM64_FENV_H_D3DAD51063A24B51814D36A084D98AA7
 
 #include <crystax/id.h>
 
@@ -37,7 +37,11 @@
 
 __BEGIN_DECLS
 
-typedef __uint32_t fenv_t;
+typedef struct {
+  __uint32_t __control;     /* FPCR, Floating-point Control Register */
+  __uint32_t __status;      /* FPSR, Floating-point Status Register */
+} fenv_t;
+
 typedef __uint32_t fexcept_t;
 
 /* Exception flags. */
@@ -46,7 +50,9 @@ typedef __uint32_t fexcept_t;
 #define FE_OVERFLOW   0x04
 #define FE_UNDERFLOW  0x08
 #define FE_INEXACT    0x10
-#define FE_ALL_EXCEPT (FE_DIVBYZERO | FE_INEXACT | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW)
+#define FE_DENORMAL   0x80
+#define FE_ALL_EXCEPT (FE_DIVBYZERO | FE_INEXACT | FE_INVALID | \
+                       FE_OVERFLOW | FE_UNDERFLOW | FE_DENORMAL)
 
 /* Rounding modes. */
 #define FE_TONEAREST  0x0
@@ -56,4 +62,4 @@ typedef __uint32_t fexcept_t;
 
 __END_DECLS
 
-#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB */
+#endif /* __CRYSTAX_INCLUDE_CRYSTAX_ARM64_FENV_H_D3DAD51063A24B51814D36A084D98AA7 */

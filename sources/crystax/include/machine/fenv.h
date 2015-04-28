@@ -27,33 +27,30 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB
-#define __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB
+#ifndef __CRYSTAX_INCLUDE_MACHINE_FENV_H_C7639E168FB34B38977528C2991EB5C5
+#define __CRYSTAX_INCLUDE_MACHINE_FENV_H_C7639E168FB34B38977528C2991EB5C5
 
 #include <crystax/id.h>
 
-#include <sys/cdefs.h>
-#include <sys/types.h>
+#if __arm__
+# define _FENV_H_
+# if __SOFTFP__
+#  include <crystax/sys/fenvsoft.h>
+# else
+#  include <crystax/arm/fenv.h>
+# endif
+#elif __aarch64__
+# include <crystax/arm64/fenv.h>
+#elif __mips__ && !__mips64
+# include <crystax/mips/fenv.h>
+#elif __mips64
+# include <crystax/mips64/fenv.h>
+#elif __i386__
+# include <crystax/x86/fenv.h>
+#elif __x86_64__
+# include <crystax/x86_64/fenv.h>
+#else
+# error "Not defined for this ABI"
+#endif
 
-__BEGIN_DECLS
-
-typedef __uint32_t fenv_t;
-typedef __uint32_t fexcept_t;
-
-/* Exception flags. */
-#define FE_INVALID    0x01
-#define FE_DIVBYZERO  0x02
-#define FE_OVERFLOW   0x04
-#define FE_UNDERFLOW  0x08
-#define FE_INEXACT    0x10
-#define FE_ALL_EXCEPT (FE_DIVBYZERO | FE_INEXACT | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW)
-
-/* Rounding modes. */
-#define FE_TONEAREST  0x0
-#define FE_UPWARD     0x1
-#define FE_DOWNWARD   0x2
-#define FE_TOWARDZERO 0x3
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_FENVSOFT_H_412F7154277B4CDD984801515157D2CB */
+#endif /* __CRYSTAX_INCLUDE_MACHINE_FENV_H_C7639E168FB34B38977528C2991EB5C5 */

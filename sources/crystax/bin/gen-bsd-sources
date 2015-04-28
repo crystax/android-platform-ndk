@@ -1031,7 +1031,6 @@ g.add "lib/msun/src/e_sqrt.c",             warnings: "sign-compare"
 g.add "lib/msun/src/e_sqrtf.c"
 g.add "lib/msun/src/e_sqrtl.c",            warnings: "unknown-pragmas",
                                            fixup:    "long_double_128", postfixup: "endif"
-g.add "lib/msun/src/fenv-softfloat.h"
 g.add "lib/msun/src/k_cos.c"
 g.add "lib/msun/src/k_cosf.c"
 g.add "lib/msun/src/k_exp.c"

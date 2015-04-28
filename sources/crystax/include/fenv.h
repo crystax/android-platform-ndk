@@ -32,15 +32,32 @@
 
 #include <crystax/id.h>
 
-#if __arm__
-# define _FENV_H_
-# if __SOFTFP__
-#  include <crystax/sys/fenvsoft.h>
-# else
-#  include <crystax/arm/fenv.h>
-# endif
-#else
-#include <crystax/google/fenv.h>
-#endif
+#include <machine/fenv.h>
+
+__BEGIN_DECLS
+
+/* Default floating-point environment. */
+extern const fenv_t __fe_dfl_env;
+#define FE_DFL_ENV (&__fe_dfl_env)
+
+int feclearexcept(int);
+int fegetexceptflag(fexcept_t *, int);
+int feraiseexcept(int);
+int fesetexceptflag(const fexcept_t *, int);
+int fetestexcept(int);
+
+int fegetround(void);
+int fesetround(int);
+
+int fegetenv(fenv_t *);
+int feholdexcept(fenv_t *);
+int fesetenv(const fenv_t *);
+int feupdateenv(const fenv_t *);
+
+int feenableexcept(int);
+int fedisableexcept(int);
+int fegetexcept(void);
+
+__END_DECLS
 
 #endif /* __CRYSTAX_INCLUDE_FENV_H_C7DBD79B038240CB903BDCE8D17AE833 */

@@ -162,13 +162,25 @@ sources_for_abi()
             arch=i386
             ;;
         x86_64)
-            arch=x86_64
+            case $m in
+                i386)
+                    arch=i386
+                    ;;
+                *)
+                    arch=x86_64
+            esac
             ;;
         mips)
             arch=mips
             ;;
         mips64)
-            arch=mips64
+            case $m in
+                mips32*)
+                    arch=mips
+                    ;;
+                *)
+                    arch=mips64
+            esac
             ;;
     esac
 

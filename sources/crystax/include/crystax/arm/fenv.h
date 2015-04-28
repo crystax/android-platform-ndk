@@ -54,31 +54,6 @@ typedef __uint32_t fexcept_t;
 #define FE_DOWNWARD   0x2
 #define FE_TOWARDZERO 0x3
 
-/* Default floating-point environment. */
-extern const fenv_t __fe_dfl_env;
-#define FE_DFL_ENV (&__fe_dfl_env)
-
-int fegetenv(fenv_t* __envp);
-int fesetenv(const fenv_t* __envp);
-
-int feclearexcept(int __excepts);
-int fegetexceptflag(fexcept_t* __flagp, int __excepts);
-int fesetexceptflag(const fexcept_t* __flagp, int __excepts);
-int feraiseexcept(int __excepts);
-int fetestexcept(int __excepts);
-int fegetround(void);
-int fesetround(int __round);
-int feholdexcept(fenv_t* __envp);
-int feupdateenv(const fenv_t* __envp);
-
-#if __BSD_VISIBLE
-
-int feenableexcept(int __mask);
-int fedisableexcept(int __mask);
-int fegetexcept(void);
-
-#endif /* __BSD_VISIBLE */
-
 __END_DECLS
 
 #endif /* __CRYSTAX_INCLUDE_CRYSTAX_ARM_FENV_H_5DD72E92B8A449719F0B902A909BCB18 */

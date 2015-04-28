@@ -33,26 +33,12 @@
 #include <signal.h>
 #include <unistd.h>
 
+#if !__SOFTFP__
+
 #define _FPSCR_ENABLE_SHIFT 8
 #define _FPSCR_ENABLE_MASK (FE_ALL_EXCEPT << _FPSCR_ENABLE_SHIFT)
 
 #define _FPSCR_RMODE_SHIFT 22
-
-#if __SOFTFP__
-
-int __softfloat_float_rounding_mode = 0;
-int __softfloat_float_exception_mask = 0;
-int __softfloat_float_exception_flags = 0;
-const fenv_t __crystax_softfloat_fe_dfl_env = 0;
-
-void __softfloat_float_raise(int e)
-{
-    if ((e & __softfloat_float_exception_mask) == 0)
-        return;
-    kill(getpid(), SIGFPE);
-}
-
-#else /* !__SOFTFP__ */
 
 const fenv_t __fe_dfl_env = 0;
 
