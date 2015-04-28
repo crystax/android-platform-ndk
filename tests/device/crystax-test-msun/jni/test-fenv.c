@@ -331,7 +331,9 @@ test_fegsetenv(void)
 static void
 test_masking(void)
 {
-#if !__APPLE__
+	/* Apple don't support fegetexcept(), feenableexcept() and others */
+	/* ARM VFPv3 and VFPv4 don't support trapping of floating-point exceptions */
+#if !__APPLE__ && !(__ANDROID__ && __arm__ && !__SOFTFP__)
 	struct sigaction act;
 	int except, i, pass, raise, status;
 
@@ -411,7 +413,7 @@ test_masking(void)
 static void
 test_feholdupdate(void)
 {
-#if !__APPLE__
+#if !__APPLE__ && !(__ANDROID__ && __arm__ && !__SOFTFP__)
 	fenv_t env;
 
 	struct sigaction act;
@@ -477,7 +479,7 @@ test_feholdupdate(void)
 		}
 	}
 	assert(fetestexcept(FE_ALL_EXCEPT) == 0);
-#endif /* !__APPLE__ */
+#endif /* !__APPLE__  && !(__ANDROID__ && __arm__ && !__SOFTFP__) */
 }
 
 /*

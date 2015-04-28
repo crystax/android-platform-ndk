@@ -138,19 +138,25 @@ int feupdateenv(const fenv_t* __envp)
 
 int feenableexcept(int __mask)
 {
-    fenv_t __old_fpscr, __new_fpscr;
+    fenv_t __old_fpscr, __new_fpscr, __check_fpscr;
     fegetenv(&__old_fpscr);
     __new_fpscr = __old_fpscr | (__mask & FE_ALL_EXCEPT) << _FPSCR_ENABLE_SHIFT;
     fesetenv(&__new_fpscr);
+    fegetenv(&__check_fpscr);
+    if (__new_fpscr != __check_fpscr)
+        return -1;
     return ((__old_fpscr >> _FPSCR_ENABLE_SHIFT) & FE_ALL_EXCEPT);
 }
 
 int fedisableexcept(int __mask)
 {
-    fenv_t __old_fpscr, __new_fpscr;
+    fenv_t __old_fpscr, __new_fpscr, __check_fpscr;
     fegetenv(&__old_fpscr);
     __new_fpscr = __old_fpscr & ~((__mask & FE_ALL_EXCEPT) << _FPSCR_ENABLE_SHIFT);
     fesetenv(&__new_fpscr);
+    fegetenv(&__check_fpscr);
+    if (__new_fpscr != __check_fpscr)
+        return -1;
     return ((__old_fpscr >> _FPSCR_ENABLE_SHIFT) & FE_ALL_EXCEPT);
 }
 
