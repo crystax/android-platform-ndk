@@ -28,6 +28,8 @@
  */
 
 #include <fenv.h>
+#include <signal.h>
+#include <unistd.h>
 
 #define _FCSR_CAUSE_SHIFT  10
 #define _ENABLE_SHIFT 5
@@ -96,6 +98,10 @@ int feraiseexcept(int __excepts)
     /* Cause bit needs to be set as well for generating the exception*/
     __fcsr |= __excepts | (__excepts << _FCSR_CAUSE_SHIFT);
     fesetenv(&__fcsr);
+
+    if ((fegetexcept() & __excepts) != 0)
+        kill(getpid(), SIGFPE);
+
     return 0;
 }
 

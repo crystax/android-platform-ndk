@@ -89,7 +89,7 @@ int feraiseexcept(int __excepts)
     fexcept_t __ex = __excepts;
     fesetexceptflag(&__ex, __excepts);
     if ((fegetexcept() & __excepts) != 0)
-        kill(getpid(), 8); /* SIGFPE */
+        kill(getpid(), SIGFPE);
     return 0;
 }
 
