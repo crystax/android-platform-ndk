@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX .NET.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,20 +27,58 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_FENV_H_C7DBD79B038240CB903BDCE8D17AE833
-#define __CRYSTAX_INCLUDE_FENV_H_C7DBD79B038240CB903BDCE8D17AE833
+#ifndef __CRYSTAX_INCLUDE_CRYSTAX_ARM_FENV_H_5DD72E92B8A449719F0B902A909BCB18
+#define __CRYSTAX_INCLUDE_CRYSTAX_ARM_FENV_H_5DD72E92B8A449719F0B902A909BCB18
 
 #include <crystax/id.h>
 
-#if __arm__
-# define _FENV_H_
-# if __SOFTFP__
-#  include <crystax/sys/fenvsoft.h>
-# else
-#  include <crystax/arm/fenv.h>
-# endif
-#else
-#include <crystax/google/fenv.h>
-#endif
+#include <sys/cdefs.h>
+#include <sys/types.h>
 
-#endif /* __CRYSTAX_INCLUDE_FENV_H_C7DBD79B038240CB903BDCE8D17AE833 */
+__BEGIN_DECLS
+
+typedef __uint32_t fenv_t;
+typedef __uint32_t fexcept_t;
+
+/* Exception flags. */
+#define FE_INVALID    0x01
+#define FE_DIVBYZERO  0x02
+#define FE_OVERFLOW   0x04
+#define FE_UNDERFLOW  0x08
+#define FE_INEXACT    0x10
+#define FE_ALL_EXCEPT (FE_DIVBYZERO | FE_INEXACT | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW)
+
+/* Rounding modes. */
+#define FE_TONEAREST  0x0
+#define FE_UPWARD     0x1
+#define FE_DOWNWARD   0x2
+#define FE_TOWARDZERO 0x3
+
+/* Default floating-point environment. */
+extern const fenv_t __fe_dfl_env;
+#define FE_DFL_ENV (&__fe_dfl_env)
+
+int fegetenv(fenv_t* __envp);
+int fesetenv(const fenv_t* __envp);
+
+int feclearexcept(int __excepts);
+int fegetexceptflag(fexcept_t* __flagp, int __excepts);
+int fesetexceptflag(const fexcept_t* __flagp, int __excepts);
+int feraiseexcept(int __excepts);
+int fetestexcept(int __excepts);
+int fegetround(void);
+int fesetround(int __round);
+int feholdexcept(fenv_t* __envp);
+int feupdateenv(const fenv_t* __envp);
+
+#if __BSD_VISIBLE
+
+int feenableexcept(int __mask);
+int fedisableexcept(int __mask);
+int fegetexcept(void);
+
+#endif /* __BSD_VISIBLE */
+
+__END_DECLS
+
+#endif /* __CRYSTAX_INCLUDE_CRYSTAX_ARM_FENV_H_5DD72E92B8A449719F0B902A909BCB18 */
