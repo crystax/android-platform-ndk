@@ -63,7 +63,7 @@
                 __crystax_log_short_file(__FILE__), __LINE__, \
                 __FUNCTION__, ##__VA_ARGS__)
 
-#define DBG(fmt, ...) CRYSTAX_LOG(DBUG, fmt, ##__VA_ARGS__)
+#define CRYSTAX_DBG(fmt, ...) CRYSTAX_LOG(DBUG, fmt, ##__VA_ARGS__)
 
 #else /* !CRYSTAX_DEBUG */
 
@@ -72,20 +72,20 @@
                 CRYSTAX_LEVEL_TAG(level), \
                 fmt, ##__VA_ARGS__)
 
-#define DBG(...) do {} while (0)
+#define CRYSTAX_DBG(...) do {} while (0)
 
 #endif /* !CRYSTAX_DEBUG */
 
-#define INFO(fmt, ...)  CRYSTAX_LOG(INFO, fmt, ##__VA_ARGS__)
-#define WARN(fmt, ...)  CRYSTAX_LOG(WARN, fmt, ##__VA_ARGS__)
-#define ERR(fmt, ...)   CRYSTAX_LOG(ERRO, fmt, ##__VA_ARGS__)
-#define PANIC(fmt, ...) \
+#define CRYSTAX_INFO(fmt, ...)  CRYSTAX_LOG(INFO, fmt, ##__VA_ARGS__)
+#define CRYSTAX_WARN(fmt, ...)  CRYSTAX_LOG(WARN, fmt, ##__VA_ARGS__)
+#define CRYSTAX_ERR(fmt, ...)   CRYSTAX_LOG(ERRO, fmt, ##__VA_ARGS__)
+#define CRYSTAX_PANIC(fmt, ...) \
     do { \
         CRYSTAX_LOG(PANI, fmt, ##__VA_ARGS__); \
         abort(); \
     } while (0)
 
-#define TRACE DBG("***")
+#define CRYSTAX_TRACE CRYSTAX_DBG("*** TRACE")
 
 __BEGIN_DECLS
 
@@ -93,5 +93,55 @@ const char *__crystax_log_short_file(const char *f);
 int __crystax_log(int prio, const char *tag,  const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
 __END_DECLS
+
+#if defined(__cplusplus) && CRYSTAX_DEBUG
+
+namespace crystax
+{
+class call_frame_tracer
+{
+public:
+    call_frame_tracer(const char *f, int l, const char *fn)
+        :file(f), line(l), function(fn)
+    {
+        __crystax_log(CRYSTAX_LEVEL_VAL(DBUG), CRYSTAX_LEVEL_TAG(DBUG),
+                "[%08x] ...%s:%-5d: %-15s: *** ENTER",
+                (unsigned)::pthread_self(),
+                __crystax_log_short_file(file), line, function);
+    }
+
+    ~call_frame_tracer()
+    {
+        __crystax_log(CRYSTAX_LEVEL_VAL(DBUG), CRYSTAX_LEVEL_TAG(DBUG),
+                "[%08x] ...%s:%-5d: %-15s: *** LEAVE",
+                (unsigned)::pthread_self(),
+                __crystax_log_short_file(file), line, function);
+    }
+
+private:
+    const char *file;
+    int line;
+    const char *function;
+};
+} // namespace crystax
+
+#define CRYSTAX_FRAME_TRACER ::crystax::call_frame_tracer call_frame_tracer_obj_ ## __LINE (__FILE__, __LINE__, __FUNCTION__);
+
+#else /* defined(__cplusplus) && CRYSTAX_DEBUG */
+
+#define CRYSTAX_FRAME_TRACER CRYSTAX_DBG("ENTER")
+
+#endif /* defined(__cplusplus) && CRYSTAX_DEBUG */
+
+#if CRYSTAX_LOG_DEFINE_SHORT_MACROS
+#define DBG(fmt, ...)   CRYSTAX_DBG(  fmt, ##__VA_ARGS__)
+#define INFO(fmt, ...)  CRYSTAX_INFO( fmt, ##__VA_ARGS__)
+#define WARN(fmt, ...)  CRYSTAX_WARN( fmt, ##__VA_ARGS__)
+#define ERR(fmt, ...)   CRYSTAX_ERR(  fmt, ##__VA_ARGS__)
+#define PANIC(fmt, ...) CRYSTAX_PANIC(fmt, ##__VA_ARGS__)
+
+#define TRACE CRYSTAX_TRACE
+#define FRAME_TRACER CRYSTAX_FRAME_TRACER
+#endif /* CRYSTAX_LOG_DEFINE_SHORT_MACROS */
 
 #endif /* __CRYSTAX_INCLUDE_CRYSTAX_LOG_H_465350AFAEF0438E893862FF11F27853 */

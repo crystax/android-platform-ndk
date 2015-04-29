@@ -36,6 +36,7 @@
 
 #include <crystax/private.h>
 #include <crystax/localeimpl.h>
+#include <crystax/fenvimpl.h>
 
 #include <stdlib.h>
 
@@ -57,33 +58,33 @@ JavaVM *jvm()
 
 static void jnienv_detach_thread(void * /*arg*/)
 {
-    //JNIEnv *env = reinterpret_cast<JNIEnv *>(arg);
-    //DBG("env=%p, jvm=%p", env, jvm());
+    FRAME_TRACER;
+    //DBG("env=%p, jvm=%p", reinterpret_cast<JNIEnv*>(arg), jvm());
     if (jvm())
         jvm()->DetachCurrentThread();
 }
 
 static void jnienv_key_create()
 {
+    FRAME_TRACER;
     if (::pthread_key_create(&s_jnienv_key, &jnienv_detach_thread) != 0)
         ::abort();
 }
 
 static void jnienv_key_delete()
 {
+    FRAME_TRACER;
     if (::pthread_key_delete(s_jnienv_key) != 0)
         ::abort();
 }
 
 static bool save_jnienv(JNIEnv *env)
 {
-    TRACE;
+    FRAME_TRACER;
 
     ::pthread_once(&s_jnienv_key_create_once, &jnienv_key_create);
 
-    if (::pthread_setspecific(s_jnienv_key, env) != 0)
-        return false;
-    return true;
+    return ::pthread_setspecific(s_jnienv_key, env) == 0;
 }
 
 JNIEnv *jnienv()
@@ -115,6 +116,7 @@ static bool __crystax_init()
     }
 
     NEXT_MODULE_INIT(locale);
+    NEXT_MODULE_INIT(fenv);
 
 #undef NEXT_MODULE_INIT
 
@@ -124,8 +126,10 @@ static bool __crystax_init()
 CRYSTAX_GLOBAL __attribute__((constructor))
 void __crystax_on_load()
 {
+    FRAME_TRACER;
     ::pthread_once(&::crystax::s_jnienv_key_create_once, &::crystax::jni::jnienv_key_create);
 
+    TRACE;
     if (!__crystax_init())
         PANIC("libcrystax initialization failed");
 }
@@ -133,6 +137,7 @@ void __crystax_on_load()
 CRYSTAX_GLOBAL __attribute__((destructor))
 void __crystax_on_unload()
 {
+    FRAME_TRACER;
     ::pthread_once(&::crystax::s_jnienv_key_delete_once, &::crystax::jni::jnienv_key_delete);
 }
 
@@ -157,6 +162,8 @@ void crystax_save_jnienv(JNIEnv *env)
 CRYSTAX_GLOBAL
 jint crystax_jni_on_load(JavaVM *vm)
 {
+    FRAME_TRACER;
+
     jint jversion = JNI_VERSION_1_4;
     JNIEnv *env;
 
@@ -182,6 +189,6 @@ jint crystax_jni_on_load(JavaVM *vm)
 CRYSTAX_GLOBAL
 void crystax_jni_on_unload(JavaVM * /* vm */)
 {
-    TRACE;
+    FRAME_TRACER;
     ::crystax::s_jvm = NULL;
 }

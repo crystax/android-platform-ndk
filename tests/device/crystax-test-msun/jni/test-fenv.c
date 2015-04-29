@@ -42,10 +42,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#if __CRYSTAX__
-#include <crystax/system.h>
-#endif
-
 /*
  * Implementations are permitted to define additional exception flags
  * not specified in the standard, so it is not necessarily true that
@@ -142,10 +138,6 @@ test_dfl_env(void)
 #ifndef NO_STRICT_DFL_ENV
 	fenv_t env;
 
-#if __CRYSTAX__
-    if (crystax_device_type() == CRYSTAX_DEVICE_TYPE_EMULATOR)
-        feclearexcept(FE_ALL_EXCEPT);
-#endif
 	fegetenv(&env);
 	assert(memcmp(&env, FE_DFL_ENV, sizeof(env)) == 0);
 #endif

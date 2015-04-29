@@ -49,7 +49,19 @@ class AwkTests < Tests
         end
 
         archs = []
-        archs << RbConfig::CONFIG['host_cpu']
+        if RUBY_PLATFORM =~ /linux/
+            ft = `file -b /bin/ls`.chomp
+            if ft =~ /64-bit/
+                harch = 'x86_64'
+            elsif ft =~ /32-bit/
+                harch = 'x86'
+            else
+                harch = RbConfig::CONFIG['host_cpu']
+            end
+        else
+            harch = RbConfig::CONFIG['host_cpu']
+        end
+        archs << harch
         archs << 'x86' if archs.last == 'x86_64'
 
         archs.each do |arch|

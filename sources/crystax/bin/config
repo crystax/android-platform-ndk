@@ -314,6 +314,8 @@ common_cflags_for_abi()
         echo "-DNDEBUG"
     fi
 
+    echo "-DCRYSTAX_LOG_DEFINE_SHORT_MACROS=1"
+
     echo "-D_POSIX_SOURCE"
     echo "-DBZ_NO_STDIO"
 

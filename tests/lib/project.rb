@@ -300,7 +300,7 @@ class Project
             cmd = args.join(' ')
             if WINDOWS && bs != @ndkbuild
                 shell = ENV['SHELL']
-                shell = `cygpath -m #{shell}` if ENV['OSTYPE'] = 'cygwin'
+                shell = `cygpath -m #{shell}`.chomp if ENV['OSTYPE'] = 'cygwin'
                 cmd = "#{shell} #{cmd}"
             end
 

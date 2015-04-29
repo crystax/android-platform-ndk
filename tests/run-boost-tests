@@ -707,7 +707,7 @@ def cleanup_pjl(dir)
     end
     return if $HOST_PJL.nil?
 
-    pjl = File.join(dir, 'build', 'bin', $HOST_PJL)
+    pjl = File.join(dir, 'stage', 'bin', $HOST_PJL)
     FileUtils.mkdir_p File.dirname(pjl)
     FileUtils.cp PJL, pjl
 end
@@ -717,7 +717,7 @@ def prepare_boost_tools(dir)
 
     runpy = File.join(dir, 'run.py')
     FileUtils.rm_f runpy
-    FileUtils.cp File.join(BOOST_RR_SRCDIR, 'src', 'run.py'), runpy
+    FileUtils.cp File.join(BOOST_RR_SRCDIR, 'testing', 'src', 'run.py'), runpy
     FileUtils.chmod 'a+x', runpy
 
     boost_bb = File.join(dir, 'boost_bb')
@@ -732,7 +732,7 @@ def prepare_boost_tools(dir)
         'regression.py',
     ].each do |t|
         FileUtils.rm_f File.join(dir, t)
-        FileUtils.cp File.join(boost_rr, 'src', t), dir
+        FileUtils.cp File.join(boost_rr, 'testing', 'src', t), dir
     end
 
     $HOST_PJL = nil
@@ -743,15 +743,15 @@ def prepare_boost_tools(dir)
         run runpy, '--use-local', "--tag=#{OPTIONS[:tag]}", "--bjam-options=-j#{OPTIONS[:jobs]}", 'setup'
     end
 
-    $HOST_PJL = Dir.glob(File.join(boost_rr, 'build', 'bin', '**', 'process_jam_log')).select do |e|
+    $HOST_PJL = Dir.glob(File.join(boost_rr, 'stage', 'bin', '**', 'process_jam_log')).select do |e|
         File.file?(e)
     end.map do |f|
-        Pathname.new(f).relative_path_from(Pathname.new(File.join(boost_rr, 'build', 'bin'))).to_s
+        Pathname.new(f).relative_path_from(Pathname.new(File.join(boost_rr, 'stage', 'bin'))).to_s
     end.first
     raise "Can't find just built process_jam_log" if $HOST_PJL.nil?
 
     FileUtils.rm_f PJL
-    FileUtils.cp File.join(boost_rr, 'build', 'bin', $HOST_PJL), PJL
+    FileUtils.cp File.join(boost_rr, 'stage', 'bin', $HOST_PJL), PJL
 end
 
 def generate_runner_comment(comment, configjam, compilers)

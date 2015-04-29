@@ -483,7 +483,7 @@ def adb_getprop(devid, propname)
     log "[#{devid}] #{propname}: #{out.inspect}" if VERBOSE
     out
 rescue Timeout::Error
-    nil
+    raise AdbError.new("getprop #{propname}", "timeout")
 end
 
 def adb_rm(devid, files)
