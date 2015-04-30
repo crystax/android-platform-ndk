@@ -1,6 +1,6 @@
 # These tests are broken.
 # TODO: fix them. See also https://tracker.crystax.net/issues/932
-#TESTS :=        \
+#CTESTS :=       \
 #    cexp        \
 #    csqrt       \
 #    ctrig       \
@@ -18,7 +18,7 @@
 #    rem         \
 #    trig        \
 
-TESTS :=         \
+CTESTS :=        \
 	conj         \
 	fmaxmin      \
 	ilogb        \

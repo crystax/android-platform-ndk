@@ -20,7 +20,7 @@ clean-$(1):
 clean: clean-$(1)
 endef
 
-$(foreach __t,$(TESTS),\
+$(foreach __t,$(CTESTS),\
     $(eval $(call add-test-rule,$(__t),c))\
 )
 $(foreach __t,$(CXXTESTS),\

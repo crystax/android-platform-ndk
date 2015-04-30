@@ -1,4 +1,4 @@
-TESTS :=             \
+CTESTS :=            \
 	fmemopen         \
 	fopen            \
 	getdelim         \

@@ -1,4 +1,4 @@
-TESTS :=       \
+CTESTS :=      \
 	btowc      \
 	iswctype   \
 	mblen      \

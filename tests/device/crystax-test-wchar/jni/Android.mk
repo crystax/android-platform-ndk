@@ -10,7 +10,7 @@ LOCAL_CFLAGS     := $(CFLAGS)
 include $(BUILD_EXECUTABLE)
 endef
 
-$(foreach __t,$(TESTS),\
+$(foreach __t,$(CTESTS),\
     $(eval $(call add-test-case,$(__t),c))\
 )
 $(foreach __t,$(CXXTESTS),\
