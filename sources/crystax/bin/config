@@ -40,14 +40,9 @@ usage()
     echo "  --toolchain=TOOLCHAIN    Toolchain used to build libcrystax [$TOOLCHAIN]"
 }
 
-is_true()
-{
-    echo "$@" | grep -iq "^\(yes\|on\|true\|1\)$"
-}
-
 is_debug_mode()
 {
-    is_true $DEBUG
+    echo $CRYSTAX_DEBUG | grep -iq "^\(yes\|on\|true\|1\)$"
 }
 
 all_abis()
