@@ -35,7 +35,7 @@
 require 'pathname'
 require_relative 'versions.rb'
 
-module Common
+class Common
 
   NDK_ROOT_DIR = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.dirname.dirname.to_s
 
@@ -112,6 +112,10 @@ module Common
 
   def self.verbose?
     @@verbose
+  end
+
+  def self.verbose=(v)
+    @@verbose = v
   end
 
   def self.make_archive_base(pkgname = Crystax::PKG_NAME)
