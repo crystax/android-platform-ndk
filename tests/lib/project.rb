@@ -76,6 +76,8 @@ class Project
         @abis   = options[:abis]
 
         @stimeout = options[:stimeout]
+
+        @last_notice = Time.now
     end
 
     def cleanup
@@ -109,9 +111,20 @@ class Project
     end
     private :elapsed
 
+    def log_info(msg)
+        Log.info msg
+    end
+    private :log_info
+
+    def log_notice(msg)
+        Log.notice msg
+        @last_notice = Time.now
+    end
+    private :log_notice
+
     def run_cmd(cmd, options = {}, &block)
-        Log.info "## COMMAND: #{cmd}"
-        Log.info "## CWD: #{Dir.pwd}"
+        log_info "## COMMAND: #{cmd}"
+        log_info "## CWD: #{Dir.pwd}"
         Open3.popen3(options[:env] || {}, cmd) do |i,o,e,t|
             [i,o,e].each { |io| io.sync = true }
 
@@ -127,14 +140,14 @@ class Project
                         end
                         next
                     end
-                    Log.info "   > #{line}"
+                    log_info "   > #{line}"
                 end
             end
 
             mkdir_error = false
             et = Thread.start do
                 while line = e.gets.chomp rescue nil
-                    Log.info "   * #{line}"
+                    log_info "   * #{line}"
                     mkdir_error = true if options[:track_mkdir_errors] && line =~ /^mkdir:/
                 end
             end
@@ -142,9 +155,10 @@ class Project
             wt = Thread.start do
                 lt = Time.now
                 while ot.alive? || et.alive?
-                    sleep 30
+                    sleep 5
                     now = Time.now
-                    Log.notice "## STILL RUNNING (#{elapsed(now - lt)})"
+                    next if now - @last_notice < 30
+                    log_notice "## STILL RUNNING (#{elapsed(now - lt)})"
                 end
             end
 
@@ -186,7 +200,7 @@ class Project
             return if RUBY_PLATFORM =~ /#{os}/
         end
 
-        Log.notice "HST #{@display_type} [#{name}]"
+        log_notice "HST #{@display_type} [#{name}]"
 
         ccs = []
 
@@ -243,10 +257,10 @@ class Project
             FileUtils.rm_rf dir
         end
 
-        Log.info "== OK: all on-host tests PASSED"
+        log_info "== OK: all on-host tests PASSED"
     rescue => e
-        Log.info "ERROR: #{e.message}"
-        Log.notice "   ---> FAILURE: HOST TEST [#{name}]"
+        log_info "ERROR: #{e.message}"
+        log_notice "   ---> FAILURE: HOST TEST [#{name}]"
         MRO.dump event: "build-failed", path: path
         raise
     end
@@ -261,7 +275,7 @@ class Project
     private :variants
 
     def build(options = {})
-        Log.notice "BLD #{@display_type} [#{name}]#{variants(options)}"
+        log_notice "BLD #{@display_type} [#{name}]#{variants(options)}"
 
         dstdir = tmpdir(pie: options[:pie])
 
@@ -311,15 +325,15 @@ class Project
             rescue MkdirFailed
                 attempt += 1
                 raise "Build of project #{name} failed" if attempt > max_attempts
-                Log.info "WARNING: Build of '#{name}' failed due to 'mkdir' error; trying again (attempt ##{attempt})"
+                log_info "WARNING: Build of '#{name}' failed due to 'mkdir' error; trying again (attempt ##{attempt})"
                 retry
             end
         end
 
         MRO.dump event: "build-success", path: path, pie: options[:pie]
     rescue => e
-        Log.info "ERROR: #{e.message}"
-        Log.notice "   ---> FAILURE: TARGET BUILD [#{name}]"
+        log_info "ERROR: #{e.message}"
+        log_notice "   ---> FAILURE: TARGET BUILD [#{name}]"
         MRO.dump event: "build-failed", path: path, pie: options[:pie]
         raise
     end
@@ -341,13 +355,13 @@ class Project
         executables.select! { |e| !broken.include?(File.basename(e)) }
 
         if executables.empty?
-            Log.notice "SKP #{logprefix}: no #{abi} binaries"
+            log_notice "SKP #{logprefix}: no #{abi} binaries"
             return
         end
 
         logprefix << ": #{abi}"
 
-        Log.notice "BEG #{logprefix}"
+        log_notice "BEG #{logprefix}"
 
         fields = {path: path, name: name, abi: abi}
 
@@ -398,22 +412,22 @@ class Project
             case obj["event"]
             when "skip"
                 # Log only first SKIP event
-                Log.notice "SKP #{logprefix}: #{obj["reason"]}" if obj["reason"] != skipreason
+                log_notice "SKP #{logprefix}: #{obj["reason"]}" if obj["reason"] != skipreason
             when "run"
                 num = obj["number"].to_i
                 total = obj["total"].to_i
                 w = total.to_s.length
                 cnt = "%#{w}d/%#{w}d" % [num, total]
-                Log.notice "RUN #{logprefix} [#{cnt}] android-#{obj["apilevel"]} '#{obj["devmodel"]}'"
+                log_notice "RUN #{logprefix} [#{cnt}] android-#{obj["apilevel"]} '#{obj["devmodel"]}'"
             when "fail"
                 exe = obj["exe"]
                 argv = obj["args"]
                 rc = obj["exitcode"]
-                Log.notice "   ---> FAILURE: TARGET TEST [#{([File.basename(exe)] + argv).join(' ')}: $?=#{rc}]"
+                log_notice "   ---> FAILURE: TARGET TEST [#{([File.basename(exe)] + argv).join(' ')}: $?=#{rc}]"
             when "pause"
-                Log.notice "RUN #{logprefix} [paused]"
+                log_notice "RUN #{logprefix} [paused]"
             when "timeout"
-                Log.notice "   ---> FAILURE: TARGET TEST [TIMEOUT: #{obj["timeout"]} seconds]"
+                log_notice "   ---> FAILURE: TARGET TEST [TIMEOUT: #{obj["timeout"]} seconds]"
             end
 
             skipreason = obj["event"] == "skip" ? obj["reason"] : nil
@@ -421,7 +435,7 @@ class Project
 
         MRO.dump fields.merge({event: "test-success", pie: pie})
     rescue => e
-        Log.info "ERROR: #{e.message}"
+        log_info "ERROR: #{e.message}"
         MRO.dump fields.merge({event: "test-failed", pie: pie})
         raise
     end
@@ -429,12 +443,12 @@ class Project
 
     def test
         if broken?
-            Log.notice "SKP #{@display_type} [#{name}]: no build for #{@options[:toolchain_version]}"
+            log_notice "SKP #{@display_type} [#{name}]: no build for #{@options[:toolchain_version]}"
             return
         end
 
         if long? && !@options[:full_testing] && (@options[:tests].nil? || !@options[:tests].include?(name))
-            Log.notice "SKP #{@display_type} [#{name}]: this is long test, but we're running in quick mode"
+            log_notice "SKP #{@display_type} [#{name}]: this is long test, but we're running in quick mode"
             return
         end
 
