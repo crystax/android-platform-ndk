@@ -25,13 +25,16 @@ if [ -n "$NDK_TOOLCHAIN_VERSION" ];  then
 fi
 
 SYSTEM=$(get_prebuilt_host_tag)
-if [ "$SYSTEM" = "windows" ] ; then
-  SYSTEM64=windows-x86_64
-  NULL="NUL"
-else
-  SYSTEM64=${SYSTEM}_64
-  NULL="/dev/null"
-fi
+case $SYSTEM in
+    windows|cygwin*)
+        SYSTEM=windows
+        SYSTEM64=windows-x86_64
+        NULL="NUL"
+        ;;
+    *)
+        SYSTEM64=${SYSTEM}_64
+        NULL="/dev/null"
+esac
 
 ARM_GPP=$NDK/toolchains/arm-linux-androideabi-$VERSION/prebuilt/$SYSTEM/bin/arm-linux-androideabi-g++${HOST_EXE}
 if [ ! -f "$ARM_GPP" ]; then
