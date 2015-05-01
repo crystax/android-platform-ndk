@@ -333,19 +333,40 @@ pack_release ()
     local srcdir="$2"
     local reldir="$3"
     local ext="${archive##*.}"
-    local chmod_flags="a+x"
-    local pack_cmd=
+
+    local pack_cmd
     if [ "$ext" = "exe" ] ; then
         pack_cmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe"
     else
         pack_cmd="7z"
     fi
+
     local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -sfx"
+
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
+
     mkdir -p `dirname $ARCHIVE`
-    (cd $srcdir && $pack_cmd $flags_7z "$archive" "$reldir" > /dev/null && chmod $chmod_flags $archive)
+    (
+        cd $srcdir || exit 1
+        $pack_cmd $flags_7z "$archive" "$reldir" | {
+            cnt=0
+            total=0
+            while read line; do
+                let cnt+=1
+                test $cnt -ge 5000 || continue
+                let total+=$cnt
+                cnt=0
+                echo "Packed $total files"
+            done
+            let total+=$cnt
+            test $cnt -eq 0 || echo "Packed $total files"
+        }
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+        chmod a+x $archive || exit 1
+    )
+    fail_panic "Can't pack $archive"
 }
 
 rm -rf $TMPDIR && mkdir -p $TMPDIR
