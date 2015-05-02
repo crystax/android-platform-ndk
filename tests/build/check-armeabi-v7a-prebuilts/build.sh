@@ -223,7 +223,7 @@ ARM_TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch arm)
 
 case $(uname -s) in
     Darwin)
-      HOST_ARCH=`uname -m`
+      HOST_ARCH=$(uname -m)
       case "$HOST_ARCH" in
           i?86) HOST_ARCH=x86
               if ! echo __LP64__ | (CCOPTS= gcc -E - 2>/dev/null) | grep -q __LP64__ ; then
@@ -234,7 +234,19 @@ case $(uname -s) in
       HOST_TAG=darwin-$HOST_ARCH
       ;;
     Linux)
-      HOST_TAG=linux-$(uname -p)
+      HOST_ARCH=$(uname -m)
+      case "$HOST_ARCH" in
+          i?86)
+              HOST_ARCH=x86
+              ;;
+          x86_64)
+              file -b /bin/ls | grep -q 32-bit && HOST_ARCH=x86
+              ;;
+          *)
+              echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+              exit 1
+      esac
+      HOST_TAG=linux-$HOST_ARCH
       ;;
     *)
       echo "WARNING: This test cannot run on this machine!" >&2

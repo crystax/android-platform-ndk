@@ -8,7 +8,19 @@ case $(uname -s | tr '[A-Z]' '[a-z]') in
         HOST_TAG=darwin-$HOST_ARCH
         ;;
     linux)
-        HOST_TAG=linux-$(uname -p)
+        HOST_ARCH=$(uname -m)
+        case $HOST_ARCH in
+            i?86)
+                HOST_ARCH=x86
+                ;;
+            x86_64)
+                file -b /bin/ls | grep -q 32-bit && HOST_ARCH=x86
+                ;;
+            *)
+                echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+                exit 1
+        esac
+        HOST_TAG=linux-$HOST_ARCH
         ;;
     *)
         echo "WARNING: This test cannot run on this machine!" 1>&2
