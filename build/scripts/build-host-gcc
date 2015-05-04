@@ -1,11 +1,6 @@
 #!/usr/bin/env ruby
 #
 # Build host GCC that will be used to build with Crystax NDK
-# Usage:
-#   copy all reuqired archives to /tmp
-#   change lins and gcc versions (see code below)
-#   run script without args
-#   look for result in /tmp/gcc/x86_64-apple-darwin-GCC_VER directory
 #
 # NB: Only darwin build currently supported
 #
@@ -41,40 +36,40 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
+#require_relative 'versions.rb'
 
 module Crystax
 
   PKG_NAME = 'gcc'
+
 end
 
-
+require 'fileutils'
 require_relative 'common.rb'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 
 
 NDK_VER   = '10'
-#GCC_VER   = '4.9.2'
-GCC_VER   = '5.1.0'
+GCC_VER   = '5.1.0'  #'4.9.2'
 GMP_VER   = '6.0.0'
 MPFR_VER  = '3.1.2'
-#MPC_VER   = '1.0.1'
 MPC_VER   = '1.0.3'
-#ISL_VER   = '0.12.2'
 ISL_VER   = '0.14.1'
 CLOOG_VER = '0.18.3'
 
-BASE_DIR = '/tmp/gcc'
+# restrict PATH to standard bon dirs
+ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
+BASE_DIR = File.join('/tmp', "ndk-#{ENV['USER']}", 'host', 'gcc')
 
 
 def build_library(name, ver, archive, args)
   Logger.msg "= building #{name.upcase} #{ver}"
-  file = "/tmp/#{archive}"
+  file = File.join(Common::NDK_ROOT_DIR, 'toolchain', name, archive)
   FileUtils.cd(BASE_DIR) { Commander.run "tar xf #{file}" }
-  dir = "#{BASE_DIR}/#{name}-#{ver}"
+  dir = File.join(BASE_DIR, "#{name}-#{ver}")
   FileUtils.cd(dir) do
-    Commander::run "#{dir}/configure #{args.join(' ')}"
+    Commander::run "#{File.join(dir, 'configure')} #{args.join(' ')}"
     Commander::run "make -j #{Common.num_jobs}"
     Commander::run "make install"
   end
@@ -85,28 +80,30 @@ begin
   # todo: parse options
   Common.verbose = true
 
-  prefixdir = "#{BASE_DIR}/libs"
+  prefixdir = File.join(BASE_DIR, "libs")
   FileUtils.mkdir_p prefixdir
 
-  Logger.open_log_file "#{BASE_DIR}/build-host-gcc.log"
+  Logger.open_log_file File.join(BASE_DIR, 'build-host-gcc.log')
   # todo: os
   Logger.msg "building host GCC #{GCC_VER}; os: darwin"
 
-  build_library 'gmp',   GMP_VER,   "gmp-#{GMP_VER}a.tar.bz2",   ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
-  build_library 'mpfr',  MPFR_VER,  "mpfr-#{MPFR_VER}.tar.bz2",  ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}"]
-  build_library 'mpc',   MPC_VER,   "mpc-#{MPC_VER}.tar.gz",     ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}", "--with-mpfr=#{prefixdir}"]
-  build_library 'isl',   ISL_VER,   "isl-#{ISL_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}"]
-  build_library 'cloog', CLOOG_VER, "cloog-#{CLOOG_VER}.tar.gz", ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}", "--with-isl-prefix=#{prefixdir}"]
+  # build_library 'gmp',    GMP_VER,   "gmp-#{GMP_VER}a.tar.bz2",   ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
+  # build_library 'mpfr',   MPFR_VER,  "mpfr-#{MPFR_VER}.tar.bz2",  ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}"]
+  # build_library 'mpc',    MPC_VER,   "mpc-#{MPC_VER}.tar.gz",     ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}", "--with-mpfr=#{prefixdir}"]
+  # build_library 'isl',    ISL_VER,   "isl-#{ISL_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}"]
+  # build_library 'cloog',  CLOOG_VER, "cloog-#{CLOOG_VER}.tar.gz", ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}", "--with-isl-prefix=#{prefixdir}"]
 
   Logger.msg "= building GCC #{GCC_VER}"
   gccfile = "/tmp/gcc-#{GCC_VER}.tar.bz2"
   FileUtils.cd(BASE_DIR) { Commander.run "tar xf #{gccfile}" }
-  srcdir = "#{BASE_DIR}/gcc-#{GCC_VER}"
-  builddir = "#{BASE_DIR}/build"
+  srcdir = File.join(BASE_DIR, "gcc-#{GCC_VER}")
+  builddir = File.join(BASE_DIR, 'build')
   FileUtils.mkdir_p(builddir)
-  installdir = "#{BASE_DIR}/x86_64-apple-darwin-#{GCC_VER}"
+  installdir = File.join(BASE_DIR, "x86_64-apple-darwin-#{GCC_VER}")
   FileUtils.mkdir_p installdir
   FileUtils.cd(builddir) do
+    # "--program-prefix=x86_64-apple-darwin12-"
+    # "--program-suffix=-#{GCC_VER}"
     args = ["--prefix=#{installdir}",
             "--enable-checking=release",
             "--with-gmp=#{prefixdir}",
@@ -117,7 +114,7 @@ begin
             "--enable-languages=c,c++",
             "--with-pkgversion=\'Crystax NDK #{NDK_VER}\'"
            ]
-    Commander::run "#{srcdir}/configure #{args.join(' ')}"
+    Commander::run "#{File.join(srcdir, 'configure')} #{args.join(' ')}"
     Commander::run "make -j #{Common.num_jobs}"
     Commander::run "make install"
   end
@@ -127,4 +124,6 @@ rescue SystemExit => e
 rescue Exception => e
   Logger.log_exception(e)
   exit 1
+else
+  #Builder.clean
 end
