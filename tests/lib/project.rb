@@ -314,7 +314,13 @@ class Project
             cmd = args.join(' ')
             if WINDOWS && bs != @ndkbuild
                 shell = ENV['SHELL']
-                shell = `cygpath -m #{shell}`.chomp if ENV['OSTYPE'] = 'cygwin'
+                if ENV['OSTYPE'] == 'cygwin'
+                    o,e,s = Open3.capture3("cygpath -m #{shell}")
+                    raise "Can't convert cygwin path to native: #{e}" unless s.success?
+                    shell = o.chomp
+                else
+                    shell = shell.sub(/^\/([A-Za-z])\//, '\1:/')
+                end
                 cmd = "#{shell} #{cmd}"
             end
 

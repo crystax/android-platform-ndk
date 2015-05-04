@@ -221,20 +221,50 @@ check_armv7_elf_binary ()
 ARM_TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch arm)
 ARM_TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch arm)
 
+HOST_ARCH=
+HOST_ARCH2=
+HOST_TAG=
+HOST_TAG2=
 case $(uname -s) in
     Darwin)
-      HOST_ARCH=`uname -m`
+      HOST_ARCH=$(uname -m)
       case "$HOST_ARCH" in
           i?86) HOST_ARCH=x86
               if ! echo __LP64__ | (CCOPTS= gcc -E - 2>/dev/null) | grep -q __LP64__ ; then
                   HOST_ARCH=x86_64
+                  HOST_ARCH2=x86
               fi
               ;;
+          x86_64)
+              HOST_ARCH=x86_64
+              HOST_ARCH2=x86
+              ;;
+          *)
+              echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+              exit 1
       esac
       HOST_TAG=darwin-$HOST_ARCH
+      test -n "$HOST_ARCH2" && HOST_TAG2=darwin-$HOST_ARCH2
       ;;
     Linux)
-      HOST_TAG=linux-$(uname -p)
+      HOST_ARCH=$(uname -m)
+      case "$HOST_ARCH" in
+          i?86)
+              HOST_ARCH=x86
+              ;;
+          x86_64)
+              if file -b /bin/ls | grep -q 32-bit; then
+                  HOST_ARCH=x86
+              else
+                  HOST_ARCH2=x86
+              fi
+              ;;
+          *)
+              echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+              exit 1
+      esac
+      HOST_TAG=linux-$HOST_ARCH
+      test -n "$HOST_ARCH2" && HOST_TAG2=linux-$HOST_ARCH2
       ;;
     *)
       echo "WARNING: This test cannot run on this machine!" >&2
@@ -242,9 +272,18 @@ case $(uname -s) in
       ;;
 esac
 
-ARM_READELF=$NDK/toolchains/$ARM_TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${ARM_TOOLCHAIN_PREFIX}-readelf
-if [ ! -f "$ARM_READELF" ]; then
-    echo "ERROR: Missing binary: $ARM_READELF" >&2
+ARM_READELF=
+for tag in $HOST_TAG $HOST_TAG2; do
+    READELF=$NDK/toolchains/$ARM_TOOLCHAIN_NAME/prebuilt/$tag/bin/${ARM_TOOLCHAIN_PREFIX}-readelf
+    echo "Probing for ${READELF}..."
+    if [ -x "$READELF" ]; then
+        ARM_READELF="$READELF"
+        echo "Found: $ARM_READELF"
+        break
+    fi
+done
+if [ -z "$ARM_READELF" ]; then
+    echo "ERROR: Can't find ARM readelf" >&2
     exit 1
 fi
 

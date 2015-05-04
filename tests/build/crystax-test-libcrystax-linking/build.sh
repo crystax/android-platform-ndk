@@ -8,13 +8,34 @@ fi
 
 . $NDK/build/tools/dev-defaults.sh
 
+HOST_TAG=
+HOST_TAG2=
 case $(uname -s | tr '[A-Z]' '[a-z]') in
     darwin)
         HOST_ARCH=$(uname -m)
         HOST_TAG=darwin-$HOST_ARCH
+        test "$HOST_ARCH" = "x86_64" && HOST_TAG2=darwin-x86
         ;;
     linux)
-        HOST_TAG=linux-$(uname -p)
+        HOST_ARCH=$(uname -m)
+        HOST_ARCH2=
+        case $HOST_ARCH in
+            i?86)
+                HOST_ARCH=x86
+                ;;
+            x86_64)
+                if file -b /bin/ls | grep -q 32-bit; then
+                    HOST_ARCH=x86
+                else
+                    HOST_ARCH2=x86
+                fi
+                ;;
+            *)
+                echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+                exit 1
+        esac
+        HOST_TAG=linux-$HOST_ARCH
+        test -n "$HOST_ARCH2" && HOST_TAG2=linux-$HOST_ARCH2
         ;;
     *)
         echo "WARNING: This test cannot run on this machine!" 1>&2
@@ -73,10 +94,17 @@ for T in static shared; do
         TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch $ARCH)
         TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
 
-        READELF=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-readelf
+        for tag in $HOST_TAG $HOST_TAG2; do
+            READELF=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-readelf
+            echo "Probing for ${READELF}..."
+            if [ -x $READELF ]; then
+                echo "Found: $READELF"
+                break
+            fi
+        done
 
-        if [ ! -f "$READELF" ]; then
-            echo "*** ERROR: Missing binary: $READELF" 1>&2
+        if [ ! -x "$READELF" ]; then
+            echo "*** ERROR: Can't find $ARCH readelf" 1>&2
             exit 1
         fi
 

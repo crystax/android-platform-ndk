@@ -48,7 +48,6 @@ class AwkTests < Tests
             raise "Unknown RUBY_PLATFORM: #{RUBY_PLATFORM}"
         end
 
-        archs = []
         if RUBY_PLATFORM =~ /linux/
             ft = `file -b /bin/ls`.chomp
             if ft =~ /64-bit/
@@ -60,12 +59,18 @@ class AwkTests < Tests
             end
         else
             harch = RbConfig::CONFIG['host_cpu']
+            harch = 'x86' if harch =~ /^i\d86$/
         end
-        archs << harch
-        archs << 'x86' if archs.last == 'x86_64'
+        archs = [harch]
+        archs << 'x86' if harch == 'x86_64'
 
         archs.each do |arch|
-            awk = File.join(@ndk, 'prebuilt', "#{tag}-#{arch}", 'bin', "awk#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
+            if tag == 'windows' && arch == 'x86'
+                host_tag = 'windows'
+            else
+                host_tag = "#{tag}-#{arch}"
+            end
+            awk = File.join(@ndk, 'prebuilt', host_tag, 'bin', "awk#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
             @awk = awk if @awk.nil? && File.exists?(awk)
         end
         raise "Can't find 'awk' in #{@ndk}" if @awk.nil?

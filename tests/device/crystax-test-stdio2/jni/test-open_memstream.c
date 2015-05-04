@@ -46,8 +46,13 @@ int main()
 #include <wchar.h>
 
 #if __gnu_linux__ && !__ANDROID__
+#if __LP64__
 #define OFF_MAX INT64_MAX
 #define OFF_MIN INT64_MIN
+#else
+#define OFF_MAX INT_MAX
+#define OFF_MIN INT_MIN
+#endif
 #endif /* __gnu_linux__ */
 
 static char *buf;
