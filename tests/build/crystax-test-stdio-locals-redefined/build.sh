@@ -2,25 +2,34 @@
 
 . $NDK/build/tools/dev-defaults.sh
 
+HOST_TAG=
+HOST_TAG2=
 case $(uname -s | tr '[A-Z]' '[a-z]') in
     darwin)
         HOST_ARCH=$(uname -m)
         HOST_TAG=darwin-$HOST_ARCH
+        test "$HOST_ARCH" = "x86_64" && HOST_TAG2=darwin-x86
         ;;
     linux)
         HOST_ARCH=$(uname -m)
+        HOST_ARCH2=
         case $HOST_ARCH in
             i?86)
                 HOST_ARCH=x86
                 ;;
             x86_64)
-                file -b /bin/ls | grep -q 32-bit && HOST_ARCH=x86
+                if file -b /bin/ls | grep -q 32-bit; then
+                    HOST_ARCH=x86
+                else
+                    HOST_ARCH2=x86
+                fi
                 ;;
             *)
                 echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
                 exit 1
         esac
         HOST_TAG=linux-$HOST_ARCH
+        test -n "$HOST_ARCH2" && HOST_TAG2=linux-$HOST_ARCH2
         ;;
     *)
         echo "WARNING: This test cannot run on this machine!" 1>&2
@@ -108,10 +117,17 @@ for ABI in $(ls -1 $NDK/sources/crystax/libs | sort); do
     TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch $ARCH)
     TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
 
-    NM=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-nm
+    for tag in $HOST_TAG $HOST_TAG2; do
+        NM=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-nm
+        echo "Probing for ${NM}..."
+        if [ -x $NM ]; then
+            echo "Found: $NM"
+            break
+        fi
+    done
 
-    if [ ! -f "$NM" ]; then
-        echo "ERROR: Missing binary: $NM" 1>&2
+    if [ ! -x "$NM" ]; then
+        echo "ERROR: Can't find $ARCH nm" 1>&2
         exit 1
     fi
 
