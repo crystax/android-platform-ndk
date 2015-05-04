@@ -93,13 +93,25 @@ check_libcrystax()
 
     echo "Checking $lib ..."
 
+    tmpfile=/tmp/libcrystax-symbols-$(uuidgen).txt
+
+    $nm $lib >$tmpfile 2>/dev/null
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Can't get symbols from $lib" 1>&2
+        rm -f $tmpfile
+        exit 1
+    fi
+
     for sym in $SYMBOLS; do
-        $nm $lib 2>/dev/null | grep -q "^[^ ]* T ${sym}$"
+        grep -q "^[^ ]* T ${sym}$" $tmpfile
         if [ $? -eq 0 ]; then
             echo "ERROR: Symbol ${sym} defined in $lib even though it should be redefined to __crystax_${sym}" 1>&2
+            rm -f $tmpfile
             exit 1
         fi
     done
+
+    rm -f $tmpfile
 }
 
 for ABI in $(ls -1 $NDK/sources/crystax/libs | sort); do
