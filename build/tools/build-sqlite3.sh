@@ -82,7 +82,7 @@ SQLITE3_DSTDIR=$NDK_DIR/$SQLITE3_SUBDIR
 mkdir -p $SQLITE3_DSTDIR
 fail_panic "Can't create sqlite3 destination directory: $SQLITE3_DSTDIR"
 
-ABIS=$(commas_to_spaces $ABIS | tr ' ' '\n' | grep -v -x -e mips64 | tr '\n' ' ')
+ABIS=$(commas_to_spaces $ABIS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-sqlite3

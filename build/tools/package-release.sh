@@ -593,7 +593,6 @@ for SYSTEM in $SYSTEMS; do
 
         copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
         for SQLITE3_ABI in $PREBUILT_ABIS; do
-            test "$SQLITE3_ABI" = "mips64" && continue
             copy_prebuilt "$SQLITE3_SUBDIR/libs/$SQLITE3_ABI" "$SQLITE3_SUBDIR/libs"
         done
 
