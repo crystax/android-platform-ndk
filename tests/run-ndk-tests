@@ -97,7 +97,7 @@ optparser = OptionParser.new do |o|
     end
 
     o.on("--toolchain-version=V", "Specify toolchain version to test [all]") do |v|
-        options[:toolchain_version] = v
+        options[:toolchain_version] = v.sub(/^(\d+\.\d+.*)$/, 'gcc\1')
     end
 
     o.on("--types=LIST", Array, "Test types to run [#{options[:types].join(',')}]") do |l|
