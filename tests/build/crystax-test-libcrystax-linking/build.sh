@@ -95,7 +95,7 @@ for T in static shared; do
         TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
 
         for tag in $HOST_TAG $HOST_TAG2; do
-            READELF=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-readelf
+            READELF=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$tag/bin/${TOOLCHAIN_PREFIX}-readelf
             echo "Probing for ${READELF}..."
             if [ -x $READELF ]; then
                 echo "Found: $READELF"
