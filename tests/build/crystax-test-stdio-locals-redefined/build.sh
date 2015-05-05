@@ -93,7 +93,7 @@ check_libcrystax()
 
     echo "Checking $lib ..."
 
-    tmpfile=/tmp/libcrystax-symbols-$(uuidgen).txt
+    tmpfile=/tmp/libcrystax-symbols-$$.txt
 
     $nm $lib >$tmpfile 2>/dev/null
     if [ $? -ne 0 ]; then
@@ -130,7 +130,7 @@ for ABI in $(ls -1 $NDK/sources/crystax/libs | sort); do
     TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
 
     for tag in $HOST_TAG $HOST_TAG2; do
-        NM=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$HOST_TAG/bin/${TOOLCHAIN_PREFIX}-nm
+        NM=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$tag/bin/${TOOLCHAIN_PREFIX}-nm
         echo "Probing for ${NM}..."
         if [ -x $NM ]; then
             echo "Found: $NM"
