@@ -2,6 +2,9 @@
 #
 # Build host GCC that will be used to build with Crystax NDK
 #
+# Copy required GCC 4.9.2 source tarbal into /tmp/ directory and run this script.
+# The result will be installed into /tmp/ndk-USER/host/gcc/x86_64-apple-darwin-GCC_VER
+#
 # NB: Only darwin build currently supported
 #
 # Copyright (c) 2015 CrystaX .NET.
@@ -51,11 +54,11 @@ require_relative 'commander.rb'
 
 
 NDK_VER   = '10'
-GCC_VER   = '5.1.0'  #'4.9.2'
+GCC_VER   = '4.9.2'
 GMP_VER   = '6.0.0'
 MPFR_VER  = '3.1.2'
 MPC_VER   = '1.0.3'
-ISL_VER   = '0.14.1'
+ISL_VER   = '0.12.2'
 CLOOG_VER = '0.18.3'
 
 # restrict PATH to standard bon dirs
@@ -87,11 +90,11 @@ begin
   # todo: os
   Logger.msg "building host GCC #{GCC_VER}; os: darwin"
 
-  # build_library 'gmp',    GMP_VER,   "gmp-#{GMP_VER}a.tar.bz2",   ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
-  # build_library 'mpfr',   MPFR_VER,  "mpfr-#{MPFR_VER}.tar.bz2",  ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}"]
-  # build_library 'mpc',    MPC_VER,   "mpc-#{MPC_VER}.tar.gz",     ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}", "--with-mpfr=#{prefixdir}"]
-  # build_library 'isl',    ISL_VER,   "isl-#{ISL_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}"]
-  # build_library 'cloog',  CLOOG_VER, "cloog-#{CLOOG_VER}.tar.gz", ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}", "--with-isl-prefix=#{prefixdir}"]
+  build_library 'gmp',    GMP_VER,   "gmp-#{GMP_VER}a.tar.bz2",   ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
+  build_library 'mpfr',   MPFR_VER,  "mpfr-#{MPFR_VER}.tar.bz2",  ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}"]
+  build_library 'mpc',    MPC_VER,   "mpc-#{MPC_VER}.tar.gz",     ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}", "--with-mpfr=#{prefixdir}"]
+  build_library 'isl',    ISL_VER,   "isl-#{ISL_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}"]
+  build_library 'cloog',  CLOOG_VER, "cloog-#{CLOOG_VER}.tar.gz", ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}", "--with-isl-prefix=#{prefixdir}"]
 
   Logger.msg "= building GCC #{GCC_VER}"
   gccfile = "/tmp/gcc-#{GCC_VER}.tar.bz2"
@@ -102,8 +105,6 @@ begin
   installdir = File.join(BASE_DIR, "x86_64-apple-darwin-#{GCC_VER}")
   FileUtils.mkdir_p installdir
   FileUtils.cd(builddir) do
-    # "--program-prefix=x86_64-apple-darwin12-"
-    # "--program-suffix=-#{GCC_VER}"
     args = ["--prefix=#{installdir}",
             "--enable-checking=release",
             "--with-gmp=#{prefixdir}",
