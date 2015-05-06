@@ -42,7 +42,7 @@ module Crystax
     'libffi'  => '3.2.1',
     'openssl' => '1.0.2a',
     'curl'    => '7.42.0',
-    'git'     => '2.3.7',
+    'git'     => '2.4.0',
     'ruby'    => '2.2.2',
     'p7zip'   => '9.20.1'
   }
