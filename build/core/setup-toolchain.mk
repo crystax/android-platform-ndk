@@ -76,6 +76,17 @@ ifndef NDK_TOOLCHAIN
                 $(call ndk_log,Using default target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
                 __use_ndk_toolchain_version := false;
             endif
+            # clang3.4 doesn't support mips64 properly
+            ifneq (,$(and $(filter mips64,$(TARGET_ARCH_ABI)),$(filter clang3.4,$(NDK_TOOLCHAIN_VERSION))))
+                $(call ndk_log,Specified NDK_TOOLCHAIN_VERSION $(NDK_TOOLCHAIN_VERSION) does not support $(TARGET_ARCH_ABI))
+                ifeq (3.4,$(lastword $(LLVM_VERSION_LIST)))
+                    $(call ndk_log,Using default target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
+                    __use_ndk_toolchain_version := false;
+                else
+                    $(call ndk_log,Using clang$(lastword $(LLVM_VERSION_LIST)) for '$(TARGET_ARCH_ABI)' ABI)
+                    override NDK_TOOLCHAIN_VERSION := clang$(lastword $(LLVM_VERSION_LIST))
+                endif
+            endif
         endif
         ifeq ($(__use_ndk_toolchain_version),true)
             # We assume the toolchain name uses dashes (-) as separators and doesn't

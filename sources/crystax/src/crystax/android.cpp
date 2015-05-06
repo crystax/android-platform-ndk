@@ -39,6 +39,7 @@
 #include <crystax/fenvimpl.h>
 
 #include <stdlib.h>
+#include <pthread.h>
 
 namespace crystax
 {

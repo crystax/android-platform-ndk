@@ -36,8 +36,6 @@
 #include <inttypes.h>
 #include <android/log.h>
 
-#define CRYSTAX_DEBUG 1
-
 #ifndef CRYSTAX_DEBUG
 #define CRYSTAX_DEBUG 0
 #endif
