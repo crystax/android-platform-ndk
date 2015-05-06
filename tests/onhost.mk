@@ -120,6 +120,13 @@ define match
 $(shell echo $(2) | grep -iq $(1) && echo yes)
 endef
 
+define is-old-macosx
+$(strip $(and \
+    $(shell uname -s | grep -iq darwin && echo yes),\
+    $(shell test $$(sw_vers -productVersion | awk -F. '{print $$1 * 10000 + $$2 * 100 + $$3}') -lt 100900 && echo yes)\
+))
+endef
+
 #=================================================================================
 
 CC ?= cc
@@ -139,7 +146,7 @@ CXXFLAGS := $(CFLAGS)
 endif
 
 ifeq (,$(filter -std=%,$(CXXFLAGS)))
-CXXFLAGS += -std=$(c++11)
+CXXFLAGS += -std=$(if $(call is-old-macosx),c++98,$(c++11))
 endif
 
 ifneq (,$(and $(call is-clang,$(CC)),$(if $(filter -stdlib=%,$(CXXFLAGS)),,yes)))

@@ -4,6 +4,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#if __APPLE__
+#include <Availability.h>
+#endif
+
+#if __APPLE__ && !defined(__MAC_10_7)
+int test_getline() { return 0; }
+int test_getdelim() { return 0; }
+#else /* !__APPLE__ || defined(__MAC_10_7) */
+
 #define TEST_FILE_NAME  "./test-getline.data"
 
 
@@ -155,3 +164,5 @@ int make_test_file(const char *data[], int num)
 
     return 0;
 }
+
+#endif /* !__APPLE__ || defined(__MAC_10_7) */

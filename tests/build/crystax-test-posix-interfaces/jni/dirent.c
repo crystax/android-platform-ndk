@@ -52,8 +52,13 @@ void dirent_check_dirent_fields()
     (void)d;
 }
 
+#if __APPLE__ && !defined(__MAC_10_7)
+typedef int (*scandir_third_argument_t)(struct dirent *);
+typedef int (*scandir_fourth_argument_t)(const void *, const void *);
+#else
 typedef int (*scandir_third_argument_t)(const struct dirent *);
 typedef int (*scandir_fourth_argument_t)(const struct dirent **, const struct dirent **);
+#endif
 
 #if __ANDROID__
 /* WARNING!!! These functions not defined in Android, so we define empty stubs here */

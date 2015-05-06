@@ -46,11 +46,11 @@ gen T_FMT
 gen T_FMT_AMPM
 gen AM_STR
 gen PM_STR
-for i in $(seq 1 7); do
+for i in 1 2 3 4 5 6 7; do
     gen DAY_$i
     gen ABDAY_$i
 done
-for i in $(seq 1 12); do
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
     gen MON_$i
     gen ABMON_$i
 done

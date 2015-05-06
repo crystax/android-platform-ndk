@@ -35,6 +35,14 @@
 #include <wchar.h>
 #include <unistd.h>
 
+#if __APPLE__
+#include <Availability.h>
+#endif
+
+#if __APPLE__ && !defined(__MAC_10_7)
+int main() { return 0; }
+#else /* !__APPLE__ || defined(__MAC_10_7) */
+
 #ifdef assert
 #undef assert
 #endif
@@ -107,3 +115,5 @@ main(int argc, char *argv[])
 
 	exit(0);
 }
+
+#endif /* !__APPLE__ || defined(__MAC_10_7) */

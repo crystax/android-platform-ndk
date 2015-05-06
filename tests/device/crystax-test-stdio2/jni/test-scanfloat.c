@@ -39,6 +39,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if __APPLE__
+#include <Availability.h>
+#endif
+
 #if __CRYSTAX__
 #include <crystax/system.h>
 #endif
@@ -119,6 +123,7 @@ main(int argc, char *argv[])
 	assert(eq(DBL, d, 12345.));
 	assert(strcmp(buf, "6") == 0);
 
+#if !__APPLE__ || defined(__MAC_10_7)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"
 
@@ -126,6 +131,7 @@ main(int argc, char *argv[])
 	assert(strcmp(buf, "Q") == 0);
 
 #pragma GCC diagnostic pop
+#endif
 
 	sscanf("-1.23e", "%e%s", &f, buf);
 	assert(eq(FLT, f, -1.23));

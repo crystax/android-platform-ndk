@@ -2,15 +2,12 @@
 
 . $NDK/build/tools/dev-defaults.sh
 
+HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
+
 HOST_TAG=
 HOST_TAG2=
 case $(uname -s | tr '[A-Z]' '[a-z]') in
-    darwin)
-        HOST_ARCH=$(uname -m)
-        HOST_TAG=darwin-$HOST_ARCH
-        test "$HOST_ARCH" = "x86_64" && HOST_TAG2=darwin-x86
-        ;;
-    linux)
+    darwin|linux)
         HOST_ARCH=$(uname -m)
         HOST_ARCH2=
         case $HOST_ARCH in
@@ -18,8 +15,12 @@ case $(uname -s | tr '[A-Z]' '[a-z]') in
                 HOST_ARCH=x86
                 ;;
             x86_64)
-                if file -b /bin/ls | grep -q 32-bit; then
-                    HOST_ARCH=x86
+                if [ "$HOST_OS" = "linux" ]; then
+                    if file -b /bin/ls | grep -q 32-bit; then
+                        HOST_ARCH=x86
+                    else
+                        HOST_ARCH2=x86
+                    fi
                 else
                     HOST_ARCH2=x86
                 fi
@@ -28,8 +29,8 @@ case $(uname -s | tr '[A-Z]' '[a-z]') in
                 echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
                 exit 1
         esac
-        HOST_TAG=linux-$HOST_ARCH
-        test -n "$HOST_ARCH2" && HOST_TAG2=linux-$HOST_ARCH2
+        HOST_TAG=${HOST_OS}-${HOST_ARCH}
+        test -n "$HOST_ARCH2" && HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
         ;;
     *)
         echo "WARNING: This test cannot run on this machine!" 1>&2

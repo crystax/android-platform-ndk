@@ -88,8 +88,10 @@ void string_check_functions(char *cp, const char *ccp,
     (void)strncat(cp, ccp, sz);
     (void)strncmp(ccp, ccp, sz);
     (void)strncpy(cp, ccp, sz);
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)strndup(ccp, sz);
     (void)strnlen(ccp, sz);
+#endif
     (void)strpbrk(ccp, ccp);
     (void)strrchr(ccp, 0);
     (void)strsignal(0);

@@ -33,6 +33,9 @@
 #endif
 #if __APPLE__
 #include <xlocale.h>
+#if !defined(__MAC_10_7)
+#include <sys/types.h>
+#endif
 #endif
 #if __gnu_linux__
 #include <locale.h>
@@ -68,8 +71,10 @@ void stdio_check_functions(FILE *fp, locale_t l, ...)
 #endif
     (void)clearerr(fp);
     (void)ctermid((char*)0);
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)dprintf(0, "%d", 0);
-#if __APPLE__ || __ANDROID__
+#endif
+#if (__APPLE__ && defined(__MAC_10_7)) || __ANDROID__
     (void)dprintf_l(0, l, "%d", 0);
 #endif
     (void)fclose(fp);
@@ -107,8 +112,10 @@ void stdio_check_functions(FILE *fp, locale_t l, ...)
     (void)getchar();
     (void)getc_unlocked(fp);
     (void)getchar_unlocked();
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)getdelim((char**)0, (size_t*)0, 0, fp);
     (void)getline((char**)0, (size_t*)0, fp);
+#endif
 #if !__gnu_linux__
     (void)gets((char*)0);
 #endif
@@ -151,8 +158,10 @@ void stdio_check_functions(FILE *fp, locale_t l, ...)
     (void)vasprintf((char**)1234, "%d", args);
     (void)vasprintf_l((char**)1234, l, "%d", args);
 #endif
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)vdprintf(0, "%d", args);
-#if __APPLE__ || __ANDROID__
+#endif
+#if (__APPLE__ && defined(__MAC_10_7)) || __ANDROID__
     (void)vdprintf_l(0, l, "%d", args);
 #endif
     (void)vfprintf(fp, "%s", args);

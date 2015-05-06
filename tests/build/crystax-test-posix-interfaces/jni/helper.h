@@ -31,6 +31,7 @@
 #define HELPER_H_B651062A7EBF4491BF85BD3496AC6309
 
 #if __APPLE__
+#include <Availability.h>
 #include <AvailabilityMacros.h>
 #endif
 

@@ -62,7 +62,9 @@ gen()
 }
 
 gen F_DUPFD
+echo "#if !__APPLE__ || defined(__MAC_10_7)"
 gen F_DUPFD_CLOEXEC
+echo "#endif"
 gen F_GETFD
 gen F_SETFD
 gen F_GETFL
@@ -88,7 +90,9 @@ gen SEEK_SET
 gen SEEK_CUR
 gen SEEK_END
 
+echo "#if !__APPLE__ || defined(__MAC_10_7)"
 gen O_CLOEXEC
+echo "#endif"
 gen O_CREAT
 gen O_DIRECTORY
 gen O_EXCL

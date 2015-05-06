@@ -35,6 +35,9 @@ endif
 
 ifeq (yes,$(shell uname -s | grep -iq darwin && echo yes))
 LDLIBS += -liconv
+ifeq (4.2.1,$(shell $(CC) -dumpversion))
+CFLAGS := $(filter-out -Wno-unused-result,$(CFLAGS))
+endif
 endif
 
 PRETEST := generate-checks

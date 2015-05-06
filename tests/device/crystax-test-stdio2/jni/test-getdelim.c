@@ -24,7 +24,11 @@
  * SUCH DAMAGE.
  */
 
-#if __gnu_linux__
+#if __APPLE__
+#include <Availability.h>
+#endif
+
+#if __gnu_linux__ || (__APPLE__ && !defined(__MAC_10_7))
 
 int main()
 {

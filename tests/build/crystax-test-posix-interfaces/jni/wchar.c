@@ -108,11 +108,15 @@ void wchar_check_functions(FILE *f, wint_t i, wctype_t t, locale_t l, ...)
     (void)vswscanf((const wchar_t*)1234, L"%d", args);
     (void)vwprintf(L"%s", args);
     (void)vwscanf(L"%d", args);
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)wcpcpy((wchar_t*)1234, L"");
     (void)wcpncpy((wchar_t*)1234, L"", (size_t)0);
+#endif
     (void)wcrtomb((char*)1234, (wchar_t)0, (mbstate_t*)1234);
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)wcscasecmp(L"", L"");
     (void)wcscasecmp_l(L"", L"", l);
+#endif
     (void)wcscat((wchar_t*)1234, L"");
     (void)wcschr(L"", (wchar_t)0);
     (void)wcscmp(L"", L"");
@@ -120,15 +124,21 @@ void wchar_check_functions(FILE *f, wint_t i, wctype_t t, locale_t l, ...)
     (void)wcscoll_l(L"", L"", l);
     (void)wcscpy((wchar_t*)1234, L"");
     (void)wcscspn(L"", L"");
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)wcsdup(L"");
+#endif
     (void)wcsftime((wchar_t*)1234, (size_t)0, L"%s", (const struct tm *)1234);
     (void)wcslen(L"");
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)wcsncasecmp(L"", L"", (size_t)0);
     (void)wcsncasecmp_l(L"", L"", (size_t)0, l);
+#endif
     (void)wcsncat((wchar_t*)1234, L"", (size_t)0);
     (void)wcsncmp(L"", L"", (size_t)0);
     (void)wcsncpy((wchar_t*)1234, L"", (size_t)0);
+#if !__APPLE__ || defined(__MAC_10_7)
     (void)wcsnlen(L"", (size_t)0);
+#endif
     (void)wcsnrtombs((char*)1234, (const wchar_t **)1234, (size_t)0, (size_t)0, (mbstate_t*)1234);
     (void)wcspbrk(L"", L"");
     (void)wcsrchr(L"", (wchar_t)0);

@@ -42,6 +42,10 @@
 #include <string.h>
 #include <wchar.h>
 
+#if __APPLE__
+#include <Availability.h>
+#endif
+
 #define	testfmt(result, fmt, ...)	\
 	_testfmt((result), __LINE__, #__VA_ARGS__, fmt, __VA_ARGS__)
 void _testfmt(const char *, int, const char *, const char *, ...);
@@ -81,7 +85,9 @@ main(int argc, char *argv[])
      * Temporarily disabled due to bug in printf implementation.
      * See https://tracker.crystax.net/issues/815 for details.
      */
+#if !__APPLE__ || defined(__MAC_10_7)
 	testfmt(S_SIZEMAX, "%tu", (size_t)-1);
+#endif
 #endif
 
 	testfmt("-1", "%zd", (ssize_t)-1);
