@@ -33,6 +33,10 @@ require 'open3'
 require 'pathname'
 require_relative 'lib/log'
 
+Encoding.default_external = Encoding::UTF_8
+ENV['LANG'] = 'en_US.UTF-8'
+ENV['LC_ALL'] = ENV['LANG']
+
 module Enumerable
     def deep_freeze
         unless self.is_a? String

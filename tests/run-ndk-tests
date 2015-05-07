@@ -34,6 +34,10 @@ require_relative 'lib/samples'
 require_relative 'lib/tests'
 require_relative 'lib/mro'
 
+Encoding.default_external = Encoding::UTF_8
+ENV['LANG'] = 'en_US.UTF-8'
+ENV['LC_ALL'] = ENV['LANG']
+
 $stdout.sync = true
 $stderr.sync = true
 
