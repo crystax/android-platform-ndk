@@ -727,7 +727,7 @@ LOCAL_SRC_FILES := tmpl1.cpp
 LOCAL_CPPFLAGS := -frtti -fexceptions -std=gnu++98
 include $(BUILD_EXECUTABLE)
  
-ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
+ifeq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
 include $(CLEAR_VARS)
 LOCAL_MODULE := unwind1
 LOCAL_SRC_FILES := unwind1.cpp
