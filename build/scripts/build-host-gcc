@@ -90,7 +90,7 @@ begin
   # todo: os
   Logger.msg "building host GCC #{GCC_VER}; os: darwin"
 
-  build_library 'gmp',    GMP_VER,   "gmp-#{GMP_VER}a.tar.bz2",   ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
+  build_library 'gmp',    GMP_VER,   "gmp-#{GMP_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--enable-cxx"]
   build_library 'mpfr',   MPFR_VER,  "mpfr-#{MPFR_VER}.tar.bz2",  ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}"]
   build_library 'mpc',    MPC_VER,   "mpc-#{MPC_VER}.tar.gz",     ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp=#{prefixdir}", "--with-mpfr=#{prefixdir}"]
   build_library 'isl',    ISL_VER,   "isl-#{ISL_VER}.tar.bz2",    ["--prefix=#{prefixdir}", "--disable-shared", "--with-gmp-prefix=#{prefixdir}"]
