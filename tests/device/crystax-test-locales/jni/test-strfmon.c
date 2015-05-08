@@ -50,16 +50,36 @@ int main()
     double v = 13653.6783;
     const char *fmt = "%.2n";
 
-    test("C",                v, fmt, "13653.68",       NULL);
-    test("en_US.UTF-8",      v, fmt, "$13,653.68",     NULL);
-    test("fi_FI.UTF-8",      v, fmt, "13.653,68€", "13.653,68Eu", "13 653,68 €", NULL);
-    test("sv_SE.ISO8859-1",  v, fmt, "13 653,68 kr",   NULL);
-#if !__gnu_linux__
-    test("no_NO.ISO8859-15", v, fmt, "kr13.653,68",    NULL);
+#define C_EXPECTED      "13653.68"
+#define EN_US_EXPECTED "$13,653.68"
+#define SV_SE_EXPECTED "13 653,68 kr"
+#define ZH_CN_EXPECTED "￥13,653.68"
+
+#if __ANDROID__
+#define FI_FI_EXPECTED "13.653,68€"
+#define RU_RU_EXPECTED "13 653,68 руб."
+#define TR_TR_EXPECTED "L 13.653,68"
+#else
+#define FI_FI_EXPECTED "13.653,68€", "13.653,68Eu", "13%653,68 €"
+#define RU_RU_EXPECTED "13 653,68 руб.", "13%653.68 руб"
+#define TR_TR_EXPECTED "L 13.653,68", "13.653,68 YTL"
 #endif
-    test("ru_RU.UTF-8",      v, fmt, "13 653,68 руб.", "13 653.68 руб", NULL);
-    test("tr_TR.UTF-8",      v, fmt, "L 13.653,68", "13.653,68 YTL",    NULL);
-    test("zh_CN.UTF-8",      v, fmt, "￥13,653.68",    NULL);
+
+#if !__gnu_linux__
+#define NO_NO_EXPECTED "kr13.653,68"
+#endif
+
+    test("C",                v, fmt, C_EXPECTED,     NULL);
+    test("en_US.UTF-8",      v, fmt, EN_US_EXPECTED, NULL);
+    test("fi_FI.UTF-8",      v, fmt, FI_FI_EXPECTED, NULL);
+    test("sv_SE.ISO8859-1",  v, fmt, SV_SE_EXPECTED, NULL);
+    test("ru_RU.UTF-8",      v, fmt, RU_RU_EXPECTED, NULL);
+    test("tr_TR.UTF-8",      v, fmt, TR_TR_EXPECTED, NULL);
+    test("zh_CN.UTF-8",      v, fmt, ZH_CN_EXPECTED, NULL);
+
+#ifdef NO_NO_EXPECTED
+    test("no_NO.ISO8859-15", v, fmt, NO_NO_EXPECTED, NULL);
+#endif
 
     return 0;
 }
