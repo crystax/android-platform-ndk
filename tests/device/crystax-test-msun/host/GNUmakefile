@@ -14,11 +14,11 @@ test: test-$(1)
 
 .PHONY: test-$(1)
 test-$(1):
-	@$(MAKE) -f $(MYDIR)/test.mk SRCFILES=test-$(1).c CFLAGS="$(CFLAGS)" TARGETNAME=test-$(1)
+	@+$(MAKE) -f $(MYDIR)/test.mk SRCFILES=test-$(1).c CFLAGS="$(CFLAGS)" TARGETNAME=test-$(1)
 
 .PHONY: clean-$(1)
 clean-$(1):
-	@$(MAKE) -f $(MYDIR)/test.mk clean SRCFILES=test-$(1).c
+	@+$(MAKE) -f $(MYDIR)/test.mk clean SRCFILES=test-$(1).c
 
 .PHONY: clean
 clean: clean-$(1)

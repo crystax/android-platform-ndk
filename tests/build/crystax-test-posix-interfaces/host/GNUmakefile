@@ -35,9 +35,13 @@ endif
 
 ifeq (yes,$(shell uname -s | grep -iq darwin && echo yes))
 LDLIBS += -liconv
-ifeq (4.2.1,$(shell $(CC) -dumpversion))
+
+is-old-gcc := $(and $(shell $(CC) --version | grep -iq gcc && echo yes),$(filter 4.2.1,$(shell $(CC) -dumpversion)))
+is-old-clang := $(and $(shell $(CC) --version | grep -iq clang && echo yes),$(filter 2.0,$(shell $(CC) -dumpversion)))
+ifneq (,$(or $(is-old-gcc),$(is-old-clang)))
 CFLAGS := $(filter-out -Wno-unused-result,$(CFLAGS))
 endif
+
 endif
 
 PRETEST := generate-checks
