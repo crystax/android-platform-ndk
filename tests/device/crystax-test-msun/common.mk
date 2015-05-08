@@ -5,6 +5,7 @@
 #    csqrt       \
 #    ctrig       \
 #    exponential \
+#    fenv        \
 #    fma         \
 #    invctrig    \
 #    invtrig     \
@@ -19,7 +20,6 @@
 
 CTESTS :=        \
 	conj         \
-	fenv         \
 	fmaxmin      \
 	ilogb        \
 
