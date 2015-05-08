@@ -16,16 +16,20 @@ define is-true
 $(if $(filter 1 yes true on,$(call downcase,$(1))),yes)
 endef
 
+define preprocess
+$(strip $(if $(and $(strip $(1)),$(strip $(2))),\
+    $(shell echo $(2) | $(1) -x c -E - | tail -n 1),\
+    $(error Usage: call preprocess,compiler,string)\
+))
+endef
+
 define compiler-type
 $(strip $(if $(strip $(1)),\
-    $(if $(shell $(1) --version 2>/dev/null | grep -iq "\(gcc\|Free Software Foundation\)" && echo yes),\
-        gcc,\
-        $(if $(shell $(1) --version 2>/dev/null | grep -iq "\(clang\|llvm\)" && echo yes),\
-            clang,\
-            $(error Can not detect compiler type of '$(1)')\
-        )\
+    $(if $(filter-out __GNUC__,$(call preprocess,$(1),__GNUC__)),\
+        $(if $(filter __clang__,$(call preprocess,$(1),__clang__)),gcc,clang),\
+        $(error Cannot detect type of compiler '$(1)')\
     ),\
-    $(error Usage: call c++-compiler-type,compiler)\
+    $(error Usage: call compiler-type,compiler)\
 ))
 endef
 
@@ -39,13 +43,13 @@ endef
 
 define gcc-major-version
 $(strip $(if $(call is-gcc,$(1)),\
-    $(shell $(1) -dumpversion 2>/dev/null | awk -F. '{print $$1}')\
+    $(call preprocess,$(1),__GNUC__)\
 ))
 endef
 
 define gcc-minor-version
 $(strip $(if $(call is-gcc,$(1)),\
-    $(shell $(1) -dumpversion 2>/dev/null | awk -F. '{print $$2}')\
+    $(call preprocess,$(1),__GNUC_MINOR__)\
 ))
 endef
 
@@ -53,6 +57,18 @@ define gcc-version
 $(strip $(if $(strip $(1)),\
     $(if $(call is-gcc,$(1)),$(call gcc-major-version,$(1)).$(call gcc-minor-version,$(1))),\
     $(error Usage: call gcc-version,cc)\
+))
+endef
+
+define clang-major-version
+$(strip $(if $(call is-clang,$(1)),\
+    $(call preprocess,$(1),__clang_major__)\
+))
+endef
+
+define clang-minor-version
+$(strip $(if $(call is-clang,$(1)),\
+    $(call preprocess,$(1),__clang_minor__)\
 ))
 endef
 
@@ -99,7 +115,7 @@ $(error Function 'tail' broken)
 endif
 
 define objc-runtime
-$(if $(and $(call is-clang,$(CC)),$(call is-host-os-darwin)),next,gnu)
+$(if $(or $(and $(call is-clang,$(CC)),$(call is-host-os-darwin)),$(call is-old-apple-gcc,$(CC))),next,gnu)
 endef
 
 define has-c-sources
@@ -122,9 +138,30 @@ endef
 
 define is-old-macosx
 $(strip $(and \
-    $(shell uname -s | grep -iq darwin && echo yes),\
+    $(call is-host-os-darwin),\
     $(shell test $$(sw_vers -productVersion | awk -F. '{print $$1 * 10000 + $$2 * 100 + $$3}') -lt 100900 && echo yes)\
 ))
+endef
+
+define is-old-apple-gcc
+$(strip $(and \
+    $(call is-host-os-darwin),\
+    $(call is-gcc,$(1)),\
+    $(filter 4,$(call gcc-major-version,$(1))),\
+    $(filter 2,$(call gcc-minor-version,$(1)))\
+))
+endef
+
+define is-old-apple-clang
+$(strip $(and \
+    $(call is-host-os-darwin),\
+    $(call is-clang,$(1)),\
+    $(filter 2,$(call clang-major-version,$(1)))\
+))
+endef
+
+define is-not-old-apple-clang
+$(if $(call is-old-apple-clang,$(1)),,yes)
 endef
 
 #=================================================================================
@@ -149,7 +186,7 @@ ifeq (,$(filter -std=%,$(CXXFLAGS)))
 CXXFLAGS += -std=$(if $(call is-old-macosx),c++98,$(c++11))
 endif
 
-ifneq (,$(and $(call is-clang,$(CC)),$(if $(filter -stdlib=%,$(CXXFLAGS)),,yes)))
+ifneq (,$(and $(call is-clang,$(CC)),$(call is-not-old-apple-clang,$(CC)),$(if $(filter -stdlib=%,$(CXXFLAGS)),,yes)))
 CXXFLAGS += -stdlib=libc++
 LDFLAGS  += -stdlib=libc++
 endif
