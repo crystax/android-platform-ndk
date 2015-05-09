@@ -10,6 +10,7 @@
 void test(const char *locale, double v, const char *fmt, ...)
 {
     char buf[1024];
+    const char *s;
     va_list args;
     int matched = 0;
 
@@ -18,6 +19,8 @@ void test(const char *locale, double v, const char *fmt, ...)
     assert(setlocale(LC_MONETARY, locale));
     assert(strfmon(buf, sizeof(buf), fmt, v) != -1);
 
+    for (s = buf; isspace(*s) || *s == '\0'; ++s);
+
     va_start(args, fmt);
 
     for (;;) {
@@ -25,8 +28,6 @@ void test(const char *locale, double v, const char *fmt, ...)
         if (!expected)
             break;
 
-        const char *s;
-        for (s = buf; isspace(*s); ++s);
         if (strlen(s) == strlen(expected) && memcmp(s, expected, strlen(s)) == 0) {
             fprintf(stderr, "strfmon(\"%s\") matched to \"%s\"\n", fmt, expected);
             matched = 1;
@@ -60,7 +61,7 @@ int main()
 #define RU_RU_EXPECTED "13 653,68 руб."
 #define TR_TR_EXPECTED "L 13.653,68"
 #else
-#define FI_FI_EXPECTED "13.653,68€", "13.653,68Eu", "13 653,68 €"
+#define FI_FI_EXPECTED "13.653,68€", "13.653,68Eu", "13 653,68 €", "13 653,68€"
 #define RU_RU_EXPECTED "13 653,68 руб.", "13 653.68 руб"
 #define TR_TR_EXPECTED "L 13.653,68", "13.653,68 YTL"
 #endif

@@ -245,6 +245,9 @@ $(TARGET): $(OBJFILES) | $(TARGETDIR)
 			)\
 			-lobjc \
 		)\
+		$(if $(call is-host-os-linux),\
+			-lrt \
+		)\
 		-lm -ldl \
 	)
 

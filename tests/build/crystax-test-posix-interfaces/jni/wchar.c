@@ -108,7 +108,7 @@ void wchar_check_functions(FILE *f, wint_t i, wctype_t t, locale_t l, ...)
     (void)vswscanf((const wchar_t*)1234, L"%d", args);
     (void)vwprintf(L"%s", args);
     (void)vwscanf(L"%d", args);
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__gnu_linux__ && !(__APPLE__ && !defined(__MAC_10_7))
     (void)wcpcpy((wchar_t*)1234, L"");
     (void)wcpncpy((wchar_t*)1234, L"", (size_t)0);
 #endif
