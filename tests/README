@@ -1,10 +1,10 @@
 This directory contains scripts and sources to perform automated testing
-of the NDK. Before making a new NDK release, please run tests/run-tests.sh
+of the NDK. Before making a new NDK release, please run tests/run-ndk-tests
 to ensure that everything is working properly.
 
 Directory layout:
 
-run-tests.sh
+run-ndk-tests
     Run all NDK automated tests. Use --help for more options.
 
 build/
@@ -12,5 +12,5 @@ build/
 
 device/
     Contains tests used to check that NDK-generated binaries work properly
-    on an Android device. To run them, call "run-tests.sh" with the "adb" tool
+    on an Android device. To run them, call "run-ndk-tests" with the "adb" tool
     in your path (or with the --adb=<executable> option).
