@@ -875,7 +875,7 @@ begin
 
             if EMUTAG.nil?
                 MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
-                log "EXIT: no device/emulator"
+                log "EXIT: no suitable device/emulator"
                 break
             end
 
@@ -884,7 +884,7 @@ begin
                 paused = true
             end
 
-            log "No ready device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
+            log "WAIT: no suitable device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
             sleep 10
 
             # Refresh list of devices
