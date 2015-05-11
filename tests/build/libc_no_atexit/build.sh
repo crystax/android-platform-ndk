@@ -1,54 +1,105 @@
 #!/bin/bash
 
-if which greadelf >/dev/null 2>&1; then
-    READELF=greadelf
-elif which readelf >/dev/null 2>&1; then
-    READELF=readelf
-else
-    echo "ERROR: readelf not found" 1>&2
-    exit 1
-fi
-
 # Check that the libc.so for all platforms, and all architectures
 # Does not export 'atexit' and '__dso_handle' symbols.
 #
+
 export ANDROID_NDK_ROOT=$NDK
 
 NDK_BUILDTOOLS_PATH=$NDK/build/tools
 . $NDK/build/tools/prebuilt-common.sh
 echo DEFAULT_ARCHS=$DEFAULT_ARCHS
 
-LIBRARIES=
-for ARCH in $DEFAULT_ARCHS; do
-  LIB=$(cd $NDK && find platforms -name "libc.so" | sed -e 's!^!'$NDK'/!' | grep arch-$ARCH)
-  LIBRARIES=$LIBRARIES" $LIB"
-done
+HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
+
+HOST_TAG=
+HOST_TAG2=
+case $HOST_OS in
+    darwin|linux)
+        HOST_ARCH=$(uname -m)
+        HOST_ARCH2=
+        case $HOST_ARCH in
+            i?86)
+                HOST_ARCH=x86
+                ;;
+            x86_64)
+                if [ "$HOST_OS" = "linux" ]; then
+                    if file -b /bin/ls | grep -q 32-bit; then
+                        HOST_ARCH=x86
+                    else
+                        HOST_ARCH2=x86
+                    fi
+                else
+                    HOST_ARCH2=x86
+                fi
+                ;;
+            *)
+                echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
+                exit 1
+        esac
+        HOST_TAG=${HOST_OS}-${HOST_ARCH}
+        test -n "$HOST_ARCH2" && HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
+        ;;
+    *)
+        echo "WARNING: This test cannot run on this machine!" 1>&2
+        exit 0
+esac
 
 FAILURE=
 COUNT=0
-for LIB in $LIBRARIES; do
-  COUNT=$(( $COUNT + 1 ))
-  echo "Checking: $LIB"
-  $READELF -s $LIB | grep -q -F " atexit"
-  if [ $? = 0 ]; then
-    echo "ERROR: $NDK/$LIB exposes 'atexit'!" >&2
-    FAILURE=true
-  fi
-  $READELF -s $LIB | grep -q -F " __dso_handle"
-  if [ $? = 0 ]; then
-    echo "ERROR: $NDK/$LIB exposes '__dso_handle'!" >&2
-    FAILURE=true
-  fi
+
+TMPFILE=/tmp/libc-check-$$.txt
+trap "rm -f $TMPFILE" EXIT INT QUIT ABRT TERM
+
+for ARCH in $DEFAULT_ARCHS; do
+    TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch $ARCH)
+    TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch $ARCH)
+
+    READELF=
+    for tag in $HOST_TAG $HOST_TAG2; do
+        READELF=$NDK/toolchains/$TOOLCHAIN_NAME/prebuilt/$tag/bin/${TOOLCHAIN_PREFIX}-readelf
+        if [ -x $READELF ]; then
+            break
+        fi
+    done
+
+    if [ ! -x "$READELF" ]; then
+        echo "ERROR: Can't find $ARCH readelf" 1>&2
+        exit 1
+    fi
+
+    LIBRARIES=$(cd $NDK && find platforms -name "libc.so" | sed -e 's!^!'$NDK'/!' | grep arch-$ARCH)
+    for LIB in $LIBRARIES; do
+        COUNT=$(( $COUNT + 1 ))
+
+        echo "Checking: $LIB"
+
+        $READELF -s $LIB >$TMPFILE
+        if [ $? -ne 0 ]; then
+            echo "ERROR: readelf $LIB failed" 1>&2
+            FAILURE=true
+            continue
+        fi
+
+        for SYM in atexit __dso_handle; do
+            if grep -q -F " $SYM" $TMPFILE; then
+                echo "ERROR: $NDK/$LIB exposes '$SYM'!" 1>&2
+                FAILURE=true
+            fi
+        done
+    done
 done
 
+rm -f $TMPFILE
+
 if [ "$COUNT" = 0 ]; then
-  echo "ERROR: Did not find any libc.so in $NDK/platforms!"
-  exit 1
+    echo "ERROR: Did not find any libc.so in $NDK/platforms!" 1>&2
+    exit 1
 fi
 
-if [ "$FAILURE" ]; then
-  exit 1
+if [ "$FAILURE" = "true" ]; then
+    exit 1
 else
-  echo "All $COUNT libc.so are ok!"
-  exit 0
+    echo "All $COUNT libc.so are ok!"
+    exit 0
 fi
