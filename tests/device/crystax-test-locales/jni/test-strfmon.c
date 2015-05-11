@@ -63,7 +63,7 @@ int main()
 #else
 #define FI_FI_EXPECTED "13.653,68€", "13.653,68Eu", "13 653,68 €", "13 653,68€"
 #define RU_RU_EXPECTED "13 653,68 руб.", "13 653.68 руб"
-#define TR_TR_EXPECTED "L 13.653,68", "13.653,68 YTL"
+#define TR_TR_EXPECTED "L 13.653,68", "13.653,68 YTL", "13.653,68 TL"
 #endif
 
 #if !__gnu_linux__
