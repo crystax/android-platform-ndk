@@ -11,11 +11,16 @@ NDK_BUILDTOOLS_PATH=$NDK/build/tools
 echo DEFAULT_ARCHS=$DEFAULT_ARCHS
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
-
-HOST_TAG=
-HOST_TAG2=
 case $HOST_OS in
-    darwin|linux)
+    cygwin*|mingw*)
+        HOST_OS=windows
+esac
+
+HOST_ARCH=""
+HOST_ARCH2=""
+
+case $HOST_OS in
+    darwin|linux|windows)
         HOST_ARCH=$(uname -m)
         HOST_ARCH2=
         case $HOST_ARCH in
@@ -37,13 +42,26 @@ case $HOST_OS in
                 echo "ERROR: Unsupported host CPU architecture: '$HOST_ARCH'" 1>&2
                 exit 1
         esac
-        HOST_TAG=${HOST_OS}-${HOST_ARCH}
-        test -n "$HOST_ARCH2" && HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
         ;;
     *)
-        echo "WARNING: This test cannot run on this machine!" 1>&2
-        exit 0
+        echo "ERROR: Unsupported host OS: '$HOST_OS'" 1>&2
+        exit 1
 esac
+
+if [ "$HOST_ARCH" = "x86" -a "$HOST_OS" = "windows" ]; then
+    HOST_TAG=${HOST_OS}
+else
+    HOST_TAG=${HOST_OS}-${HOST_ARCH}
+fi
+
+HOST_TAG2=""
+if [ -n "$HOST_ARCH2" ]; then
+    if [ "$HOST_ARCH2" = "x86" -a "$HOST_OS" = "windows" ]; then
+        HOST_TAG2=$HOST_OS
+    else
+        HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
+    fi
+fi
 
 FAILURE=
 COUNT=0

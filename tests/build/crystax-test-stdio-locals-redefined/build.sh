@@ -3,11 +3,16 @@
 . $NDK/build/tools/dev-defaults.sh
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
+case $HOST_OS in
+    cygwin*|mingw*)
+        HOST_OS=windows
+esac
 
-HOST_TAG=
-HOST_TAG2=
-case $(uname -s | tr '[A-Z]' '[a-z]') in
-    darwin|linux)
+HOST_ARCH=""
+HOST_ARCH2=""
+
+case $HOST_OS in
+    darwin|linux|windows)
         HOST_ARCH=$(uname -m)
         HOST_ARCH2=
         case $HOST_ARCH in
@@ -33,10 +38,25 @@ case $(uname -s | tr '[A-Z]' '[a-z]') in
         test -n "$HOST_ARCH2" && HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
         ;;
     *)
-        echo "WARNING: This test cannot run on this machine!" 1>&2
-        exit 0
+        echo "ERROR: Unsupported host OS: '$HOST_OS'" 1>&2
+        exit 1
         ;;
 esac
+
+if [ "$HOST_OS" = "windows" -a "$HOST_ARCH" = "x86" ]; then
+    HOST_TAG=$HOST_OS
+else
+    HOST_TAG=${HOST_OS}-${HOST_ARCH}
+fi
+
+HOST_TAG2=""
+if [ -n "$HOST_ARCH2" ]; then
+    if [ "$HOST_OS" = "windows" -a "$HOST_ARCH2" = "x86" ]; then
+        HOST_TAG2=$HOST_OS
+    else
+        HOST_TAG2=${HOST_OS}-${HOST_ARCH2}
+    fi
+fi
 
 SYMBOLS="
 __fcloseall
