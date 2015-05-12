@@ -707,6 +707,12 @@ for SYSTEM in $SYSTEMS; do
     $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
     fail_panic "Could not install CREW"
 
+    # Remove python *.pyc and *.pyo files
+    find $DSTDIR/prebuilt/*/lib/python* -name "*.pyc" -exec rm -rf {} \;
+    find $DSTDIR/prebuilt/*/lib/python* -name "*.pyo" -exec rm -rf {} \;
+    find $DSTDIR64/prebuilt/*/lib/python* -name "*.pyc"  -exec rm -rf {} \;
+    find $DSTDIR64/prebuilt/*/lib/python* -name "*.pyo"  -exec rm -rf {} \;
+
     # Create an archive for the final package. Extension depends on the
     # host system.
     ARCHIVE=$BIN_RELEASE
