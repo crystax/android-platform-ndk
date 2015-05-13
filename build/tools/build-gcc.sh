@@ -727,7 +727,11 @@ if [ "$PACKAGE_DIR" ]; then
     fi
 fi
 
+if [ -z "$OPTION_BUILD_OUT" ] ; then
+    log "Cleaning up..."
+    rm -rf $BUILD_OUT
+else
+    log "Don't forget to cleanup: $BUILD_OUT"
+fi
+
 dump "Done."
-#if [ -z "$OPTION_BUILD_OUT" ] ; then
-#    rm -rf $BUILD_OUT
-#fi
