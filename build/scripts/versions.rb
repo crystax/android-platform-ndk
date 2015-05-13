@@ -35,16 +35,17 @@
 
 module Crystax
 
-  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'git', 'p7zip']
+  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'openssh-portable', 'git', 'p7zip']
   INSTALL_UTILS = BUILD_UTILS.slice(1, BUILD_UTILS.size)
 
   VERSIONS = {
-    'libffi'  => '3.2.1',
-    'openssl' => '1.0.2a',
-    'curl'    => '7.42.0',
-    'git'     => '2.4.0',
-    'ruby'    => '2.2.2',
-    'p7zip'   => '9.20.1'
+    'libffi'           => '3.2.1',
+    'openssl'          => '1.0.2a',
+    'curl'             => '7.42.0',
+    'openssh-portable' => '6.8.P1',
+    'git'              => '2.4.0',
+    'ruby'             => '2.2.2',
+    'p7zip'            => '9.20.1'
   }
 
   def self.version(name)
