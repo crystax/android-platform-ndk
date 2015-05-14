@@ -260,7 +260,7 @@ build_libobjc2_for_abi ()
             CCFLAGS="$CCFLAGS -march=armv7-a -mfpu=vfpv3-d16 -mhard-float -mthumb"
             ;;
         mips)
-            CCFLAGS="$CCFLAGS -mabi=32 -mips32r6"
+            CCFLAGS="$CCFLAGS -mabi=32 -mips32"
             ;;
         mips64)
             CCFLAGS="$CCFLAGS -mabi=64 -mips64r6"
@@ -287,29 +287,29 @@ build_libobjc2_for_abi ()
     LDFLAGS=""
     LDFLAGS="$LDFLAGS -nostdlib"
     LDFLAGS="$LDFLAGS -fPIC"
+
     LDFLAGS="$LDFLAGS -L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
     if [ "${ABI##armeabi}" != "$ABI" ]; then
         LDFLAGS="$LDFLAGS/thumb"
-    elif [ "$ABI" = "mips" ]; then
-        LDFLAGS="$LDFLAGS/r6"
     fi
+
+    LDFLAGS="$LDFLAGS --sysroot=$SYSROOT"
 
     if [ "$ABI" = "armeabi-v7a-hard" ]; then
         LDFLAGS="$LDFLAGS -Wl,--no-warn-mismatch"
     fi
 
     dump "=== Building libobjc2 for $ABI"
-    make -C $BUILDDIR -f $BUILDDIR/Makefile -j$NUM_JOBS \
+    run make -C $BUILDDIR -f $BUILDDIR/Makefile -j$NUM_JOBS \
         CC="$CC $CCFLAGS" \
         CXX="$CXX $CCFLAGS" \
         AR="$AR" \
         CFLAGS="-std=c99 $CFLAGS" \
         CXXFLAGS="-std=c++11 $CXXFLAGS" \
         LDFLAGS="$LDFLAGS" \
+        SILENT="" \
 
     fail_panic "Couldn't build libobjc2 for $ABI"
-
-    dump "=========================== OOKKKKKKKKKKKKKKKKKKKKKKKK"
 
     if [ -z "$OBJC2_HEADERS_INSTALLED" ]; then
         run rm -Rf $NDK_DIR/$OBJC2_SUBDIR/include
