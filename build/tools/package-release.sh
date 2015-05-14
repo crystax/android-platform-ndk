@@ -700,12 +700,13 @@ for SYSTEM in $SYSTEMS; do
     find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm -f
 
     # unpack vendor utils
-    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
-    fail_panic "Could not install vendor utils"
-    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
-    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
-    fail_panic "Could not install CREW"
+    # todo crew: uncomment after release
+    #echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    #$SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    #fail_panic "Could not install vendor utils"
+    #echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
+    #$SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
+    #fail_panic "Could not install CREW"
 
     # Remove python *.pyc and *.pyo files
     find $DSTDIR/prebuilt/*/lib/python* -name "*.pyc" -exec rm -rf {} \;
