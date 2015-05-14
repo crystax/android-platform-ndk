@@ -568,23 +568,24 @@ copy_crystax_libs_for_abi () {
     fi
 
     case $ABI in
-        armeabi)
+        armeabi*)
             copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.so"
             #
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "libcrystax.so"
-            ;;
-        armeabi-v7a)
+            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.so"
+            #
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.so"
             #
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.so"
-            ;;
-        armeabi-v7a-hard)
+            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/thumb" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/thumb" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.so"
+            #
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.so"
             ;;
         *)
             copy_file_list "$CRYSTAX_LIBS/$ABI" "$ABI_TARGET/lib" "libcrystax.a"
