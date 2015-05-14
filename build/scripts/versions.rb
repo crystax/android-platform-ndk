@@ -35,7 +35,7 @@
 
 module Crystax
 
-  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'openssh-portable', 'git', 'p7zip']
+  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'git', 'p7zip']
   INSTALL_UTILS = BUILD_UTILS.slice(1, BUILD_UTILS.size)
 
   VERSIONS = {
