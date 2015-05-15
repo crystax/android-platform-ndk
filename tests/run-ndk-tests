@@ -32,6 +32,7 @@ require_relative 'lib/log'
 require_relative 'lib/awk'
 require_relative 'lib/samples'
 require_relative 'lib/tests'
+require_relative 'lib/standalone'
 require_relative 'lib/mro'
 
 Encoding.default_external = Encoding::UTF_8
@@ -52,7 +53,7 @@ if ENV['ANDROID_SDK_ROOT']
 else
     options[:adb] = 'adb'
 end
-options[:types] = ['awk', 'samples', 'build', 'device']
+options[:types] = ['awk', 'samples', 'build', 'device', 'standalone']
 options[:stimeout] = 15*60
 
 optparser = OptionParser.new do |o|
@@ -165,6 +166,8 @@ def run_all(options)
     Log.notice "=== START NDK TESTING"
 
     prepare_environment(options)
+
+    options[:types].select! { |t| ['build', 'device'].include?(t) } if options[:tests].is_a?(Array) && options[:tests].size > 0
 
     fails = 0
     options[:types].each do |type|
