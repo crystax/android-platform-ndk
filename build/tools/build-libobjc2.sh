@@ -331,6 +331,17 @@ build_libobjc2_for_abi ()
     done
 }
 
+if [ -n "$PACKAGE_DIR" ]; then
+    PACKAGE_NAME="objc2-headers.tar.bz2"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_NAME" "$PACKAGE_DIR" no_exit
+    if [ $? -eq 0 ]; then
+        OBJC2_HEADERS_NEED_PACKAGE=no
+    else
+        OBJC2_HEADERS_NEED_PACKAGE=yes
+    fi
+fi
+
 OBJC2_HEADERS_INSTALLED=
 
 BUILT_ABIS=""
@@ -341,7 +352,11 @@ for ABI in $ABIS; do
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? = 0 ]; then
-            DO_BUILD_PACKAGE="no"
+            if [ "$OBJC2_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+            else
+                DO_BUILD_PACKAGE="no"
+            fi
         else
             BUILT_ABIS="$BUILT_ABIS $ABI"
         fi
@@ -353,6 +368,16 @@ done
 
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
+    if [ "$OBJC2_HEADERS_NEED_PACKAGE" = "yes" ]; then
+        FILES=$OBJC2_SUBDIR/include
+        PACKAGE_NAME="objc2-headers.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Could not package objc2 headers!"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    fi
+
     for ABI in $BUILT_ABIS; do
         FILES=""
         for LIB in libobjc.a libobjc.so libobjcxx.so; do

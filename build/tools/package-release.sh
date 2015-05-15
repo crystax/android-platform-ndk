@@ -451,7 +451,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
-    unpack_prebuilt libobjc2-headers "$REFERENCE"
+    unpack_prebuilt objc2-headers "$REFERENCE"
 
     unpack_prebuilt sqlite3-build-files "$REFERENCE"
     unpack_prebuilt sqlite3-headers "$REFERENCE"
@@ -476,7 +476,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
-        unpack_prebuilt libobjc2-libs-$ABI "$REFERENCE"
+        unpack_prebuilt objc2-libs-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $ICU_VERSIONS; do
             unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
