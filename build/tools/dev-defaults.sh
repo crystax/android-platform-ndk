@@ -58,7 +58,7 @@ ICU_SUBDIR=sources/icu
 ICU_VERSIONS="54.1"
 
 # Location of the sqlite3 libraries, relative to the NDK root directory
-SQLITE3_SUBDIR=sources/sqlite3
+SQLITE3_SUBDIR=sources/sqlite/3
 
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
