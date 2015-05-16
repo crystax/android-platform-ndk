@@ -655,9 +655,18 @@ def generate_adbrunner(abi, dir, strip)
         f.puts <<-EOF
 #!/usr/bin/env ruby
 
+skip = ['bcp-test']
+
+exe = File.basename(ARGV.first) rescue nil
+
 File.open('#{WLOG}', 'a') do |f|
     f.flock(File::LOCK_EX)
     f.puts '## COMMAND: %s' % ([$0] + ARGV).join(' ')
+
+    if skip.include?(exe)
+        f.puts "SKIP running %s on Android" % exe
+        exit 0
+    end
 end
 
 Kernel.exec('#{File.join(OPTIONS[:ndk], 'tools', 'adbrunner')}',
