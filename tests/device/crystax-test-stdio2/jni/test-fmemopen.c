@@ -117,7 +117,7 @@ test_preexisting()
 void
 test_autoalloc()
 {
-#if !defined(__GLIBC__) || __GLIBC__ > 2 || __GLIBC_MINOR__ > 13
+#if !defined(__GLIBC__) || __GLIBC__ > 2 || __GLIBC_MINOR__ > 15
 	/* 
 	 * Let fmemopen allocate the buffer.
 	 */
@@ -142,7 +142,7 @@ test_autoalloc()
 	pos = ftell(fp);
 	assert(pos == 512);
 
-#endif /* !defined(__GLIBC__) || __GLIBC__ > 2 || __GLIBC_MINOR__ > 13 */
+#endif /* !defined(__GLIBC__) || __GLIBC__ > 2 || __GLIBC_MINOR__ > 15 */
 
 #if !__gnu_linux__
 	/* 

@@ -257,7 +257,7 @@ main(int argc, char *argv[])
 #define FLOAT_DECIMAL_ROUNDING_UPWARD_BROKEN 1
 #define FLOAT_DECIMAL_ROUNDING_TOWARDZERO_BROKEN 1
 #define FLOAT_DECIMAL_ROUNDING_TONEAREST_BROKEN 0
-#elif defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 13
+#elif defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 15
 #define FLOAT_DECIMAL_ROUNDING_DOWNWARD_BROKEN 1
 #define FLOAT_DECIMAL_ROUNDING_UPWARD_BROKEN 1
 #define FLOAT_DECIMAL_ROUNDING_TOWARDZERO_BROKEN 1
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
  * See https://tracker.crystax.net/issues/820 for details.
  */
 #define FLOAT_HEX_ROUNDING_BROKEN 1
-#elif defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 13
+#elif defined(__GLIBC__) && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 15
 #define FLOAT_HEX_ROUNDING_BROKEN 1
 #else
 #define FLOAT_HEX_ROUNDING_BROKEN 0
