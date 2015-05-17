@@ -578,16 +578,29 @@ def adb_push(devid, src, dst)
 
     log "PUSH: #{src} -> #{dst}"
 
-    run ADB, '-s', devid, 'push', src, dst, timeout: 60 do |i,o,e,t|
+    run ADB, '-s', devid, 'push', src, dst do |i,o,e,t|
         i.close
+
+        lt = Time.now
+
+        wt = Thread.start do
+            while true
+                sleep 5
+                next if Time.now - lt < 60
+                log "WARNING: push '#{src} -> '#{dst}' timed out (60 seconds)"
+            end
+        end
 
         [o,e].map do |io|
             Thread.start do
                 while line = io.gets
+                    lt = Time.now
                     log line
                 end
             end
         end.each(&:join)
+
+        wt.kill
 
         raise AdbError.new('push', "Can't push #{src} to #{dst}") unless t.value.success?
     end
