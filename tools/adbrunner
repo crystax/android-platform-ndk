@@ -114,6 +114,10 @@ optparser = OptionParser.new do |o|
     o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
         OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
     end
+
+    o.on("--args-path-prefixes=LIST", Array, "Prefixes for command line arguments indicating paths") do |l|
+        OPTIONS[:args_path_prefixes] = l
+    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -181,6 +185,7 @@ RUN_ON_ALL_DEVICES = OPTIONS[:run_on_all_devices]
 KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
 SYMDIRS = OPTIONS[:symdirs]
+ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -645,10 +650,14 @@ end
 def do_run_test(attempt, devid, tag, exe, args)
     devpath = File.join(DEVPATH, ABI)
     dstpath = File.join(devpath, SecureRandom.uuid)
+    dstbinpath  = File.join(dstpath, 'bin')
+    dstdatapath = File.join(dstpath, 'data')
 
     dstdirs = []
     dstdirs << "#{devpath}/tmp"
     dstdirs << dstpath
+    dstdirs << dstbinpath
+    dstdirs << dstdatapath
 
     adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
 
@@ -680,29 +689,36 @@ def do_run_test(attempt, devid, tag, exe, args)
 
         tmpf = strip(e)
         begin
-            adb_push devid, tmpf, "#{dstpath}/#{be}"
-            adb_shell devid, "chmod 0755 #{dstpath}/#{be}"
+            adb_push devid, tmpf, "#{dstbinpath}/#{be}"
+            adb_shell devid, "chmod 0755 #{dstbinpath}/#{be}"
         ensure
             FileUtils.rm_f tmpf if tmpf != e
         end
     end
 
+    pushed = {}
+
     newargs = []
     args.each do |arg|
-        if !File.exists?(arg)
-            newargs << arg
-            next
-        end
+        prefix = ARGS_PATH_PREFIXES.select { |p| arg =~ /^(-#{p}|--#{p}=)/ }.first rescue nil
+        arg = arg.sub(/^(-#{prefix}|--#{prefix}=)/, '') unless prefix.nil?
 
-        newargs << File.join(dstpath, File.basename(arg))
-        adb_push devid, arg, newargs.last
+        if File.exists?(arg)
+            dstarg = File.join(dstdatapath, File.basename(arg))
+            adb_push devid, arg, dstarg if pushed[arg] != dstarg
+            pushed[arg] = dstarg
+        else
+            dstarg = arg
+        end
+        newarg = "#{prefix}#{dstarg}"
+        newargs << newarg
     end
 
     env = {}
-    env['LD_LIBRARY_PATH'] = dstpath
+    env['LD_LIBRARY_PATH'] = dstbinpath
     env['TMPDIR'] = "#{devpath}/tmp"
 
-    adb_shell devid, "log #{tag} && cd #{dstpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+    adb_shell devid, "log #{tag} && cd #{dstbinpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
 rescue AdbShellCommandFailed => err
     log err.message
 
@@ -715,7 +731,7 @@ rescue AdbShellCommandFailed => err
     logerr.call ""
     logerr.call "=== BEGIN OF LAUNCHER PARAMETERS ==="
     logerr.call "ARGV: #{exe} #{args.join(' ')}"
-    logerr.call "PWD: #{dstpath}"
+    logerr.call "PWD: #{dstbinpath}"
     logerr.call "=== END OF LAUNCHER PARAMETERS ==="
 
     lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
