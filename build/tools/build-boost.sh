@@ -65,7 +65,8 @@ register_var_option "--version=<ver>" BOOST_VERSION "Boost version to build"
 TOOLCHAIN_VERSION=4.9
 #register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
-ICU_VERSION=54.1
+ICU_VERSION=
+register_var_option "--with-icu=<version>" ICU_VERSION "ICU version to build with [without ICU]"
 
 register_jobs_option
 
@@ -88,6 +89,10 @@ if [ ! -d "$BOOST_SRCDIR/$BOOST_VERSION" ]; then
 fi
 
 BOOST_SRCDIR=$BOOST_SRCDIR/$BOOST_VERSION
+
+if [ -n "$ICU_VERSION" ]; then
+    BOOST_SUBDIR="${BOOST_SUBDIR}+icu"
+fi
 
 BOOST_DSTDIR=$NDK_DIR/$BOOST_SUBDIR/$BOOST_VERSION
 mkdir -p $BOOST_DSTDIR
@@ -263,7 +268,10 @@ build_boost_for_abi ()
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
     local LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
     local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
-    local ICU=$NDK_DIR/sources/icu/$ICU_VERSION
+    local ICU=""
+    if [ -n "$ICU_VERSION" ]; then
+        ICU=$NDK_DIR/sources/icu/$ICU_VERSION
+    fi
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
@@ -301,11 +309,15 @@ fi
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
-    FLAGS="\$FLAGS -L$ICU/libs/$ABI"
+    if [ -n "$ICU" ]; then
+        FLAGS="\$FLAGS -L$ICU/libs/$ABI"
+    fi
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
 else
-    FLAGS="\$FLAGS -I$ICU/include"
+    if [ -n "$ICU" ]; then
+        FLAGS="\$FLAGS -I$ICU/include"
+    fi
     FLAGS="\$FLAGS -I$GNULIBCXX/include"
     FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
@@ -431,8 +443,13 @@ EOF
 
 SAVED_PATH=$PATH
 
+PNAME=boost
+if [ -n "$ICU_VERSION" ]; then
+    PNAME="${PNAME}+icu"
+fi
+
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+    PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.bz2"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -441,7 +458,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         BOOST_BUILD_FILES_NEED_PACKAGE=yes
     fi
 
-    PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
+    PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.bz2"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -455,7 +472,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="boost-$BOOST_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$ABI.tar.bz2"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
@@ -535,7 +552,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         for F in Android.mk LICENSE_1_0.txt; do
             FILES="$FILES $BOOST_SUBDIR/$BOOST_VERSION/$F"
         done
-        PACKAGE_NAME="boost-$BOOST_VERSION-build-files.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -545,7 +562,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
-        PACKAGE_NAME="boost-$BOOST_VERSION-headers.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -555,7 +572,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     for ABI in $BUILT_ABIS; do
         FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI"
-        PACKAGE_NAME="boost-$BOOST_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$ABI.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

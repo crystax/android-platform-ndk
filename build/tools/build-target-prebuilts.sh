@@ -224,6 +224,10 @@ for VERSION in $BOOST_VERSIONS; do
     dump "Building $ABIS boost-$VERSION binaries..."
     run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/boost && pwd)
     fail_panic "Could not build Boost-$VERSION!"
+
+    dump "Building $ABIS boost+icu-$VERSION binaries..."
+    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=54.1 $(cd $SRC_DIR/../vendor/boost && pwd)
+    fail_panic "Could not build Boost+ICU-$VERSION!"
 done
 
 dump "Building $ABIS libportable binaries..."

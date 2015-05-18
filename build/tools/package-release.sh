@@ -461,7 +461,9 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
     for VERSION in $BOOST_VERSIONS; do
         unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
+        unpack_prebuilt boost+icu-$VERSION-build-files "$REFERENCE"
         unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt boost+icu-$VERSION-headers "$REFERENCE"
     done
     for ABI in $ABIS; do
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
@@ -483,6 +485,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         done
         for VERSION in $BOOST_VERSIONS; do
             unpack_prebuilt boost-$VERSION-libs-$ABI "$REFERENCE"
+            unpack_prebuilt boost+icu-$VERSION-libs-$ABI "$REFERENCE"
         done
         unpack_prebuilt libportable-libs-$ABI "$REFERENCE"
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
@@ -613,8 +616,10 @@ for SYSTEM in $SYSTEMS; do
 
         for VERSION in $BOOST_VERSIONS; do
             copy_prebuilt "$BOOST_SUBDIR/$VERSION/include" "$BOOST_SUBDIR/$VERSION/"
+            copy_prebuilt "$BOOST_SUBDIR+icu/$VERSION/include" "$BOOST_SUBDIR+icu/$VERSION/"
             for BOOST_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$BOOST_SUBDIR/$VERSION/libs/$BOOST_ABI" "$BOOST_SUBDIR/$VERSION/libs"
+                copy_prebuilt "$BOOST_SUBDIR+icu/$VERSION/libs/$BOOST_ABI" "$BOOST_SUBDIR+icu/$VERSION/libs"
             done
         done
 
