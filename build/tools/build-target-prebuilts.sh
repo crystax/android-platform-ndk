@@ -216,9 +216,10 @@ dump "Building $ABIS sqlite3 binaries..."
 run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
 fail_panic "Could not build sqlite3"
 
-dump "Building $ABIS ICU binaries..."
-run $BUILDTOOLS/build-icu.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)
-fail_panic "Could not build ICU!"
+ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
+dump "Building $ABIS ICU-$ICU_VERSION binaries..."
+run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)
+fail_panic "Could not build ICU-$ICU_VERSION!"
 
 for VERSION in $BOOST_VERSIONS; do
     dump "Building $ABIS boost-$VERSION binaries..."
@@ -226,7 +227,7 @@ for VERSION in $BOOST_VERSIONS; do
     fail_panic "Could not build Boost-$VERSION!"
 
     dump "Building $ABIS boost+icu-$VERSION binaries..."
-    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=54.1 $(cd $SRC_DIR/../vendor/boost && pwd)
+    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=$ICU_VERSION $(cd $SRC_DIR/../vendor/boost && pwd)
     fail_panic "Could not build Boost+ICU-$VERSION!"
 done
 

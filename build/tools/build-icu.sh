@@ -62,7 +62,8 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 TOOLCHAIN_VERSION=4.9
 #register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
-ICU_VERSION=54.1
+ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
+register_var_option "--version=<ver>" ICU_VERSION "ICU version"
 
 register_jobs_option
 
