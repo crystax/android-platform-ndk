@@ -500,6 +500,12 @@ log "Copying Boost $BOOST_VERSION license"
 run cp -f $BOOST_SRCDIR/LICENSE_1_0.txt $BOOST_DSTDIR/
 fail_panic "Couldn't copy Boost $BOOST_VERSION license"
 
+OBJDUMP=$NDK_DIR/toolchains/arm-linux-androideabi-4.9/prebuilt/$(uname -s | tr '[A-Z]' '[a-z]')-$(uname -m)/bin/arm-linux-androideabi-objdump
+if [ ! -e $OBJDUMP ]; then
+    echo "ERROR: Can't find objdump: $OBJDUMP" 1>&2
+    exit 1
+fi
+
 # Generate Android.mk
 log "Generating $BOOST_DSTDIR/Android.mk"
 {
@@ -521,6 +527,9 @@ log "Generating $BOOST_DSTDIR/Android.mk"
             while read lib; do
                 echo ''
 
+                DEPS=$($OBJDUMP -p $BOOST_DSTDIR/libs/armeabi-v7a/lib${lib}.so 2>/dev/null | grep "^ *NEEDED\>" | awk '{print $2}' | \
+                    grep -v "^lib\(c\|dl\|crystax\|stdc++\|gnustl_shared\)\.so$" | sed 's,^lib\([^\.]*\)\.so$,\1,')
+
                 case $lib in
                     boost_context|boost_coroutine)
                         echo "# $lib doesn't support yet arm64 and mips64 targets"
@@ -535,6 +544,16 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                 echo "LOCAL_MODULE := ${lib}_${type}"
                 echo "LOCAL_SRC_FILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
                 echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
+                echo 'ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))'
+                echo 'LOCAL_EXPORT_LDLIBS := -latomic'
+                echo 'endif'
+                for d in $DEPS; do
+                    if [ "$type" = "static" ]; then
+                        echo "LOCAL_STATIC_LIBRARIES += ${d}_static"
+                    else
+                        echo "LOCAL_SHARED_LIBRARIES += ${d}_shared"
+                    fi
+                done
                 echo "include \$(PREBUILT_$(echo $type | tr '[a-z]' '[A-Z]')_LIBRARY)"
 
                 if [ "$has_if" = "yes" ]; then
@@ -543,6 +562,11 @@ log "Generating $BOOST_DSTDIR/Android.mk"
             done
         }
     done
+
+    if [ -n "$ICU_VERSION" ]; then
+        echo ''
+        echo "\$(call import-module,icu/$ICU_VERSION)"
+    fi
 } | cat >$BOOST_DSTDIR/Android.mk
 
 # If needed, package files into tarballs
