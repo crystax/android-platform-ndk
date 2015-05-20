@@ -111,6 +111,7 @@ class FileLogger < Logger
     def initialize(file, level = Log::DEBUG)
         super(level)
         @file = file
+        FileUtils.mkdir_p File.dirname(file)
     end
 
     def log(msg, l, options)
