@@ -7,18 +7,18 @@
 
 int main()
 {
-    struct timespec ts, ts2;
+    struct timespec ts1, ts2;
     int rc;
     int64_t diff;
 
-    if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
+    if (clock_gettime(CLOCK_REALTIME, &ts1) != 0) {
         printf("clock_gettime() failed: %s\n", strerror(errno));
         return 1;
     }
 
-    ts.tv_sec += 2;
+    ts1.tv_sec = 2;
 
-    rc = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, NULL);
+    rc = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts1, NULL);
     if (rc != 0) {
         printf("clock_nanosleep() failed: %s\n", strerror(rc));
         return 1;
@@ -29,14 +29,9 @@ int main()
         return 1;
     }
 
-    diff = ((int64_t)ts2.tv_sec)*1000000000LL + ts2.tv_nsec -
-        (((int64_t)ts.tv_sec)*1000000000LL + ts.tv_nsec);
-
-    if (diff < 0)
-        diff = -diff;
-
-    if (diff > 100000000LL) {
-        printf("clock_nanosleep() sleep longer than needed: diff=%" PRId64 "\n", diff);
+    diff = (((int64_t)ts2.tv_sec)*1000000000LL + ts2.tv_nsec) - (((int64_t)ts1.tv_sec)*1000000000LL + ts1.tv_nsec);
+    if (diff < 0) {
+        printf("clock_nanosleep() sleep slept negative time: diff=%" PRId64 "\n", diff);
         return 1;
     }
 
