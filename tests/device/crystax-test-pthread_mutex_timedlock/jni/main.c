@@ -149,8 +149,8 @@ void test_with_thread(pthread_mutex_t *mutex)
     FAIL_IF(rc != 0, "pthread_mutex_unlock failed: %s", strerror(rc));
 
     /* lock must timeout */
-    lock_mutex_on_thread(mutex, 5);
-    nano_sleep(1);
+    lock_mutex_on_thread(mutex, 600);
+    nano_sleep(10);
     get_time(&timeout);
     timeout.tv_sec += 2;
     rc = pthread_mutex_timedlock(mutex, &timeout);
