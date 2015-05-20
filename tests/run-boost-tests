@@ -519,7 +519,7 @@ def generate_toolchain(abi, type, version, dir)
 
 require 'fileutils'
 
-LINKER = ARGV.include?('-c') ? false : true
+LINKER = !ARGV.include?('-c') && !ARGV.include?('-emit-pth')
 
 # Remove any wrong input parameters
 $args = ARGV.reject { |a| ['-m32', '-m64', '-lrt', '-pthread', '-lpthread'].include?(a) }
