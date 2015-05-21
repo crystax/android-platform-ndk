@@ -10,8 +10,10 @@
 #error _GLIBCXX_USE_C99_STDINT_TR1 undefined!
 #endif
 
+#if __ANDROID__
 #if !defined(_GLIBCXX_USE_NANOSLEEP)
 #error _GLIBCXX_USE_NANOSLEEP undefined!
+#endif
 #endif
 
 #endif // __GLIBCXX__
