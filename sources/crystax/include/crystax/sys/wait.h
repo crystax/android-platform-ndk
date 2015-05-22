@@ -33,6 +33,7 @@
 #include <crystax/id.h>
 #include <android/api-level.h>
 #include <sys/cdefs.h>
+#include <sys/types.h>
 #include <linux/wait.h>
 
 #define WEXITSTATUS(s)  (((s) & 0xff00) >> 8)
