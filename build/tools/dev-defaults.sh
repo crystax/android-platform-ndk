@@ -64,6 +64,10 @@ SQLITE3_SUBDIR=sources/sqlite/3
 LIBPNG_SUBDIR=sources/libpng
 LIBPNG_VERSIONS="1.6.17"
 
+# Location of the libjpeg libraries, relative to the NDK root directory
+LIBJPEG_SUBDIR=sources/libjpeg
+LIBJPEG_VERSIONS="9a"
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=now
