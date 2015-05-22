@@ -31,6 +31,8 @@
 #define __CRYSTAX_INCLUDE_CRYSTAX_SYS_WAIT_H_B4D40916AEE346F48760F9FC7A56F390
 
 #include <crystax/id.h>
+#include <android/api-level.h>
+#include <sys/cdefs.h>
 #include <linux/wait.h>
 
 #define WEXITSTATUS(s)  (((s) & 0xff00) >> 8)
@@ -41,5 +43,18 @@
 #define WIFEXITED(s)    (WTERMSIG(s) == 0)
 #define WIFSTOPPED(s)   (WTERMSIG(s) == 0x7f)
 #define WIFSIGNALED(s)  (WTERMSIG((s)+1) >= 2)
+
+#if __ANDROID_API__ >= 21
+
+__BEGIN_DECLS
+
+static __inline__ pid_t  wait3(int *status, int options, struct rusage *rusage)
+{
+    return wait4(-1, status, options, rusage);
+}
+
+__END_DECLS
+
+#endif /* __ANDROID_API__ */
 
 #endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_WAIT_H_B4D40916AEE346F48760F9FC7A56F390 */
