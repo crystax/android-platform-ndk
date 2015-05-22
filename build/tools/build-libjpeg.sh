@@ -121,8 +121,6 @@ build_libjpeg_for_abi()
 
     dump "Building libjpeg-$LIBJPEG_VERSION $TYPE $ABI libraries"
 
-    local STANDALONE="$BUILDDIR/toolchain"
-
     local APILEVEL
     case $ABI in
         armeabi*|x86|mips)
@@ -176,15 +174,6 @@ build_libjpeg_for_abi()
             echo "ERROR: Unknown ABI: '$ABI'" 1>&2
             exit 1
     esac
-
-    run $NDK_DIR/build/tools/make-standalone-toolchain.sh \
-        --arch=$ARCH \
-        --abis=$ABI \
-        --platform=android-$APILEVEL \
-        --toolchain=${TOOLCHAIN}-4.9 \
-        --install-dir=$STANDALONE \
-
-    fail_panic "Can't create standalone toolchain for $ABI"
 
     local SRCDIR="$BUILDDIR/src"
     run git clone -b v$LIBJPEG_VERSION $LIBJPEG_SRCDIR $SRCDIR
@@ -245,10 +234,15 @@ build_libjpeg_for_abi()
             CFLAGS="$CFLAGS -mthumb"
     esac
 
+    CFLAGS="$CFLAGS --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH"
+
     LDFLAGS=""
     if [ "$ABI" = "armeabi-v7a-hard" ]; then
         LDFLAGS="$LDFLAGS -Wl,--no-warn-mismatch"
     fi
+    LDFLAGS="$LDFLAGS -L$NDK_DIR/sources/crystax/libs/$ABI"
+
+    local TCPREFIX=$NDK_DIR/toolchains/${TOOLCHAIN}-4.9/prebuilt/$HOST_TAG
 
     CC=$BUILDDIR/cc
     {
@@ -268,15 +262,15 @@ build_libjpeg_for_abi()
         echo '    esac'
         echo "    ARGS=\"\$ARGS \$p\""
         echo "done"
-        echo "exec $STANDALONE/bin/${HOST}-gcc \$ARGS"
+        echo "exec $TCPREFIX/bin/${HOST}-gcc \$ARGS"
     } >$CC
     fail_panic "Can't create cc wrapper"
     chmod +x $CC
     fail_panic "Can't chmod +x cc wrapper"
 
-    CPP=$STANDALONE/bin/${HOST}-cpp
-    AR=$STANDALONE/bin/${HOST}-ar
-    RANLIB=$STANDALONE/bin/${HOST}-ranlib
+    CPP="$CC $CFLAGS -E"
+    AR=$TCPREFIX/bin/${HOST}-ar
+    RANLIB=$TCPREFIX/bin/${HOST}-ranlib
     export CC CPP AR RANLIB
     export CFLAGS LDFLAGS
 
