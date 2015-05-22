@@ -216,6 +216,12 @@ dump "Building $ABIS sqlite3 binaries..."
 run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
 fail_panic "Could not build sqlite3"
 
+for LIBPNG_VERSION in $LIBPNG_VERSIONS; do
+    dump "Building $ABIS libpng-$LIBPNG_VERSION binaries..."
+    run $BUILDTOOLS/build-libpng.sh $FLAGS --abis="$ABIS" --version=$LIBPNG_VERSION $(cd $SRC_DIR/../vendor/libpng && pwd)
+    fail_panic "Could not build libpng-$LIBPNG_VERSION"
+done
+
 ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
 dump "Building $ABIS ICU-$ICU_VERSION binaries..."
 run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)

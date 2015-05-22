@@ -455,6 +455,9 @@ if [ -z "$PREBUILT_NDK" ]; then
 
     unpack_prebuilt sqlite3-build-files "$REFERENCE"
     unpack_prebuilt sqlite3-headers "$REFERENCE"
+    for VERSION in $LIBPNG_VERSIONS; do
+        unpack_prebuilt libpng-$VERSION-headers "$REFERENCE"
+    done
     for VERSION in $ICU_VERSIONS; do
         unpack_prebuilt icu-$VERSION-build-files "$REFERENCE"
         unpack_prebuilt icu-$VERSION-headers "$REFERENCE"
@@ -480,6 +483,9 @@ if [ -z "$PREBUILT_NDK" ]; then
         done
         unpack_prebuilt objc2-libs-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
+        for VERSION in $LIBPNG_VERSIONS; do
+            unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
+        done
         for VERSION in $ICU_VERSIONS; do
             unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
         done
@@ -605,6 +611,13 @@ for SYSTEM in $SYSTEMS; do
         copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
         for SQLITE3_ABI in $PREBUILT_ABIS; do
             copy_prebuilt "$SQLITE3_SUBDIR/libs/$SQLITE3_ABI" "$SQLITE3_SUBDIR/libs"
+        done
+
+        for VERSION in $LIBPNG_VERSIONS; do
+            copy_prebuilt "$LIBPNG_SUBDIR/$VERSION/include" "$LIBPNG_SUBDIR/$VERSION/"
+            for LIBPNG_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$LIBPNG_SUBDIR/$VERSION/libs/$LIBPNG_ABI" "$LIBPNG_SUBDIR/$VERSION/libs"
+            done
         done
 
         for VERSION in $ICU_VERSIONS; do
