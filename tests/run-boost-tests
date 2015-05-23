@@ -695,17 +695,17 @@ def copy_boost(dir)
     FileUtils.rm_f dir rescue nil
 
     FileUtils.mkdir_p dir
-    run 'rsync', '--exclude=.git', '-a', "#{BOOST_SRCDIR}/", dir
+    run 'rsync', '-a', "#{BOOST_SRCDIR}/", dir
 end
 
 def copy_boost_bb(dir)
     FileUtils.mkdir_p dir
-    run 'rsync', '--exclude=.git', '-a', "#{BOOST_BB_SRCDIR}/", dir
+    run 'rsync', '-a', "#{BOOST_BB_SRCDIR}/", dir
 end
 
 def copy_boost_rr(dir)
     FileUtils.mkdir_p dir
-    run 'rsync', '--exclude=.git', '-a', "#{BOOST_RR_SRCDIR}/", dir
+    run 'rsync', '-a', "#{BOOST_RR_SRCDIR}/", dir
 end
 
 PJL = "/tmp/process_jam_log.#{SecureRandom.uuid}"
