@@ -112,14 +112,12 @@ fail_panic "Could not setup target build"
 
 # $1: ABI
 # $2: build directory
-# $3: build type: "static" or "shared"
 build_libjpeg_for_abi()
 {
     local ABI="$1"
     local BUILDDIR="$2"
-    local TYPE="$3"
 
-    dump "Building libjpeg-$LIBJPEG_VERSION $TYPE $ABI libraries"
+    dump "Building libjpeg-$LIBJPEG_VERSION $ABI libraries"
 
     local APILEVEL
     case $ABI in
@@ -208,13 +206,6 @@ build_libjpeg_for_abi()
 
     local INSTALLDIR="$BUILDDIR/install"
 
-    local EXTRA_ARGS=""
-    if [ "$TYPE" = "shared" ]; then
-        EXTRA_ARGS="$EXTRA_ARGS --enable-shared --disable-static"
-    elif [ "$TYPE" = "static" ]; then
-        EXTRA_ARGS="$EXTRA_ARGS --disable-shared --enable-static"
-    fi
-
     case $ABI in
         armeabi)
             CFLAGS="-march=armv5te -mtune=xscale -msoft-float"
@@ -276,9 +267,11 @@ build_libjpeg_for_abi()
 
     run ./configure --prefix=$INSTALLDIR \
         --host=$HOST \
+        --enable-shared \
+        --enable-static \
         --with-pic \
         --disable-ld-version-script \
-        $EXTRA_ARGS
+
     fail_panic "Can't configure $ABI libjpeg-$LIBJPEG_VERSION"
 
     run make -j$NUM_JOBS
@@ -298,23 +291,17 @@ build_libjpeg_for_abi()
         export LIBJPEG_HEADERS_INSTALLED
     fi
 
-    log "Install libjpeg-$LIBJPEG_VERSION $TYPE $ABI libraries into $LIBJPEG_DSTDIR"
+    log "Install libjpeg-$LIBJPEG_VERSION $ABI libraries into $LIBJPEG_DSTDIR"
     run mkdir -p $LIBJPEG_DSTDIR/libs/$ABI
     fail_panic "Can't create libjpeg-$LIBJPEG_VERSION target $ABI libraries directory"
 
-    local LIBSUFFIX
-    if [ "$TYPE" = "shared" ]; then
-        LIBSUFFIX=so
-    else
-        LIBSUFFIX=a
-    fi
-
-    rm -f $LIBJPEG_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
-    for f in $(find $INSTALLDIR -name "lib*.$LIBSUFFIX" -print); do
-        run rsync -aL $f $LIBJPEG_DSTDIR/libs/$ABI
-        fail_panic "Can't install $ABI libjpeg-$LIBJPEG_VERSION libraries"
+    for LIBSUFFIX in a so; do
+        rm -f $LIBJPEG_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
+        for f in $(find $INSTALLDIR -name "lib*.$LIBSUFFIX" -print); do
+            run rsync -aL $f $LIBJPEG_DSTDIR/libs/$ABI
+            fail_panic "Can't install $ABI libjpeg-$LIBJPEG_VERSION libraries"
+        done
     done
-
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
@@ -346,8 +333,7 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_libjpeg_for_abi "$ABI" "$BUILD_DIR/$ABI/shared" shared
-        build_libjpeg_for_abi "$ABI" "$BUILD_DIR/$ABI/static" static
+        build_libjpeg_for_abi "$ABI" "$BUILD_DIR/$ABI"
     fi
 done
 
