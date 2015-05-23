@@ -112,14 +112,12 @@ fail_panic "Could not setup target build"
 
 # $1: ABI
 # $2: build directory
-# $3: build type: "static" or "shared"
 build_libpng_for_abi()
 {
     local ABI="$1"
     local BUILDDIR="$2"
-    local TYPE="$3"
 
-    dump "Building libpng-$LIBPNG_VERSION $TYPE $ABI libraries"
+    dump "Building libpng-$LIBPNG_VERSION $ABI libraries"
 
     local APILEVEL
     case $ABI in
@@ -212,12 +210,6 @@ build_libpng_for_abi()
     local INSTALLDIR="$BUILDDIR/install"
 
     local EXTRA_ARGS=""
-    if [ "$TYPE" = "shared" ]; then
-        EXTRA_ARGS="$EXTRA_ARGS --enable-shared --disable-static"
-    elif [ "$TYPE" = "static" ]; then
-        EXTRA_ARGS="$EXTRA_ARGS --disable-shared --enable-static"
-    fi
-
     case $ABI in
         armeabi-v7a*)
             EXTRA_ARGS="$EXTRA_ARGS --enable-arm-neon=api"
@@ -262,6 +254,8 @@ build_libpng_for_abi()
 
     run ./configure --prefix=$INSTALLDIR \
         --host=$HOST \
+        --enable-shared \
+        --enable-static \
         --enable-werror \
         --enable-unversioned-links \
         --with-pic \
@@ -285,24 +279,20 @@ build_libpng_for_abi()
         export LIBPNG_HEADERS_INSTALLED
     fi
 
-    log "Install libpng-$LIBPNG_VERSION $TYPE $ABI libraries into $LIBPNG_DSTDIR"
+    log "Install libpng-$LIBPNG_VERSION $ABI libraries into $LIBPNG_DSTDIR"
     run mkdir -p $LIBPNG_DSTDIR/libs/$ABI
     fail_panic "Can't create libpng-$LIBPNG_VERSION target $ABI libraries directory"
 
     local LIBSUFFIX
-    if [ "$TYPE" = "shared" ]; then
-        LIBSUFFIX=so
-    else
-        LIBSUFFIX=a
-    fi
+    for LIBSUFFIX in a so; do
+        rm -f $LIBPNG_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
+        for f in $(find $INSTALLDIR -name "lib*.$LIBSUFFIX" -print); do
+            # Skip symlinks
+            test -L $f && continue
 
-    rm -f $LIBPNG_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
-    for f in $(find $INSTALLDIR -name "lib*.$LIBSUFFIX" -print); do
-        # Skip symlinks
-        test -L $f && continue
-
-        run rsync -aL $f $LIBPNG_DSTDIR/libs/$ABI
-        fail_panic "Can't install $ABI libpng-$LIBPNG_VERSION libraries"
+            run rsync -aL $f $LIBPNG_DSTDIR/libs/$ABI
+            fail_panic "Can't install $ABI libpng-$LIBPNG_VERSION libraries"
+        done
     done
 }
 
@@ -335,8 +325,7 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_libpng_for_abi "$ABI" "$BUILD_DIR/$ABI/shared" shared
-        build_libpng_for_abi "$ABI" "$BUILD_DIR/$ABI/static" static
+        build_libpng_for_abi "$ABI" "$BUILD_DIR/$ABI"
     fi
 done
 
