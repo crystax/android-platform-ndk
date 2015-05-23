@@ -609,6 +609,129 @@ for ABI in $(tr ',' ' ' <<< $ABIS); do
   copy_crystax_libs_for_abi "$ABI"
 done
 
+dump "Copying libpng headers and libraries..."
+
+LIBPNG_DIR=$NDK_DIR/$LIBPNG_SUBDIR/$(echo $LIBPNG_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
+LIBPNG_LIBS=$LIBPNG_DIR/libs
+
+# $1: ABI
+copy_libpng_libs_for_abi()
+{
+    local ABI=$1
+
+    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
+        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
+        exit 1
+    fi
+
+    local LABI
+    local LIB
+
+    for LIB in libpng16.a libpng16.so; do
+        case $ABI in
+            armeabi*)
+                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
+                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
+                #
+                copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
+                copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
+                #
+                copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
+                copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            *)
+                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
+        esac
+    done
+}
+
+copy_directory "$LIBPNG_DIR/include" "$ABI_TARGET/include"
+for ABI in $(tr ',' ' ' <<< $ABIS); do
+    copy_libpng_libs_for_abi "$ABI"
+done
+
+dump "Copying libjpeg headers and libraries..."
+
+LIBJPEG_DIR=$NDK_DIR/$LIBJPEG_SUBDIR/$(echo $LIBJPEG_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
+LIBJPEG_LIBS=$LIBJPEG_DIR/libs
+
+# $1: ABI
+copy_libjpeg_libs_for_abi()
+{
+    local ABI=$1
+
+    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
+        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
+        exit 1
+    fi
+
+    local LABI
+    local LIB
+
+    for LIB in libjpeg.a libjpeg.so; do
+        case $ABI in
+            armeabi*)
+                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
+                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
+                #
+                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
+                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
+                #
+                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
+                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            *)
+                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
+        esac
+    done
+}
+
+copy_directory "$LIBJPEG_DIR/include" "$ABI_TARGET/include"
+for ABI in $(tr ',' ' ' <<< $ABIS); do
+    copy_libjpeg_libs_for_abi "$ABI"
+done
+
+dump "Copying libtiff headers and libraries..."
+
+LIBTIFF_DIR=$NDK_DIR/$LIBTIFF_SUBDIR/$(echo $LIBTIFF_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
+LIBTIFF_LIBS=$LIBTIFF_DIR/libs
+
+# $1: ABI
+copy_libtiff_libs_for_abi()
+{
+    local ABI=$1
+
+    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
+        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
+        exit 1
+    fi
+
+    local LABI
+    local LIB
+
+    for LIB in libtiff.a libtiff.so libtiffxx.a libtiffxx.so; do
+        case $ABI in
+            armeabi*)
+                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
+                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
+                #
+                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
+                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
+                #
+                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
+                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            *)
+                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
+        esac
+    done
+}
+
+copy_directory "$LIBTIFF_DIR/include" "$ABI_TARGET/include"
+for ABI in $(tr ',' ' ' <<< $ABIS); do
+    copy_libtiff_libs_for_abi "$ABI"
+done
+
 dump "Copying libobjc headers and libraries..."
 
 GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
