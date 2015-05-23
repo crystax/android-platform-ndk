@@ -228,6 +228,12 @@ for LIBJPEG_VERSION in $LIBJPEG_VERSIONS; do
     fail_panic "Could not build libjpeg-$LIBJPEG_VERSION"
 done
 
+for LIBTIFF_VERSION in $LIBTIFF_VERSIONS; do
+    dump "Building $ABIS libtiff-$LIBTIFF_VERSION binaries..."
+    run $BUILDTOOLS/build-libtiff.sh $FLAGS --abis="$ABIS" --version=$LIBTIFF_VERSION $(cd $SRC_DIR/../vendor/libtiff && pwd)
+    fail_panic "Could not build libtiff-$LIBTIFF_VERSION"
+done
+
 ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
 dump "Building $ABIS ICU-$ICU_VERSION binaries..."
 run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)

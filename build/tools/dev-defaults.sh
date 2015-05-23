@@ -68,6 +68,10 @@ LIBPNG_VERSIONS="1.6.17"
 LIBJPEG_SUBDIR=sources/libjpeg
 LIBJPEG_VERSIONS="9a"
 
+# Location of the libtiff libraries, relative to the NDK root directory
+LIBTIFF_SUBDIR=sources/libtiff
+LIBTIFF_VERSIONS="4.0.4beta"
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=now
