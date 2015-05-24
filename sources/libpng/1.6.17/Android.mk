@@ -29,14 +29,14 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libpng_static
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/libpng16.a
+LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/libpng.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_EXPORT_LDLIBS := -lz
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libpng_shared
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/libpng16.so
+LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/libpng.so
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_EXPORT_LDLIBS := -lz
 include $(PREBUILT_SHARED_LIBRARY)

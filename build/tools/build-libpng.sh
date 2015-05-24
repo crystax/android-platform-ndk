@@ -245,7 +245,30 @@ build_libpng_for_abi()
 
     local TCPREFIX=$NDK_DIR/toolchains/${TOOLCHAIN}-4.9/prebuilt/$HOST_TAG
 
-    CC=$TCPREFIX/bin/${HOST}-gcc
+    CC=$BUILDDIR/cc
+    {
+        echo "#!/bin/bash"
+        echo "ARGS="
+        echo 'NEXT_ARG_IS_SONAME=no'
+        echo "for p in \"\$@\"; do"
+        echo '    case $p in'
+        echo '        -Wl,-soname)'
+        echo '            NEXT_ARG_IS_SONAME=yes'
+        echo '            ;;'
+        echo '        *)'
+        echo '            if [ "$NEXT_ARG_IS_SONAME" = "yes" ]; then'
+        echo '                p=$(echo $p | sed "s,libpng.*\.so.*$,libpng.so,")'
+        echo '                NEXT_ARG_IS_SONAME=no'
+        echo '            fi'
+        echo '    esac'
+        echo "    ARGS=\"\$ARGS \$p\""
+        echo "done"
+        echo "exec $TCPREFIX/bin/${HOST}-gcc \$ARGS"
+    } >$CC
+    fail_panic "Can't create cc wrapper"
+    chmod +x $CC
+    fail_panic "Can't chmod +x cc wrapper"
+
     CPP="$CC $CFLAGS -E"
     AR=$TCPREFIX/bin/${HOST}-ar
     RANLIB=$TCPREFIX/bin/${HOST}-ranlib
@@ -285,14 +308,9 @@ build_libpng_for_abi()
 
     local LIBSUFFIX
     for LIBSUFFIX in a so; do
-        rm -f $LIBPNG_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
-        for f in $(find $INSTALLDIR -name "lib*.$LIBSUFFIX" -print); do
-            # Skip symlinks
-            test -L $f && continue
-
-            run rsync -aL $f $LIBPNG_DSTDIR/libs/$ABI
-            fail_panic "Can't install $ABI libpng-$LIBPNG_VERSION libraries"
-        done
+        rm -f $LIBPNG_DSTDIR/libs/$ABI/libpng.$LIBSUFFIX
+        run rsync -aL $INSTALLDIR/lib/libpng.$LIBSUFFIX $LIBPNG_DSTDIR/libs/$ABI
+        fail_panic "Can't install $ABI libpng-$LIBPNG_VERSION libraries"
     done
 }
 
