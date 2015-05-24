@@ -627,7 +627,7 @@ copy_libpng_libs_for_abi()
     local LABI
     local LIB
 
-    for LIB in libpng16.a libpng16.so; do
+    for LIB in libpng.a libpng.so; do
         case $ABI in
             armeabi*)
                 copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
