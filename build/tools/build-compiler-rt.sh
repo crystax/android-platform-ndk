@@ -235,7 +235,11 @@ build_compiler_rt_libs_for_abi ()
         COMPILER_RT_CFLAGS="$COMPILER_RT_CFLAGS -fintegrated-as"
     fi
 
-    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "android-$FIRST_API64_LEVEL"
+    if [ -z "$PLATFORM" ]; then
+        PLATFORM="android-$FIRST_API64_LEVEL"
+    fi
+
+    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "$PLATFORM"
     builder_set_srcdir "$SRC_DIR"
     builder_set_dstdir "$DSTDIR"
 
