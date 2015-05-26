@@ -151,7 +151,10 @@ class StandaloneTests
 
         toolchain << "-#{@toolchain_version.sub(/^gcc-?/, '')}"
 
-        args = [File.join(@ndk, 'build', 'tools', 'make-standalone-toolchain.sh')]
+        script = File.join(@ndk, 'build', 'tools', 'make-standalone-toolchain.sh')
+        raise "No #!/bin/bash in make-standalone-toolchain.sh" if File.read(script).split("\n").first != "#!/bin/bash"
+
+        args = [script]
         args << "--verbose"
         args << "--install-dir=#{toolchain_dir(abi)}"
         args << "--abis=#{abi}"
