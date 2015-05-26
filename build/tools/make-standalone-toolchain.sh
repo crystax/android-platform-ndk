@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright (C) 2010, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
