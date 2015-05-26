@@ -933,7 +933,7 @@ copy_stl_libs_for_abi () {
         armeabi-v7a-hard)
             if [ "$STL" = "gnustl" ]; then
                 copy_stl_libs armeabi-v7a-hard "armv7-a/hard/bits"        "bits"  "armv7-a/hard"        "."
-                copy_stl_libs armeabi-v7a-hard "armv7-a/hard/thumb/bits"  "bits"  "armv7-a/hard/thumb"  "thumb"
+                copy_stl_libs armeabi-v7a-hard "armv7-a/thumb/hard/bits"  "bits"  "armv7-a/thumb/hard"  "thumb"
             else
                 copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/hard"        "."
                 copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/thumb/hard"  "thumb"
