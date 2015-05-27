@@ -251,8 +251,17 @@ class Project
             FileUtils.mkdir_p File.dirname(dir)
             FileUtils.cp_r path, dir
 
-            cmd = "#{ENV['GNUMAKE'] || 'make'} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
-            run_cmd cmd, errmsg: "On-host test of #{name} failed"
+            max_attempts = 5
+            attempt = 1
+            begin
+                cmd = "#{ENV['GNUMAKE'] || 'make'} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
+                run_cmd cmd, errmsg: "On-host test of #{name} failed", track_mkdir_errors: true
+            rescue MkdirFailed
+                attempt += 1
+                raise "On-host testing of project #{name} failed" if attempt > max_attempts
+                log_info "WARNING: On-host testing of '#{name}' failed due to 'mkdir' error; trying again (attempt ##{attempt})"
+                retry
+            end
 
             FileUtils.rm_rf dir
         end
