@@ -41,6 +41,7 @@ module Crystax
   VERSIONS = {
     'libffi'           => '3.2.1',
     'openssl'          => '1.0.2a',
+    'libssh2'          => '1.5.0',
     'curl'             => '7.42.0',
     'openssh-portable' => '6.8.P1',
     'git'              => '2.4.0',
