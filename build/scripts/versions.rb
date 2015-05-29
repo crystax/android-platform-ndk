@@ -43,7 +43,6 @@ module Crystax
     'openssl'          => '1.0.2a',
     'libssh2'          => '1.5.0',
     'curl'             => '7.42.0',
-    'openssh-portable' => '6.8.P1',
     'git'              => '2.4.0',
     'ruby'             => '2.2.2',
     'p7zip'            => '9.20.1'
