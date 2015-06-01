@@ -1,0 +1,119 @@
+#!/usr/bin/env ruby
+#
+# Build LIBSSH2 to use it with Crystax NDK's vendor utils
+#
+# Copyright (c) 2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#    1. Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation
+# are those of the authors and should not be interpreted as representing
+# official policies, either expressed or implied, of CrystaX .NET.
+#
+
+require_relative 'versions.rb'
+
+module Crystax
+
+  PKG_NAME = 'libgit2'
+
+end
+
+require 'fileutils'
+require_relative 'logger.rb'
+require_relative 'commander.rb'
+require_relative 'builder.rb'
+require_relative 'cache.rb'
+
+
+# def check_version
+#   v = File.read("#{Common::SRC_DIR}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
+#   if !v or v.size == 0
+#     raise "can't find '#define RUBY_VERSION' string"
+#   end
+#   ver = v[0].split(' ')[2].split('"')[1]
+#   if ver != Crystax::VERSIONS['ruby']
+#     raise "bad ruby version: repository: #{ver}; expected: #{Crystax::VERSIONS['ruby']}"
+#   end
+# end
+
+
+begin
+  Common.parse_options
+
+  Logger.open_log_file Common.log_file
+  archive = Common.make_archive_name
+  Logger.msg "building #{archive}; args: #{ARGV}"
+
+  if Cache.try?(archive)
+    Logger.msg "done"
+    exit 0
+  end
+
+  libsincdir = libslibdir = ""
+  if Common.target_os == 'windows'
+    libsdir = "#{Common::BUILD_BASE}/libs"
+    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+    Builder.build_zlib(libsdir)
+    libsincdir = "-I#{libsdir}/include"
+    liblibdir = "-L#{libsdir}/lib"
+  end
+
+  openssldir = Builder.prepare_dependency('openssl')
+  libssh2dir = Builder.prepare_dependency('libssh2')
+
+  Logger.msg "= building libgit2"
+  #check_version
+  Builder.copy_sources
+  FileUtils.cd(Common::BUILD_DIR) do
+    env = { 'CC' => Builder.cc,
+            'EXTRA_CFLAGS' => "#{Builder.cflags}",
+            'EXTRA_DEFINES' => "-DGIT_SSL -DOPENSSL_SHA1 -DGIT_SSH",
+            'EXTRA_INCLUDES' => "-I#{openssldir}/include -I#{libssh2dir}/include",
+            'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
+          }
+    if Common.target_os == 'windows'
+      MINGW_FLAG = "MINGW=1"
+    else
+      MINGW_FLAG = ''
+    end
+    Commander::run env, "make -f Makefile.crystax #{MINGW_FLAG}"
+    FileUtils.mkdir_p ["#{Common.install_dir}/lib", "#{Common.install_dir}/include"]
+    FileUtils.cp "./libgit2.a", "#{Common.install_dir}/lib/"
+    FileUtils.cp "./include/git2.h", "#{Common.install_dir}/include/"
+    FileUtils.cp_r "./include/git2", "#{Common.install_dir}/include/"
+  end
+
+  Cache.add(archive)
+
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
+else
+  Builder.clean
+end
