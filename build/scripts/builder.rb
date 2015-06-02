@@ -98,6 +98,17 @@ module Builder
     end
   end
 
+  def self.pic_flags
+    case Common.target_os
+    when 'darwin', 'linux'
+      '-fPIC'
+    when 'windows'
+      ''
+    else
+      raise UnknownTargetOS, Common.target_os, caller
+    end
+  end
+
   def self.toolchain_path_and_path
     case Common.target_platform
     when 'windows-x86_64'

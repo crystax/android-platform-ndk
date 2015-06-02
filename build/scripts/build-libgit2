@@ -73,15 +73,6 @@ begin
     exit 0
   end
 
-  libsincdir = libslibdir = ""
-  if Common.target_os == 'windows'
-    libsdir = "#{Common::BUILD_BASE}/libs"
-    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-    Builder.build_zlib(libsdir)
-    libsincdir = "-I#{libsdir}/include"
-    liblibdir = "-L#{libsdir}/lib"
-  end
-
   openssldir = Builder.prepare_dependency('openssl')
   libssh2dir = Builder.prepare_dependency('libssh2')
 
@@ -90,7 +81,7 @@ begin
   Builder.copy_sources
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'EXTRA_CFLAGS' => "#{Builder.cflags}",
+            'EXTRA_CFLAGS' => "#{Builder.cflags} #{Builder.pic_flags}",
             'EXTRA_DEFINES' => "-DGIT_SSL -DOPENSSL_SHA1 -DGIT_SSH",
             'EXTRA_INCLUDES' => "-I#{openssldir}/include -I#{libssh2dir}/include",
             'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'

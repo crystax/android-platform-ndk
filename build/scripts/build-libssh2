@@ -90,7 +90,7 @@ begin
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -I#{openssldir}/include #{libsincdir}",
+            'CFLAGS' => "#{Builder.cflags} -I#{openssldir}/include #{libsincdir} #{Builder.pic_flags}",
             'LDFLAGS' => "-L#{openssldir}/lib #{libslibdir}",
             'DESTDIR' => Common.install_dir,
             'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
