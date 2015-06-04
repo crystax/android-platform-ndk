@@ -347,7 +347,10 @@ for SYSTEM in $SYSTEMS; do
     fi
     for LLVM_VERSION in $LLVM_VERSION_LIST; do
         echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
-        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG -j$BUILD_NUM_CPUS
+        if [ "$LLVM_VERSION" = "3.5" ]; then
+            MCLINKER="--mclinker"
+        fi
+        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG -j$BUILD_NUM_CPUS $MCLINKER
         fail_panic "Could not build llvm for $SYSNAME"
     done
 
@@ -366,8 +369,8 @@ for SYSTEM in $SYSTEMS; do
     fi
 
     # build crystax vendor utils
-    $SCRIPTS_DIR/build-vendor-utils --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
-    fail_panic "Failed to build vendor utils"
+    #$SCRIPTS_DIR/build-vendor-utils --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
+    #fail_panic "Failed to build vendor utils"
     
     # We're done for this system
 done

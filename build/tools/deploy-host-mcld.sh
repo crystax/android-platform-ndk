@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2013 The Android Open Source Project
+# Copyright (C) 2013, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ If --systems isn't specified, this script discovers all ld.mcld[.exe] in
 toolchains/llvm-$DEFAULT_LLVM_VERSION
 
 Note that one copy of ld.mcld serves all GCC {4.9, 4.8} x {arm, x86, mips} and
-LLVM {3.4, 3.5}.
+LLVM {3.4, 3.5, 3.6}.
 
 GCC passes -m flag for ld.mcld to figure out the right target.
 "
@@ -82,13 +82,26 @@ if [ -z "$SYSTEMS" ]; then
     done
 fi
 
+# zuav: default llvm version is set to 3.6 but mclinker in not build with 3.6
+#       hence we set default llvm version to 3.5 here
+DEFAULT_LLVM_VERSION=3.5
+
 for SYSTEM in $SYSTEMS; do
+    ARCHIVE="ld.mcld-$SYSTEM.tar.bz2"
+    if [ "$PACKAGE_DIR" ]; then
+        # will exit if cached package found
+        try_cached_package "$PACKAGE_DIR" "$ARCHIVE" no_exit
+        if [ $? = 0 ]; then
+            continue
+        fi
+    fi
+
     HOST_EXE=
     if [ "$SYSTEM" != "${SYSTEM%%windows*}" ] ; then
         HOST_EXE=.exe
     fi
 
-    MCLD=toolchains/llvm-$DEFAULT_LLVM_VERSION/prebuilt/$SYSTEM/bin/ld.mcld$HOST_EXE
+    MCLD=toolchains/llvm-3.5/prebuilt/$SYSTEM/bin/ld.mcld$HOST_EXE
     test -f "$MCLD" || fail_panic "Could not find $MCLD"
 
     ALL_LD_MCLDS=
@@ -121,10 +134,10 @@ for SYSTEM in $SYSTEMS; do
 
     # package
     if [ "$PACKAGE_DIR" ]; then
-        ARCHIVE="ld.mcld-$SYSTEM.tar.bz2"
-        #echo $ARCHIVE
         echo  "Packaging $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" $ALL_LD_MCLDS
+        fail_panic "Could not package archive: $PACKAGE_DIR/$ARCHIVE"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
     fi
 done
 

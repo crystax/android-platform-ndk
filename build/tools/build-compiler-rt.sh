@@ -111,6 +111,7 @@ COMPILER_RT_GENERIC_SOURCES=$(filter_out "$UNUSED_SOURCES" "$COMPILER_RT_GENERIC
 # ARM specific
 COMPILER_RT_ARM_SOURCES="
 lib/builtins/arm/aeabi_dcmp.S \
+lib/builtins/arm/aeabi_div0.c \
 lib/builtins/arm/aeabi_fcmp.S \
 lib/builtins/arm/aeabi_idivmod.S \
 lib/builtins/arm/aeabi_ldivmod.S \
@@ -126,8 +127,7 @@ lib/builtins/arm/divsi3.S
 lib/builtins/arm/modsi3.S
 lib/builtins/arm/udivmodsi4.S
 lib/builtins/arm/udivsi3.S
-lib/builtins/arm/umodsi3.S
-lib/builtins/arm/idiv0.c"
+lib/builtins/arm/umodsi3.S"
 
 # X86 specific
 COMPILER_RT_X86_SOURCES="
@@ -235,7 +235,11 @@ build_compiler_rt_libs_for_abi ()
         COMPILER_RT_CFLAGS="$COMPILER_RT_CFLAGS -fintegrated-as"
     fi
 
-    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "android-$FIRST_API64_LEVEL"
+    if [ -z "$PLATFORM" ]; then
+        PLATFORM="android-$FIRST_API64_LEVEL"
+    fi
+
+    builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE" "$PLATFORM"
     builder_set_srcdir "$SRC_DIR"
     builder_set_dstdir "$DSTDIR"
 
