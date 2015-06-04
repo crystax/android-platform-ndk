@@ -166,8 +166,7 @@ run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
 
 dump "Building $ABIS compiler-rt binaries..."
-#run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
-run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-3.5/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=3.5
+run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
 fail_panic "Could not build compiler-rt!"
 
 dump "Building $ABIS gabi++ binaries..."
