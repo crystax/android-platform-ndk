@@ -12,26 +12,26 @@
 // The flag _LIBCXX_DYNAMIC_FALLBACK is used to make dynamic_cast more
 // forgiving when type_info's mistakenly have hidden visibility and thus
 // multiple type_infos can exist for a single type.
-// 
+//
 // When _LIBCXX_DYNAMIC_FALLBACK is defined, and only in the case where
 // there is a detected inconsistency in the type_info hierarchy during a
 // dynamic_cast, then the equality operation will fall back to using strcmp
 // on type_info names to determine type_info equality.
-// 
+//
 // This change happens *only* under dynamic_cast, and only when
 // dynamic_cast is faced with the choice:  abort, or possibly give back the
 // wrong answer.  If when the dynamic_cast is done with this fallback
 // algorithm and an inconsistency is still detected, dynamic_cast will call
 // abort with an appropriate message.
-// 
+//
 // The current implementation of _LIBCXX_DYNAMIC_FALLBACK requires a
 // printf-like function called syslog:
-// 
+//
 //     void syslog(int facility_priority, const char* format, ...);
-// 
+//
 // If you want this functionality but your platform doesn't have syslog,
 // just implement it in terms of fprintf(stderr, ...).
-// 
+//
 // _LIBCXX_DYNAMIC_FALLBACK is currently off by default.
 
 #if _LIBCXX_DYNAMIC_FALLBACK
@@ -45,7 +45,7 @@
 // for typeids from a DLL and an executable. Among other things, exceptions
 // are not caught by handlers since can_catch() returns false.
 //
-// Defining _LIBCXX_DYNAMIC_FALLBACK does not help since can_catch() calls 
+// Defining _LIBCXX_DYNAMIC_FALLBACK does not help since can_catch() calls
 // is_equal() with use_strcmp=false so the string names are not compared.
 
 #ifdef _WIN32
@@ -78,7 +78,7 @@ is_equal(const std::type_info* x, const std::type_info* y, bool)
     return x == y;
 #else
     return (x == y) || (strcmp(x->name(), y->name()) == 0);
-#endif    
+#endif
 }
 
 #endif  // _LIBCXX_DYNAMIC_FALLBACK
@@ -172,15 +172,15 @@ __pointer_to_member_type_info::~__pointer_to_member_type_info()
 //      std::nullptr_t.
 
 // adjustedPtr:
-// 
+//
 // catch (A& a) : adjustedPtr == &a
 // catch (A* a) : adjustedPtr == a
 // catch (A** a) : adjustedPtr == a
-// 
+//
 // catch (D2& d2) : adjustedPtr == &d2  (d2 is base class of thrown object)
 // catch (D2* d2) : adjustedPtr == d2
 // catch (D2*& d2) : adjustedPtr == d2
-// 
+//
 // catch (...) : adjustedPtr == & of the exception
 
 // Handles bullet 1
@@ -519,7 +519,7 @@ __dynamic_cast(const void* static_ptr,
             // We get here only if there is some kind of visibility problem
             //   in client code.
             syslog(LOG_ERR, "dynamic_cast error 1: Both of the following type_info's "
-                    "should have public visibility.  At least one of them is hidden. %s" 
+                    "should have public visibility.  At least one of them is hidden. %s"
                     ", %s.\n", static_type->name(), dynamic_type->name());
             // Redo the search comparing type_info's using strcmp
             info = {dst_type, static_ptr, static_type, src2dst_offset, 0};
@@ -787,7 +787,7 @@ __vmi_class_type_info::search_below_dst(__dynamic_cast_info* info,
                     info->dst_ptr_not_leading_to_static_ptr = current_ptr;
                     info->number_to_dst_ptr += 1;
                     // If there exists another dst with a private path to
-                    //    (static_ptr, static_type), then the cast from 
+                    //    (static_ptr, static_type), then the cast from
                     //     (dynamic_ptr, dynamic_type) to dst_type is now ambiguous,
                     //      so stop search.
                     if (info->number_to_static_ptr == 1 &&
@@ -925,7 +925,7 @@ __si_class_type_info::search_below_dst(__dynamic_cast_info* info,
                     info->dst_ptr_not_leading_to_static_ptr = current_ptr;
                     info->number_to_dst_ptr += 1;
                     // If there exists another dst with a private path to
-                    //    (static_ptr, static_type), then the cast from 
+                    //    (static_ptr, static_type), then the cast from
                     //     (dynamic_ptr, dynamic_type) to dst_type is now ambiguous.
                     if (info->number_to_static_ptr == 1 &&
                             info->path_dst_ptr_to_static_ptr == not_public_path)
@@ -957,7 +957,7 @@ __class_type_info::search_below_dst(__dynamic_cast_info* info,
                                     int path_below,
                                     bool use_strcmp) const
 {
-    typedef const __base_class_type_info* Iter;
+    //typedef const __base_class_type_info* Iter;
     if (is_equal(this, info->static_type, use_strcmp))
         process_static_type_below_dst(info, current_ptr, path_below);
     else if (is_equal(this, info->dst_type, use_strcmp))
@@ -984,7 +984,7 @@ __class_type_info::search_below_dst(__dynamic_cast_info* info,
             info->dst_ptr_not_leading_to_static_ptr = current_ptr;
             info->number_to_dst_ptr += 1;
             // If there exists another dst with a private path to
-            //    (static_ptr, static_type), then the cast from 
+            //    (static_ptr, static_type), then the cast from
             //     (dynamic_ptr, dynamic_type) to dst_type is now ambiguous.
             if (info->number_to_static_ptr == 1 &&
                     info->path_dst_ptr_to_static_ptr == not_public_path)

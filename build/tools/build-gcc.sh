@@ -81,6 +81,9 @@ register_var_option "--with-python=<path/to/python-config.sh>" WITH_PYTHON "Spec
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
+ENABLE_LANGUAGES="c,c++,objc,obj-c++"
+register_var_option "--enable-languages=<name>" ENABLE_LANGUAGES "Experimental: specify which languages to build"
+
 register_jobs_option
 register_canadian_option
 register_try64_option
@@ -417,6 +420,7 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         $WITH_PYTHON \
                         --with-gxx-include-dir=$TOOLCHAIN_BUILD_PREFIX/include/c++/$GCC_VERSION \
                         --with-bugurl=$DEFAULT_ISSUE_TRACKER_URL \
+                        --enable-languages=$ENABLE_LANGUAGES \
                         $EXTRA_CONFIG_FLAGS \
                         $ABI_CONFIGURE_EXTRA_FLAGS
 if [ $? != 0 ] ; then
@@ -605,6 +609,9 @@ run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/*/install-tools
 run rm -rf $TOOLCHAIN_PATH/lib/gcc/$ABI_CONFIGURE_TARGET/*/plugin
 run rm -rf $TOOLCHAIN_PATH/libexec/gcc/$ABI_CONFIGURE_TARGET/*/install-tools
 run rm -rf $TOOLCHAIN_PATH/lib/libiberty.a
+run rm -rf $TOOLCHAIN_PATH/lib32/libiberty.a
+run rm -rf $TOOLCHAIN_PATH/lib64/libiberty.a
+run rm -rf $TOOLCHAIN_PATH/lib/x86_64/libiberty.a
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/libiberty.a
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/libiberty.a
 run rm -rf $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/lib/*/*/libiberty.a
@@ -696,6 +703,12 @@ esac
 # copy SOURCES file if present
 if [ -f "$SRC_DIR/SOURCES" ]; then
     cp "$SRC_DIR/SOURCES" "$TOOLCHAIN_PATH/SOURCES"
+fi
+
+# check GLIBC/GLBICXX symbols
+if [ "$HOST_OS" = "linux" ]; then
+    SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
+    $ANDROID_NDK_ROOT/build/tools/check-glibc.sh $NDK_DIR/$SUBDIR
 fi
 
 if [ "$PACKAGE_DIR" ]; then

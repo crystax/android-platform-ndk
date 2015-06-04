@@ -71,6 +71,9 @@ register_var_option "--visible-libgnustl-static" VISIBLE_LIBGNUSTL_STATIC "Do no
 WITH_DEBUG_INFO=
 register_var_option "--with-debug-info" WITH_DEBUG_INFO "Build with -g.  STL is still built with optimization but with debug info"
 
+WITH_LIBSUPPORT=
+register_var_option "--with-libsupport" WITH_LIBSUPPORT "Build with -landroid_support."
+
 register_jobs_option
 register_try64_option
 
@@ -211,6 +214,12 @@ build_gnustl_for_abi ()
         CFLAGS="$CFLAGS -g"
         CXXFLAGS="$CXXFLAGS -g"
     fi
+    if [ "$WITH_LIBSUPPORT" ]; then
+        panic "Building with WITH_LIBSUPPORT is not supported for Crystax NDK"
+        CFLAGS="$CFLAGS -I$NDK_DIR/$SUPPORT_SUBDIR/include"
+        CXXFLAGS="$CXXFLAGS -I$NDK_DIR/$SUPPORT_SUBDIR/include"
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -L$NDK_DIR/$SUPPORT_SUBDIR/libs/$ABI -landroid_support"
+    fi
     export CFLAGS CXXFLAGS CPPFLAGS
 
     export CC=${BINPREFIX}gcc
@@ -233,7 +242,7 @@ build_gnustl_for_abi ()
     CRYSTAX_LDFLAGS=""
     CRYSTAX_LDFLAGS="$CRYSTAX_LDFLAGS -lcrystax"
 
-    export LDFLAGS="$CRYSTAX_LDFLAGS -lc $EXTRA_LDFLAGS"
+    export LDFLAGS="$CRYSTAX_LDFLAGS $EXTRA_LDFLAGS -lc"
 
     case $ABI in
         armeabi-v7a|armeabi-v7a-hard)
