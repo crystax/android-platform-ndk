@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2014 CrystaX .NET.
+# Copyright (c) 2011-2015 CrystaX .NET.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -32,7 +32,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := test-std-functions
 LOCAL_SRC_FILES := $(SRCFILES)
 LOCAL_CFLAGS    := $(CFLAGS)
-ifeq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
+ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
 LOCAL_CFLAGS    += -Wno-unused-local-typedefs
 endif
 include $(BUILD_EXECUTABLE)
