@@ -32,7 +32,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := test-std-functions
 LOCAL_SRC_FILES := $(SRCFILES)
 LOCAL_CFLAGS    := $(CFLAGS)
-ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
+ifeq (,$(filter clang3.5,$(NDK_TOOLCHAIN_VERSION)))
 LOCAL_CFLAGS    += -Wno-unused-local-typedefs
 endif
 include $(BUILD_EXECUTABLE)
