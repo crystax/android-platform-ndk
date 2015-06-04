@@ -49,16 +49,12 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-# def check_version
-#   v = File.read("#{Common::SRC_DIR}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
-#   if !v or v.size == 0
-#     raise "can't find '#define RUBY_VERSION' string"
-#   end
-#   ver = v[0].split(' ')[2].split('"')[1]
-#   if ver != Crystax::VERSIONS['ruby']
-#     raise "bad ruby version: repository: #{ver}; expected: #{Crystax::VERSIONS['ruby']}"
-#   end
-# end
+def check_version
+  require_relative "#{Common::SRC_DIR}/lib/rugged/version.rb"
+  if Rugged::Version != Crystax::VERSIONS['rugged']
+    raise "bad rugged version: repository: #{Rugged::Version}; expected: #{Crystax::VERSIONS['rugged']}"
+  end
+end
 
 
 begin
@@ -73,21 +69,13 @@ begin
     exit 0
   end
 
-  # libsincdir = libslibdir = ""
-  # if Common.target_os == 'windows'
-  #   libsdir = "#{Common::BUILD_BASE}/libs"
-  #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-  #   Builder.build_zlib(libsdir)
-  #   libsincdir = "-I#{libsdir}/include"
-  #   liblibdir = "-L#{libsdir}/lib"
-  # end
-
   openssldir = Builder.prepare_dependency('openssl')
   libssh2dir = Builder.prepare_dependency('libssh2')
   libgit2dir = Builder.prepare_dependency('libgit2')
+  rubydir    = Builder.prepare_dependency('ruby')
 
   Logger.msg "= building rugged"
-  #check_version
+  check_version
   Builder.copy_sources
   FileUtils.cd(Common::BUILD_DIR) do
     FileUtils.mv 'ext/rugged/extconf.rb.crystax', 'ext/rugged/extconf.rb'
@@ -105,7 +93,9 @@ begin
     Commander::run env, "rake test" unless Common.no_check? or Common.different_os?
   end
 
-  #Cache.add(archive)
+  FileUtils.mkdir_p "#{Common.install_dir}/gem"
+  FileUtils.cp Dir["#{Common::BUILD_DIR}/pkg/*.gem"], "#{Common.install_dir}/gem/"
+  Cache.add(archive)
 
 rescue SystemExit => e
   exit e.status
