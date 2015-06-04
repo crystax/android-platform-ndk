@@ -81,7 +81,7 @@ register_var_option "--with-python=<path/to/python-config.sh>" WITH_PYTHON "Spec
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball in specific directory"
 
-ENABLE_LANGUAGES="c,c++"
+ENABLE_LANGUAGES="c,c++,objc,obj-c++"
 register_var_option "--enable-languages=<name>" ENABLE_LANGUAGES "Experimental: specify which languages to build"
 
 register_jobs_option
