@@ -185,6 +185,7 @@ build_gnuobjc_for_abi ()
         --disable-bootstrap \
         --disable-libquadmath \
         --disable-plugin \
+        --enable-languages="c,c++,objc,obj-c++" \
         --with-gxx-include-dir=$INSTALLDIR/include/c++/$GCC_VERSION \
         $ABI_CONFIGURE_EXTRA_FLAGS
     fail_panic "Could not configure $PROJECT"
