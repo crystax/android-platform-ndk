@@ -75,7 +75,7 @@ static __inline __uint16_t
 __bswap16_var(__uint16_t x)
 {
     register __uint16_t _x = x;
-    __asm volatile ("rev16 %0, %0" : "+r" (_x));
+    __asm volatile ("rev16 %w0, %w0" : "+r" (_x));
     return _x;
 }
 
