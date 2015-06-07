@@ -69,6 +69,7 @@ end
 
 OPTIONS = {}
 OPTIONS[:testdir] = File.join(ENV['HOME'], '.crystax', 'boost')
+OPTIONS[:ndk] = File.expand_path('../..', __FILE__)
 
 optparser = OptionParser.new do |o|
     o.banner = <<-EOF
@@ -124,7 +125,6 @@ By default, this will try with the current NDK directory, unless you use the --n
 
     o.separator "\nOptional parameters:\n\n"
 
-    OPTIONS[:ndk] = File.expand_path('../..', __FILE__)
     o.on("--ndk-dir=PATH", "Specify NDK root path for the build [#{OPTIONS[:ndk]}]") do |p|
         OPTIONS[:ndk] = File.expand_path(p)
     end
@@ -167,7 +167,12 @@ By default, this will try with the current NDK directory, unless you use the --n
         OPTIONS[:publish] = true
     end
 
-    OPTIONS[:toolchain_versions] = ['gcc-4.9', 'gcc-4.8', 'clang-3.4', 'clang-3.5']
+    OPTIONS[:toolchain_versions] = Dir.glob(File.join(OPTIONS[:ndk], 'toolchains', '*')).select do |e|
+        File.directory?(e)
+    end.map { |e| File.basename(e) }.reject { |e| e =~ /^llvm\b/ }.map do |e|
+        e.sub(/^.*-([^-]+)$/, '\1')
+    end.sort.uniq.map { |e| e.sub(/^(\d)/, 'gcc\1') }
+
     o.on("--toolchain-versions=LIST", Array, "Toolchain versions [#{OPTIONS[:toolchain_versions].join(',')}]") do |l|
         OPTIONS[:toolchain_versions] = l
     end
