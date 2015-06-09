@@ -451,7 +451,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
-    unpack_prebuilt objc2-headers "$REFERENCE"
+    unpack_prebuilt gnustep-objc2-headers "$REFERENCE"
 
     unpack_prebuilt sqlite3-build-files "$REFERENCE"
     unpack_prebuilt sqlite3-headers "$REFERENCE"
@@ -487,7 +487,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
-        unpack_prebuilt objc2-libs-$ABI "$REFERENCE"
+        unpack_prebuilt gnustep-objc2-libs-$ABI "$REFERENCE"
         unpack_prebuilt cocotron-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $LIBPNG_VERSIONS; do
@@ -616,9 +616,9 @@ for SYSTEM in $SYSTEMS; do
             done
         done
 
-        copy_prebuilt "$OBJC2_SUBDIR/include" "$OBJC2_SUBDIR/"
+        copy_prebuilt "$GNUSTEP_OBJC2_SUBDIR/include" "$GNUSTEP_OBJC2_SUBDIR/"
         for OBJC2_ABI in $PREBUILT_ABIS; do
-            copy_prebuilt "$OBJC2_SUBDIR/libs/$OBJC2_ABI" "$OBJC2_SUBDIR/libs"
+            copy_prebuilt "$GNUSTEP_OBJC2_SUBDIR/libs/$OBJC2_ABI" "$GNUSTEP_OBJC2_SUBDIR/libs"
         done
 
         for COCOTRON_ABI in $PREBUILT_ABIS; do

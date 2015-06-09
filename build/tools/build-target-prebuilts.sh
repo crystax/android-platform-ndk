@@ -195,7 +195,7 @@ run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$(
 fail_panic "Could not build gnuobjc!"
 
 dump "Building $ABIS Objective-C v2 runtime..."
-run $BUILDTOOLS/build-libobjc2.sh $FLAGS --abis="$ABIS" --src-dir=$(cd $SRC_DIR/../vendor/libobjc2 && pwd)
+run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/libobjc2 && pwd)
 fail_panic "Could not build Objective-C v2 runtime"
 
 dump "Building $ABIS Cocotron frameworks..."

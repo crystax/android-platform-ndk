@@ -8,4 +8,4 @@ LOCAL_SHARED_LIBRARIES := Foundation CoreFoundation CoreServices CFNetwork objc2
 include $(BUILD_EXECUTABLE)
 
 $(call import-module,objc/cocotron/0.1.0)
-$(call import-module,objc/libobjc2)
+$(call import-module,objc/gnustep-libobjc2)

@@ -13,4 +13,4 @@ LOCAL_SRC_FILES  := $(SRCFILES)
 LOCAL_SHARED_LIBRARIES := objc2rt_shared
 include $(BUILD_EXECUTABLE)
 
-$(call import-module,objc/libobjc2)
+$(call import-module,objc/gnustep-libobjc2)

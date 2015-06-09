@@ -37,8 +37,8 @@ LIBCXXABI_SUBDIR=sources/cxx-stl/llvm-libc++abi/libcxxabi
 # root directory.
 GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 
-# Location of the GNUStep libobjc2 headers and libraries, relative to the NDK root directory
-OBJC2_SUBDIR=sources/objc/libobjc2
+# Location of the GNUstep libobjc2 headers and libraries, relative to the NDK root directory
+GNUSTEP_OBJC2_SUBDIR=sources/objc/gnustep-libobjc2
 
 # Location of the Cocotron headers and libraries, relative to the NDK root directory
 COCOTRON_SUBDIR=sources/objc/cocotron
