@@ -239,6 +239,7 @@ $(TARGET): $(OBJFILES) | $(TARGETDIR)
 		$(if $(has-objective-c-sources),\
 			$(if $(filter next,$(objc-runtime)),\
 				-framework CoreFoundation \
+				-framework Foundation \
 			)\
 			$(if $(and $(call is-clang,$(CC)),$(filter gnu,$(objc-runtime))),\
 				-lBlocksRuntime \
