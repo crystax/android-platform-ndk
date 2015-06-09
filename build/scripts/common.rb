@@ -86,6 +86,10 @@ class Common
     target_os != host_os
   end
 
+  def self.different_platform?
+    target_platform != host_platform
+  end
+
   def self.prebuilt_dir
     "prebuilt/#{(target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform}"
   end
