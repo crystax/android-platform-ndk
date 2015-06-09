@@ -137,7 +137,7 @@ begin
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
+            'CFLAGS' => "#{Builder.cflags}",
             'DESTDIR' => Common.install_dir
 
           }
@@ -162,7 +162,7 @@ begin
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
-    #Commander::run env, "make check" unless Common::no_check?
+    Commander::run env, "make check" unless Common.no_check? or Common.different_os?
     Commander::run env, "make install"
   end
 
