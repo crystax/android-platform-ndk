@@ -30,7 +30,7 @@
 # include common function and variable definitions
 . `dirname $0`/prebuilt-common.sh
 
-PROGRAM_PARAMETERS=""
+PROGRAM_PARAMETERS="<src-dir>"
 
 PROGRAM_DESCRIPTION=\
 "Rebuild libobjc2 for the Android NDK.
@@ -52,25 +52,30 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs in
 NDK_DIR=
 register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build."
 
-SRC_DIR=
-register_var_option "--src-dir=<path>" SRC_DIR "Specify libobjc2 source dir."
-
 BUILD_DIR=
 OPTION_BUILD_DIR=
 register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir."
 
-OUT_DIR=
-register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
-
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 
-TOOLCHAIN_VERSION=clang3.5
+TOOLCHAIN_VERSION=clang3.6
 register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
 register_jobs_option
 
 extract_parameters "$@"
+
+LIBOBJC2_SRCDIR=$(echo $PARAMETERS | sed 1q)
+if [ -z "$LIBOBJC2_SRCDIR" ]; then
+    echo "ERROR: Please provide the path to the libobjc2 source tree. See --help" 1>&2
+    exit 1
+fi
+
+if [ ! -d "$LIBOBJC2_SRCDIR" ]; then
+    echo "ERROR: No such directory: '$LIBOBJC2_SRCDIR'" 1>&2
+    exit 1
+fi
 
 ABIS=$(commas_to_spaces $ABIS)
 
@@ -93,12 +98,6 @@ fi
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
-
-if [ -z "$SRC_DIR" -o ! -d "$SRC_DIR" ]; then
-    dump "Could not found libobjc2 source directory: $SRC_DIR"
-    dump "Use --src-dir=<dir> to specify source directory."
-    exit 1
-fi
 
 # $1: ABI
 llvm_tripple_for_abi()
@@ -183,12 +182,10 @@ gcc_toolchain_name_for_abi()
 
 # $1: ABI
 # $2: build directory
-# $4: (optional) installation directory
 build_libobjc2_for_abi ()
 {
     local ABI=$1
     local BUILDDIR="$2"
-    local DSTDIR="$3"
     local ARCH APILEVEL SYSROOT
     local CCFLAGS CFLAGS CXXFLAGS
     local LLVM_DIR LLVM_TRIPPLE
@@ -197,14 +194,7 @@ build_libobjc2_for_abi ()
 
     mkdir -p "$BUILDDIR"
 
-    # If the output directory is not specified, use default location
-    if [ -z "$DSTDIR" ]; then
-        DSTDIR=$NDK_DIR/$OBJC2_SUBDIR/libs/$ABI
-    fi
-
-    mkdir -p "$DSTDIR"
-
-    (cd $SRC_DIR && tar cf - ./*) | (cd $BUILDDIR && tar xf -)
+    (cd $LIBOBJC2_SRCDIR && tar cf - ./*) | (cd $BUILDDIR && tar xf -)
     fail_panic "Couldn't copy libobjc2 sources to temporary directory"
 
     ARCH=$(convert_abi_to_arch $ABI)
@@ -362,7 +352,7 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_libobjc2_for_abi $ABI "$BUILD_DIR/$ABI" "$OUT_DIR"
+        build_libobjc2_for_abi $ABI "$BUILD_DIR/$ABI"
     fi
 done
 
