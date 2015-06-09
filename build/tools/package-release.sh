@@ -488,6 +488,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
         unpack_prebuilt objc2-libs-$ABI "$REFERENCE"
+        unpack_prebuilt cocotron-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $LIBPNG_VERSIONS; do
             unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
@@ -618,6 +619,10 @@ for SYSTEM in $SYSTEMS; do
         copy_prebuilt "$OBJC2_SUBDIR/include" "$OBJC2_SUBDIR/"
         for OBJC2_ABI in $PREBUILT_ABIS; do
             copy_prebuilt "$OBJC2_SUBDIR/libs/$OBJC2_ABI" "$OBJC2_SUBDIR/libs"
+        done
+
+        for COCOTRON_ABI in $PREBUILT_ABIS; do
+            copy_prebuilt "$COCOTRON_SUBDIR/frameworks/$COCOTRON_ABI" "$COCOTRON_SUBDIR/frameworks"
         done
 
         copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
