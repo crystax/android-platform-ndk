@@ -57,6 +57,21 @@ def check_version
 end
 
 
+#todo: check ruby arch dir in ruby archive
+def ruby_arch
+  case Common.target_platform
+  when /darwin/
+    'x86_64-darwin10'
+  when 'linux-x86_64'
+    'x86_64-linux'
+  when 'linux-x86'
+    'i686-linux'
+  when /windows/
+    'x64-mingw64'
+  end
+end
+
+
 begin
   Common.parse_options
 
@@ -82,19 +97,15 @@ begin
     dir = 'vendor/libgit2/tests'
     FileUtils.mkdir_p dir
     FileUtils.cp_r "#{Common::VENDOR_DIR}/libgit2/tests/resources", dir
-    incdirs = ["-I#{openssldir}/include",
-               "-I#{libssh2dir}/include",
-               "-I#{libgit2dir}/include",
-
-              ]
     # todo:
     ruby_base_ver = '2.2.0'
+    incdirs = ["-I#{openssldir}/include", "-I#{libssh2dir}/include", "-I#{libgit2dir}/include"]
     env = { 'CC' => Builder.cc,
             'CFLAGS' => "#{Builder.cflags} #{incdirs.join(' ')}",
             'LDFLAGS' => "-L#{openssldir}/lib -L#{libssh2dir}/lib -L#{libgit2dir}/lib",
             'LOCAL_LIBS' => "-lgit2 -lssh2 -lssl",
             'RUBY_INC_DIR' => "#{rubydir}/include/ruby-#{ruby_base_ver}",
-            'RUBY_ARCH_INC_DIR' => "#{rubydir}/include/ruby-#{ruby_base_ver}/x86_64-darwin10", #todo: x86_64?
+            'RUBY_ARCH_INC_DIR' => "#{rubydir}/include/ruby-#{ruby_base_ver}/#{ruby_arch}",
             'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
           }
     Commander::run env, "rake compile:rugged gem"
