@@ -139,7 +139,6 @@ begin
     env = { 'CC' => Builder.cc,
             'CFLAGS' => "#{Builder.cflags}",
             'DESTDIR' => Common.install_dir
-
           }
     args = ["--prefix=/",
             "--host=#{Builder.configure_host}",
