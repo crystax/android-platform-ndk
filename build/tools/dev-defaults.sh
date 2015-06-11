@@ -41,8 +41,7 @@ GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
 GNUSTEP_OBJC2_SUBDIR=sources/objc/gnustep-libobjc2
 
 # Location of the Cocotron headers and libraries, relative to the NDK root directory
-COCOTRON_SUBDIR=sources/objc/cocotron
-COCOTRON_VERSIONS="0.1.0"
+COCOTRON_SUBDIR=sources/objc/cocotron/0.1.0
 
 # Location of the libportable sources, relative to the NDK root directory
 LIBPORTABLE_SUBDIR=sources/android/libportable

@@ -75,13 +75,6 @@ if [ ! -d "$COCOTRON_SRCDIR" ]; then
     exit 1
 fi
 
-COCOTRON_VERSION=$(echo $COCOTRON_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
-
-if [ -z "$COCOTRON_VERSION" ]; then
-    echo "ERROR: Can't detect Cocotron version" 1>&2
-    exit 1
-fi
-
 ABIS=$(commas_to_spaces $ABIS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
@@ -112,7 +105,7 @@ build_cocotron_for_abi ()
     run make -C $COCOTRON_SRCDIR/android -j$NUM_JOBS install \
         V=$V \
         NDK=$NDK_DIR \
-        PREFIX=$NDK_DIR/$COCOTRON_SUBDIR/$COCOTRON_VERSION/frameworks \
+        PREFIX=$NDK_DIR/$COCOTRON_SUBDIR/frameworks \
         OUT=$OUTDIR \
         ABIS=$ABI \
 
@@ -140,7 +133,7 @@ done
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
-        FILES="$COCOTRON_SUBDIR/$COCOTRON_VERSION/frameworks"
+        FILES="$COCOTRON_SUBDIR/frameworks"
         PACKAGE_NAME="cocotron-$ABI.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
