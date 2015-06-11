@@ -175,4 +175,12 @@ g.add "libc/include/sys/sysinfo.h", public: true
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
 
+# pipe2
+g.add "libc/arch-arm/syscalls/pipe2.S"
+g.add "libc/arch-arm64/syscalls/pipe2.S"
+g.add "libc/arch-mips/syscalls/pipe2.S"
+g.add "libc/arch-mips64/syscalls/pipe2.S"
+g.add "libc/arch-x86/syscalls/pipe2.S"
+g.add "libc/arch-x86_64/syscalls/pipe2.S"
+
 g.generate
