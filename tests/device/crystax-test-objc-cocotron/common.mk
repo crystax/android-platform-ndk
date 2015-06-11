@@ -1,1 +1,6 @@
-SRCFILES := test.m
+CTESTS :=  \
+	assert \
+	string \
+	base   \
+
+CFLAGS := -UNDEBUG
