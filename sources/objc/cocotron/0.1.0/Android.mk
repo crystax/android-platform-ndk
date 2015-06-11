@@ -6,6 +6,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := $(1)
 LOCAL_SRC_FILES := frameworks/$(TARGET_ARCH_ABI)/$(1).framework/Versions/Current/lib$(1).so
 LOCAL_EXPORT_CFLAGS := -F$(LOCAL_PATH)/frameworks/$(TARGET_ARCH_ABI) -framework $(1)
+sinclude $(LOCAL_PATH)/frameworks/$(TARGET_ARCH_ABI)/$(1).framework/deps.mk
+LOCAL_SHARED_LIBRARIES += objc2rt_shared
 include $(PREBUILT_SHARED_LIBRARY)
 endif
 endef
@@ -17,7 +19,4 @@ $(foreach __abi,\
     )\
 )
 
-#$(foreach __f,\
-#    Foundation CFNetwork CoreServices,\
-#    $(eval $(call add-framework,$(__f)))\
-#)
+$(call import-module,objc/gnustep-libobjc2)

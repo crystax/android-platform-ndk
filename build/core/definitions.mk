@@ -2186,6 +2186,12 @@ ndk-objc-add-dependencies = \
         )\
     )
 
+# Register the 'none' Objective-C runtime
+$(call ndk-objc-register,\
+    none,\
+    objc/none\
+    )
+
 # Register the 'gnuobjc_static' Objective-C runtime
 #
 $(call ndk-objc-register,\
@@ -2204,9 +2210,12 @@ $(call ndk-objc-register,\
     gnuobjc_shared\
     )
 
+# Register the 'cocotron' Objective-C runtime
 $(call ndk-objc-register,\
-    none,\
-    objc/none\
+    cocotron,\
+    objc/cocotron/0.1.0,\
+    ,\
+    Foundation CoreFoundation CFNetwork CoreServices objc2rt_shared\
     )
 
 #
