@@ -77,7 +77,8 @@ module Builder
     case Common.target_platform
     when 'darwin-x86_64'
       "-isysroot#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
-      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN}"
+      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN} " \
+      "-m64"
     when 'darwin-x86'
       "-isysroot#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
       "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN} " \
@@ -95,17 +96,6 @@ module Builder
       '-m32'
     else
       raise UnknownTargetPlatform, Common.target_platform, caller
-    end
-  end
-
-  def self.pic_flags
-    case Common.target_os
-    when 'darwin', 'linux'
-      '-fPIC'
-    when 'windows'
-      ''
-    else
-      raise UnknownTargetOS, Common.target_os, caller
     end
   end
 
@@ -144,7 +134,7 @@ module Builder
   end
 
   def self.prepare_dependency(name)
-    Logger.msg "= preparing #{name}"
+    Logger.log_msg "= preparing #{name}"
     unpackdir = "#{Common::NDK_BUILD_DIR}/#{name}"
     FileUtils.mkdir_p(unpackdir)
     arch = Common.make_archive_name(name)
@@ -172,23 +162,6 @@ module Builder
       Commander.run "rm -rf #{Common::BUILD_BASE}"
       @@dependencies.each { |name| clean_dependency(name) }
       clean_src Common::SRC_DIR
-    end
-  end
-
-  def self.build_zlib(installdir)
-    Logger.msg "= building zlib"
-    raise "zlib build supported only for windows" unless Common.target_os == 'windows'
-    FileUtils.cp_r "#{Common::VENDOR_DIR}/zlib", Common::BUILD_BASE
-    FileUtils.cd("#{Common::BUILD_BASE}/zlib") do
-      fname = 'win32/Makefile.gcc'
-      text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
-      File.open(fname, "w") {|f| f.puts text }
-      # chop 'gcc' from the end of the string
-      env = { 'PREFIX' => cc.chop.chop.chop }
-      loc = Common.target_cpu == 'x86' ? 'LOC=-m32' : ''
-      Commander::run env, "make -j #{Common::num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
-      FileUtils.cp 'libz.a', "#{installdir}/lib/"
-      FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
     end
   end
 

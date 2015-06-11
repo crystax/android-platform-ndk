@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Build LIBGIT2 to use it with Crystax NDK's vendor utils
+# Build zip library
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -34,26 +34,30 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+
 require_relative 'versions.rb'
 
 module Crystax
 
-  PKG_NAME = 'libgit2'
+  PKG_NAME = 'zlib'
 
 end
+
 
 require 'fileutils'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
 require_relative 'cache.rb'
+require_relative 'exceptions.rb'
 
 
-# line: #define LIBGIT2_VERSION "0.22.2"
+
+# line: #define ZLIB_VERSION "1.2.8"
 def check_version
-  v = File.read("#{Common::SRC_DIR}/include/git2/version.h").split("\n").select { |s| s =~ /#define LIBGIT2_VERSION/ }
-  raise "can't find '#define RUBY_VERSION' string" if !v or v.size == 0
-  ver = v[0].split(' ')[2].split('"')[1]
+  v = File.read("#{Common::SRC_DIR}/zlib.h").split("\n").select { |s| s =~ /^#define ZLIB_VERSION/ }
+  raise "can't find 'ZLIB_VERSION' string" if !v or v.size == 0
+  ver = (v[0].split(' ')[2]).gsub('"', '')
   Crystax::check_version ver
 end
 
@@ -63,37 +67,40 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
-  Logger.msg "Building #{Crystax::PKG_NAME} for #{Common.target_platform}"
+  Logger.msg "Building zlib for #{Common.target_platform}"
 
   if Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  zlibdir    = Builder.prepare_dependency('zlib')
-  openssldir = Builder.prepare_dependency('openssl')
-  libssh2dir = Builder.prepare_dependency('libssh2')
-
   Logger.log_msg "= building #{archive}; args: #{ARGV}"
   check_version
   Builder.copy_sources
   FileUtils.cd(Common::BUILD_DIR) do
-    env = { 'CC' => Builder.cc,
-            'EXTRA_CFLAGS' => "#{Builder.cflags}",
-            'EXTRA_DEFINES' => "-DGIT_SSL -DOPENSSL_SHA1 -DGIT_SSH",
-            'EXTRA_INCLUDES' => "-I#{zlibdir}/include -I#{openssldir}/include -I#{libssh2dir}/include",
-            'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
-          }
     if Common.target_os == 'windows'
-      MINGW_FLAG = "MINGW=1"
+      fname = 'win32/Makefile.gcc'
+      text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
+      File.open(fname, "w") {|f| f.puts text }
+      # chop 'gcc' from the end of the string
+      env = { 'PREFIX' => Builder.cc.chop.chop.chop }
+      loc = Common.target_cpu == 'x86' ? 'LOC=-m32' : ''
+      Commander::run env, "make -j #{Common::num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
+      FileUtils.cp 'libz.a', "#{installdir}/lib/"
+      FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
     else
-      MINGW_FLAG = ''
+      env = { 'CC' => Builder.cc,
+              'CFLAGS' => Builder.cflags
+            }
+      args = ["--prefix=#{Common.install_dir}",
+              "--static"
+             ]
+      Commander::run env, "./configure #{args.join(' ')}"
+      Commander::run env, "make -j #{Common::num_jobs}"
+      Commander::run env, "make check" unless Common.no_check? or Common.different_os?
+      Commander::run env, "make install"
+      FileUtils.rm_rf ["#{Common.install_dir}/share", "#{Common.install_dir}/lib/pkgconfig"]
     end
-    Commander::run env, "make -f Makefile.crystax #{MINGW_FLAG}"
-    FileUtils.mkdir_p ["#{Common.install_dir}/lib", "#{Common.install_dir}/include"]
-    FileUtils.cp "./libgit2.a", "#{Common.install_dir}/lib/"
-    FileUtils.cp "./include/git2.h", "#{Common.install_dir}/include/"
-    FileUtils.cp_r "./include/git2", "#{Common.install_dir}/include/"
   end
 
   Cache.add(archive)
