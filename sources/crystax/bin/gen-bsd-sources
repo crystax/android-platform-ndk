@@ -553,6 +553,14 @@ g.fixup :define_complex_functions do |f|
     f.puts "__END_DECLS"
 end
 
+g.fixup :define__execve do |f|
+    f.puts "#define _execve execve"
+end
+
+g.fixup :define__wait4 do |f|
+    f.puts "#define _wait4 wait4"
+end
+
 g.fixup :long_double_64 do |f|
     f.puts "#if __LDBL_MANT_DIG__ == 53"
 end
@@ -659,6 +667,8 @@ g.add "lib/libc/gen/fpclassify.c"
 g.add "lib/libc/gen/isinf.c"
 g.add "lib/libc/gen/ldexp.c"
 g.add "lib/libc/gen/lockf.c"
+g.add "lib/libc/gen/popen.c",              warnings: "clobbered",
+                                           fixup:    ["define__execve", "define__wait4"]
 # libc iconv
 g.add "lib/libc/iconv/bsd_iconv.c"
 g.add "lib/libc/iconv/citrus_bcs.c"
@@ -1204,6 +1214,7 @@ g.add "sys/sys/_stdint.h"
 g.add "sys/sys/endian.h",                  postfixup: "include_crystax_sys_endian_h"
 g.add "sys/sys/iconv.h",                   fixup:     "include_sys_types_h"
 g.add "sys/sys/limits.h",                  postfixup: "include_crystax_sys_limits_h"
+g.add "sys/sys/queue.h"
 g.add "sys/sys/stdint.h"
 g.add "sys/x86/include/_inttypes.h"
 g.add "sys/x86/include/_limits.h"
