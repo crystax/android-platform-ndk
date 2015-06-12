@@ -104,7 +104,7 @@ def install_gems(*gems)
   args = ["--no-document", "--bindir #{Common.install_dir}/bin"]
   env = { 'GEM_HOME' => "#{Common.install_dir}/lib/ruby/gems/2.2.0",
           'GEM_PATH' => "#{Common.install_dir}/lib/ruby/gems/2.2.0",
-          'SSL_CERT_FILE' => '/usr/local/etc/openssl/osx_cert.pem'
+          'SSL_CERT_FILE' => Common.ssl_cert_file
         }
 
   if Common::target_os != 'windows'
@@ -155,7 +155,7 @@ begin
             'LIBS' => "-lz -lgit2 -lssh2 -lz",
             'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssldir}/include -I#{libssh2dir}/include -I#{libgit2dir}/include",
             'RUGGED_MAKEFILE' => "#{Common::BUILD_DIR}/ext/rugged/Makefile",
-            'SSL_CERT_FILE' => '/usr/local/etc/openssl/osx_cert.pem'
+            'SSL_CERT_FILE' => Common.ssl_cert_file
           }
     args = ["--prefix=/",
             "--host=#{Builder.configure_host}",

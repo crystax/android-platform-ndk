@@ -130,6 +130,17 @@ class Common
     "#{make_archive_base(pkgname)}-#{target_platform}.7z"
   end
 
+  def self.ssl_cert_file
+    case host_os
+    when 'darwin'
+      '/usr/local/etc/openssl/osx_cert.pem'
+    when 'linux'
+      '/etc/ssl/certs/ca-certificates.crt'
+    else
+      raise "unknown host OS: #{host_os}"
+    end
+  end
+
   def self.parse_options
     ARGV.each do |opt|
       case opt
