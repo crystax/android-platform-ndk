@@ -53,13 +53,8 @@ require_relative 'cache.rb'
 #
 def check_version
   v = File.read("#{Common::SRC_DIR}/include/curl/curlver.h").split("\n").select { |s| s =~ /LIBCURL_VERSION/ }
-  if !v or v.size == 0
-    raise "can't find 'LIBCURL_VERSION' string"
-  end
-  ver = v[0].split(' ')[2].delete('"').split('-')[0]
-  if ver != Crystax::VERSIONS['curl']
-    raise "bad curl version: repository: #{ver}; expected: #{Crystax::VERSIONS['curl']}"
-  end
+  raise "can't find 'LIBCURL_VERSION' string" if !v or v.size == 0
+  Crystax::check_version v[0].split(' ')[2].delete('"').split('-')[0]
 end
 
 
@@ -68,22 +63,18 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
-  Logger.msg "building #{archive}; args: #{ARGV}"
+  Logger.msg "Building #{Crystax::PKG_NAME} for #{Common.target_platform}"
 
   if Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  if Common.target_os == 'windows'
-    libsdir = "#{Common::BUILD_BASE}/libs"
-    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-    Builder.build_zlib(libsdir)
-  end
-
+  zlibdir    = Builder.prepare_dependency('zlib')
   openssldir = Builder.prepare_dependency('openssl')
+  libssh2dir = Builder.prepare_dependency('libssh2')
 
-  Logger.msg "= building #{Crystax::PKG_NAME}"
+  Logger.log_msg "= building #{archive}; args: #{ARGV}"
   check_version
   FileUtils.cd(Common::SRC_DIR) { Commander.run "./buildconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
@@ -91,22 +82,17 @@ begin
   prefix = Pathname.new(Common.install_dir).realpath
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
+            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB -I#{zlibdir}/include -I#{libssh2dir}/include",
+            'LDFLAGS' => "-L#{zlibdir}/lib -L#{libssh2dir}/lib",
             'LANG' => 'C'
           }
+    env['LDFLAGS'] += ' -ldl' if Common::target_os == 'linux'
     args = ["--prefix=#{prefix}",
             "--host=#{Builder.configure_host}",
             "--disable-shared",
             "--disable-ldap",
             "--with-ssl=#{openssldir}"
            ]
-    case Common::target_os
-    when 'windows'
-      env['CFLAGS'] += " -I#{libsdir}/include"
-      env['LDFLAGS'] = "-L#{libsdir}/lib"
-    when 'linux'
-      env['LDFLAGS'] = '-ldl'
-    end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs}"
     Commander::run env, "make test" unless Common::no_check? or Common.different_os?
