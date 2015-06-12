@@ -152,7 +152,7 @@ begin
             'CFLAGS' => cflags,
             'LDFLAGS' => "-L#{libssh2dir}/lib -L#{libgit2dir}/lib -L#{zlibdir}/lib",
             'DESTDIR' => Common.install_dir,
-            'LIBS' => "-lgit2 -lssh2 -lz",
+            'LIBS' => "-lz -lgit2 -lssh2 -lz",
             'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssldir}/include -I#{libssh2dir}/include -I#{libgit2dir}/include",
             'RUGGED_MAKEFILE' => "#{Common::BUILD_DIR}/ext/rugged/Makefile",
             'SSL_CERT_FILE' => '/usr/local/etc/openssl/osx_cert.pem'
@@ -178,7 +178,10 @@ begin
     end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
-    Commander::run env, "make check" unless Common.no_check? or Common.different_os?
+    unless Common.no_check? or Common.different_os?
+      FileUtils.cp_r "#{Common::SRC_DIR}/ext/-test-", "./ext/"
+      Commander::run env, "make check"
+    end
     Commander::run env, "make install"
   end
 
