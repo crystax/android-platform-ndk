@@ -168,10 +168,10 @@ By default, this will try with the current NDK directory, unless you use the --n
     end
 
     OPTIONS[:toolchain_versions] = Dir.glob(File.join(OPTIONS[:ndk], 'toolchains', '*')).select do |e|
-        File.directory?(e)
+        File.directory?(e) && File.exists?(File.join(e, 'setup.mk')) && File.exists?(File.join(e, 'config.mk'))
     end.map { |e| File.basename(e) }.reject { |e| e =~ /^llvm\b/ }.map do |e|
         e.sub(/^.*-([^-]+)$/, '\1')
-    end.sort.uniq.map { |e| e.sub(/^(\d)/, 'gcc\1') }
+    end.sort.uniq.map { |e| e.sub(/^(\d.*)$/, 'gcc\1') }.select { |e| e =~ /^(gcc|clang)/ }
 
     o.on("--toolchain-versions=LIST", Array, "Toolchain versions [#{OPTIONS[:toolchain_versions].join(',')}]") do |l|
         OPTIONS[:toolchain_versions] = l
