@@ -84,10 +84,11 @@ begin
       File.open(fname, "w") {|f| f.puts text }
       # chop 'gcc' from the end of the string
       env = { 'PREFIX' => Builder.cc.chop.chop.chop }
-      loc = Common.target_cpu == 'x86' ? 'LOC=-m32' : ''
+      loc = Common.target_cpu == 'x86' ? 'LOC=-m32' : 'LOC=-m64'
       Commander::run env, "make -j #{Common::num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
-      FileUtils.cp 'libz.a', "#{installdir}/lib/"
-      FileUtils.cp ['zlib.h', 'zconf.h'], "#{installdir}/include"
+      FileUtils.mkdir_p ["#{Common.install_dir}/lib", "#{Common.install_dir}/include"]
+      FileUtils.cp 'libz.a', "#{Common.install_dir}/lib/"
+      FileUtils.cp ['zlib.h', 'zconf.h'], "#{Common.install_dir}/include/"
     else
       env = { 'CC' => Builder.cc,
               'CFLAGS' => Builder.cflags

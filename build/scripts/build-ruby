@@ -67,7 +67,7 @@ end
 
 
 def build_libffi(installdir)
-  Logger.msg "= building libffi"
+  Logger.log_msg "= building libffi"
   srcdir = "#{Common::VENDOR_DIR}/libffi"
   libver = File.read("#{srcdir}/doc/version.texi").split("\n")[3].split(' ')[2]
   if libver != Crystax::VERSIONS['libffi']
@@ -133,7 +133,6 @@ begin
     libsdir = "#{Common::BUILD_BASE}/libs"
     FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
     build_libffi(libsdir)
-    Builder.build_zlib(libsdir)
   end
 
   zlibdir    = Builder.prepare_dependency('zlib')
@@ -146,15 +145,25 @@ begin
   copy_rugged
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
-  cflags = "#{Builder.cflags}  -I#{zlibdir}/include"
+  cflags  = "#{Builder.cflags}  -I#{zlibdir}/include"
+  ldflags = "-L#{libssh2dir}/lib -L#{libgit2dir}/lib -L#{zlibdir}/lib"
+  libs    = '-lz -lgit2 -lssh2 -lz'
+  path    = '/bin:/usr/bin:/sbin:/usr/sbin'
+  if Common.target_os == 'windows'
+    cflags  += " -I#{libsdir}/include"
+    ldflags += " -L#{libsdir}/lib"
+    libs = "#{zlibdir}/lib/libz.a #{libgit2dir}/lib/libgit2.a #{libssh2dir}/lib/libssh2.a #{zlibdir}/lib/libz.a"
+    path = Builder.toolchain_path_and_path
+  end
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
             'CFLAGS' => cflags,
-            'LDFLAGS' => "-L#{libssh2dir}/lib -L#{libgit2dir}/lib -L#{zlibdir}/lib",
+            'LDFLAGS' => ldflags,
             'DESTDIR' => Common.install_dir,
-            'LIBS' => "-lz -lgit2 -lssh2 -lz",
+            'LIBS' => libs,
             'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssldir}/include -I#{libssh2dir}/include -I#{libgit2dir}/include",
             'RUGGED_MAKEFILE' => "#{Common::BUILD_DIR}/ext/rugged/Makefile",
+            'PATH' => path,
             'SSL_CERT_FILE' => Common.ssl_cert_file
           }
     args = ["--prefix=/",
@@ -166,22 +175,12 @@ begin
             "--without-gmp",
             "--without-tk",
             "--without-gdbm",
+            #"--disable-shared",
             "--enable-bundled-libyaml"
            ]
-    if Common::target_os == 'windows'
-      args << '--host=x86_64-mingw64'
-      env['PATH'] = Builder.toolchain_path_and_path
-      env['CFLAGS'] += " -I#{libsdir}/include"
-      env['LDFLAGS'] += "-L#{libsdir}/lib"
-    else
-      env['PATH'] = '/bin:/usr/bin:/sbin:/usr/sbin'
-    end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
-    unless Common.no_check? or Common.different_os?
-      FileUtils.cp_r "#{Common::SRC_DIR}/ext/-test-", "./ext/"
-      Commander::run env, "make check"
-    end
+    Commander::run env, "make check" unless Common.no_check? or Common.different_os?
     Commander::run env, "make install"
   end
 
