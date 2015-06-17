@@ -56,7 +56,8 @@ where OPTIONS are:
 EOS
 
 
-CREW_URL = ENV['CREW_DEVEL_URL'] || 'https://github.com/crystax/android-crew.git'
+CREW_URL    = ENV['CREW_DEVEL_URL']    || 'https://github.com/crystax/android-crew.git'
+CREW_BRANCH = ENV['CREW_DEVEL_BRANCH'] || 'master'
 
 
 begin
@@ -85,7 +86,7 @@ begin
   # test that all vars are set
   raise "use --out-dir=STR to set output dir" unless out_dir
 
-  FileUtils.cd(out_dir) { Commander.run "git clone -b master #{CREW_URL} crew" }
+  FileUtils.cd(out_dir) { Commander.run "git clone -b #{CREW_BRANCH} #{CREW_URL} crew" }
 
 rescue SystemExit => e
   exit e.status
