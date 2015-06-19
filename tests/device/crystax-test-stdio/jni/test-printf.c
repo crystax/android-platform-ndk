@@ -25,7 +25,7 @@ int test_printf()
     } \
     printf("printf " #n " - ok\n")
 
-#include "test-printf-data.c"
+#include "test-printf-data.inc"
 
     return 0;
 }
@@ -50,7 +50,7 @@ int test_fprintf()
     } \
     printf("fprintf " #n " - ok\n")
 
-#include "test-printf-data.c"
+#include "test-printf-data.inc"
 
     return 0;
 }
@@ -76,7 +76,7 @@ int test_sprintf()
     } \
     printf("sprintf " #n " - ok\n")
 
-#include "test-printf-data.c"
+#include "test-printf-data.inc"
 
     return 0;
 }
@@ -102,7 +102,16 @@ int test_snprintf()
     } \
     printf("snprintf " #n " - ok\n")
 
-#include "test-printf-data.c"
+#include "test-printf-data.inc"
 
+    return 0;
+}
+
+int main()
+{
+    if (test_printf()   != 0) return 1;
+    if (test_fprintf()  != 0) return 1;
+    if (test_sprintf()  != 0) return 1;
+    if (test_snprintf() != 0) return 1;
     return 0;
 }

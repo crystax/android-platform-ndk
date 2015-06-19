@@ -9,8 +9,11 @@
 #endif
 
 #if __APPLE__ && !defined(__MAC_10_7)
-int test_getline() { return 0; }
-int test_getdelim() { return 0; }
+int main()
+{
+    return 0;
+}
+
 #else /* !__APPLE__ || defined(__MAC_10_7) */
 
 #define TEST_FILE_NAME  "./test-getline.data"
@@ -162,6 +165,13 @@ int make_test_file(const char *data[], int num)
         return 1;
     }
 
+    return 0;
+}
+
+int main()
+{
+    if (test_getline() != 0) return 1;
+    if (test_getdelim() != 0) return 1;
     return 0;
 }
 
