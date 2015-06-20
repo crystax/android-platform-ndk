@@ -1,4 +1,4 @@
 {
-    "broken-toolchain-version": ["clang3.4", "clang3.5"],
+    "broken-toolchain-version": ["clang3.4", "clang3.5", "clang3.6"],
     "long": true
 }
