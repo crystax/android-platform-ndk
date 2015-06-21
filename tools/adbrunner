@@ -663,6 +663,12 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     binaries = [exe]
 
+    if exe.length >= 20
+        targetexe = "exe#{SecureRandom.uuid.gsub('-', '')}"
+    else
+        targetexe = File.basename(exe)
+    end
+
     File.open("#{exe}.ldlp", "r") do |tf|
         while dir = tf.gets.chomp rescue nil
             next if dir.empty?
@@ -685,7 +691,11 @@ def do_run_test(attempt, devid, tag, exe, args)
     binaries.each do |e|
         raise "No such file or directory: #{e}" unless File.exists?(e)
 
-        be = File.basename(e)
+        if e == exe
+            be = targetexe
+        else
+            be = File.basename(e)
+        end
 
         tmpf = strip(e)
         begin
@@ -718,7 +728,7 @@ def do_run_test(attempt, devid, tag, exe, args)
     env['LD_LIBRARY_PATH'] = dstbinpath
     env['TMPDIR'] = "#{devpath}/tmp"
 
-    adb_shell devid, "log #{tag} && cd #{dstbinpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{File.basename(exe)} #{newargs.join(' ')}"
+    adb_shell devid, "log #{tag} && cd #{dstbinpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{targetexe} #{newargs.join(' ')}"
 rescue AdbShellCommandFailed => err
     log err.message
 
