@@ -408,6 +408,13 @@ fail_panic "Could not copy LIBCXX src files. Aborting."
 cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/test" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
 fail_panic "Could not copy LIBCXX test files. Aborting."
 
+echo "Copying OpenPTS sources"
+OPENPTS_SUBDIR="sources/crystax/tests/openpts"
+OPENPTS_SRCDIR="$NDK_ROOT_DIR/$OPENPTS_SUBDIR"
+OPENPTS_DSTDIR="$REFERENCE/$OPENPTS_SUBDIR"
+rm -Rf "$OPENPTS_DSTDIR" && mkdir -p "$OPENPTS_DSTDIR" && rsync -aL --exclude=/.git "$OPENPTS_SRCDIR/" "$OPENPTS_DSTDIR/"
+fail_panic "Could not copy OpenPTS sources"
+
 # Copy platform and sample files
 if [ "$PREBUILT_DIR" ]; then
     echo "Unpacking platform files" &&
