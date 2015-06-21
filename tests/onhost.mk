@@ -216,7 +216,7 @@ ifeq (,$(strip $(CXXFLAGS)))
 CXXFLAGS := $(CFLAGS)
 endif
 
-ifeq (,$(filter -std=%,$(CXXFLAGS)))
+ifeq (,$(filter -std=%,$(CFLAGS) $(CXXFLAGS)))
 CXXFLAGS += -std=$(if $(call is-old-macosx),c++98,$(c++11))
 endif
 
@@ -278,7 +278,12 @@ $(dir $(TARGET)):
 
 define add-compile-rule
 $$(call objfile,$(1)): $(1) | $$(dir $$(call objfile,$(1))) $$(PRETEST)
-	$$(CC) -x $$(call language,$(1)) $$(call compiler-flags,$(1)) -c -o $$@ $$^
+	$$(strip \
+		$$(CC) -x $$(call language,$(1)) \
+		$$(if $$(filter -O%,$$(call compiler-flags,$(1))),,-O0) \
+		$$(call compiler-flags,$(1)) \
+		-c -o $$@ $$^ \
+	)
 
 ifneq (yes,$$(mkdir_rule_created.$$(dir $$(call objfile,$(1)))))
 
