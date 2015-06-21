@@ -334,23 +334,30 @@ pack_release ()
     local reldir="$3"
     local ext="${archive##*.}"
 
-    local pack_cmd
-    if [ "$ext" = "exe" ] ; then
-        pack_cmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe"
-    else
-        pack_cmd="7z"
-    fi
+    local win7z=$NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe
 
-    local flags_7z="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on -sfx"
+    local flags="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
 
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
 
-    mkdir -p `dirname $ARCHIVE`
+    local pack_cmd
+    if [ "$ext" = "exe" ] ; then
+        if [ -f $win7z ]; then
+            pack_cmd="wine $win7z $flags -sfx"
+        else
+            pack_cmd="7z $flags"
+            archive=${archive%%.$ext}.7z
+        fi
+    else
+        pack_cmd="7z $flags -sfx"
+    fi
+
+    mkdir -p `dirname $archive`
     (
         cd $srcdir || exit 1
-        $pack_cmd $flags_7z "$archive" "$reldir" | {
+        $pack_cmd "$archive" "$reldir" | {
             cnt=0
             total=0
             while read line; do
