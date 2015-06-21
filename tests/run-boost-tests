@@ -277,7 +277,7 @@ def run(*args, &block)
     Log.info "## COMMAND: #{cmd}"
     Open3.popen3(env, *args, options) do |i,o,e,t|
         if block_given?
-            yield i,o,e,t
+            yield i,o,e
         else
             i.close
             {o => '>', e => '*'}.map do |io,s|
@@ -946,18 +946,12 @@ def test_for_abi(abi, testdir)
                 bjamlast = `tail -n 20 #{bjamlog}`.split("\n").map(&:chomp).reject(&:empty?)
                 raise "Bjam failed (see #{bjamlog} for full details):\n#{bjamlast.join("\n")}" if bjamlast.last.to_s =~ /^error:/
             when 'test-process'
-                run(*runpy, '--verbose-log-processing', action) do |i,o,e,t|
+                run(*runpy, '--verbose-log-processing', action) do |i,o,e|
                     i.close
-
-                    last_activity = Time.now
 
                     wt = Thread.start do
                         s = Time.now
                         while true
-                            if Time.now - last_activity > 5*3600
-                                Log.error "test-process: running too long; aborting"
-                                Process.kill('KILL', t.pid) rescue nil
-                            end
                             sleep 120
                             Log.info "test-process: #{elapsed(Time.now - s)}"
                         end
@@ -967,7 +961,6 @@ def test_for_abi(abi, testdir)
                         cnt = 0
                         total = 0
                         while !o.gets.nil?
-                            last_activity = Time.now
                             cnt += 1
                             next if cnt < 5000
 
@@ -983,7 +976,6 @@ def test_for_abi(abi, testdir)
 
                     et = Thread.start do
                         while line = e.gets.chomp rescue nil
-                            last_activity = Time.now
                             Log.info "   * #{line}" rescue nil
                         end
                     end
