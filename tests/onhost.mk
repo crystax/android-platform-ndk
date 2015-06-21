@@ -268,7 +268,7 @@ $(TARGET): $(OBJFILES) | $(dir $(TARGET))
 			-lobjc \
 		)\
 		$(if $(call is-host-os-linux),\
-			-lrt \
+			-lpthread -lrt \
 		)\
 		-lm -ldl \
 	)
