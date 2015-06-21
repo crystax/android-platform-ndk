@@ -202,8 +202,6 @@ endef
 
 CC ?= cc
 
-TESTDIR := $(shell pwd)
-
 ifeq (,$(strip $(SRCFILES)))
 $(error SRCFILES are not defined)
 endif
@@ -237,7 +235,7 @@ TARGET := $(TARGETDIR)/$(TARGETNAME)
 
 .PHONY: test
 test: $(TARGET)
-	$(if $(call is-true,$(BUILD_ONLY)),true,$(realpath $(TARGET)))
+	$(if $(call is-true,$(BUILD_ONLY)),true,$(strip $(LAUNCHER) $(realpath $(TARGET))))
 
 .PHONY: clean
 clean:
