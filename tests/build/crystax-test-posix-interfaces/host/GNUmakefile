@@ -46,7 +46,7 @@ endif
 
 PRETEST := generate-checks
 
-DISABLE_RUN := true
+BUILD_ONLY := true
 
 include $(or $(NDK),../../../..)/tests/onhost.mk
 

@@ -118,16 +118,23 @@ define objc-runtime
 $(if $(or $(and $(call is-clang,$(CC)),$(call is-host-os-darwin)),$(call is-old-apple-gcc,$(CC))),next,gnu)
 endef
 
+c-sources-masks = %.c
+c++-sources-masks = %.cpp %.cc
+objective-c-sources-masks = %.m
+objective-c++-sources-masks = %.mm
+
+all-sources-masks = $(c-sources-masks) $(c++-sources-masks) $(objective-c-sources-masks) $(objective-c++-sources-masks)
+
 define has-c-sources
-$(if $(filter %.c %.m,$(SRCFILES)),yes)
+$(if $(filter $(c-sources-masks) $(objective-c-sources-masks),$(SRCFILES)),yes)
 endef
 
 define has-objective-c-sources
-$(if $(filter %.m %.mm,$(SRCFILES)),yes)
+$(if $(filter $(objective-c-sources-masks) $(objective-c++-sources-masks),$(SRCFILES)),yes)
 endef
 
 define has-c++-sources
-$(if $(filter %.cpp %.cc %.mm,$(SRCFILES)),yes)
+$(if $(filter $(c++-sources-masks) $(objective-c++-sources-masks),$(SRCFILES)),yes)
 endef
 
 # $1: regexp
@@ -164,6 +171,33 @@ define is-not-old-apple-clang
 $(if $(call is-old-apple-clang,$(1)),,yes)
 endef
 
+# $1: source file
+define objfile
+$(OBJDIR)/$(1).o
+endef
+
+# $1: source file
+define language
+$(strip $(or \
+    $(if $(filter $(c-sources-masks),            $(1)),c),\
+    $(if $(filter $(c++-sources-masks),          $(1)),c++),\
+    $(if $(filter $(objective-c-sources-masks),  $(1)),objective-c),\
+    $(if $(filter $(objective-c++-sources-masks),$(1)),objective-c++),\
+    $(error Can not detect language: '$(1)')\
+))
+endef
+
+# $1: source file
+define compiler-flags
+$(strip $(or \
+    $(if $(filter c,            $(call language,$(1))),$(CFLAGS)),\
+    $(if $(filter c++,          $(call language,$(1))),$(CXXFLAGS)),\
+    $(if $(filter objective-c,  $(call language,$(1))),$(OBJCFLAGS) $(CFLAGS)),\
+    $(if $(filter objective-c++,$(call language,$(1))),$(OBJCFLAGS) $(CXXFLAGS)),\
+    $(error Unknown language: '$(call language,$(1))')\
+))
+endef
+
 #=================================================================================
 
 CC ?= cc
@@ -195,22 +229,15 @@ OBJCFLAGS := -f$(objc-runtime)-runtime
 OBJCFLAGS += $(if $(call is-clang,$(CC)),-fblocks)
 
 OBJDIR := obj/$(CC)
-OBJFILES := $(strip $(addprefix $(OBJDIR)/,\
-    $(patsubst   %.c,%.o,$(filter   %.c,$(SRCFILES)))\
-    $(patsubst %.cpp,%.o,$(filter %.cpp,$(SRCFILES)))\
-    $(patsubst   %.m,%.o,$(filter   %.m,$(SRCFILES)))\
-    $(patsubst  %.mm,%.o,$(filter  %.mm,$(SRCFILES)))\
-))
+OBJFILES := $(foreach __f,$(filter $(all-sources-masks),$(SRCFILES)),$(call objfile,$(__f)))
 
 TARGETDIR := bin/$(CC)
-TARGETNAME := $(or $(strip $(TARGETNAME)),test)
+TARGETNAME := $(or $(strip $(TARGETNAME)),$(if $(filter 1,$(words $(SRCFILES))),$(addsuffix .bin,$(SRCFILES)),test))
 TARGET := $(TARGETDIR)/$(TARGETNAME)
 
 .PHONY: test
 test: $(TARGET)
-ifeq (,$(strip $(DISABLE_RUN)))
-	$(realpath $(TARGET))
-endif
+	$(if $(call is-true,$(BUILD_ONLY)),true,$(realpath $(TARGET)))
 
 .PHONY: clean
 clean:
@@ -218,13 +245,7 @@ clean:
 	@rmdir $$(dirname $(TARGETDIR)) 2>/dev/null || true
 	@rmdir $$(dirname $(OBJDIR)) 2>/dev/null || true
 
-$(TARGETDIR):
-	mkdir -p $@
-
-$(OBJDIR):
-	mkdir -p $@
-
-$(TARGET): $(OBJFILES) | $(TARGETDIR)
+$(TARGET): $(OBJFILES) | $(dir $(TARGET))
 	$(strip \
 		$(CC) \
 		$(if $(has-objective-c-sources),\
@@ -252,18 +273,23 @@ $(TARGET): $(OBJFILES) | $(TARGETDIR)
 		-lm -ldl \
 	)
 
-ifneq (,$(PRETEST))
-$(OBJFILES): | $(PRETEST)
+$(dir $(TARGET)):
+	mkdir -p $@
+
+define add-compile-rule
+$$(call objfile,$(1)): $(1) | $$(dir $$(call objfile,$(1))) $$(PRETEST)
+	$$(CC) -x $$(call language,$(1)) $$(call compiler-flags,$(1)) -c -o $$@ $$^
+
+ifneq (yes,$$(mkdir_rule_created.$$(dir $$(call objfile,$(1)))))
+
+$$(dir $$(call objfile,$(1))):
+	mkdir -p $$@
+
+$$(eval mkdir_rule_created.$$(dir $$(call objfile,$(1))) := yes)
 endif
 
-$(OBJDIR)/%.o: %.c | $(OBJDIR)
-	$(CC) -x c $(CFLAGS) -c -o $@ $^
+endef
 
-$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
-	$(CC) -x c++  $(CXXFLAGS) -c -o $@ $^
-
-$(OBJDIR)/%.o: %.m | $(OBJDIR)
-	$(CC) -x objective-c $(OBJCFLAGS) $(CFLAGS) -c -o $@ $^
-
-$(OBJDIR)/%.o: %.mm | $(OBJDIR)
-	$(CC) -x objective-c++ $(OBJCFLAGS) $(CXXFLAGS) -c -o $@ $^
+$(foreach __f,$(SRCFILES),\
+    $(eval $(call add-compile-rule,$(__f)))\
+)
