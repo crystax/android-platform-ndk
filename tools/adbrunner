@@ -663,7 +663,7 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     binaries = [exe]
 
-    if exe.length >= 20
+    if exe.length > 35
         targetexe = "exe#{SecureRandom.uuid.gsub('-', '')}"
     else
         targetexe = File.basename(exe)
@@ -760,7 +760,7 @@ rescue AdbShellCommandFailed => err
 
     # Prepare temporary directory where all unstripped binaries would be accumulated
     symdirs = SYMDIRS || [File.dirname(exe)]
-    if symdirs.size > 1
+    if symdirs.size > 1 || targetexe != File.basename(exe)
         symdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
         at_exit { FileUtils.rm_rf symdir }
 
@@ -772,6 +772,11 @@ rescue AdbShellCommandFailed => err
 
                 relpath = Pathname.new(src).relative_path_from(Pathname.new(dir)).to_s
                 dst = File.join(symdir, relpath)
+
+                if exe != targetexe && File.basename(dst) == File.basename(exe)
+                    FileUtils.rm_f File.join(File.dirname(dst), targetexe)
+                    FileUtils.cp src, File.join(File.dirname(dst), targetexe)
+                end
 
                 next if File.exists?(dst)
 
@@ -802,7 +807,7 @@ rescue AdbShellCommandFailed => err
         logerr.call "=== END OF NDK-STACK ==="
     end rescue nil
 
-    FileUtils.rm_rf symdir if symdirs.size > 1
+    FileUtils.rm_rf symdir if symdir != symdirs.first
     FileUtils.rm_f lf
 
     err.exitcode
