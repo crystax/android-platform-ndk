@@ -9,6 +9,7 @@ gen/
 include/_ctype.h
 include/bzlib.h
 include/complex.h
+include/crystax/dlmalloc/
 include/crystax/freebsd/
 include/ctype.h
 include/err.h

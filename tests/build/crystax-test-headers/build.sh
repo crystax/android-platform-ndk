@@ -89,17 +89,18 @@ for HEADER in $HEADERS; do
     # Skip internal headers
     [[ ${HEADER} == "_ctype.h"    ]] && continue
     [[ ${HEADER} == "ieeefp.h"    ]] && continue
-    [[ ${HEADER##crystax/arm64/}   != $HEADER ]] && continue
-    [[ ${HEADER##crystax/details}  != $HEADER ]] && continue
-    [[ ${HEADER##crystax/freebsd/} != $HEADER ]] && continue
-    [[ ${HEADER##crystax/mips64/}  != $HEADER ]] && continue
-    [[ ${HEADER##crystax/sys/}     != $HEADER ]] && continue
-    [[ ${HEADER##linux/}           != $HEADER ]] && continue
-    [[ ${HEADER##machine/}         != $HEADER ]] && continue
-    [[ ${HEADER##sys/_}            != $HEADER ]] && continue
-    [[ ${HEADER##xlocale/}         != $HEADER ]] && continue
+    [[ ${HEADER##crystax/arm64/}    != $HEADER ]] && continue
+    [[ ${HEADER##crystax/details}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/dlmalloc/} != $HEADER ]] && continue
+    [[ ${HEADER##crystax/freebsd/}  != $HEADER ]] && continue
+    [[ ${HEADER##crystax/mips64/}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/sys/}      != $HEADER ]] && continue
+    [[ ${HEADER##linux/}            != $HEADER ]] && continue
+    [[ ${HEADER##machine/}          != $HEADER ]] && continue
+    [[ ${HEADER##sys/_}             != $HEADER ]] && continue
+    [[ ${HEADER##xlocale/}          != $HEADER ]] && continue
 
-    num=$(expr $num + 1)
+    let num+=1
 
     for LANG in c c++ objc objc++; do
         fname=test${num}-${LANG}.$(ext_for_lang $LANG)

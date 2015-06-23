@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require 'fileutils'
+
+TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
+SRCFILE = File.join(TOPDIR, 'vendor', 'dlmalloc', 'malloc.h')
+DSTFILE = File.join(TOPDIR, 'include', 'crystax', 'dlmalloc', 'malloc.h')
+
+if File.exists?(DSTFILE) && File.mtime(DSTFILE) > File.mtime(__FILE__) && File.mtime(DSTFILE) > File.mtime(SRCFILE)
+    exit 0
+end
+
+FileUtils.mkdir_p File.dirname(DSTFILE)
+FileUtils.rm_f DSTFILE
+FileUtils.cp SRCFILE, DSTFILE
