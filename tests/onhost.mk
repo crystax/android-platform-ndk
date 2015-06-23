@@ -202,12 +202,19 @@ endef
 
 CC ?= cc
 
+empty :=
+space := $(empty) $(empty)
+
 ifeq (,$(strip $(SRCFILES)))
 $(error SRCFILES are not defined)
 endif
 
 ifeq (,$(strip $(VPATH)))
 VPATH := ../jni
+endif
+
+ifeq (,$(strip $(CFLAGS)))
+CFLAGS := $(space)
 endif
 
 ifeq (,$(strip $(CXXFLAGS)))
