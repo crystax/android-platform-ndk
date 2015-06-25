@@ -752,14 +752,6 @@ for SYSTEM in $SYSTEMS; do
     # Remove include-fixed/linux/a.out.h.   See b.android.com/73728
     find "$DSTDIR/toolchains" "$DSTDIR64/toolchains" -name a.out.h | grep include-fixed/ | xargs rm -f
 
-    # unpack vendor utils
-    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
-    fail_panic "Could not install vendor utils"
-    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
-    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
-    fail_panic "Could not install CREW"
-
     # Remove redundant pretty-printers/libstdcxx
     rm -rf $DSTDIR/prebuilt/*/share/pretty-printers/libstdcxx/gcc-l*
     rm -rf $DSTDIR/prebuilt/*/share/pretty-printers/libstdcxx/gcc-4.9-*
@@ -779,6 +771,14 @@ for SYSTEM in $SYSTEMS; do
     # Remove .git*
     find $DSTDIR -name ".git*" -exec rm -rf {} \;
     find $DSTDIR64 -name ".git*" -exec rm -rf {} \;
+
+    # unpack vendor utils
+    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    fail_panic "Could not install vendor utils"
+    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
+    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
+    fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the
     # host system.
