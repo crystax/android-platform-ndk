@@ -91,7 +91,7 @@ module Builder
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot " \
       "-m32"
     when 'windows-x86_64'
-      ''
+      '-m64'
     when 'windows-x86'
       '-m32'
     else
