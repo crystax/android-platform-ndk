@@ -55,7 +55,7 @@ else
 fi
 register_var_option "--system=<name>" SYSTEM "Specify host system"
 
-PACKAGE_DIR=/tmp/ndk-$USER
+PACKAGE_DIR=$TMPDIR
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Place package file in <path>"
 
 INSTALL_DIR=
@@ -328,13 +328,6 @@ dump "Copying prebuilt binaries..."
 # Now copy the GCC toolchain prebuilt binaries
 copy_directory "$TOOLCHAIN_PATH" "$TMPDIR"
 
-# Replace soft-link mcld by real file
-ALL_LDS=`find $TMPDIR -name "*mcld"`
-for LD in $ALL_LDS; do
-  rm -f "$LD"
-  cp -a "$NDK_DIR/toolchains/llvm-$DEFAULT_LLVM_VERSION/prebuilt/$SYSTEM/bin/ld.mcld" "$LD"
-done
-
 # Copy python-related to for gdb.exe
 PYTHON=python
 PYTHON_x=python$(echo "$DEFAULT_PYTHON_VERSION" | cut -d . -f 1)
@@ -553,7 +546,6 @@ run find "$TMPDIR/sysroot/usr/" -name 'libstdc++.*' -delete
 
 if [ "$ARCH_INC" != "$ARCH" ]; then
     cp -a $NDK_DIR/$GABIXX_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
-    cp -a $NDK_DIR/$LIBPORTABLE_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
     cp -a $NDK_DIR/$GCCUNWIND_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
     if [ "$ARCH" = "${ARCH%%64*}" ]; then
         cp -a $NDK_DIR/$COMPILER_RT_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib

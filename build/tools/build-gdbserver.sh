@@ -39,7 +39,7 @@ NOTE: The --platform option is ignored if --sysroot is used."
 VERBOSE=no
 
 OPTION_BUILD_OUT=
-BUILD_OUT=/tmp/ndk-$USER/build/gdbserver
+BUILD_OUT=$TMPDIR/build/gdbserver
 register_option "--build-out=<path>" do_build_out "Set temporary build directory"
 do_build_out () { OPTION_BUILD_OUT="$1"; }
 
@@ -197,7 +197,7 @@ if [ "$NOTHREADS" != "yes" ] ; then
     # We're going to rebuild libthread_db.o from its source
     # that is under sources/android/libthread_db and place its header
     # and object file into the build sysroot.
-    LIBTHREAD_DB_DIR=$ANDROID_NDK_ROOT/sources/android/libthread_db/gdb-$GDBVER
+    LIBTHREAD_DB_DIR=$ANDROID_NDK_ROOT/sources/android/libthread_db
     if [ ! -d "$LIBTHREAD_DB_DIR" ] ; then
         dump "ERROR: Missing directory: $LIBTHREAD_DB_DIR"
         exit 1
@@ -217,23 +217,19 @@ log "Using build sysroot: $BUILD_SYSROOT"
 # configure the gdbserver build now
 dump "Configure: $TOOLCHAIN gdbserver-$GDBVER build with $PLATFORM"
 
-case "$GDBVER" in
-    6.6)
-        CONFIGURE_FLAGS="--with-sysroot=$BUILD_SYSROOT"
-        ;;
-    7.3.x|7.6|7.7)
-        # This flag is required to link libthread_db statically to our
-        # gdbserver binary. Otherwise, the program will try to dlopen()
-        # the threads binary, which is not possible since we build a
-        # static executable.
-        CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/$LIBDIR/libthread_db.a"
-        # Disable libinproctrace.so which needs crtbegin_so.o and crtbend_so.o instead of
-        # CRTBEGIN/END above.  Clean it up and re-enable it in the future.
-        CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --disable-inprocess-agent"
-        ;;
-    *)
-        CONFIGURE_FLAGS=""
-esac
+# This flag is required to link libthread_db statically to our
+# gdbserver binary. Otherwise, the program will try to dlopen()
+# the threads binary, which is not possible since we build a
+# static executable.
+CONFIGURE_FLAGS="--with-libthread-db=$BUILD_SYSROOT/usr/$LIBDIR/libthread_db.a"
+# Disable libinproctrace.so which needs crtbegin_so.o and crtbend_so.o instead of
+# CRTBEGIN/END above.  Clean it up and re-enable it in the future.
+CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --disable-inprocess-agent"
+# gdb 7.7 builds with -Werror by default, but they redefine constants such as
+# HWCAP_VFPv3 in a way that's compatible with glibc's headers but not our
+# kernel uapi headers. We should send a patch upstream to add the missing
+# #ifndefs, but for now just build gdbserver without -Werror.
+CONFIGURE_FLAGS=$CONFIGURE_FLAGS" --enable-werror=no"
 
 cd $BUILD_OUT &&
 export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&

@@ -75,22 +75,29 @@ LIBJPEG_VERSIONS="9a"
 LIBTIFF_SUBDIR=sources/libtiff
 LIBTIFF_VERSIONS="4.0.4beta"
 
+# Location of the gccunwind sources, relative to the NDK root directory
+GCCUNWIND_SUBDIR=sources/android/gccunwind
+
+# Location of the support sources for libc++, relative to the NDK root directory
+# zuav: todo: remove all references to the var
+SUPPORT_SUBDIR=sources/android/support
+
 # The date to use when downloading toolchain sources from AOSP servers
 # Leave it empty for tip of tree.
 TOOLCHAIN_GIT_DATE=now
 
 # The space-separated list of all GCC versions we support in this NDK
-DEFAULT_GCC_VERSION_LIST="4.8 4.9"
+DEFAULT_GCC_VERSION_LIST="4.9"
 
-DEFAULT_GCC32_VERSION=4.8
+DEFAULT_GCC32_VERSION=4.9
 DEFAULT_GCC64_VERSION=4.9
-FIRST_GCC32_VERSION=4.8
+FIRST_GCC32_VERSION=4.9
 FIRST_GCC64_VERSION=4.9
-DEFAULT_LLVM_GCC32_VERSION=4.8
+DEFAULT_LLVM_GCC32_VERSION=4.9
 DEFAULT_LLVM_GCC64_VERSION=4.9
 
 DEFAULT_BINUTILS_VERSION=2.25
-DEFAULT_GDB_VERSION=7.7
+DEFAULT_GDB_VERSION=7.9.1
 DEFAULT_MPFR_VERSION=3.1.2
 DEFAULT_GMP_VERSION=6.0.0
 DEFAULT_MPC_VERSION=1.0.3
@@ -132,7 +139,7 @@ DEFAULT_ARCH_TOOLCHAIN_NAME_mips64=mips64el-linux-android
 DEFAULT_ARCH_TOOLCHAIN_PREFIX_mips64=mips64el-linux-android
 
 # The space-separated list of all LLVM versions we support in NDK
-DEFAULT_LLVM_VERSION_LIST="3.6 3.5"
+DEFAULT_LLVM_VERSION_LIST="3.6"
 
 # The default LLVM version (first item in the list)
 DEFAULT_LLVM_VERSION=$(echo "$DEFAULT_LLVM_VERSION_LIST" | tr ' ' '\n' | head -n 1)
@@ -298,7 +305,7 @@ get_toolchain_name_list_for_arch ()
 # binutils was reverted to 2.19, to ensure at least
 # feature/bug compatibility.
 #
-# $1: toolchain with version numer (e.g. 'arm-linux-androideabi-4.8')
+# $1: toolchain with version number (e.g. 'arm-linux-androideabi-4.8')
 #
 get_default_binutils_version_for_gcc ()
 {
@@ -320,7 +327,7 @@ get_default_binutils_version_for_llvm ()
 # Return the gdb version to be used by default when building a given
 # version of GCC.
 #
-# $1: toolchain with version numer (e.g. 'arm-linux-androideabi-4.8')
+# $1: toolchain with version number (e.g. 'arm-linux-androideabi-4.8')
 #
 get_default_gdb_version_for_gcc ()
 {
@@ -330,7 +337,7 @@ get_default_gdb_version_for_gcc ()
 # Return the gdbserver version to be used by default when building a given
 # version of GCC.
 #
-# $1: toolchain with version numer (e.g. 'arm-linux-androideabi-4.8')
+# $1: toolchain with version number (e.g. 'arm-linux-androideabi-4.8')
 #
 get_default_gdbserver_version_for_gcc ()
 {

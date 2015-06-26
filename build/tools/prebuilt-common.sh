@@ -59,7 +59,7 @@ extract_minor_version ()
 }
 
 # Compare two version numbers and only succeeds if the first one is
-# greather or equal than the second one.
+# greater than or equal to the second one.
 #
 # $1: first version (e.g. 4.9)
 # $2: second version (e.g. 4.8)
@@ -1424,9 +1424,8 @@ get_llvm_toolchain_binprefix ()
 {
     local NAME DIR BINPREFIX
     local SYSTEM=${2:-$(get_prebuilt_host_tag)}
-    NAME=llvm-$1
-    DIR=$(get_toolchain_install . $NAME $SYSTEM)
-    BINPREFIX=${DIR#./}/bin/
+    SYSTEM=${SYSTEM%_64} # Trim _64 suffix. We only have one LLVM.
+    BINPREFIX=$ANDROID_BUILD_TOP/prebuilts/clang/$SYSTEM/host/$1/bin
     echo "$BINPREFIX"
 }
 
@@ -1637,7 +1636,8 @@ check_toolchain_src_dir ()
 # call after that use the same one.
 #
 if [ -z "$NDK_TMPDIR" ]; then
-    NDK_TMPDIR=/tmp/ndk-$USER/tmp/build-$$
+    
+    NDK_TMPDIR=$TMPDIR/tmp/build-$$
     mkdir -p $NDK_TMPDIR
     if [ $? != 0 ]; then
         echo "ERROR: Could not create NDK_TMPDIR: $NDK_TMPDIR"

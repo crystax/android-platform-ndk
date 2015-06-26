@@ -149,7 +149,7 @@ for ARCH in $ARCHS; do
     fi
     GDB_VERSION="--gdb-version="$(get_default_gdb_version_for_gcc $GDB_TOOLCHAIN)
     dump "Building $GDB_TOOLCHAIN gdbserver binaries..."
-    run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" "$GDB_VERSION" $FLAGS
+    run $BUILDTOOLS/build-gdbserver.sh "$SRC_DIR" "$NDK_DIR" "$GDB_TOOLCHAIN" "$GDB_VERSION" $FLAGS --platform=android-21
     fail_panic "Could not build $GDB_TOOLCHAIN gdb-server!"
 done
 
@@ -157,17 +157,9 @@ FLAGS=$FLAGS" --ndk-dir=\"$NDK_DIR\""
 ABIS=$(convert_archs_to_abis $ARCHS)
 UNKNOWN_ABIS=$(convert_archs_to_abis $UNKNOWN_ARCH)
 
-if [ -z "$LLVM_VERSION" ]; then
-    fail_panic "LLVM_VERSION not specified!"
-fi
-
 dump "Building $ABIS libcrystax binaries..."
 run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
-
-dump "Building $ABIS compiler-rt binaries..."
-run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
-fail_panic "Could not build compiler-rt!"
 
 dump "Building $ABIS gabi++ binaries..."
 run $BUILDTOOLS/build-cxx-stl.sh --stl=gabi++ --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
@@ -252,10 +244,6 @@ for VERSION in $BOOST_VERSIONS; do
     run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=$ICU_VERSION $(cd $SRC_DIR/../vendor/boost && pwd)
     fail_panic "Could not build Boost+ICU-$VERSION!"
 done
-
-dump "Building $ABIS libportable binaries..."
-run $BUILDTOOLS/build-libportable.sh --abis="$ABIS" $FLAGS $BUILD_TOOLCHAIN
-fail_panic "Could not build libportable!"
 
 dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name libcrystax.a -delete

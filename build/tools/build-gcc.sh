@@ -31,7 +31,7 @@ the top-level NDK installation path and <toolchain> is the name of
 the toolchain to use (e.g. arm-linux-androideabi-4.8)."
 
 RELEASE=`date +%Y%m%d`
-BUILD_OUT=/tmp/ndk-$USER/build/toolchain
+BUILD_OUT=$TMPDIR/build/toolchain
 OPTION_BUILD_OUT=
 register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
@@ -90,7 +90,7 @@ register_try64_option
 
 extract_parameters "$@"
 
-prepare_canadian_toolchain /tmp/ndk-$USER/build
+prepare_canadian_toolchain $TMPDIR/build
 
 fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
 setup_default_log_file $BUILD_OUT/config.log
@@ -262,7 +262,7 @@ TOOLCHAIN_LICENSES=$ANDROID_NDK_ROOT/build/tools/toolchain-licenses
 #  3) The path exists but not accessible, which crashes GCC!
 #
 # For canadian build --with-sysroot has to be sub-directory of --prefix.
-# Put TOOLCHAIN_BUILD_PREFIX to BUILD_OUT which is in /tmp by default,
+# Put TOOLCHAIN_BUILD_PREFIX to BUILD_OUT which is in $TMPDIR by default,
 # and TOOLCHAIN_BUILD_SYSROOT underneath.
 
 TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
@@ -352,20 +352,37 @@ esac
 EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --disable-libsanitizer"
 
 # Enable Gold
+
+ENABLE_GOLD_FLAGS=
 case "$TOOLCHAIN" in
     # Note that only ARM/X86 >= GCC 4.6 and AARCH64 >= GCC 4.9 are supported
     mips*)
+        # Don't use gold for mips/mips64.
     ;;
     aarch64*)
         # Enable ld.gold but ld.bfd remain the default
-        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold --enable-ld=default"
+        ENABLE_GOLD_FLAGS="--enable-gold --enable-ld=default"
     ;;
     *)
         # Enable ld.gold as default
-        EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-gold=default"
+        ENABLE_GOLD_FLAGS="--enable-gold=default"
     ;;
 esac
 if [ "$MINGW" != "yes" ] ; then
+    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
+fi
+
+# Current mingw has an internal compiler error when building gold.
+# Bug: http://b/22045105
+if [ "$MINGW" = "yes" ]; then
+    ENABLE_GOLD_FLAGS=
+fi
+
+EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" "$ENABLE_GOLD_FLAGS
+
+# We're not using gold for mips yet, and there is no support for threaded
+# linking on Windows (no pthreads).
+if [ "$TOOLCHAIN" != mips* -a "$MINGW" != "yes"]; then
     EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
 fi
 
@@ -715,15 +732,7 @@ if [ "$PACKAGE_DIR" ]; then
     assert_cache_host_tag
     SUBDIR=$(get_toolchain_install_subdir $TOOLCHAIN $HOST_TAG)
     dump "Packaging $ARCHIVE"
-    # exlude ld.mcld
-    EXCLUSIONS=
-    if [ -f $SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE} ] ; then
-        EXCLUSIONS=$EXCLUSIONS" --exclude=$SUBDIR/bin/$ABI_CONFIGURE_TARGET-ld.mcld${HOST_EXE}"
-    fi
-    if [ -f $SUBDIR/$ABI_CONFIGURE_TARGET/bin/ld.mcld${HOST_EXE} ] ; then
-        EXCLUSIONS=$EXCLUSIONS" --exclude=$SUBDIR/$ABI_CONFIGURE_TARGET/bin/ld.mcld${HOST_EXE}"
-    fi
-    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR" $EXCLUSIONS
+    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     cache_package "$PACKAGE_DIR" "$ARCHIVE"
     # package libgccunwind.a
     if [ "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then

@@ -71,7 +71,7 @@ PREFIX=android-ndk
 register_var_option "--prefix=<name>" PREFIX "Specify package prefix"
 
 # default location for generated packages
-OUT_DIR=/tmp/ndk-$USER/release
+OUT_DIR=$TMPDIR/release
 OPTION_OUT_DIR=
 register_var_option "--out-dir=<path>" OPTION_OUT_DIR "Specify output package directory" "$OUT_DIR"
 
@@ -520,8 +520,6 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt boost-$VERSION-libs-$ABI "$REFERENCE"
             unpack_prebuilt boost+icu-$VERSION-libs-$ABI "$REFERENCE"
         done
-        unpack_prebuilt libportable-libs-$ABI "$REFERENCE"
-        unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
         unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
     done
 fi
@@ -681,15 +679,6 @@ for SYSTEM in $SYSTEMS; do
             done
         done
 
-        if [ -d "$DSTDIR/$LIBPORTABLE_SUBDIR" ]; then
-            LIBPORTABLE_ABIS=$PREBUILT_ABIS
-            for LIBPORTABLE_ABI in $LIBPORTABLE_ABIS; do
-                copy_prebuilt "$LIBPORTABLE_SUBDIR/libs/$LIBPORTABLE_ABI" "$LIBPORTABLE_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find libportable source tree!"
-        fi
-
         if [ -d "$DSTDIR/$COMPILER_RT_SUBDIR" ]; then
             COMPILER_RT_ABIS=$PREBUILT_ABIS
             for COMPILER_RT_ABI in $COMPILER_RT_ABIS; do
@@ -716,18 +705,12 @@ for SYSTEM in $SYSTEMS; do
             rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
             rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}-x86_64/sysroot
         done
-        echo "Remove ld.mcld deployed/packaged earlier by accident "
-        find $DSTDIR/toolchains $DSTDIR64/toolchains  -name "*ld.mcld*" -exec rm -f {} \;
 
         # Unpack clang/llvm
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
             unpack_prebuilt llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
         done
 
-        # Unpack mclinker
-        if [ -n "$LLVM_VERSION_LIST" ]; then
-            unpack_prebuilt ld.mcld-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        fi
         rm -rf $DSTDIR/toolchains/*l
         rm -rf $DSTDIR64/toolchains/*l
 
@@ -738,7 +721,6 @@ for SYSTEM in $SYSTEMS; do
         unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
         unpack_prebuilt ndk-depends-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
         unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-sed-$SYSTEM "$DSTDIR" "$DSTDIR64"
         unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
         unpack_prebuilt ndk-perl-$SYSTEM "$DSTDIR" "$DSTDIR64"
         unpack_prebuilt ndk-python-$SYSTEM "$DSTDIR" "$DSTDIR64"

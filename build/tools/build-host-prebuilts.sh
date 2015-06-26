@@ -166,7 +166,7 @@ do_remote_host_build ()
     # Do it first so we can fail fast, not after spending time preparing
     # large tarballs.
     dump "Creating remote temp directory"
-    TMPREMOTE=/tmp/ndk-$USER/darwin-prebuild
+    TMPREMOTE=$TMPDIR/darwin-prebuild
     run ssh $REMOTE_HOST "mkdir -p $TMPREMOTE && rm -rf $TMPREMOTE/*"
     fail_panic "Could not create temporary build directory on $REMOTE_HOST"
 
@@ -340,25 +340,13 @@ for SYSTEM in $SYSTEMS; do
         done
     done
 
-    # Build llvm and clang
-    POLLY_FLAGS=
-    if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
-        POLLY_FLAGS="--with-polly"
+    echo "Packaging $SYSNAME LLVM"
+    PACKAGE_ARG=
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_ARG="--package-dir $PACKAGE_DIR"
     fi
-    for LLVM_VERSION in $LLVM_VERSION_LIST; do
-        echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
-        if [ "$LLVM_VERSION" = "3.5" ]; then
-            MCLINKER="--mclinker"
-        fi
-        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG -j$BUILD_NUM_CPUS $MCLINKER
-        fail_panic "Could not build llvm for $SYSNAME"
-    done
-
-    if [ ! -z "$LLVM_VERSION_LIST" ]; then
-        # Deploy ld.mcld
-        run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
-        fail_panic "Could not deploy ld.mcld for $SYSNAME"
-    fi
+    run $BUILDTOOLS/build-llvm.py --host $SYSTEM $PACKAGE_ARG
+    fail_panic "Could not build llvm for $SYSNAME"
 
     # build crystax host tools
     target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
@@ -378,8 +366,9 @@ done
 run $BUILDTOOLS/build-renderscript.sh --systems="$SYSTEMS" $FLAGS
 fail_panic "Could not build RenderScript binaries!"
 
-# Build tools common to all system
-run $BUILDTOOLS/build-analyzer.sh "$SRC_DIR" "$NDK_DIR" "llvm-$DEFAULT_LLVM_VERSION" --package-dir="$PACKAGE_DIR"
+# Build tools common to all systems.
+ANDROID_BUILD_TOP=$($BUILDTOOLS/../../realpath $BUILDTOOLS/../../..)
+run $BUILDTOOLS/build-analyzer.sh "$NDK_DIR" --package-dir="$PACKAGE_DIR"
 
 if [ "$PACKAGE_DIR" ]; then
     echo "Done, please look at $PACKAGE_DIR"
