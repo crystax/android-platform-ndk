@@ -341,18 +341,25 @@ for SYSTEM in $SYSTEMS; do
         done
     done
 
-    echo "Packaging $SYSNAME LLVM"
-    PACKAGE_ARG=
-    if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_ARG="--package-dir $PACKAGE_DIR"
+    # Build llvm and clang
+    POLLY_FLAGS=
+    if [ "$TRY64" != "yes" -a "$SYSTEM" != "windows" ]; then
+        POLLY_FLAGS="--with-polly"
     fi
+    for LLVM_VERSION in $LLVM_VERSION_LIST; do
+        echo "Building $SYSNAME clang/llvm-$LLVM_VERSION"
+        if [ "$LLVM_VERSION" = "3.5" ]; then
+            MCLINKER="--mclinker"
+        fi
+        run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG -j$BUILD_NUM_CPUS $MCLINKER
+        fail_panic "Could not build llvm for $SYSNAME"
+    done
 
-    # Trim the trailing _64.
-    # linux-x86 and linux-x86_64 both become linux-x86 (same for darwin).
-    # Note that there is no 32-bit LLVM for Darwin or Linux.
-    LLVM_HOST=${SYSTEM%%_64}
-    run $BUILDTOOLS/build-llvm.py --host $LLVM_HOST $PACKAGE_ARG
-    fail_panic "Could not build llvm for $SYSNAME"
+    if [ ! -z "$LLVM_VERSION_LIST" ]; then
+        # Deploy ld.mcld
+        run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
+        fail_panic "Could not deploy ld.mcld for $SYSNAME"
+    fi
 
     # build crystax host tools
     target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
@@ -372,9 +379,8 @@ done
 run $BUILDTOOLS/build-renderscript.sh --systems="$SYSTEMS" $FLAGS
 fail_panic "Could not build RenderScript binaries!"
 
-# Build tools common to all systems.
-ANDROID_BUILD_TOP=$($BUILDTOOLS/../../realpath $BUILDTOOLS/../../..)
-run $BUILDTOOLS/build-analyzer.sh "$NDK_DIR" --package-dir="$PACKAGE_DIR"
+# Build tools common to all system
+run $BUILDTOOLS/build-analyzer.sh "$SRC_DIR" "$NDK_DIR" "llvm-$DEFAULT_LLVM_VERSION" --package-dir="$PACKAGE_DIR"
 
 if [ "$PACKAGE_DIR" ]; then
     echo "Done, please look at $PACKAGE_DIR"
