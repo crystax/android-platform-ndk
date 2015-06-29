@@ -30,9 +30,7 @@ if [ ! -d "$NDK_CACHE_DIR" ]; then
     fi
 fi
 
-if [ -z "$TMPDIR" ]; then
-    export TMPDIR=/tmp/ndk-$USER
-fi
+export TMPDIR=/tmp/ndk-$USER
 
 OS=`uname -s`
 if [ "$OS" == "Darwin" -a -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
