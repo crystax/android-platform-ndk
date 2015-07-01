@@ -520,6 +520,7 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt boost-$VERSION-libs-$ABI "$REFERENCE"
             unpack_prebuilt boost+icu-$VERSION-libs-$ABI "$REFERENCE"
         done
+        unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
         unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
     done
 fi
