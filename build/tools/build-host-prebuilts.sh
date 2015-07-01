@@ -355,12 +355,6 @@ for SYSTEM in $SYSTEMS; do
         fail_panic "Could not build llvm for $SYSNAME"
     done
 
-    if [ ! -z "$LLVM_VERSION_LIST" ]; then
-        # Deploy ld.mcld
-        run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
-        fail_panic "Could not deploy ld.mcld for $SYSNAME"
-    fi
-
     # build crystax host tools
     target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
     if [ "$TRY64" = "yes" ]; then

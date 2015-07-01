@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012, 2014 The Android Open Source Project
+# Copyright (C) 2012, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,10 +47,6 @@ register_var_option "--package-dir=<path>" PACKAGE_DIR "Create archive tarball i
 POLLY=no
 do_polly_option () { POLLY=yes; }
 register_option "--with-polly" do_polly_option "Enable Polyhedral optimizations for LLVM"
-
-MCLINKER=no
-do_mclinker_option () { MCLINKER=yes; }
-register_option "--mclinker" do_mclinker_option "Build mclinker as well"
 
 CHECK=no
 do_check_option () { CHECK=yes; }
@@ -299,20 +295,6 @@ elif [ $LLVM_VERSION_MAJOR -eq 3 ] && [ $LLVM_VERSION_MINOR -lt 3 ]; then
     USE_PYTHON=yes
 fi
 
-if [ "$USE_PYTHON" != "yes" ]; then
-    # Refresh intermediate source
-    rm -f $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/*.cpp
-    rm -f $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/*.c
-    rm -f $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/*.h
-    run cp -a $NDK_DIR/tests/abcc/jni/*.cpp $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native
-    run cp -a $NDK_DIR/tests/abcc/jni/Abcc.h $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native
-    run cp -a $NDK_DIR/tests/abcc/jni/host/*.cpp $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native
-    run cp -a $NDK_DIR/tests/abcc/jni/host/*.h $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native
-    run cp -a $NDK_DIR/tests/abcc/jni/llvm_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR}.h $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/llvm_version.h
-    run cp -a $NDK_DIR/tests/abcc/jni/mman-win32/mman.[ch] $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native
-    export LLVM_TOOLS_FILTER="PARALLEL_DIRS:=\$\$(PARALLEL_DIRS:%=% ndk-bc2native)"
-fi
-
 BINUTILS_VERSION=$(get_default_binutils_version_for_llvm $TOOLCHAIN)
 
 run $SRC_DIR/$TOOLCHAIN/llvm/configure \
@@ -361,63 +343,11 @@ cp -a $GCC_SRC_DIR/gcc/config/i386/arm_neon.h $TOOLCHAIN_BUILD_PREFIX/lib/clang/
 # doing this rename and also making a proper llvm-config-host;
 # https://android-review.googlesource.com/#/c/64261/
 # https://android-review.googlesource.com/#/c/64263/
-# .. with these fixes in place, Darwin mclinker can be cross-compiled and Wine is not needed for Windows cross
+# .. with these fixes in place Wine is not needed for Windows cross
 # To my mind, llvm-config-host is a misnomer and it should be llvm-config-build.
 LLVM_CONFIG=$TOOLCHAIN_BUILD_PREFIX/bin/llvm-config
 if [ -f $TOOLCHAIN_BUILD_PREFIX/bin/llvm-config-host ] ; then
     LLVM_CONFIG=$TOOLCHAIN_BUILD_PREFIX/bin/llvm-config-host
-fi
-
-# build mclinker only against default the LLVM version, once
-if [ "$MCLINKER" = "yes" -o "$TOOLCHAIN" = "llvm-$DEFAULT_LLVM_VERSION" ] ; then
-  if [ "$TOOLCHAIN" != "llvm-3.6" ] ; then
-    dump "Copy     : mclinker source"
-    MCLINKER_SRC_DIR=$BUILD_OUT/mclinker
-    mkdir -p $MCLINKER_SRC_DIR
-    fail_panic "Couldn't create mclinker source directory: $MCLINKER_SRC_DIR"
-
-    run copy_directory "$SRC_DIR/mclinker" "$MCLINKER_SRC_DIR"
-    fail_panic "Couldn't copy mclinker source: $MCLINKER_SRC_DIR"
-
-    CXXFLAGS="$CXXFLAGS -fexceptions"  # optimized/ScriptParser.cc needs it
-    CXXFLAGS="$CXXFLAGS -std=c++11"
-    export CXXFLAGS
-
-    cd $MCLINKER_SRC_DIR && run ./autogen.sh
-    fail_panic "Couldn't run autogen.sh in $MCLINKER_SRC_DIR"
-
-    dump "Configure: mclinker against $TOOLCHAIN"
-    MCLINKER_BUILD_OUT=$MCLINKER_SRC_DIR/build
-    mkdir -p $MCLINKER_BUILD_OUT && cd $MCLINKER_BUILD_OUT
-    fail_panic "Couldn't cd into mclinker build path: $MCLINKER_BUILD_OUT"
-
-    run $MCLINKER_SRC_DIR/configure \
-        --prefix=$TOOLCHAIN_BUILD_PREFIX \
-        --with-llvm-config=$LLVM_CONFIG \
-        --host=$ABI_CONFIGURE_HOST \
-        --build=$ABI_CONFIGURE_BUILD
-    fail_panic "Couldn't configure mclinker"
-
-    dump "Building : mclinker"
-    if [ "$MINGW" = "yes" ]; then
-        MAKE_FLAGS="$MAKE_FLAGS LIBS=-lshlwapi" # lib/Object/SectionMap.cpp needs PathMatchSpec to replace fnmatch()
-    fi
-    cd $MCLINKER_BUILD_OUT
-    run make -j$NUM_JOBS $MAKE_FLAGS CXXFLAGS="$CXXFLAGS"
-    fail_panic "Couldn't compile mclinker"
-
-    dump "Install  : mclinker"
-    cd $MCLINKER_BUILD_OUT && run make install $MAKE_FLAGS
-    fail_panic "Couldn't install mclinker to $TOOLCHAIN_BUILD_PREFIX"
-
-    if [ "$CHECK" = "yes" -a "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
-        # run the regression test
-        dump "Running  : mclinker regression test"
-        cd $MCLINKER_BUILD_OUT
-        run make check
-        fail_warning "Couldn't pass all mclinker regression test"  # change to fail_panic later
-    fi
-  fi
 fi
 
 # remove redundant bits
@@ -432,13 +362,6 @@ rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/B*.so
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/B*.dylib
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/LLVMH*.so
 rm -rf $TOOLCHAIN_BUILD_PREFIX/lib/LLVMH*.dylib
-if [ -f $TOOLCHAIN_BUILD_PREFIX/bin/ld.lite${HOST_EXE} ]; then
-    # rename ld.lite to ld.mcld
-    rm -rf $TOOLCHAIN_BUILD_PREFIX/bin/ld.[bm]*
-    mv -f $TOOLCHAIN_BUILD_PREFIX/bin/ld.lite${HOST_EXE} $TOOLCHAIN_BUILD_PREFIX/bin/ld.mcld${HOST_EXE}
-else
-    rm -rf $TOOLCHAIN_BUILD_PREFIX/bin/ld.bcc
-fi
 rm -rf $TOOLCHAIN_BUILD_PREFIX/share
 
 UNUSED_LLVM_EXECUTABLES="
