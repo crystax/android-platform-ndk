@@ -454,7 +454,7 @@ for ABI in $ABIS; do
     echo "First GCC version for $ABI ($ARCH) : $FIRST_GCC_VERSION"
     for VERSION in $GCC_VERSION_LIST; do
         # Only build for this GCC version if it on or after FIRST_GCC_VERSION
-        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && ! version_is_at_least "${VERSION%%l}" "$FIRST_GCC_VERSION"; then
+        if [ -z "$EXPLICIT_COMPILER_VERSION" ] && version_is_at_least "${VERSION%%l}" "$FIRST_GCC_VERSION"; then
             echo "Skipping build for GCC $VERSION for $ABI ($ARCH)"
             continue
         fi
