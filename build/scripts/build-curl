@@ -96,7 +96,7 @@ begin
             "--enable-debug",
             "--with-sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot"
            ]
-    Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
+    Commander::run env, "./configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs}"
     Commander::run env, "make test" unless Common::no_check? or Common.different_os?
     Commander::run env, "make install"

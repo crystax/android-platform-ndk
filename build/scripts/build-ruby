@@ -68,35 +68,39 @@ end
 
 def build_libffi(installdir)
   Logger.log_msg "= building libffi"
+  raise "libffi required only for windows" unless Common.target_os == 'windows'
+  # check version
   srcdir = "#{Common::VENDOR_DIR}/libffi"
   libver = File.read("#{srcdir}/doc/version.texi").split("\n")[3].split(' ')[2]
   if libver != Crystax::VERSIONS['libffi']
     raise "bad libffi version: repository: #{libver}; expected: #{Crystax::VERSIONS['libffi']}"
   end
-  FileUtils.cd(srcdir) { Commander::run "./autogen.sh" }
+  # copy sources
+  FileUtils.cp_r srcdir, Common::BUILD_BASE
+  #
   builddir = "#{Common::BUILD_BASE}/libffi"
-  FileUtils.mkdir_p(builddir)
   FileUtils.cd(builddir) do
+    # apply patch from ruby sources
+    Commander.run "patch -p1 < #{Common::VENDOR_DIR}/ruby/ext/fiddle/win32/libffi-3.2.1-mswin.patch"
+    # confgure
+    Commander::run "./autogen.sh"
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags
+            'CFLAGS' => Builder.cflags,
+            'PATH' => Builder.toolchain_path_and_path
           }
-    if Common.target_os == 'windows'
-      env['PATH'] = Builder.toolchain_path_and_path
-    end
     args = ["--prefix=#{installdir}",
             "--host=#{Builder.configure_host}",
             "--disable-shared"
            ]
     Commander.run env, "#{srcdir}/configure #{args.join(' ')}"
+    # build and install
+    # libffi 'make check' requires DejaGNU installed so we do not run it
     Commander.run env, "make -j #{Common::num_jobs}"
-    # here 'make check' requires DejaGNU installed so we do not run it
-    # Commander::run env, "make check" unless Common::no_check?
     Commander.run env, "make install"
   end
   FileUtils.cp_r "#{installdir}/lib/libffi-#{Crystax.version('libffi')}/include", "#{installdir}/"
   ilib = Common.target_cpu == 'x86' ? 'lib32' : 'lib'
   FileUtils.rm "#{installdir}/#{ilib}/libffi.la"
-  Builder.clean_src(srcdir) unless Common.no_clean?
 end
 
 
@@ -150,8 +154,8 @@ begin
   libs    = '-lz -lgit2 -lssh2 -lz'
   path    = '/bin:/usr/bin:/sbin:/usr/sbin'
   if Common.target_os == 'windows'
-    cflags  += " -I#{libsdir}/include"
-    ldflags += " -L#{libsdir}/lib"
+    cflags  += " -I#{libsdir}/include -g"
+    ldflags += " -L#{libsdir}/lib -g"
     libs = "#{zlibdir}/lib/libz.a #{libgit2dir}/lib/libgit2.a #{libssh2dir}/lib/libssh2.a #{zlibdir}/lib/libz.a"
     path = Builder.toolchain_path_and_path
   end
@@ -175,7 +179,6 @@ begin
             "--without-gmp",
             "--without-tk",
             "--without-gdbm",
-            #"--disable-shared",
             "--enable-bundled-libyaml"
            ]
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
