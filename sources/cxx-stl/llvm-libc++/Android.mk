@@ -1,3 +1,4 @@
+# -*- makefile-gmake -*-
 # This file is dual licensed under the MIT and the University of Illinois Open
 # Source Licenses. See LICENSE.TXT for details.
 
@@ -135,6 +136,13 @@ include $(libcxxabi_sources_dir)/sources.mk
 llvm_libc++_sources += $(addprefix $(libcxxabi_sources_prefix:%/=%)/,$(libcxxabi_src_files))
 llvm_libc++_includes += $(libcxxabi_c_includes)
 llvm_libc++_export_includes += $(libcxxabi_c_includes)
+# For armeabi*, use unwinder from libc++abi
+ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
+llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=1
+llvm_libc++_sources += $(addprefix $(libcxxabi_sources_prefix:%/=%)/,$(libcxxabi_unwind_src_files))
+else
+llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=0
+endif
 
 ifeq (clang3.5,$(NDK_TOOLCHAIN_VERSION))
 # Workaround an issue of integrated-as (default in clang3.5) where it fails to compile

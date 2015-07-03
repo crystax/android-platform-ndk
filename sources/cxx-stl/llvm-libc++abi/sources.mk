@@ -18,7 +18,9 @@ libcxxabi_src_files := \
         libcxxabi/src/exception.cpp \
         libcxxabi/src/private_typeinfo.cpp \
         libcxxabi/src/stdexcept.cpp \
-        libcxxabi/src/typeinfo.cpp \
+        libcxxabi/src/typeinfo.cpp
+
+libcxxabi_unwind_src_files := \
         libcxxabi/src/Unwind/libunwind.cpp \
         libcxxabi/src/Unwind/Unwind-EHABI.cpp \
         libcxxabi/src/Unwind/Unwind-sjlj.c \
@@ -26,5 +28,6 @@ libcxxabi_src_files := \
         libcxxabi/src/Unwind/UnwindLevel1-gcc-ext.c \
         libcxxabi/src/Unwind/UnwindRegistersRestore.S \
         libcxxabi/src/Unwind/UnwindRegistersSave.S
+
 
 libcxxabi_c_includes := $(libcxxabi_path)/libcxxabi/include
