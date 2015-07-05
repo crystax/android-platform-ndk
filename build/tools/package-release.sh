@@ -475,6 +475,9 @@ if [ -z "$PREBUILT_NDK" ]; then
     for VERSION in $LIBJPEG_VERSIONS; do
         unpack_prebuilt libjpeg-$VERSION-headers "$REFERENCE"
     done
+    for VERSION in $LIBJPEGTURBO_VERSIONS; do
+        unpack_prebuilt libjpeg-turbo-$VERSION-headers "$REFERENCE"
+    done
     for VERSION in $LIBTIFF_VERSIONS; do
         unpack_prebuilt libtiff-$VERSION-headers "$REFERENCE"
     done
@@ -509,6 +512,9 @@ if [ -z "$PREBUILT_NDK" ]; then
         done
         for VERSION in $LIBJPEG_VERSIONS; do
             unpack_prebuilt libjpeg-$VERSION-libs-$ABI "$REFERENCE"
+        done
+        for VERSION in $LIBJPEGTURBO_VERSIONS; do
+            unpack_prebuilt libjpeg-turbo-$VERSION-libs-$ABI "$REFERENCE"
         done
         for VERSION in $LIBTIFF_VERSIONS; do
             unpack_prebuilt libtiff-$VERSION-libs-$ABI "$REFERENCE"
@@ -655,6 +661,13 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$LIBJPEG_SUBDIR/$VERSION/include" "$LIBJPEG_SUBDIR/$VERSION/"
             for LIBJPEG_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$LIBJPEG_SUBDIR/$VERSION/libs/$LIBJPEG_ABI" "$LIBJPEG_SUBDIR/$VERSION/libs"
+            done
+        done
+
+        for VERSION in $LIBJPEGTURBO_VERSIONS; do
+            copy_prebuilt "$LIBJPEGTURBO_SUBDIR/$VERSION/include" "$LIBJPEGTURBO_SUBDIR/$VERSION/"
+            for LIBJPEGTURBO_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$LIBJPEGTURBO_SUBDIR/$VERSION/libs/$LIBJPEGTURBO_ABI" "$LIBJPEGTURBO_SUBDIR/$VERSION/libs"
             done
         done
 

@@ -232,6 +232,12 @@ for LIBJPEG_VERSION in $LIBJPEG_VERSIONS; do
     fail_panic "Could not build libjpeg-$LIBJPEG_VERSION"
 done
 
+for LIBJPEGTURBO_VERSION in $LIBJPEGTURBO_VERSIONS; do
+    dump "Building $ABIS libjpeg-turbo-$LIBJPEGTURBO_VERSION binaries..."
+    run $BUILDTOOLS/build-libjpeg-turbo.sh $FLAGS --abis="$ABIS" --version=$LIBJPEGTURBO_VERSION $(cd $SRC_DIR/../vendor/libjpeg-turbo && pwd)
+    fail_panic "Could not build libjpeg-turbo-$LIBJPEGTURBO_VERSION"
+done
+
 for LIBTIFF_VERSION in $LIBTIFF_VERSIONS; do
     dump "Building $ABIS libtiff-$LIBTIFF_VERSION binaries..."
     run $BUILDTOOLS/build-libtiff.sh $FLAGS --abis="$ABIS" --version=$LIBTIFF_VERSION $(cd $SRC_DIR/../vendor/libtiff && pwd)

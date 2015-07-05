@@ -71,6 +71,10 @@ LIBPNG_VERSIONS="1.6.17"
 LIBJPEG_SUBDIR=sources/libjpeg
 LIBJPEG_VERSIONS="9a"
 
+# Location of the libjpeg-turbo libraries, relative to the NDK root directory
+LIBJPEGTURBO_SUBDIR=sources/libjpeg-turbo
+LIBJPEGTURBO_VERSIONS="1.4.1"
+
 # Location of the libtiff libraries, relative to the NDK root directory
 LIBTIFF_SUBDIR=sources/libtiff
 LIBTIFF_VERSIONS="4.0.4beta"
