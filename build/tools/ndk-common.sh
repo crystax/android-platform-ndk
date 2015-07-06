@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014 The Android Open Source Project
+# Copyright (C) 2009, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,13 @@ if [ ! -d "$NDK_CACHE_DIR" ]; then
         echo "Failed to create cache dir $NDK_CACHE_DIR"
         exit 1
     fi
+fi
+
+export TMPDIR=/tmp/ndk-$USER
+
+OS=`uname -s`
+if [ "$OS" == "Darwin" -a -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
+    export MACOSX_DEPLOYMENT_TARGET="10.8"
 fi
 
 # Find the Android NDK root, assuming we are invoked from a script
@@ -109,7 +116,7 @@ setup_default_log_file ()
     if [ -n "$1" ] ; then
         NDK_LOGFILE="$1"
     else
-        NDK_LOGFILE=/tmp/ndk-log-$$.txt
+        NDK_LOGFILE=$TMPDIR/ndk-log-$$.txt
     fi
     export NDK_LOGFILE
     TMPLOG="$NDK_LOGFILE"
@@ -459,12 +466,12 @@ disable_cygwin ()
 }
 
 # Various probes are going to need to run a small C program
-mkdir -p /tmp/ndk-$USER/tmp/tests
+mkdir -p $TMPDIR/tmp/tests
 
-TMPC=/tmp/ndk-$USER/tmp/tests/test-$$.c
-TMPO=/tmp/ndk-$USER/tmp/tests/test-$$.o
-TMPE=/tmp/ndk-$USER/tmp/tests/test-$$$EXE
-TMPL=/tmp/ndk-$USER/tmp/tests/test-$$.log
+TMPC=$TMPDIR/tmp/tests/test-$$.c
+TMPO=$TMPDIR/tmp/tests/test-$$.o
+TMPE=$TMPDIR/tmp/tests/test-$$$EXE
+TMPL=$TMPDIR/tmp/tests/test-$$.log
 
 # cleanup temporary files
 clean_temp ()

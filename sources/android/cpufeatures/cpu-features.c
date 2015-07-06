@@ -61,13 +61,6 @@
  * NDK r4: Initial release
  */
 
-#if defined(__le32__) || defined(__le64__)
-
-// When users enter this, we should only provide interface and
-// libportable will give the implementations.
-
-#else // !__le32__ && !__le64__
-
 #include "cpu-features.h"
 
 #include <dlfcn.h>
@@ -108,6 +101,25 @@ static __inline__ void x86_cpuid(int func, int values[4])
       "cpuid\n" \
       "mov %%ebx, %1\n"
       "pop %%ebx\n"
+      : "=a" (a), "=r" (b), "=c" (c), "=d" (d) \
+      : "a" (func) \
+    );
+    values[0] = a;
+    values[1] = b;
+    values[2] = c;
+    values[3] = d;
+}
+#elif defined(__x86_64__)
+static __inline__ void x86_cpuid(int func, int values[4])
+{
+    int64_t a, b, c, d;
+    /* We need to preserve ebx since we're compiling PIC code */
+    /* this means we can't use "=b" for the second output register */
+    __asm__ __volatile__ ( \
+      "push %%rbx\n"
+      "cpuid\n" \
+      "mov %%rbx, %1\n"
+      "pop %%rbx\n"
       : "=a" (a), "=r" (b), "=c" (c), "=d" (d) \
       : "a" (func) \
     );
@@ -977,7 +989,7 @@ android_cpuInit(void)
     }
 #endif /* __aarch64__ */
 
-#ifdef __i386__
+#if defined(__i386__) || defined(__x86_64__)
     int regs[4];
 
 /* According to http://en.wikipedia.org/wiki/CPUID */
@@ -996,6 +1008,12 @@ android_cpuInit(void)
     }
     if ((regs[2] & (1 << 23)) != 0) {
         g_cpuFeatures |= ANDROID_CPU_X86_FEATURE_POPCNT;
+    }
+    if ((regs[2] & (1 << 19)) != 0) {
+        g_cpuFeatures |= ANDROID_CPU_X86_FEATURE_SSE4_1;
+    }
+    if ((regs[2] & (1 << 20)) != 0) {
+        g_cpuFeatures |= ANDROID_CPU_X86_FEATURE_SSE4_2;
     }
     if (vendorIsIntel && (regs[2] & (1 << 22)) != 0) {
         g_cpuFeatures |= ANDROID_CPU_X86_FEATURE_MOVBE;
@@ -1268,5 +1286,3 @@ android_setCpuArm(int cpu_count, uint64_t cpu_features, uint32_t cpu_id)
  * ARCH_NEON_FP16 (+EXT_FP16)
  *
  */
-
-#endif // defined(__le32__) || defined(__le64__)

@@ -23,10 +23,10 @@ PROGDIR=$(dirname $0)
 NDK_DIR=$ANDROID_NDK_ROOT
 register_var_option "--ndk-dir=<path>" NDK_DIR "NDK installation directory"
 
-BUILD_DIR=/tmp/ndk-$USER/build
+BUILD_DIR=$TMPDIR/build
 register_var_option "--build-dir=<path>" BUILD_DIR "Specify temporary build dir."
 
-OUT_DIR=/tmp/ndk-$USER/out
+OUT_DIR=$TMPDIR/out
 register_var_option "--out-dir=<path>" OUT_DIR "Specify output directory directly."
 
 ABI=armeabi-v7a
@@ -72,7 +72,7 @@ if [ "$SHARED" = "yes" ]; then
   FLAGS="$FLAGS --shared"
 fi
 
-TMP_OUT_DIR=/tmp/ndk-$USER/on_device_out
+TMP_OUT_DIR=$TMPDIR/on_device_out
 FLAGS="$FLAGS --out-dir=$TMP_OUT_DIR"
 ARCH="$(convert_abi_to_arch $ABI)"
 GCC_TOOLCHAIN_VERSION=`cat $NDK_DIR/toolchains/llvm-$DEFAULT_LLVM_VERSION/setup.mk | grep '^TOOLCHAIN_VERSION' | awk '{print $3'}`
@@ -91,10 +91,6 @@ run cp -r $SYSROOT/usr/lib/crtend_so.o $OUT_SYSROOT/usr/lib
 
 dump "Copy $ABI gabi++ library"
 run cp -f $NDK_DIR/$GABIXX_SUBDIR/libs/$ABI/libgabi++_shared.so $OUT_SYSROOT/usr/lib
-
-dump "Copy $ABI libportable library"
-run cp -f $NDK_DIR/$LIBPORTABLE_SUBDIR/libs/$ABI/libportable.a $OUT_SYSROOT/usr/lib
-run cp -f $NDK_DIR/$LIBPORTABLE_SUBDIR/libs/$ABI/libportable.wrap $OUT_SYSROOT/usr/lib
 
 dump "Copy $ABI compiler-rt library"
 run cp -f $NDK_DIR/$COMPILER_RT_SUBDIR/libs/$ABI/libcompiler_rt_static.a $OUT_SYSROOT/usr/lib

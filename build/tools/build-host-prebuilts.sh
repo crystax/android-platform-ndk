@@ -166,7 +166,7 @@ do_remote_host_build ()
     # Do it first so we can fail fast, not after spending time preparing
     # large tarballs.
     dump "Creating remote temp directory"
-    TMPREMOTE=/tmp/ndk-$USER/darwin-prebuild
+    TMPREMOTE=$TMPDIR/darwin-prebuild
     run ssh $REMOTE_HOST "mkdir -p $TMPREMOTE && rm -rf $TMPREMOTE/*"
     fail_panic "Could not create temporary build directory on $REMOTE_HOST"
 
@@ -269,10 +269,11 @@ for SYSTEM in $SYSTEMS; do
 
     # First, ndk-stack
     echo "Building $SYSNAME ndk-stack"
-    run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS --with-libbfd --src-dir=$SRC_DIR
+    run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS --src-dir=$SRC_DIR
+    fail_panic "ndk-stack build failure!"
 
     echo "Building $SYSNAME ndk-depends"
-    run $BUILDTOOLS/build-ndk-depends.sh $TOOLCHAIN_FLAGS
+    run $BUILDTOOLS/build-ndk-stack.sh $TOOLCHAIN_FLAGS --src-dir=$SRC_DIR --program-name=ndk-depends
     fail_panic "ndk-depends build failure!"
     fail_panic "ndk-stack build failure!"
 
@@ -353,12 +354,6 @@ for SYSTEM in $SYSTEMS; do
         run $BUILDTOOLS/build-llvm.sh "$SRC_DIR" "$NDK_DIR" "llvm-$LLVM_VERSION" $TOOLCHAIN_FLAGS $POLLY_FLAGS $CHECK_FLAG -j$BUILD_NUM_CPUS $MCLINKER
         fail_panic "Could not build llvm for $SYSNAME"
     done
-
-    if [ ! -z "$LLVM_VERSION_LIST" ]; then
-        # Deploy ld.mcld
-        run $PROGDIR/deploy-host-mcld.sh --package-dir=$PACKAGE_DIR --systems=$SYSNAME
-        fail_panic "Could not deploy ld.mcld for $SYSNAME"
-    fi
 
     # build crystax host tools
     target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
