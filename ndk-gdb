@@ -819,7 +819,7 @@ if [ "$OPTION_START" = "yes" ] || [ -n "$OPTION_LAUNCH" ] ; then
         log "Setup JDB connection"
         run adb_cmd forward tcp:$JDB_PORT jdwp:$PID
         sleep 1
-        $JDB_CMD -connect com.sun.jdi.SocketAttach:hostname=localhost,port=$JDB_PORT &
+        run $JDB_CMD -connect com.sun.jdi.SocketAttach:hostname=localhost,port=$JDB_PORT &
         sleep 1
     fi
 fi
@@ -836,4 +836,4 @@ echo "target remote :$DEBUG_PORT" >> $GDBSETUP
 if [ -n "$OPTION_EXEC" ] ; then
     cat $OPTION_EXEC >> $GDBSETUP
 fi
-$GDBCLIENT -x `native_path $GDBSETUP`
+run $GDBCLIENT -x `native_path $GDBSETUP`
