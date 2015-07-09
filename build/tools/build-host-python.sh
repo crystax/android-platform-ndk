@@ -484,22 +484,20 @@ ARCHS=$(commas_to_spaces $ARCHS)
 
 # Check for cached packages
 NOT_CACHED_SYSTEMS=
-if [ "$PACKAGE_DIR" ]; then
-    for SYSTEM in $BH_HOST_SYSTEMS; do
-        for VERSION in $PYTHON_VERSION; do
-            PACKAGENAME=ndk-python-$(install_dir_from_host_tag $SYSTEM).tar.bz2
-            echo "Look for: $PACKAGENAME"
-            try_cached_package "$PACKAGE_DIR" "$PACKAGENAME" no_exit
-            if [ $? != 0 ]; then
-                if [ -z $NOT_CACHED_SYSTEMS ] ; then
-                    NOT_CACHED_SYSTEMS=$SYSTEM
-                else
-                    NOT_CACHED_SYSTEMS="$NOT_CACHED_SYSTEMS $SYSTEM"
-                fi
+for SYSTEM in $BH_HOST_SYSTEMS; do
+    for VERSION in $PYTHON_VERSION; do
+        PACKAGENAME=ndk-python-$(install_dir_from_host_tag $SYSTEM).tar.bz2
+        echo "Look for: $PACKAGENAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGENAME" no_exit
+        if [ $? != 0 ]; then
+            if [ -z $NOT_CACHED_SYSTEMS ] ; then
+                NOT_CACHED_SYSTEMS=$SYSTEM
+            else
+                NOT_CACHED_SYSTEMS="$NOT_CACHED_SYSTEMS $SYSTEM"
             fi
-        done
+        fi
     done
-fi
+done
 
 if [ -z "$NOT_CACHED_SYSTEMS" ] ; then
     dump "For all systems were found cached packages."
