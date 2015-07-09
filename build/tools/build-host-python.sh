@@ -92,6 +92,7 @@ AUTO_BUILD="no"
 if [ "$MINGW" = "yes" ]; then
     BH_HOST_SYSTEMS="windows"
     log "Auto-config: --systems=windows"
+    find_mingw_toolchain
 fi
 
 if [ "$DARWIN" = "yes" ]; then
