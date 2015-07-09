@@ -319,6 +319,10 @@ build_host_python ()
         fi
     fi
 
+    if [ "$HOST_OS" = "linux" ]; then
+        CFLAGS="$CFLAGS -fPIC"
+    fi
+
     TEXT="$(bh_host_text) python-$BH_HOST_CONFIG-$2:"
 
     touch $SRCDIR/Include/graminit.h
