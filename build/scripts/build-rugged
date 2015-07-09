@@ -57,6 +57,27 @@ def check_version
 end
 
 
+#todo: check ruby arch dir in ruby archive
+def ruby_arch
+  case Common.target_platform
+  when /darwin/
+    'x86_64-darwin10'
+  when 'linux-x86_64'
+    'x86_64-linux'
+  when 'linux-x86'
+    'i686-linux'
+  when /windows/
+    'x64-mingw64'
+  end
+end
+
+
+def ruby_base_ver
+  major, minor, _ = RUBY_VERSION.split('.')
+  "#{major}.#{minor}.0"
+end
+
+
 begin
   Common.parse_options
 
@@ -80,14 +101,18 @@ begin
   FileUtils.cd(Common::BUILD_DIR) do
     FileUtils.mv 'ext/rugged/extconf.rb.crystax', 'ext/rugged/extconf.rb'
     dir = 'vendor/libgit2/tests'
-    FileUtils.mkdir dir
+    FileUtils.mkdir_p dir
     FileUtils.cp_r "#{Common::VENDOR_DIR}/libgit2/tests/resources", dir
-    env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -I#{openssldir}/include -I#{libssh2dir}/include -I#{libgit2dir}/include",
-            'LDFLAGS' => "-L#{openssldir}/lib -L#{libssh2dir}/lib -L#{libgit2dir}/lib",
-            'LOCAL_LIBS' => "-lgit2 -lssh2 -lssl",
-            'RUGGED_USE_SYSTEM_LIBRARIES' => '1',
-            'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
+    incdirs = ["-I#{openssldir}/include", "-I#{libssh2dir}/include", "-I#{libgit2dir}/include"]
+    env = { 'CC'                => Builder.cc,
+            'CFLAGS'            => "#{Builder.cflags} #{incdirs.join(' ')}",
+            'LDFLAGS'           => "-L#{openssldir}/lib -L#{libssh2dir}/lib -L#{libgit2dir}/lib -L#{rubydir}/lib",
+            'LOCAL_LIBS'        => "-lgit2 -lssh2 -lssl -lcrypto -lruby-static",
+            'RUBY_INC_DIR'      => "#{rubydir}/include/ruby-#{ruby_base_ver}",
+            'RUBY_ARCH_INC_DIR' => "#{rubydir}/include/ruby-#{ruby_base_ver}/#{ruby_arch}",
+            'RUGGED_MAKEFILE'   => "#{Common::BUILD_DIR}/tmp/#{RUBY_PLATFORM}/rugged/#{RUBY_VERSION}/Makefile",
+            'PATH'              => '/bin:/usr/bin:/sbin:/usr/sbin'
+            # todo: 'SSL_CERT_FILE'     => '/usr/local/etc/openssl/cert.pem' #Builder.ssl_cert_file
           }
     Commander::run env, "rake compile:rugged gem"
     Commander::run env, "rake test" unless Common.no_check? or Common.different_os?

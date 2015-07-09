@@ -49,16 +49,10 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-# def check_version
-#   v = File.read("#{Common::SRC_DIR}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
-#   if !v or v.size == 0
-#     raise "can't find '#define RUBY_VERSION' string"
-#   end
-#   ver = v[0].split(' ')[2].split('"')[1]
-#   if ver != Crystax::VERSIONS['ruby']
-#     raise "bad ruby version: repository: #{ver}; expected: #{Crystax::VERSIONS['ruby']}"
-#   end
-# end
+def check_version
+  ver = File.read("#{Common::SRC_DIR}/RELEASE-NOTES").split("\n")[0].split(' ')[1]
+  Crystax::check_version ver
+end
 
 
 begin
@@ -66,32 +60,24 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
-  Logger.msg "building #{archive}; args: #{ARGV}"
+  Logger.msg "Building #{Crystax::PKG_NAME} for #{Common.target_platform}"
 
   if Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  libsincdir = libslibdir = ""
-  if Common.target_os == 'windows'
-    libsdir = "#{Common::BUILD_BASE}/libs"
-    FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-    Builder.build_zlib(libsdir)
-    libsincdir = "-I#{libsdir}/include"
-    liblibdir = "-L#{libsdir}/lib"
-  end
-
+  zlibdir    = Builder.prepare_dependency('zlib')
   openssldir = Builder.prepare_dependency('openssl')
 
-  Logger.msg "= building libssh2"
-  #check_version
+  Logger.log_msg "= building #{archive}; args: #{ARGV}"
+  check_version
   FileUtils.cd(Common::SRC_DIR) { Commander.run "./buildconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -I#{openssldir}/include #{libsincdir} #{Builder.pic_flags}",
-            'LDFLAGS' => "-L#{openssldir}/lib #{libslibdir}",
+            'CFLAGS' => "#{Builder.cflags} -I#{openssldir}/include -I#{zlibdir}/include",
+            'LDFLAGS' => "-L#{openssldir}/lib -L#{zlibdir}/lib -lz",
             'DESTDIR' => Common.install_dir,
             'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
           }
@@ -106,10 +92,11 @@ begin
             "--disable-shared",
             "--disable-examples-build",
             "--with-libssl-prefix=#{openssldir}",
-            "--with-libz"
+            "--with-libz=#{zlibdir}"
            ]
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs}"
+    Commander::run env, "make check" unless Common.no_check? or Common.different_os?
     Commander::run env, "make install"
   end
 

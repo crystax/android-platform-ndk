@@ -35,24 +35,33 @@
 
 module Crystax
 
-  BUILD_UTILS = ['openssl', 'ruby', 'curl', 'git', 'p7zip']
-  INSTALL_UTILS = BUILD_UTILS.slice(1, BUILD_UTILS.size)
+  BUILD_UTILS = ['zlib', 'openssl', 'libssh2', 'libgit2', 'ruby', 'curl', 'p7zip']
+  INSTALL_UTILS = BUILD_UTILS.slice(3, BUILD_UTILS.size)
 
   VERSIONS = {
-    'libffi'           => '3.2.1',
-    'openssl'          => '1.0.2a',
-    'libssh2'          => '1.5.0',
-    'libgit2'          => '0.22.2',
-    'rugged'           => '0.22.2',
-    'curl'             => '7.42.0',
-    'git'              => '2.4.0',
-    'ruby'             => '2.2.2',
-    'p7zip'            => '9.20.1'
+    'zlib'    => '1.2.8',
+    'libffi'  => '3.2.1',
+    'openssl' => '1.0.2a',
+    'libssh2' => '1.5.0',
+    'libgit2' => '0.22.2',
+    'ruby'    => '2.2.2',
+    'curl'    => '7.42.0',
+    'p7zip'   => '9.20.1'
   }
 
   def self.version(name)
     ver = VERSIONS[name]
     raise "no version for #{name}" unless ver
     ver
+  end
+
+  def self.package_version
+    version(PKG_NAME)
+  end
+
+  def self.check_version(ver)
+    if ver != package_version
+      raise "bad #{PKG_NAME} version: repository: #{ver}; expected: #{package_version}"
+    end
   end
 end

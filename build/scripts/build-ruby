@@ -49,55 +49,66 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+# line: #define RUBY_VERSION "2.2.2"
 def check_version
   v = File.read("#{Common::SRC_DIR}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
-  if !v or v.size == 0
-    raise "can't find '#define RUBY_VERSION' string"
-  end
-  ver = v[0].split(' ')[2].split('"')[1]
-  if ver != Crystax::VERSIONS['ruby']
-    raise "bad ruby version: repository: #{ver}; expected: #{Crystax::VERSIONS['ruby']}"
-  end
+  raise "can't find '#define RUBY_VERSION' string" if !v or v.size == 0
+  Crystax::check_version v[0].split(' ')[2].split('"')[1]
 end
 
+def copy_rugged
+  dst = "#{Common::VENDOR_DIR}/ruby/ext/rugged"
+  src = "#{Common::VENDOR_DIR}/rugged"
+  FileUtils.mkdir_p "#{dst}/lib"
+  FileUtils.cp_r Dir["#{src}/ext/rugged/*"], "#{dst}/"
+  FileUtils.cp_r Dir["#{src}/lib/*"], "#{dst}/lib/"
+  FileUtils.mv "#{dst}/extconf.rb.crystax", "#{dst}/extconf.rb"
+end
+
+
 def build_libffi(installdir)
-  Logger.msg "= building libffi"
+  Logger.log_msg "= building libffi"
+  raise "libffi required only for windows" unless Common.target_os == 'windows'
+  # check version
   srcdir = "#{Common::VENDOR_DIR}/libffi"
   libver = File.read("#{srcdir}/doc/version.texi").split("\n")[3].split(' ')[2]
   if libver != Crystax::VERSIONS['libffi']
     raise "bad libffi version: repository: #{libver}; expected: #{Crystax::VERSIONS['libffi']}"
   end
-  FileUtils.cd(srcdir) { Commander::run "./autogen.sh" }
+  # copy sources
+  FileUtils.cp_r srcdir, Common::BUILD_BASE
+  #
   builddir = "#{Common::BUILD_BASE}/libffi"
-  FileUtils.mkdir_p(builddir)
   FileUtils.cd(builddir) do
+    # apply patch from ruby sources
+    Commander.run "patch -p1 < #{Common::VENDOR_DIR}/ruby/ext/fiddle/win32/libffi-3.2.1-mswin.patch"
+    # confgure
+    Commander::run "./autogen.sh"
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => Builder.cflags
+            'CFLAGS' => Builder.cflags,
+            'PATH' => Builder.toolchain_path_and_path
           }
-    if Common.target_os == 'windows'
-      env['PATH'] = Builder.toolchain_path_and_path
-    end
     args = ["--prefix=#{installdir}",
             "--host=#{Builder.configure_host}",
             "--disable-shared"
            ]
     Commander.run env, "#{srcdir}/configure #{args.join(' ')}"
+    # build and install
+    # libffi 'make check' requires DejaGNU installed so we do not run it
     Commander.run env, "make -j #{Common::num_jobs}"
-    # here 'make check' requires DejaGNU installed so we do not run it
-    # Commander::run env, "make check" unless Common::no_check?
     Commander.run env, "make install"
   end
   FileUtils.cp_r "#{installdir}/lib/libffi-#{Crystax.version('libffi')}/include", "#{installdir}/"
   ilib = Common.target_cpu == 'x86' ? 'lib32' : 'lib'
   FileUtils.rm "#{installdir}/#{ilib}/libffi.la"
-  Builder.clean_src(srcdir) unless Common.no_clean?
 end
 
 
 def install_gems(*gems)
   args = ["--no-document", "--bindir #{Common.install_dir}/bin"]
   env = { 'GEM_HOME' => "#{Common.install_dir}/lib/ruby/gems/2.2.0",
-          'GEM_PATH' => "#{Common.install_dir}/lib/ruby/gems/2.2.0"
+          'GEM_PATH' => "#{Common.install_dir}/lib/ruby/gems/2.2.0",
+          'SSL_CERT_FILE' => Common.ssl_cert_file
         }
 
   if Common::target_os != 'windows'
@@ -106,7 +117,7 @@ def install_gems(*gems)
     gem = "/usr/bin/gem"
   end
 
-  Commander::run env, "#{gem} install #{gems.join(' ')} #{args.join(' ')}"
+  Commander::run env, "#{gem} install -V --backtrace #{gems.join(' ')} #{args.join(' ')}"
 end
 
 
@@ -115,7 +126,7 @@ begin
 
   Logger.open_log_file Common.log_file
   archive = Common.make_archive_name
-  Logger.msg "building #{archive}; args: #{ARGV}"
+  Logger.msg "Building #{Crystax::PKG_NAME} for #{Common.target_platform}"
 
   if Cache.try?(archive)
     Logger.msg "done"
@@ -126,20 +137,38 @@ begin
     libsdir = "#{Common::BUILD_BASE}/libs"
     FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
     build_libffi(libsdir)
-    Builder.build_zlib(libsdir)
   end
 
+  zlibdir    = Builder.prepare_dependency('zlib')
   openssldir = Builder.prepare_dependency('openssl')
+  libssh2dir = Builder.prepare_dependency('libssh2')
+  libgit2dir = Builder.prepare_dependency('libgit2')
 
-  Logger.msg "= building ruby"
+  Logger.log_msg "= building #{archive}; args: #{ARGV}"
   check_version
+  copy_rugged
   FileUtils.cd(Common::SRC_DIR) { Commander.run "autoconf" }
   FileUtils.mkdir_p(Common::BUILD_DIR)
+  cflags  = "#{Builder.cflags}  -I#{zlibdir}/include"
+  ldflags = "-L#{libssh2dir}/lib -L#{libgit2dir}/lib -L#{zlibdir}/lib"
+  libs    = '-lz -lgit2 -lssh2 -lz'
+  path    = '/bin:/usr/bin:/sbin:/usr/sbin'
+  if Common.target_os == 'windows'
+    cflags  += " -I#{libsdir}/include -g"
+    ldflags += " -L#{libsdir}/lib -g"
+    libs = "#{zlibdir}/lib/libz.a #{libgit2dir}/lib/libgit2.a #{libssh2dir}/lib/libssh2.a #{zlibdir}/lib/libz.a"
+    path = Builder.toolchain_path_and_path
+  end
   FileUtils.cd(Common::BUILD_DIR) do
     env = { 'CC' => Builder.cc,
-            'CFLAGS' => "#{Builder.cflags} -DCURL_STATICLIB",
-            'DESTDIR' => Common.install_dir
-
+            'CFLAGS' => cflags,
+            'LDFLAGS' => ldflags,
+            'DESTDIR' => Common.install_dir,
+            'LIBS' => libs,
+            'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssldir}/include -I#{libssh2dir}/include -I#{libgit2dir}/include",
+            'RUGGED_MAKEFILE' => "#{Common::BUILD_DIR}/ext/rugged/Makefile",
+            'PATH' => path,
+            'SSL_CERT_FILE' => Common.ssl_cert_file
           }
     args = ["--prefix=/",
             "--host=#{Builder.configure_host}",
@@ -152,17 +181,9 @@ begin
             "--without-gdbm",
             "--enable-bundled-libyaml"
            ]
-    if Common::target_os == 'windows'
-      args << '--host=x86_64-mingw64'
-      env['PATH'] = Builder.toolchain_path_and_path
-      env['CFLAGS'] += " -I#{libsdir}/include"
-      env['LDFLAGS'] = "-L#{libsdir}/lib"
-    else
-      env['PATH'] = '/bin:/usr/bin:/sbin:/usr/sbin'
-    end
     Commander::run env, "#{Common::SRC_DIR}/configure #{args.join(' ')}"
     Commander::run env, "make -j #{Common::num_jobs} V=1"
-    #Commander::run env, "make check" unless Common::no_check?
+    Commander::run env, "make check" unless Common.no_check? or Common.different_os?
     Commander::run env, "make install"
   end
 

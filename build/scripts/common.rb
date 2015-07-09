@@ -86,6 +86,10 @@ class Common
     target_os != host_os
   end
 
+  def self.different_platform?
+    target_platform != host_platform
+  end
+
   def self.prebuilt_dir
     "prebuilt/#{(target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform}"
   end
@@ -124,6 +128,17 @@ class Common
 
   def self.make_archive_name(pkgname = Crystax::PKG_NAME)
     "#{make_archive_base(pkgname)}-#{target_platform}.7z"
+  end
+
+  def self.ssl_cert_file
+    case host_os
+    when 'darwin'
+      '/usr/local/etc/openssl/osx_cert.pem'
+    when 'linux'
+      '/etc/ssl/certs/ca-certificates.crt'
+    else
+      raise "unknown host OS: #{host_os}"
+    end
   end
 
   def self.parse_options

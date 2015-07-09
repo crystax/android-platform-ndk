@@ -53,7 +53,7 @@ begin
   path = File.dirname($0)
 
   Crystax::BUILD_UTILS.each do |name|
-    args = name == 'curl' ? ARGV << '--no-check' : ARGV
+    args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
     Logger.msg "Building #{Common.target_platform} #{name}"
     Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
