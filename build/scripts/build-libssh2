@@ -50,7 +50,7 @@ require_relative 'cache.rb'
 
 
 def check_version
-  ver = File.read("#{Common::SRC_DIR}/RELEASE-NOTES").split("\n")[0].split(' ')[1]
+  ver = File.read("#{Common::SRC_DIR}/RELEASE-NOTES", :encoding => 'UTF-8').split("\n")[0].split(' ')[1]
   Crystax::check_version ver
 end
 
