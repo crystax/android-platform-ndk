@@ -141,6 +141,9 @@ set_toolchain_ndk $NDK_DIR $TOOLCHAIN
 if [ "$MINGW" != "yes" -a "$DARWIN" != "yes" ] ; then
     dump "Using C compiler: $CC"
     dump "Using C++ compiler: $CXX"
+    if [ -n "$OBJCXX" ]; then
+        dump "Using Objective-C++ compiler: $OBJCXX"
+    fi
 fi
 
 #
@@ -175,10 +178,7 @@ fi
 rm -rf $BUILD_OUT
 mkdir -p $BUILD_OUT
 
-MAKE_FLAGS=
-if [ "$VERBOSE" = "yes" ]; then
-    MAKE_FLAGS="VERBOSE=1"
-fi
+MAKE_FLAGS="VERBOSE=1"
 
 TOOLCHAIN_BUILD_PREFIX=$BUILD_OUT/prefix
 
@@ -207,10 +207,81 @@ if [ "$MINGW" = "yes" -a "$LLVM_VERSION" \> "3.5" ]; then
     XXX_MAKE_FLAGS="$MAKE_FLAGS LIBS=-lmsvcr90"
 fi
 
+if [ "$HOST_OS" = "darwin" -a -n "$DARWIN_SYSROOT" ]; then
+    PATH=$DARWIN_SYSROOT/usr/bin:$PATH
+    export PATH
+
+    CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -I$DARWIN_SYSROOT/usr/include"
+    LDFLAGS_FOR_BUILD="$LDFLAGS_FOR_BUILD -L$DARWIN_SYSROOT/usr/lib"
+
+    # Disable wchar support for libedit since it require recent C++11 support which we don't
+    # have yet in used x86_64-apple-darwin-4.9.2 prebuilt toolchain
+    CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -DLLDB_EDITLINE_USE_WCHAR=0"
+fi
+
+if [ "$MINGW" = "yes" ]; then
+    # lldb doesnt' support python and curses on Windows
+    CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -DLLDB_DISABLE_PYTHON -DLLDB_DISABLE_CURSES"
+else
+    PYTHONHOME=$NDK_DIR/prebuilt/$HOST_TAG
+    if [ ! -d $PYTHONHOME ]; then
+        echo "ERROR: $PYTHONHOME folder not found!" 1>&2
+        exit 1
+    fi
+    export PYTHONHOME
+
+    PATH=$PYTHONHOME/bin:$PATH
+    export PATH
+
+    PYTHON=$PYTHONHOME/bin/python
+    PYTHON_VERSION=$($PYTHON -c "import sys; print('%s.%s' % sys.version_info[:2])")
+    if [ -z "$PYTHON_VERSION" ]; then
+        echo "ERROR: Can't detect Python version: $PYTHON" 1>&2
+        exit 1
+    fi
+    echo "Auto-detect: Python $PYTHON_VERSION"
+
+    CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -I$PYTHONHOME/include/python${PYTHON_VERSION}"
+    LDFLAGS_FOR_BUILD="$LDFLAGS_FOR_BUILD -L$PYTHONHOME/lib"
+
+    PERL5LIB=$NDK_DIR/prebuilt/$HOST_TAG/lib/perl5/$DEFAULT_PERL_VERSION
+    if [ ! -d $PERL5LIB ]; then
+        echo "ERROR: $PERL5LIB folder not found!" 1>&2
+        exit 1
+    fi
+    export PERL5LIB
+fi
+
+# Enable 64-bit off_t even for 32-bit binaries
+CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+
 CFLAGS="$CFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"
 CXXFLAGS="$CXXFLAGS $CFLAGS_FOR_BUILD $HOST_CFLAGS"  # polly doesn't look at CFLAGS !
 LDFLAGS="$LDFLAGS $LDFLAGS_FOR_BUILD $HOST_LDFLAGS"
 export CC CXX CFLAGS CXXFLAGS LDFLAGS CFLAGS_FOR_BUILD LDFLAGS_FOR_BUILD REQUIRES_RTTI=1 ARCH
+
+if [ "$MINGW" != "yes" ]; then
+    dump "Building libedit (needed for lldb)..."
+
+    LIBEDIT_BUILD_OUT=$BUILD_OUT/libedit
+    mkdir -p $LIBEDIT_BUILD_OUT && cd $LIBEDIT_BUILD_OUT
+    fail_panic "Can't cd into libedit build path: $LIBEDIT_BUILD_OUT"
+
+    run $SRC_DIR/libedit/configure \
+        --prefix=$TOOLCHAIN_BUILD_PREFIX \
+        --host=$ABI_CONFIGURE_HOST \
+        --enable-static \
+        --disable-shared \
+        --with-pic \
+        --enable-widec
+    fail_panic "Can't configure libedit"
+
+    run make -j $NUM_JOBS
+    fail_panic "Can't build libedit"
+
+    run make install
+    fail_panic "Can't install libedit to $TOOLCHAIN_BUILD_PREFIX"
+fi
 
 if [ "$DARWIN" = "yes" ]; then
     # To stop /usr/bin/install -s calls strip on darwin binary
@@ -297,6 +368,10 @@ fi
 
 BINUTILS_VERSION=$(get_default_binutils_version_for_llvm $TOOLCHAIN)
 
+if [ "$MINGW" != "yes" ]; then
+    EXTRA_CONFIG_FLAGS="$EXTRA_CONFIG_FLAGS --with-python=$PYTHON"
+fi
+
 run $SRC_DIR/$TOOLCHAIN/llvm/configure \
     --prefix=$TOOLCHAIN_BUILD_PREFIX \
     --host=$ABI_CONFIGURE_HOST \
@@ -305,6 +380,7 @@ run $SRC_DIR/$TOOLCHAIN/llvm/configure \
     --enable-targets=arm,mips,x86,aarch64 \
     --enable-optimized \
     --with-binutils-include=$SRC_DIR/binutils/binutils-$BINUTILS_VERSION/include \
+    --disable-debugserver \
     $EXTRA_CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
 
@@ -405,6 +481,32 @@ if [ "$USE_PYTHON" != "yes" ]; then
 else
     cp -p "$SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/ndk-bc2native.py" "$TOOLCHAIN_BUILD_PREFIX/bin/"
 fi
+
+for LLDBFILE in $(ls -1 $TOOLCHAIN_BUILD_PREFIX/bin/lldb* 2>/dev/null); do
+    echo $LLDBFILE | grep -q '\.bin$' && continue
+    test -e ${LLDBFILE}.bin && continue
+
+    mv -f $LLDBFILE ${LLDBFILE}.bin
+    fail_panic "Can't mv $LLDBFILE to ${LLDBFILE}.bin"
+
+    cat >$LLDBFILE <<EOF
+#!/bin/sh
+
+HOST_TAG=\`dirname \$0\`/..
+HOST_TAG=\`cd \$HOST_TAG && pwd\`
+HOST_TAG=\`basename \$HOST_TAG\`
+
+PYTHONHOME=\`dirname \$0\`/../../../../../prebuilt/\$HOST_TAG
+PYTHONHOME=\`cd \$PYTHONHOME && pwd\`
+export PYTHONHOME
+
+exec \`dirname \$0\`/$(basename $LLDBFILE).bin "\$@"
+EOF
+    fail_panic "Can't generate $LLDBFILE"
+
+    chmod +x $LLDBFILE
+    fail_panic "Can't chmod +x $LLDBFILE"
+done
 
 # copy to toolchain path
 run copy_directory "$TOOLCHAIN_BUILD_PREFIX" "$TOOLCHAIN_PATH"

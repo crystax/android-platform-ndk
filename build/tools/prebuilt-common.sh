@@ -928,6 +928,19 @@ prepare_common_build ()
         elif [ "$HOST_OS" = "darwin" ]; then
             LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.3/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/"
+
+            # For compilation LLDB's Objective-C++ sources we need use clang++, since g++ have a bug
+            # not distinguishing between Objective-C call and definition of C++11 lambda:
+            # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57607
+            # To workaround this, we're using host-installed clang++ (part of Xcode installation)
+            # with includes from our g++, to keep binary compatibility of produced code
+            CXXINC="$LEGACY_TOOLCHAIN_DIR/../include/c++/4.9.3"
+            CXXBITSINC="$CXXINC/x86_64-apple-darwin14.4.0"
+            if [ "$TRY64" != "yes" ]; then
+                CXXBITSINC="$CXXBITSINC/i386"
+            fi
+            OBJCXX="clang++ -I$CXXBITSINC -I$CXXINC"
+            export OBJCXX
         fi
         if [ -d "$LEGACY_TOOLCHAIN_DIR" ] ; then
             log "Forcing generation of $HOST_OS binaries with legacy toolchain"
