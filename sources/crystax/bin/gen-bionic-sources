@@ -132,6 +132,12 @@ g.fixup :redefine_fcntl64 do |f|
     f.puts "#define __fcntl64 __bionic_fcntl"
 end
 
+# public headers
+g.add "libc/include/sys/glibc-syscalls.h", public: true
+g.add "libc/include/sys/syscall.h",        public: true
+g.add "libc/include/sys/sysconf.h",        public: true
+g.add "libc/include/sys/sysinfo.h",        public: true
+
 # common headers
 g.add "libc/include/machine/posix_limits.h"
 g.add "libc/include/sys/auxv.h"
@@ -172,8 +178,6 @@ g.add "libc/arch-x86/syscalls/__fcntl64.S",  fixup: "redefine_fcntl64"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
 # sysconf
-g.add "libc/include/sys/sysconf.h", public: true
-g.add "libc/include/sys/sysinfo.h", public: true
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
 
