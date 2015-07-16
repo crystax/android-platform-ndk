@@ -54,7 +54,7 @@ COMPILER_RT_SUBDIR=sources/android/compiler-rt
 
 # Location of the boost sources, relative to the NDK root directory
 BOOST_SUBDIR=sources/boost
-BOOST_VERSIONS="1.57.0 1.58.0"
+BOOST_VERSIONS="1.57.0 1.58.0 1.59.0"
 
 # Location of the ICU sources, relative to the NDK root directory
 ICU_SUBDIR=sources/icu

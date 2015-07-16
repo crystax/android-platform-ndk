@@ -9,6 +9,7 @@ gen/
 include/_ctype.h
 include/bzlib.h
 include/complex.h
+include/crystax/bionic/
 include/crystax/dlmalloc/
 include/crystax/freebsd/
 include/ctype.h
@@ -37,9 +38,13 @@ include/strings.h
 include/sys/_null.h
 include/sys/_stdint.h
 include/sys/endian.h
+include/sys/glibc-syscalls.h
 include/sys/iconv.h
 include/sys/limits.h
 include/sys/stdint.h
+include/sys/syscall.h
+include/sys/sysconf.h
+include/sys/sysinfo.h
 include/sysexits.h
 include/tar.h
 include/tgmath.h
