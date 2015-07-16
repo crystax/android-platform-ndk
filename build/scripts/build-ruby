@@ -92,7 +92,7 @@ def build_libffi(installdir)
             "--host=#{Builder.configure_host}",
             "--disable-shared"
            ]
-    Commander.run env, "#{srcdir}/configure #{args.join(' ')}"
+    Commander.run env, "./configure #{args.join(' ')}"
     # build and install
     # libffi 'make check' requires DejaGNU installed so we do not run it
     Commander.run env, "make -j #{Common::num_jobs}"
