@@ -779,12 +779,12 @@ for SYSTEM in $SYSTEMS; do
     find $DSTDIR64 -name ".git*" -exec rm -rf {} \;
 
     # unpack vendor utils
-    #echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    #$SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
-    #fail_panic "Could not install vendor utils"
-    #echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
-    #$SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
-    #fail_panic "Could not install CREW"
+    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
+    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
+    fail_panic "Could not install vendor utils"
+    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
+    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
+    fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the
     # host system.
