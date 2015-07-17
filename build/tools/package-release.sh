@@ -86,6 +86,17 @@ register_var_option "--llvm-version-list=<versions>" LLVM_VERSION_LIST "List of 
 
 register_try64_option
 
+SEPARATE_64=no
+register_option "--separate-64" do_SEPARATE_64 "Separate 64-bit host toolchain to its own package"
+do_SEPARATE_64 ()
+{
+    if [ "$TRY64" = "yes" ]; then
+        echo "ERROR: You cannot use both --try-64 and --separate-64 at the same time."
+        exit 1
+    fi
+    SEPARATE_64=yes;
+}
+
 PROGRAM_PARAMETERS=
 PROGRAM_DESCRIPTION=\
 "Package a new set of release packages for the Android NDK.
