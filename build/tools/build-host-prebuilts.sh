@@ -128,9 +128,6 @@ fi
 if [ "$VERBOSE" = "yes" ]; then
     FLAGS=$FLAGS" --verbose"
 fi
-if [ "$VERBOSE2" = "yes" ]; then
-    FLAGS=$FLAGS" --verbose"
-fi
 if [ "$TRY64" = "yes" ]; then
     FLAGS=$FLAGS" --try-64"
 else
@@ -368,6 +365,7 @@ fail_panic "Could not build RenderScript binaries!"
 
 # Build tools common to all system
 run $BUILDTOOLS/build-analyzer.sh "$SRC_DIR" "$NDK_DIR" "llvm-$DEFAULT_LLVM_VERSION" --package-dir="$PACKAGE_DIR"
+fail_panic "Could not build analyzer!"
 
 if [ "$PACKAGE_DIR" ]; then
     echo "Done, please look at $PACKAGE_DIR"

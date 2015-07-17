@@ -82,32 +82,30 @@ for PLATFORM in $API_LEVELS; do
         log "Compressing directory: $SDIR"
         PDIR=$SRCDIR/android-$PREV_PLATFORM
         FILES=$(cd $SDIR && find . -type f)
-        if [ "$VERBOSE2" = "yes" ]; then
-            echo "Files found:"
-            echo "$FILES" | tr ' ' '\n'
-        fi
+        echo "Files found:"
+        echo "$FILES" | tr ' ' '\n'
         for FILENAME in $FILES; do
             FILENAME=${FILENAME##./}  # Get rid of leading ./
             PFILE=$PDIR/$FILENAME
             CFILE=$SDIR/$FILENAME
             DFILE=$DDIR/$FILENAME
             if [ -f "$PFILE" ]; then
-                log2 "Comparing $CFILE with $PFILE"
+                log "Comparing $CFILE with $PFILE"
                 if cmp --quiet $PFILE $CFILE; then
                     # Files are identical, remove it from destination
                     # if it exists there, it's not longer relevant.
                     if [ -f "$DFILE" ]; then
-                        log2 "Removing obsolete $DFILE"
+                        log "Removing obsolete $DFILE"
                         rm -f $DFILE
                     else
-                        log2 "Skipping $CFILE"
+                        log "Skipping $CFILE"
                     fi
                     continue
                 fi
             fi
             # New or modified file, copy it
             DFILE=$DDIR/$FILENAME
-            log2 "Copying $SFILE --> $DFILE"
+            log "Copying $SFILE --> $DFILE"
             mkdir -p $(dirname "$DFILE") && cp $CFILE $DFILE
             fail_panic "Could not copy $CFILE to $DFILE"
         done

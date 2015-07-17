@@ -17,7 +17,7 @@ if [ -z "$NDK_BUILDTOOLS_PATH" ]; then
     fi
 fi
 
-# Warn about /bin/sh ins't bash.
+# Warn if /bin/sh isn't bash.
 if [ -z "$BASH_VERSION" ] ; then
     echo "WARNING: The shell running this script isn't bash.  Although we try to avoid bashism in scripts, things can happen."
 fi
@@ -552,14 +552,9 @@ do_option_help ()
 }
 
 VERBOSE=no
-VERBOSE2=no
 do_option_verbose ()
 {
-    if [ $VERBOSE = "yes" ] ; then
-        VERBOSE2=yes
-    else
-        VERBOSE=yes
-    fi
+    VERBOSE=yes
 }
 
 DRYRUN=no
@@ -968,7 +963,7 @@ prepare_common_build ()
     int test_array[1-2*(sizeof(void*) != 4)];
 EOF
     log_n "Checking whether the compiler generates 32-bit binaries..."
-    log2 $CC $HOST_CFLAGS -c -o $TMPO $TMPC
+    log $CC $HOST_CFLAGS -c -o $TMPO $TMPC
     $NDK_CCACHE $CC $HOST_CFLAGS -c -o $TMPO $TMPC >$TMPL 2>&1
     if [ $? != 0 ] ; then
         log "no"
