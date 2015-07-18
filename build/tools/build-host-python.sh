@@ -248,8 +248,29 @@ build_host_python ()
 
     ARGS=" --prefix=$INSTALLDIR"
 
-    ARGS=$ARGS" --build=$BH_BUILD_CONFIG"
-    ARGS=$ARGS" --host=$BH_HOST_CONFIG"
+    local BUILDCONFIG=$BH_BUILD_CONFIG
+    local HOSTCONFIG=$BH_HOST_CONFIG
+    # If we're building linux toolchain on linux-x86_64 host, or darwin toolchain on darwin-x86_64,
+    # set --build variable to the same value as --host value. This is done to avoid "cross compilation"
+    # from Python's configure point of view, in which case many native extensions (such as 'itertools',
+    # for example) are not included in build process.
+    # This is safe since --host value could be either 'x86_64-pc-linux-gnu' or 'i686-pc-linux-gnu' on linux,
+    # or 'x86_64-apple-darwin' or 'i686-apple-darwin' on darwin, and anyway $HOST_TAG host match it.
+    case $1 in
+        linux*)
+            if [ "$HOST_TAG" = "linux-x86_64" ]; then
+                BUILDCONFIG=$BH_HOST_CONFIG
+            fi
+            ;;
+        darwin*)
+            if [ "$HOST_TAG" = "darwin-x86_64" ]; then
+                BUILDCONFIG=$BH_HOST_CONFIG
+            fi
+            ;;
+    esac
+
+    ARGS=$ARGS" --build=$BUILDCONFIG"
+    ARGS=$ARGS" --host=$HOSTCONFIG"
     ARGS=$ARGS" --with-build-sysroot"
     ARGS=$ARGS" $PYDEBUG"
     ARGS=$ARGS" --disable-ipv6"
