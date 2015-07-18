@@ -45,13 +45,13 @@ module Builder
     case Common.target_os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
-      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.3/bin/x86_64-apple-darwin12-gcc"
       'clang'
     when 'linux'
       "#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc"
     when 'windows'
-      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc"
+      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.9.3/bin/x86_64-w64-mingw32-gcc"
     else
       raise UnknownTargetOS, Common.target_os, caller
     end
@@ -61,13 +61,13 @@ module Builder
     case Common.target_os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
-      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.1/bin/x86_64-apple-darwin12-gcc"
+      #"#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-4.9.3/bin/x86_64-apple-darwin12-gcc"
       'clang++'
     when 'linux'
       "#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-g++"
     when 'windows'
-      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-g++"
+      "#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.9.3/bin/x86_64-w64-mingw32-g++"
     else
       raise UnknownTargetOS, Common.target_os, caller
     end
@@ -103,7 +103,7 @@ module Builder
     case Common.target_platform
     when 'windows-x86_64'
       "#{Common::NDK_ROOT_DIR}/" \
-      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.9.3/x86_64-w64-mingw32/bin" \
       ":#{ENV['PATH']}"
     when 'windows-x86'
       "#{Common::NDK_ROOT_DIR}/" \
