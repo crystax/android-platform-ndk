@@ -90,7 +90,8 @@ for HEADER in $HEADERS; do
     [[ ${HEADER} == "_ctype.h"    ]] && continue
     [[ ${HEADER} == "ieeefp.h"    ]] && continue
     [[ ${HEADER##crystax/arm64/}    != $HEADER ]] && continue
-    [[ ${HEADER##crystax/details}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/bionic/}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/details/}  != $HEADER ]] && continue
     [[ ${HEADER##crystax/dlmalloc/} != $HEADER ]] && continue
     [[ ${HEADER##crystax/freebsd/}  != $HEADER ]] && continue
     [[ ${HEADER##crystax/mips64/}   != $HEADER ]] && continue
