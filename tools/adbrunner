@@ -491,19 +491,17 @@ def adb_getprop(devid, propname = nil)
     os << last unless last.empty?
 
     if propname.nil?
-        out = {}
-        os.map do |l|
+        value = {}
+        os.each do |l|
             next unless l =~ /^\s*\[([^\]]+)\]\s*:\s*\[([^\]]*)\]\s*$/
-            {key: $1, value: $2}
-        end.each do |e|
-            out[e[:key]] = e[:value]
+            value[$1] = $2
         end
-        log "[#{devid}]: #{out.inspect}" if VERBOSE
+        log "[#{devid}]: #{value.inspect}" if VERBOSE
     else
-        out = os.join("\n")
-        log "[#{devid}] #{propname}: #{out.inspect}" if VERBOSE
+        value = os.join("\n")
+        log "[#{devid}] #{propname}: #{value.inspect}" if VERBOSE
     end
-    out
+    value
 rescue Timeout::Error
     raise AdbError.new("getprop#{" #{propname}" unless propname.nil?}", "timeout")
 end
