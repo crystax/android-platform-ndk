@@ -377,19 +377,21 @@ def adb_devices
     fd = []
     devices.each do |id|
         begin
-            next if !EMUTAG.nil? && adb_getprop(id, 'crystax.emulator.tag') != EMUTAG
-            next if adb_getprop(id, 'sys.boot_completed') != "1"
+            props = adb_getprop(id)
 
-            apilevel = adb_getprop(id, 'ro.build.version.sdk').to_i
+            next if !EMUTAG.nil? && props['crystax.emulator.tag'] != EMUTAG
+            next if props['sys.boot_completed'] != "1"
+
+            apilevel = props['ro.build.version.sdk'].to_i
             next if apilevel == 0
             next if apilevel <= 15 && PIE
             next if apilevel >= 21 && !PIE
 
             devabilist = []
-            devabilist += adb_getprop(id, 'ro.product.cpu.abilist').split(',')
+            devabilist += props['ro.product.cpu.abilist'].split(',')
             if devabilist.empty?
-                devabi1 = adb_getprop(id, 'ro.product.cpu.abi')
-                devabi2 = adb_getprop(id, 'ro.product.cpu.abi2')
+                devabi1 = props['ro.product.cpu.abi']
+                devabi2 = props['ro.product.cpu.abi2']
                 devabilist << devabi1 unless devabi1.empty?
                 devabilist << devabi2 unless devabi2.empty?
             end
@@ -399,7 +401,8 @@ def adb_devices
             if id =~ /^emulator\b/
                 devmodel = id
             else
-                devmodel = adb_getprop(id, 'ro.product.model') rescue id
+                devmodel = props['ro.product.model']
+                devmodel = id if devmodel.empty?
             end
 
             devmainabi = devabilist.first
@@ -429,12 +432,15 @@ rescue AdbError => e
     []
 end
 
-def adb_getprop(devid, propname)
+def adb_getprop(devid, propname = nil)
     tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
+
+    operation = "getprop"
+    operation << " #{propname}" unless propname.nil?
 
     os = []
     es = []
-    run ADB, '-s', devid, 'shell', "getprop #{propname} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
+    run ADB, '-s', devid, 'shell', "#{operation} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
         i.close
 
         if USE_SELECT_BASED_IO
@@ -473,22 +479,33 @@ def adb_getprop(devid, propname)
             end.each(&:join)
         end
 
-        raise AdbError.new("getprop #{propname}", es.join("\n")) unless t.value.success?
+        raise AdbError.new(operation, es.join("\n")) unless t.value.success?
     end
 
     last = os.last
-    raise AdbError.new("getprop #{propname}", "no tag in stdout: #{os.inspect}") unless last =~ /#{tag}:(\d+)$/
-    raise AdbError.new("getprop #{propname}", "exit code: #{$1}") unless $1.to_i == 0
+    raise AdbError.new(operation, "no tag in stdout: #{os.inspect}") unless last =~ /#{tag}:(\d+)$/
+    raise AdbError.new(operation, "exit code: #{$1}") unless $1.to_i == 0
 
     last.sub!(/#{tag}:.*$/, '')
     os = os[0..-2]
     os << last unless last.empty?
 
-    out = os.join("\n")
-    log "[#{devid}] #{propname}: #{out.inspect}" if VERBOSE
+    if propname.nil?
+        out = {}
+        os.map do |l|
+            next unless l =~ /^\s*\[([^\]]+)\]\s*:\s*\[([^\]]*)\]\s*$/
+            {key: $1, value: $2}
+        end.each do |e|
+            out[e[:key]] = e[:value]
+        end
+        log "[#{devid}]: #{out.inspect}" if VERBOSE
+    else
+        out = os.join("\n")
+        log "[#{devid}] #{propname}: #{out.inspect}" if VERBOSE
+    end
     out
 rescue Timeout::Error
-    raise AdbError.new("getprop #{propname}", "timeout")
+    raise AdbError.new("getprop#{" #{propname}" unless propname.nil?}", "timeout")
 end
 
 def adb_rm(devid, files)
