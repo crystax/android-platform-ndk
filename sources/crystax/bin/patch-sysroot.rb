@@ -1,0 +1,278 @@
+#!/usr/bin/env ruby
+
+# Copyright (c) 2011-2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+require 'optparse'
+require 'fileutils'
+require 'pathname'
+
+OPTIONS = {}
+OPTIONS[:fastcopy] = true
+OPTIONS[:gensources] = true
+
+optparser = OptionParser.new do |o|
+    o.separator ""
+
+    o.on("-h", "--help", "Display help screen and exit") do
+        $stdout.puts optparser
+        exit 0
+    end
+
+    o.on("-v", "--[no-]verbose", "Enable verbose mode") do |v|
+        OPTIONS[:verbose] = v
+    end
+
+    o.separator ""
+
+    o.on("--headers", "Patch Android platform headers") do
+        OPTIONS[:patch_headers] = true
+    end
+
+    o.on("--libraries", "Patch Android platform libraries") do
+        OPTIONS[:patch_libraries] = true
+    end
+
+    o.separator ""
+
+    o.on("-nN", "--apilevel=N", Integer, "Android platform API level to patch [all]") do |l|
+        OPTIONS[:apilevel] = l
+    end
+
+    o.on("-aARCH", "--arch=ARCH", "Android platform CPU architecture to patch [all]") do |a|
+        OPTIONS[:arch] = a
+    end
+
+    o.separator ""
+
+    o.on("--[no-]fast-copy", "Enable 'fast copy' mode, when all files are copied",
+                             "instead of being symlinked [#{OPTIONS[:fastcopy]}]") do |f|
+        OPTIONS[:fastcopy] = f
+    end
+
+    o.on("--[no-]gen-sources", "Generate libcrystax sources before patching sysroot [#{OPTIONS[:gensources]}]") do |g|
+        OPTIONS[:gensources] = g
+    end
+end
+optparser.parse!(ARGV)
+
+if !ARGV.empty?
+    $stderr.puts "Extra parameters: #{ARGV.join(' ')}"
+    $stderr.puts optparser
+    exit 1
+end
+
+if !OPTIONS[:patch_headers] && !OPTIONS[:patch_libraries]
+    $stderr.puts optparser
+    exit 1
+end
+
+CRYSTAX_DIR = File.expand_path('../..', __FILE__)
+CRYSTAX_INCDIR = File.join(CRYSTAX_DIR, 'include')
+NDK_DIR = File.expand_path('../..', CRYSTAX_DIR)
+
+def log(msg)
+    $stdout.puts msg if OPTIONS[:verbose]
+    File.open(ENV['TMPLOG'], "a") do |f|
+        f.puts msg
+    end unless ENV['TMPLOG'].to_s.empty?
+end
+
+def dump(msg, options = {})
+    options[:sink] ||= $stdout
+    options[:sink].puts msg
+    File.open(ENV['TMPLOG'], "a") do |f|
+        f.puts msg
+    end unless ENV['TMPLOG'].to_s.empty?
+end
+
+def panic(msg)
+    dump "*** FATAL: #{msg}", sink: $stderr
+    exit 1
+end
+
+def relpath(path, from)
+    Pathname.new(path).relative_path_from(Pathname.new(from)).to_s
+end
+
+if OPTIONS[:patch_headers] && OPTIONS[:gensources]
+    dump "Generating CrystaX sources   in $DST/sources/crystax"
+    Process.wait Kernel.spawn File.join(CRYSTAX_DIR, 'bin', 'gen-sources'), '-q'
+    panic "Can't generate CrystaX sources" unless $?.success?
+end
+
+if OPTIONS[:apilevel].nil?
+    APILEVELS = Dir.glob(File.join(NDK_DIR, 'platforms', 'android-*')).select do |e|
+        File.directory?(e)
+    end.map do |e|
+        File.basename(e).sub(/^android-/, '').to_i
+    end.sort.uniq
+else
+    APILEVELS = [OPTIONS[:apilevel]]
+end
+
+CCONF = "#{File.join(CRYSTAX_DIR, 'bin', 'config')} --ndk=#{NDK_DIR}"
+
+ABIS = `#{CCONF} --abis`.split("\n")
+panic "Couldn't get list of ABIs" unless $?.success?
+
+APILEVELS.each do |apilevel|
+    if OPTIONS[:arch].nil?
+        archs = Dir.glob(File.join(NDK_DIR, 'platforms', "android-#{apilevel}", 'arch-*')).select do |e|
+            File.directory?(e)
+        end.map do |e|
+            File.basename(e).sub(/^arch-/, '')
+        end.sort.uniq
+    else
+        archs = [OPTIONS[:arch]]
+    end
+
+    archs.each do |arch|
+        next if apilevel <= 20 && arch =~ /64$/
+
+        sysroot = File.join('platforms', "android-#{apilevel}", "arch-#{arch}")
+
+        if OPTIONS[:patch_headers]
+            dump "Generating CrystaX headers   in $DST/#{sysroot}/usr/include"
+
+            adir = File.join(NDK_DIR, sysroot, 'usr', 'include')
+            Dir.glob(File.join(CRYSTAX_INCDIR, '**', '*')).reject { |e| File.directory?(e) }.sort.each do |cf|
+                # Skip hidden files
+                next if File.basename(cf) =~ /^\./
+
+                f = relpath(cf, CRYSTAX_INCDIR)
+                log "Processing #{f} [android-#{apilevel}]"
+
+                srcf = File.join(adir, f)
+                srcd = File.dirname(srcf)
+                dstf = File.join(adir, 'crystax', 'google', f)
+
+                if f.split('/').first != 'crystax' && File.exists?(srcf) && !File.exists?(dstf)
+                    dstd = File.dirname(dstf)
+                    FileUtils.mkdir_p dstd
+                    if File.symlink?(srcf) && !OPTIONS[:fastcopy]
+                        panic "Non-fast-copy method is not implemented yet!"
+                        #(
+                        #cd $srcd || exit 1
+                        #sl=$(readlink $srcf)
+                        #fail_panic "Couldn't read symlink path of Google's header $f"
+                        #rp=$(realpath -s $sl)
+                        #fail_panic "Couldn't detect symlink path of Google's header $f"
+                        #rpd=${rp%%/$f}
+                        #rpds=${rpd##$NDK_DIR/platforms/android-*/arch-*/usr/include}
+                        #test "$rpds" = "$rpd" && exit 0
+                        #relp=$(realpath -s --relative-to=$dstd $rpd/crystax/google/$f)
+                        #fail_panic "Couldn't detect relative path for Google's header $f"
+                        #ln -s $relp $dstf
+                        #fail_panic "Couldn't symlink Google's header $f to backup directory"
+                        #) || exit 1
+                    elsif File.file?(srcf)
+                        if File.read(srcf).split("\n").select { |l| l =~ /__CRYSTAX/ }.empty?
+                            FileUtils.mv srcf, dstd
+                        end
+                    else
+                        panic "Don't know how to deal with Google's header #{f}: it's not regular file and not symlink"
+                    end
+                end
+
+                FileUtils.mkdir_p srcd
+
+                if OPTIONS[:fastcopy]
+                    FileUtils.rm_f File.join(srcd, File.basename(cf))
+                    FileUtils.cp cf, File.join(srcd, File.basename(cf))
+                else
+                    panic "Non-fast-copy method is not implemented yet!"
+                    #rm -f $srcf
+                    #crelpath=$(realpath --relative-to=$srcd $cf)
+                    #fail_panic "Couldn't get relative path of $cf"
+                    #run ln -s $crelpath $srcd/
+                    #fail_panic "Couldn't symlink CrystaX header $f to $sysroot"
+                end
+            end
+        end
+
+        if OPTIONS[:patch_libraries]
+            dump "Generating CrystaX libraries in $DST/#{sysroot}"
+
+            %w(libcrystax.a libcrystax.so libbz2.a libm.a libm.so libm_hard.a).each do |f|
+                Dir.glob(File.join(NDK_DIR, sysroot, '**', f)).each do |ff|
+                    FileUtils.rm_f ff
+                end
+            end
+
+            multilibs = {}
+            srclibpath = {}
+            dstlibpath = {}
+
+            ABIS.each do |abi|
+                case arch
+                when 'arm'
+                    next if abi !~ /^armeabi/
+                when 'arm64'
+                    next if abi !~ /^arm64/
+                else
+                    next if abi != arch
+                end
+
+                multilibs[abi] = `#{CCONF} --multilibs --abi=#{abi}`.split(/\s+/) if multilibs[abi].nil?
+                panic "Couldn't get list of multilibs for abi #{abi}" if multilibs[abi].empty?
+
+                multilibs[abi].each do |multilib|
+                    key = "#{abi}/#{multilib}"
+
+                    srclibpath[key] = File.join(CRYSTAX_DIR, `#{CCONF} --libpath --abi=#{abi} --multilib=#{multilib}`.chomp) if srclibpath[key].nil?
+                    srclp = srclibpath[key]
+                    panic "Couldn't get source libpath for #{abi}/#{multilib}" if srclp.empty?
+
+                    dstlibpath[key] = File.join(NDK_DIR, sysroot, 'usr', `#{CCONF} --sysroot-libpath --abi=#{abi} --multilib=#{multilib}`.chomp) if dstlibpath[key].nil?
+                    dstlp = dstlibpath[key]
+                    panic "Couldn't get destination libpath for #{abi}/#{multilib}" if dstlp.empty?
+
+                    %w(libcrystax.a libcrystax.so).each do |lib|
+                        next if File.exists?(File.join(dstlp, lib))
+
+                        if OPTIONS[:fastcopy]
+                            FileUtils.rm_f File.join(dstlp, lib)
+                            FileUtils.cp File.join(srclp, lib), File.join(dstlp, lib)
+                        else
+                            panic "Non-fast-copy method is not implemented yet!"
+                            #crelpath=$(realpath --relative-to=$dstlibpath $srclibpath/$lib)
+                            #fail_panic "Couldn't get relative path of $srclibpath/$lib"
+                            #run ln -s $crelpath $dstlibpath/
+                            #fail_panic "Couldn't symlink $lib to $sysroot"
+                        end
+                    end
+
+                    %w(libbz2.a libm.a libm_hard.a).each do |lib|
+                        FileUtils.rm_f File.join(dstlp, lib)
+                        FileUtils.cp File.join(CRYSTAX_DIR, 'empty', 'libcrystax.a'), File.join(dstlp, lib)
+                    end
+                end
+            end
+        end
+    end
+end
