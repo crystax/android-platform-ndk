@@ -420,7 +420,12 @@ endef
 # $2: multilib variant
 define objdir
 $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
-    $(objroot)/$(strip $(1))-$(strip $(2)),\
+    $(objroot)/$(strip $(or \
+        $(if $(filter armeabi,$(1)),armv5te$(if $(filter arm,$(2)),,-$(2))),\
+        $(if $(filter armeabi-v7a,$(1)),armv7-a$(if $(filter arm,$(2)),,-$(2))),\
+        $(if $(filter armeabi-v7a-hard,$(1)),armv7-a$(if $(filter arm,$(2)),,-$(2))-hard),\
+        $(2)\
+    )),\
     $(error Usage: call objdir,abi,multilib)\
 ))
 endef
