@@ -1,307 +1,278 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-VERBOSE=no
-APILEVEL=
-ARCH=
-FAST_COPY=
-PATCH_HEADERS=
-PATCH_LIBRARIES=
-GEN_SOURCES=yes
+# Copyright (c) 2011-2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
 
-usage()
-{
-    echo "Usage: $0 [options]" 1>&2
-}
+require 'optparse'
+require 'fileutils'
+require 'pathname'
 
-while [ "x$1" != "x" ]; do
-    arg=$1
-    shift
-    case $arg in
-        -v|--verbose)
-            VERBOSE=yes
-            ;;
-        --apilevel=*)
-            APILEVEL=$(expr "x$arg" : "x--apilevel=\(.*\)$")
-            ;;
-        --arch=*)
-            ARCH=$(expr "x$arg" : "x--arch=\(.*\)$")
-            ;;
-        --fast-copy)
-            if [ "$FAST_COPY" = "no" ]; then
-                echo "ERROR: Both --fast-copy and --no-fast-copy specified" 1>&2
-                usage
-                exit 1
-            fi
-            FAST_COPY=yes
-            ;;
-        --no-fast-copy)
-            if [ "$FAST_COPY" = "yes" ]; then
-                echo "ERROR: Both --fast-copy and --no-fast-copy specified" 1>&2
-                usage
-                exit 1
-            fi
-            FAST_COPY=no
-            ;;
-        --no-gen-sources)
-            GEN_SOURCES=no
-            ;;
-        --headers)
-            PATCH_HEADERS=yes
-            ;;
-        --libraries)
-            PATCH_LIBRARIES=yes
-            ;;
-        *)
-            usage
-            exit 1
-            ;;
-    esac
-done
+OPTIONS = {}
+OPTIONS[:fastcopy] = true
+OPTIONS[:gensources] = true
 
-cd $(dirname $0)/.. || exit 1
+optparser = OptionParser.new do |o|
+    o.separator ""
 
-log()
-{
-    if [ "x$VERBOSE" = "xyes" ]; then
-        echo "$@"
-    fi
-    if [ -n "$TMPLOG" ]; then
-        echo "$@" >> $TMPLOG
-    fi
-}
+    o.on("-h", "--help", "Display help screen and exit") do
+        $stdout.puts optparser
+        exit 0
+    end
 
-dump()
-{
-    echo "$@"
-    if [ -n "$TMPLOG" ]; then
-        echo "$@" >> $TMPLOG
-    fi
-}
+    o.on("-v", "--[no-]verbose", "Enable verbose mode") do |v|
+        OPTIONS[:verbose] = v
+    end
 
-error()
-{
-    dump "ERROR: $@" 1>&2
-}
+    o.separator ""
 
-panic()
-{
-    dump "*** FATAL: $@" 1>&2
+    o.on("--headers", "Patch Android platform headers") do
+        OPTIONS[:patch_headers] = true
+    end
+
+    o.on("--libraries", "Patch Android platform libraries") do
+        OPTIONS[:patch_libraries] = true
+    end
+
+    o.separator ""
+
+    o.on("-nN", "--apilevel=N", Integer, "Android platform API level to patch [all]") do |l|
+        OPTIONS[:apilevel] = l
+    end
+
+    o.on("-aARCH", "--arch=ARCH", "Android platform CPU architecture to patch [all]") do |a|
+        OPTIONS[:arch] = a
+    end
+
+    o.separator ""
+
+    o.on("--[no-]fast-copy", "Enable 'fast copy' mode, when all files are copied",
+                             "instead of being symlinked [#{OPTIONS[:fastcopy]}]") do |f|
+        OPTIONS[:fastcopy] = f
+    end
+
+    o.on("--[no-]gen-sources", "Generate libcrystax sources before patching sysroot [#{OPTIONS[:gensources]}]") do |g|
+        OPTIONS[:gensources] = g
+    end
+end
+optparser.parse!(ARGV)
+
+if !ARGV.empty?
+    $stderr.puts "Extra parameters: #{ARGV.join(' ')}"
+    $stderr.puts optparser
     exit 1
-}
+end
 
-fail_panic()
-{
-    if [ $? -ne 0 ]; then
-        panic "$@"
-    fi
-}
+if !OPTIONS[:patch_headers] && !OPTIONS[:patch_libraries]
+    $stderr.puts optparser
+    exit 1
+end
 
-run()
-{
-    log "$@"
-    "$@"
-}
+CRYSTAX_DIR = File.expand_path('../..', __FILE__)
+CRYSTAX_INCDIR = File.join(CRYSTAX_DIR, 'include')
+NDK_DIR = File.expand_path('../..', CRYSTAX_DIR)
 
-# $1: ARCH
-# $2: API Level
-is_valid_arch()
-{
-    local arch=$1
-    local apilevel=$2
-    if [ "x$arch" = "x" -o "x$apilevel" = "x" ]; then
-        error "Usage: $0 arch apilevel"
-        exit 1
-    fi
+def log(msg)
+    $stdout.puts msg if OPTIONS[:verbose]
+    File.open(ENV['TMPLOG'], "a") do |f|
+        f.puts msg
+    end unless ENV['TMPLOG'].to_s.empty?
+end
 
-    if [ "x$apilevel" = "xL" ]; then
-        return 0
-    fi
+def dump(msg, options = {})
+    options[:sink] ||= $stdout
+    options[:sink].puts msg
+    File.open(ENV['TMPLOG'], "a") do |f|
+        f.puts msg
+    end unless ENV['TMPLOG'].to_s.empty?
+end
 
-    if [ $apilevel -le 20 -a "x${arch%%64}" != "x$arch" ]; then
-        return 1
-    else
-        return 0
-    fi
-}
+def panic(msg)
+    dump "*** FATAL: #{msg}", sink: $stderr
+    exit 1
+end
 
-# $1: ARCH
-# $2: ABI
-is_valid_abi()
-{
-    local arch=$1
-    local abi=$2
-    if [ "x$arch" = "x" -o "x$abi" = "x" ]; then
-        error "Usage: $0 arch abi"
-        exit 1
-    fi
+def relpath(path, from)
+    Pathname.new(path).relative_path_from(Pathname.new(from)).to_s
+end
 
-    case $abi in
-        armeabi*)
-            test "$arch" = "arm"
-            ;;
-        arm64*)
-            test "$arch" = "arm64"
-            ;;
-        *)
-            test "$arch" = "$abi"
-    esac
-}
+if OPTIONS[:patch_headers] && OPTIONS[:gensources]
+    dump "Generating CrystaX sources   in $DST/sources/crystax"
+    Process.wait Kernel.spawn File.join(CRYSTAX_DIR, 'bin', 'gen-sources'), '-q'
+    panic "Can't generate CrystaX sources" unless $?.success?
+end
 
-if [ "$PATCH_HEADERS" != "yes" -a "$PATCH_LIBRARIES" != "yes" ]; then
-    panic "Neither one of --headers or --libraries were specified"
-fi
-
-if [ -z "$FAST_COPY" ]; then
-    FAST_COPY=yes
-fi
-
-if [ "$FAST_COPY" != "yes" ]; then
-    realpath --version 2>/dev/null | grep -iq gnu
-    if [ $? -ne 0 ]; then
-        echo "GNU realpath not available (coreutils not installed?); force --fast-copy mode"
-        FAST_COPY=yes
-    fi
-fi
-
-CRYSTAX_DIR=$(pwd)
-NDK_DIR=$(cd $CRYSTAX_DIR/../.. && pwd)
-if [ "$FAST_COPY" != "yes" ]; then
-    NDK_DIR=$(realpath $NDK_DIR)
-fi
-
-if [ "$PATCH_HEADERS" = "yes" -a "$GEN_SOURCES" = "yes" ]; then
-    dump "Generating CrystaX headers   in \$DST/sources/crystax"
-    $CRYSTAX_DIR/bin/gen-sources -q
-    fail_panic "Couldn't generate CrystaX headers"
-fi
-
-if [ "x$APILEVEL" = "x" ]; then
-    APILEVELS=$({ for p in $(ls -d $NDK_DIR/platforms/android-* 2>/dev/null); do expr "$(basename $p)" : "^android-\(.*\)$"; done; } | sed 's,L,,' | sort -n)
-    test -d $NDK_DIR/platforms/android-L && APILEVELS="$APILEVELS L"
+if OPTIONS[:apilevel].nil?
+    APILEVELS = Dir.glob(File.join(NDK_DIR, 'platforms', 'android-*')).select do |e|
+        File.directory?(e)
+    end.map do |e|
+        File.basename(e).sub(/^android-/, '').to_i
+    end.sort.uniq
 else
-    APILEVELS="$APILEVEL"
-fi
+    APILEVELS = [OPTIONS[:apilevel]]
+end
 
-for apilevel in $APILEVELS; do
-    if [ "x$ARCH" = "x" ]; then
-        ARCHS=$({ for a in $(ls -d $NDK_DIR/platforms/android-${apilevel}/arch-* 2>/dev/null); do expr "$(basename $a)" : "^arch-\(.*\)$"; done; } | sort)
+CCONF = "#{File.join(CRYSTAX_DIR, 'bin', 'config')} --ndk=#{NDK_DIR}"
+
+ABIS = `#{CCONF} --abis`.split("\n")
+panic "Couldn't get list of ABIs" unless $?.success?
+
+APILEVELS.each do |apilevel|
+    if OPTIONS[:arch].nil?
+        archs = Dir.glob(File.join(NDK_DIR, 'platforms', "android-#{apilevel}", 'arch-*')).select do |e|
+            File.directory?(e)
+        end.map do |e|
+            File.basename(e).sub(/^arch-/, '')
+        end.sort.uniq
     else
-        ARCHS=$ARCH
-    fi
-    for arch in $ARCHS; do
-        # Skip invalid for this API level CPU architectures
-        is_valid_arch $arch $apilevel || continue
+        archs = [OPTIONS[:arch]]
+    end
 
-        sysroot=platforms/android-$apilevel/arch-$arch
+    archs.each do |arch|
+        next if apilevel <= 20 && arch =~ /64$/
 
-        if [ "$PATCH_HEADERS" = "yes" ]; then
-            dump "Generating CrystaX headers   in \$DST/$sysroot/usr/include"
+        sysroot = File.join('platforms', "android-#{apilevel}", "arch-#{arch}")
 
-            adir=$NDK_DIR/$sysroot/usr/include
-            for cf in $(find $CRYSTAX_DIR/include -type f -print | sort); do
+        if OPTIONS[:patch_headers]
+            dump "Generating CrystaX headers   in $DST/#{sysroot}/usr/include"
+
+            adir = File.join(NDK_DIR, sysroot, 'usr', 'include')
+            Dir.glob(File.join(CRYSTAX_INCDIR, '**', '*')).reject { |e| File.directory?(e) }.sort.each do |cf|
                 # Skip hidden files
-                expr "x$(basename $cf)" : "^x\." >/dev/null 2>&1 && continue
+                next if File.basename(cf) =~ /^\./
 
-                f=${cf#$CRYSTAX_DIR/include/}
-                log "Processing $f [android-${apilevel}]"
+                f = relpath(cf, CRYSTAX_INCDIR)
+                log "Processing #{f} [android-#{apilevel}]"
 
-                first=$(echo "$f" | awk -F/ '{print $1}')
+                srcf = File.join(adir, f)
+                srcd = File.dirname(srcf)
+                dstf = File.join(adir, 'crystax', 'google', f)
 
-                srcf=$adir/$f
-                srcd=$(dirname $srcf)
-                dstf=$adir/crystax/google/$f
-                if [ "x$first" != "xcrystax" -a -e $srcf -a ! -e $dstf ]; then
-                    dstd=$(dirname $dstf)
-                    mkdir -p $dstd
-                    fail_panic "Couldn't create Google's headers backup directory"
-                    if [ -L $srcf -a "$FAST_COPY" != "yes" ]; then
-                        (
-                        cd $srcd || exit 1
-                        sl=$(readlink $srcf)
-                        fail_panic "Couldn't read symlink path of Google's header $f"
-                        rp=$(realpath -s $sl)
-                        fail_panic "Couldn't detect symlink path of Google's header $f"
-                        rpd=${rp%%/$f}
-                        rpds=${rpd##$NDK_DIR/platforms/android-*/arch-*/usr/include}
-                        test "$rpds" = "$rpd" && exit 0
-                        relp=$(realpath -s --relative-to=$dstd $rpd/crystax/google/$f)
-                        fail_panic "Couldn't detect relative path for Google's header $f"
-                        ln -s $relp $dstf
-                        fail_panic "Couldn't symlink Google's header $f to backup directory"
-                        ) || exit 1
-                    elif [ -f $srcf ]; then
-                        grep -q __CRYSTAX $srcf
-                        if [ $? -ne 0 ]; then
-                            mv $srcf $dstd/
-                            fail_panic "Couldn't move Google's header $f into backup directory"
-                        fi
+                if f.split('/').first != 'crystax' && File.exists?(srcf) && !File.exists?(dstf)
+                    dstd = File.dirname(dstf)
+                    FileUtils.mkdir_p dstd
+                    if File.symlink?(srcf) && !OPTIONS[:fastcopy]
+                        panic "Non-fast-copy method is not implemented yet!"
+                        #(
+                        #cd $srcd || exit 1
+                        #sl=$(readlink $srcf)
+                        #fail_panic "Couldn't read symlink path of Google's header $f"
+                        #rp=$(realpath -s $sl)
+                        #fail_panic "Couldn't detect symlink path of Google's header $f"
+                        #rpd=${rp%%/$f}
+                        #rpds=${rpd##$NDK_DIR/platforms/android-*/arch-*/usr/include}
+                        #test "$rpds" = "$rpd" && exit 0
+                        #relp=$(realpath -s --relative-to=$dstd $rpd/crystax/google/$f)
+                        #fail_panic "Couldn't detect relative path for Google's header $f"
+                        #ln -s $relp $dstf
+                        #fail_panic "Couldn't symlink Google's header $f to backup directory"
+                        #) || exit 1
+                    elsif File.file?(srcf)
+                        if File.read(srcf).split("\n").select { |l| l =~ /__CRYSTAX/ }.empty?
+                            FileUtils.mv srcf, dstd
+                        end
                     else
-                        panic "Don't know how to deal with Google's header $f: it's not regular file and not symlink"
-                    fi
-                fi
+                        panic "Don't know how to deal with Google's header #{f}: it's not regular file and not symlink"
+                    end
+                end
 
-                mkdir -p $srcd
-                fail_panic "Couldn't create target directory for CrystaX header"
+                FileUtils.mkdir_p srcd
 
-                if [ "$FAST_COPY" = "yes" ]; then
-                    run cp -f $cf $srcd/
-                    fail_panic "Couldn't copy CrystaX header $f to $sysroot"
+                if OPTIONS[:fastcopy]
+                    FileUtils.rm_f File.join(srcd, File.basename(cf))
+                    FileUtils.cp cf, File.join(srcd, File.basename(cf))
                 else
-                    rm -f $srcf
-                    crelpath=$(realpath --relative-to=$srcd $cf)
-                    fail_panic "Couldn't get relative path of $cf"
-                    run ln -s $crelpath $srcd/
-                    fail_panic "Couldn't symlink CrystaX header $f to $sysroot"
-                fi
-            done
-        fi
+                    panic "Non-fast-copy method is not implemented yet!"
+                    #rm -f $srcf
+                    #crelpath=$(realpath --relative-to=$srcd $cf)
+                    #fail_panic "Couldn't get relative path of $cf"
+                    #run ln -s $crelpath $srcd/
+                    #fail_panic "Couldn't symlink CrystaX header $f to $sysroot"
+                end
+            end
+        end
 
-        if [ "$PATCH_LIBRARIES" = "yes" ]; then
-            dump "Generating CrystaX libraries in \$DST/$sysroot"
+        if OPTIONS[:patch_libraries]
+            dump "Generating CrystaX libraries in $DST/#{sysroot}"
 
-            for lib in libcrystax.a libcrystax.so libbz2.a libm.a libm.so libm_hard.a; do
-                run find $NDK_DIR/$sysroot -name $lib -delete
-                fail_panic "Couldn't cleanup sysroot"
-            done
+            %w(libcrystax.a libcrystax.so libbz2.a libm.a libm.so libm_hard.a).each do |f|
+                Dir.glob(File.join(NDK_DIR, sysroot, '**', f)).each do |ff|
+                    FileUtils.rm_f ff
+                end
+            end
 
-            cconf="$CRYSTAX_DIR/bin/config --ndk=$NDK_DIR"
-            abis=$($cconf --abis)
-            fail_panic "Couldn't get list of ABIs"
+            multilibs = {}
+            srclibpath = {}
+            dstlibpath = {}
 
-            for abi in $abis; do
-                is_valid_abi $arch $abi || continue
+            ABIS.each do |abi|
+                case arch
+                when 'arm'
+                    next if abi !~ /^armeabi/
+                when 'arm64'
+                    next if abi !~ /^arm64/
+                else
+                    next if abi != arch
+                end
 
-                multilibs=$($cconf --multilibs --abi=$abi)
-                fail_panic "Couldn't get list of multilibs for $abi"
+                multilibs[abi] = `#{CCONF} --multilibs --abi=#{abi}`.split(/\s+/) if multilibs[abi].nil?
+                panic "Couldn't get list of multilibs for abi #{abi}" if multilibs[abi].empty?
 
-                for multilib in $multilibs; do
-                    srclibpath=$CRYSTAX_DIR/$($cconf --libpath --abi=$abi --multilib=$multilib)
-                    fail_panic "Couldn't get source libpath for $abi/$multilib"
+                multilibs[abi].each do |multilib|
+                    key = "#{abi}/#{multilib}"
 
-                    dstlibpath=$NDK_DIR/$sysroot/usr/$($cconf --sysroot-libpath --abi=$abi --multilib=$multilib)
-                    fail_panic "Couldn't get destination libpath for $abi/$multilib"
+                    srclibpath[key] = File.join(CRYSTAX_DIR, `#{CCONF} --libpath --abi=#{abi} --multilib=#{multilib}`.chomp) if srclibpath[key].nil?
+                    srclp = srclibpath[key]
+                    panic "Couldn't get source libpath for #{abi}/#{multilib}" if srclp.empty?
 
-                    for lib in libcrystax.a libcrystax.so; do
-                        if [ -e $dstlibpath/$lib ]; then
-                            continue
-                        fi
-                        if [ "$FAST_COPY" = "yes" ]; then
-                            run cp -f $srclibpath/$lib $dstlibpath/
-                            fail_panic "Couldn't copy $lib to $sysroot"
+                    dstlibpath[key] = File.join(NDK_DIR, sysroot, 'usr', `#{CCONF} --sysroot-libpath --abi=#{abi} --multilib=#{multilib}`.chomp) if dstlibpath[key].nil?
+                    dstlp = dstlibpath[key]
+                    panic "Couldn't get destination libpath for #{abi}/#{multilib}" if dstlp.empty?
+
+                    %w(libcrystax.a libcrystax.so).each do |lib|
+                        next if File.exists?(File.join(dstlp, lib))
+
+                        if OPTIONS[:fastcopy]
+                            FileUtils.rm_f File.join(dstlp, lib)
+                            FileUtils.cp File.join(srclp, lib), File.join(dstlp, lib)
                         else
-                            crelpath=$(realpath --relative-to=$dstlibpath $srclibpath/$lib)
-                            fail_panic "Couldn't get relative path of $srclibpath/$lib"
-                            run ln -s $crelpath $dstlibpath/
-                            fail_panic "Couldn't symlink $lib to $sysroot"
-                        fi
-                    done
+                            panic "Non-fast-copy method is not implemented yet!"
+                            #crelpath=$(realpath --relative-to=$dstlibpath $srclibpath/$lib)
+                            #fail_panic "Couldn't get relative path of $srclibpath/$lib"
+                            #run ln -s $crelpath $dstlibpath/
+                            #fail_panic "Couldn't symlink $lib to $sysroot"
+                        end
+                    end
 
-                    for lib in libbz2.a libm.a libm_hard.a; do
-                        run cp -f $CRYSTAX_DIR/empty/libcrystax.a $dstlibpath/$lib
-                        fail_panic "Couldn't create empty $lib in $sysroot"
-                    done
-                done
-            done
-        fi
-    done
-done
+                    %w(libbz2.a libm.a libm_hard.a).each do |lib|
+                        FileUtils.rm_f File.join(dstlp, lib)
+                        FileUtils.cp File.join(CRYSTAX_DIR, 'empty', 'libcrystax.a'), File.join(dstlp, lib)
+                    end
+                end
+            end
+        end
+    end
+end
