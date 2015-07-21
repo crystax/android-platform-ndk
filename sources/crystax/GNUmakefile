@@ -424,7 +424,8 @@ $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
         $(if $(filter armeabi,$(1)),armv5te$(if $(filter arm,$(2)),,-$(2))),\
         $(if $(filter armeabi-v7a,$(1)),armv7-a$(if $(filter arm,$(2)),,-$(2))),\
         $(if $(filter armeabi-v7a-hard,$(1)),armv7-a$(if $(filter arm,$(2)),,-$(2))-hard),\
-        $(2)\
+        $(if $(filter arm64-v8a x86 x86_64 mips mips64,$(1)),$(2)),\
+        $(error Unsupported ABI: '$(1)')\
     )),\
     $(error Usage: call objdir,abi,multilib)\
 ))
