@@ -36,6 +36,7 @@ if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%x86*}" ]; 
     grep -qw rorw issue17144-byteswap.s
     fail_panic "x86 doesn't use rorw instruction for __swap16()"
     grep -qw bswap issue17144-byteswap.s
+    test $? -eq 0 || grep -qw bswapl issue17144-byteswap.s
     fail_panic "x86 doesn't use bswap instruciton for __swap32()"
 fi
 

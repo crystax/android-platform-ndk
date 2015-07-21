@@ -90,10 +90,23 @@ class Project
     end
 
     def broken?
-        tvs = @properties['broken-toolchain-version'] || []
-        tvs = [tvs] unless tvs.is_a?(Array)
-        tvs.each do |t|
-            return true if t == @options[:toolchain_version]
+        return true if @properties['broken'].to_s =~ /^(true|yes|1)/i
+
+        if !@options[:toolchain_version].nil?
+            if @options[:toolchain_version] =~ /^([^\d-]+)/
+                tt = $1
+                tvt = @properties['broken-toolchain-type'] || []
+                tvt = [tvt] unless tvt.is_a?(Array)
+                tvt.each do |t|
+                    return true if t == tt
+                end
+            end
+
+            tvs = @properties['broken-toolchain-version'] || []
+            tvs = [tvs] unless tvs.is_a?(Array)
+            tvs.each do |t|
+                return true if t == @options[:toolchain_version]
+            end
         end
 
         false

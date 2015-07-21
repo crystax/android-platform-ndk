@@ -52,6 +52,8 @@ CPPUNIT_TEST_SUITE_REGISTRATION(PtrSpecTest);
   template class cont<int const volatile*>
 
 #if !defined(_MSC_VER) || (_MSC_VER > 1200)  // excluding MSVC 6.0
+namespace std
+{
 TEST_INSTANCIATE_CONTAINER(vector);
 TEST_INSTANCIATE_CONTAINER(list);
 #  if defined (STLPORT) && !defined (_STLP_NO_EXTENSIONS)
@@ -60,6 +62,7 @@ TEST_INSTANCIATE_CONTAINER(slist);
 TEST_INSTANCIATE_CONTAINER(deque);
 TEST_INSTANCIATE_CONTAINER(set);
 TEST_INSTANCIATE_CONTAINER(multiset);
+} // namespace std
 #endif
 
 //Function to test pointer to function support:

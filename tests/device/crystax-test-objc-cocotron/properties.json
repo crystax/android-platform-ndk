@@ -1,1 +1,1 @@
-{"broken-toolchain-version": ["gcc4.8", "gcc4.9"]}
+{"broken-toolchain-type": "gcc"}
