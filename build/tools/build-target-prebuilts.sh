@@ -46,10 +46,7 @@ register_jobs_option
 register_try64_option
 
 PROGRAM_PARAMETERS="<toolchain-src-dir>"
-PROGRAM_DESCRIPTION=\
-"This script can be used to rebuild all the target NDK prebuilts at once.
-You need to give it the path to the toolchain source directory, as
-downloaded by the 'download-toolchain-sources.sh' dev-script."
+PROGRAM_DESCRIPTION="This script can be used to rebuild all the target NDK prebuilts at once."
 
 extract_parameters "$@"
 
@@ -125,10 +122,6 @@ if [ "$TRY64" = "yes" ]; then
     FLAGS=$FLAGS" --try-64"
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
-
-if [ "$TRY64" = "yes" ]; then
-    FLAGS=$FLAGS" --try-64"
-fi
 
 # First, gdbserver
 for ARCH in $ARCHS; do

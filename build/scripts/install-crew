@@ -57,7 +57,7 @@ EOS
 
 
 CREW_URL    = ENV['CREW_DEVEL_URL']    || 'https://github.com/crystax/android-crew.git'
-CREW_BRANCH = ENV['CREW_DEVEL_BRANCH'] || 'master'
+CREW_BRANCH = 'master'
 
 
 begin

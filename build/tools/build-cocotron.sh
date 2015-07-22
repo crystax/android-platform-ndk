@@ -62,6 +62,8 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 COCOTRON_SRCDIR=$(echo $PARAMETERS | sed 1q)

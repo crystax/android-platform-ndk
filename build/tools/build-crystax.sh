@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2014 CrystaX .NET.
+# Copyright (c) 2011-2015 CrystaX .NET.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -67,6 +67,8 @@ register_option "--patch-sysroot" do_patch_sysroot "Patch sysroot with CrystaX l
 do_patch_sysroot() { PATCH_SYSROOT=yes; }
 
 register_jobs_option
+
+register_try64_option
 
 extract_parameters "$@"
 

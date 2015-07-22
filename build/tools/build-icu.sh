@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2014 CrystaX .NET.
+# Copyright (c) 2011-2015 CrystaX .NET.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -66,6 +66,8 @@ ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
 register_var_option "--version=<ver>" ICU_VERSION "ICU version"
 
 register_jobs_option
+
+register_try64_option
 
 extract_parameters "$@"
 

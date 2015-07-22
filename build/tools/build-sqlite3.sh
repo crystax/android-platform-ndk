@@ -63,6 +63,8 @@ TOOLCHAIN_VERSION=4.9
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 SQLITE3_SRCDIR=$(echo $PARAMETERS | sed 1q)
