@@ -68,6 +68,8 @@ register_var_option "--version=<ver>" LIBJPEG_VERSION "Specify libjpeg version t
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 LIBJPEG_SRCDIR=$(echo $PARAMETERS | sed 1q)

@@ -64,6 +64,8 @@ register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolc
 
 register_jobs_option
 
+register_try64_option
+
 extract_parameters "$@"
 
 LIBOBJC2_SRCDIR=$(echo $PARAMETERS | sed 1q)
