@@ -123,10 +123,6 @@ if [ "$TRY64" = "yes" ]; then
 fi
 FLAGS=$FLAGS" -j$NUM_JOBS"
 
-if [ "$TRY64" = "yes" ]; then
-    FLAGS=$FLAGS" --try-64"
-fi
-
 # First, gdbserver
 for ARCH in $ARCHS; do
     if [ -z "$GCC_VERSION" ]; then
