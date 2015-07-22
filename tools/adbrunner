@@ -382,16 +382,16 @@ def adb_devices
             next if !EMUTAG.nil? && props['crystax.emulator.tag'] != EMUTAG
             next if props['sys.boot_completed'] != "1"
 
-            apilevel = props['ro.build.version.sdk'].to_i
+            apilevel = props['ro.build.version.sdk'].to_i rescue 0
             next if apilevel == 0
             next if apilevel <= 15 && PIE
             next if apilevel >= 21 && !PIE
 
             devabilist = []
-            devabilist += props['ro.product.cpu.abilist'].split(',')
+            devabilist += props['ro.product.cpu.abilist'].split(',') rescue []
             if devabilist.empty?
-                devabi1 = props['ro.product.cpu.abi']
-                devabi2 = props['ro.product.cpu.abi2']
+                devabi1 = props['ro.product.cpu.abi'].to_s rescue ''
+                devabi2 = props['ro.product.cpu.abi2'].to_s rescue ''
                 devabilist << devabi1 unless devabi1.empty?
                 devabilist << devabi2 unless devabi2.empty?
             end
@@ -401,7 +401,7 @@ def adb_devices
             if id =~ /^emulator\b/
                 devmodel = id
             else
-                devmodel = props['ro.product.model']
+                devmodel = props['ro.product.model'].to_s rescue ''
                 devmodel = id if devmodel.empty?
             end
 
