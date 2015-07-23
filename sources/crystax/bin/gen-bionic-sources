@@ -208,6 +208,9 @@ g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
 
+# termios
+g.add "libc/bionic/termios.cpp"
+
 # pipe2
 g.add "libc/arch-arm/syscalls/pipe2.S"
 g.add "libc/arch-arm64/syscalls/pipe2.S"
