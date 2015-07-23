@@ -496,7 +496,7 @@ def adb_getprop(devid, propname = nil)
             next unless l =~ /^\s*\[([^\]]+)\]\s*:\s*\[([^\]]*)\]\s*$/
             value[$1] = $2
         end
-        log "[#{devid}]: #{value.inspect}" if VERBOSE
+        #log "[#{devid}]: #{value.inspect}" if VERBOSE
     else
         value = os.join("\n")
         log "[#{devid}] #{propname}: #{value.inspect}" if VERBOSE
