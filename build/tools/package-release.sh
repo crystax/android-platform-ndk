@@ -717,21 +717,17 @@ for SYSTEM in $SYSTEMS; do
         #unpack_prebuilt renderscript-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
         # Unpack prebuilt ndk-stack and other host tools
-        LONG_SYSTEM=${SYSTEM}_64
-        if [ "$SYSTEM" = "windows" ]; then
-            LONG_SYSTEM=$SYSTEM
-        fi
-        unpack_prebuilt ndk-stack-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
-        unpack_prebuilt ndk-depends-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
-        unpack_prebuilt ndk-make-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-awk-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
+        unpack_prebuilt ndk-depends-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
+        unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
         if [ "$SYSTEM" != "windows" ]; then
-            unpack_prebuilt ndk-perl-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64"
+            unpack_prebuilt ndk-perl-$SYSTEM "$DSTDIR" "$DSTDIR64"
         else
-            echo "WARNING: no ndk-perl-$LONG_SYSTEM! http://b/22413538"
+            echo "WARNING: no ndk-perl-$SYSTEM! http://b/22413538"
         fi
-        unpack_prebuilt ndk-python-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-yasm-$LONG_SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-python-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        unpack_prebuilt ndk-yasm-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
         if [ "$SYSTEM" = "windows" ]; then
             unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
