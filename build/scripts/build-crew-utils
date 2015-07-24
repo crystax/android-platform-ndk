@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Build all vendors utils used with Crystax NDK
+# Build Crew utils and all required libs
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -36,7 +36,7 @@
 
 module Crystax
 
-  PKG_NAME = 'build-vendor-utils'
+  PKG_NAME = 'build-crew-utils'
 
 end
 
@@ -48,7 +48,7 @@ require_relative 'commander.rb'
 begin
   Common.parse_options
   Logger.open_log_file Common.log_file
-  Logger.msg "Building #{Common.target_platform} vendor utils"
+  Logger.msg "Building #{Common.target_platform} Crew utils"
 
   path = File.dirname($0)
 
