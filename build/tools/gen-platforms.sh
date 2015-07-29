@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -836,7 +836,9 @@ if [ "$OPTION_SAMPLES" ] ; then
     #
     dump "Copying generic samples"
     if [ -z "$OPTION_OVERLAY" ]; then
-        rm -rf $DSTDIR/samples && mkdir -p $DSTDIR/samples
+        for d in `cat $DSTDIR/samples/.gitignore | tr -d '/' | tr '\n' ' '`; do
+            rm -rf $DSTDIR/samples/$d
+        done
     fi
     copy_src_directory  samples samples samples
 
