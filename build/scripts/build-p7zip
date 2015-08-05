@@ -35,7 +35,14 @@
 #
 
 
-require_relative 'versions.rb'
+require 'fileutils'
+
+require_relative 'common.rb'
+require_relative 'logger.rb'
+require_relative 'commander.rb'
+require_relative 'builder.rb'
+require_relative 'cache.rb'
+
 
 module Crystax
 
@@ -44,58 +51,51 @@ module Crystax
 end
 
 
-require 'fileutils'
-require_relative 'logger.rb'
-require_relative 'commander.rb'
-require_relative 'builder.rb'
-require_relative 'cache.rb'
-require_relative 'exceptions.rb'
-
-
-# Version 9.20.1
+# ChangeLog file should begin with line: Version 9.20.1
 #
-def check_version
-  v = File.read("#{Common::SRC_DIR}/ChangeLog").split("\n").select { |s| s =~ /^Version/ }
-  if !v or v.size == 0
-    raise "can't find 'Version' string"
-  end
-  ver = v[0].split(' ')[1]
-  if ver != Crystax::VERSIONS['p7zip']
-    raise "bad p7zip version: repository: #{ver}; expected: #{Crystax::VERSIONS['p7zip']}"
+def check_version(srcdir, version)
+  v = File.read("#{srcdir}/ChangeLog").split("\n").select { |s| s =~ /^Version/ }
+  raise "can't find 'Version' string" if !v or v.size == 0
+  srcver = v[0].split(' ')[1]
+  if srcver != version
+    raise "bad p7zip version: repository: #{srcver}; expected: #{version}"
   end
 end
 
-def makefile_name
-  case Common.target_os
+
+def makefile_name(os, cpu)
+  case os
   when 'darwin'
-    Common.target_cpu == 'x86' ? "makefile.macosx_32bits" : "makefile.macosx_64bits"
+    cpu == 'x86' ? "makefile.macosx_32bits" : "makefile.macosx_64bits"
   when 'linux'
-    Common.target_cpu == 'x86' ? "makefile.linux_x86" : "makefile.linux_amd64"
+    cpu == 'x86' ? "makefile.linux_x86" : "makefile.linux_amd64"
   else
-    raise "unsupported"
+    raise "unsupported OS #{os}"
   end
 end
 
 
 begin
-  Common.parse_options
+  options = Common.parse_build_options Crystax::PKG_NAME
+  Logger.open_log_file options[:log_file], options[:log_rename], options[:verbose]
 
-  Logger.open_log_file Common.log_file
-  archive = Common.make_archive_name
+  ver, bldnum  = Common.formula_data Crystax::PKG_NAME
+  paths = Common.make_paths Crystax::PKG_NAME, ver, bldnum, options
+  archive = Common.make_archive_name Crystax::PKG_NAME, ver, bldnum, options[:target_platform]
 
-  if Cache.try?(archive)
+  if !options[:force] and Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  Logger.msg "building #{archive}; args: #{ARGV}"
-  check_version
-  if Common.target_os == 'windows'
+  Logger.start_msg archive
+  check_version paths[:src_dir], ver
+  if options[:target_os] == 'windows'
     Logger.msg "= coping windows prebuilts"
-    dstdir = "#{Common.install_dir}/bin"
+    dstdir = "#{paths[:install_dir]}/bin"
     FileUtils.mkdir_p(dstdir)
     pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
-    if Common.target_cpu == 'x86'
+    if options[:target_cpu] == 'x86'
       FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{dstdir}/7za.exe" }
     else
       FileUtils.cd("#{pdir}/64") do
@@ -104,22 +104,23 @@ begin
       end
     end
   else
-    Builder.copy_sources
-    FileUtils.cd(Common::BUILD_DIR) do
-      FileUtils.cp makefile_name, 'makefile.machine'
-      args = ["CRYSTAX_CC=#{Builder.cc}",
-              "CRYSTAX_CXX=#{Builder.cxx}",
-              "CRYSTAX_FLAGS=\"#{Builder.cflags}\""
+    Builder.copy_sources paths
+    makefile = makefile_name options[:target_os], options[:target_cpu]
+    FileUtils.cd(paths[:build_dir]) do
+      FileUtils.cp makefile, 'makefile.machine'
+      args = ["CRYSTAX_CC=#{Builder.cc(options[:target_os])}",
+              "CRYSTAX_CXX=#{Builder.cxx(options[:target_os])}",
+              "CRYSTAX_FLAGS=\"#{Builder.cflags(options[:target_platform])}\""
              ]
-      Commander::run "make -j #{Common.num_jobs} #{args.join(' ')}"
-      Commander::run "make test #{args.join(' ')}" unless Common.no_check? or Common.different_os?
+      Commander::run "make -j #{options[:num_jobs]} #{args.join(' ')}"
+      Commander::run "make test #{args.join(' ')}" unless options[:no_check]
+      bindir = "#{paths[:install_dir]}/bin"
+      FileUtils.mkdir_p bindir
+      FileUtils.cp 'bin/7za', bindir
     end
-    FileUtils.mkdir_p("#{Common.install_dir}/bin")
-    FileUtils.cp "#{Common::BUILD_DIR}/bin/7za", "#{Common.install_dir}/bin/7za"
   end
 
-  Cache.add(archive)
-  Cache.unpack(archive)
+  Cache.add archive, paths[:build_base_dir]
 
 rescue SystemExit => e
   exit e.status
@@ -127,5 +128,5 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  Builder.clean
+  FileUtils.rm_rf paths[:build_base_dir] unless options[:no_clean]
 end

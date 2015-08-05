@@ -36,14 +36,19 @@ require_relative 'common.rb'
 
 
 class Logger
-  def self.open_log_file(name)
-    if File.exists?(name) and @@do_rename
+  def self.open_log_file(name, rename, verbose)
+    if File.exists?(name) and rename
       rename_logfile(name)
     else
       dir = File.dirname(name)
       FileUtils.mkdir_p(dir) unless Dir.exists?(dir)
     end
     @@log_file = File.open(name, 'a')
+    @@verbose = verbose
+  end
+
+  def self.start_msg(archive)
+    msg "building #{archive}; args: #{ARGV}"
   end
 
   def self.msg(msg)
@@ -53,7 +58,7 @@ class Logger
 
   def self.log_msg(msg)
     file_msg msg
-    puts msg if Common.verbose?
+    puts msg if @@verbose
   end
 
   def self.file_msg(msg)
@@ -67,13 +72,10 @@ class Logger
     file_msg exc.backtrace
   end
 
-  def self.rename=(v)
-    @@do_rename = v
-  end
-
   private
 
-  @@do_rename = true
+  @@verbose = false
+  @@log_file = nil
 
   def self.rename_logfile(name)
     n = 1

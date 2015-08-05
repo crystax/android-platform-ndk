@@ -40,9 +40,12 @@ require_relative 'commander.rb'
 require_relative 'logger.rb'
 
 
-module Builder
-  def self.cc
-    case Common.target_os
+class Builder
+
+  MACOSX_VERSION_MIN = '10.6'
+
+  def self.cc(os)
+    case os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang")
@@ -51,12 +54,12 @@ module Builder
     when 'windows'
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc")
     else
-      raise UnknownTargetOS, Common.target_os, caller
+      raise UnknownTargetOS, os, caller
     end
   end
 
-  def self.cxx
-    case Common.target_os
+  def self.cxx(os)
+    case os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang++")
@@ -69,15 +72,15 @@ module Builder
     end
   end
 
-  def self.cflags
-    case Common.target_platform
+  def self.cflags(platform)
+    case platform
     when 'darwin-x86_64'
       "-isysroot#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
-      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN} " \
+      "-mmacosx-version-min=#{MACOSX_VERSION_MIN} " \
       "-m64"
     when 'darwin-x86'
       "-isysroot#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
-      "-mmacosx-version-min=#{Common::MACOSX_VERSION_MIN} " \
+      "-mmacosx-version-min=#{MACOSX_VERSION_MIN} " \
       "-m32"
     when 'linux-x86_64'
       "--sysroot=#{Common::NDK_ROOT_DIR}/" \
@@ -91,7 +94,7 @@ module Builder
     when 'windows-x86'
       '-m32'
     else
-      raise UnknownTargetPlatform, Common.target_platform, caller
+      raise UnknownTargetPlatform, platform, caller
     end
   end
 
@@ -139,13 +142,11 @@ module Builder
     "#{unpackdir}/#{Common.prebuilt_dir}"
   end
 
-  def self.copy_sources
-    dir = "#{Common::BUILD_BASE}/#{Crystax::PKG_NAME}"
-    FileUtils.remove_dir(Common::BUILD_DIR, true)
-    FileUtils.remove_dir(dir, true)
-    FileUtils.mkdir_p(Common::BUILD_BASE)
-    FileUtils.cp_r Common::SRC_DIR, Common::BUILD_BASE
-    FileUtils.move dir, Common::BUILD_DIR
+  def self.copy_sources(paths)
+    basedir = paths[:build_base_dir]
+    FileUtils.rm_rf basedir
+    FileUtils.mkdir basedir
+    FileUtils.cp_r paths[:src_dir], basedir
   end
 
   def self.clean_src(srcdir)

@@ -41,13 +41,13 @@ require_relative 'commander.rb'
 
 module Cache
   PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
+  ARCH_DIR = 'prebuilt'
 
-  def self.try?(archive, action = :unpack)
-    if Common.force? or !exists?(archive)
+  def self.try?(archive)
+    if !exists?(archive)
       false
     else
       Logger.msg "found cached file: #{archive}"
-      unpack(archive) if action == :unpack
       true
     end
   end
@@ -56,12 +56,11 @@ module Cache
     File.exists? "#{PATH}/#{archive}"
   end
 
-  def self.unpack(archive, dstdir = Common::DST_DIR)
-    Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
-  end
+  # def self.unpack(archive, dstdir = Common::DST_DIR)
+  #   Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
+  # end
 
-  def self.add(archive)
-    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} prebuilt" }
-    FileUtils.move("#{Common::BUILD_BASE}/#{archive}", PATH)
+  def self.add(archive, buildbase)
+    FileUtils.cd(buildbase) { Commander::run "7z a #{PATH}/#{archive} #{ARCH_DIR}" }
   end
 end
