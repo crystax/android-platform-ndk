@@ -511,7 +511,9 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt boost+icu-$VERSION-libs-$ABI "$REFERENCE"
         done
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
-        unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
+        if [ "$SYSTEMS" != "darwin-x86" -a "$SYSTEMS" != "darwin-x86_64" ]; then
+            unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
+        fi
     done
 fi
 
@@ -706,7 +708,16 @@ for SYSTEM in $SYSTEMS; do
 
         # Unpack clang/llvm
         for LLVM_VERSION in $LLVM_VERSION_LIST; do
-            unpack_prebuilt llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
+            # TODO(danalbert): Fix 64-bit Windows LLVM.
+            # This wrongly packages 32-bit Windows LLVM for 64-bit as well, but
+            # the real bug here is that we don't have a 64-bit Windows LLVM.
+            # http://b/22414702
+            LLVM_32=
+            if [ "$SYSTEM" = "windows" -a "$TRY64" = "yes" ]; then
+                LLVM_32=yes
+            fi
+            unpack_prebuilt \
+                llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64" $LLVM_32
         done
 
         rm -rf $DSTDIR/toolchains/*l
@@ -721,11 +732,6 @@ for SYSTEM in $SYSTEMS; do
         unpack_prebuilt ndk-depends-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
         unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
         unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        if [ "$SYSTEM" != "windows" ]; then
-            unpack_prebuilt ndk-perl-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        else
-            echo "WARNING: no ndk-perl-$SYSTEM! http://b/22413538"
-        fi
         unpack_prebuilt ndk-python-$SYSTEM "$DSTDIR" "$DSTDIR64"
         unpack_prebuilt ndk-yasm-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
@@ -808,6 +814,7 @@ for SYSTEM in $SYSTEMS; do
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi
+
     # make all file universally readable, and all executable (including directory)
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
@@ -832,4 +839,4 @@ rm -rf $TMPDIR/reference
 rm -rf $TMPDIR/prev-ndk
 
 echo "Done, please see packages in $OUT_DIR:"
-ls -l $OUT_DIR
+ls -lh $OUT_DIR | tee $OUT_DIR/artifacts.txt
