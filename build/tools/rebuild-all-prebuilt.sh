@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2014 The Android Open Source Project
+# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,6 @@
 
 # Rebuild all prebuilts. This requires that you have a toolchain source tree
 #
-
-if [ -z "$ANDROID_BUILD_TOP" ]; then
-    >&2 echo 'ANDROID_BUILD_TOP not set. Cannot continue.'
-    >&2 echo 'Please set ANDROID_BUILD_TOP to point to the root of an Android' \
-             'tree.'
-    exit 1
-fi
 
 . `dirname $0`/prebuilt-common.sh
 PROGDIR=`dirname $0`
