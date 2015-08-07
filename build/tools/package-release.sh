@@ -724,8 +724,8 @@ for SYSTEM in $SYSTEMS; do
         rm -rf $DSTDIR64/toolchains/*l
 
         # Unpack renderscript tools; http://b/22377128.
-        echo "WARNING: no renderscript-$SYSTEM tools! http://b/22377128"
-        #unpack_prebuilt renderscript-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        #echo "WARNING: no renderscript-$SYSTEM tools! http://b/22377128"
+        unpack_prebuilt renderscript-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
         # Unpack prebuilt ndk-stack and other host tools
         unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
@@ -744,8 +744,8 @@ for SYSTEM in $SYSTEMS; do
     unpack_prebuilt scan-build-view "$DSTDIR" "$DSTDIR64"
 
     # Unpack renderscript headers/libs; http://b/22377128.
-    echo "WARNING: no renderscript headers/libs! http://b/22377128"
-    #unpack_prebuilt renderscript "$DSTDIR" "$DSTDIR64"
+    #echo "WARNING: no renderscript headers/libs! http://b/22377128"
+    unpack_prebuilt renderscript "$DSTDIR" "$DSTDIR64"
 
     # Unpack misc stuff
     if [ -f "$PREBUILT_DIR/misc.tar.bz2" ]; then
