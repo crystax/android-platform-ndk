@@ -243,13 +243,6 @@ else
 
     CFLAGS_FOR_BUILD="$CFLAGS_FOR_BUILD -I$PYTHONHOME/include/python${PYTHON_VERSION}"
     LDFLAGS_FOR_BUILD="$LDFLAGS_FOR_BUILD -L$PYTHONHOME/lib"
-
-    PERL5LIB=$NDK_DIR/prebuilt/$HOST_TAG/lib/perl5/$DEFAULT_PERL_VERSION
-    if [ ! -d $PERL5LIB ]; then
-        echo "ERROR: $PERL5LIB folder not found!" 1>&2
-        exit 1
-    fi
-    export PERL5LIB
 fi
 
 # Enable 64-bit off_t even for 32-bit binaries
