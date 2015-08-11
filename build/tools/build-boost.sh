@@ -79,6 +79,9 @@ if [ -z "$BOOST_VERSION" ]; then
     exit 1
 fi
 
+BOOST_MAJOR_VERSION=$(echo $BOOST_VERSION | cut -d . -f 1)
+BOOST_MINOR_VERSION=$(echo $BOOST_VERSION | cut -d . -f 2)
+
 BOOST_SRCDIR=$(echo $PARAMETERS | sed 1q)
 if [ -z "$BOOST_SRCDIR" ]; then
     echo "ERROR: Please provide the path to the Boost source tree. See --help"
@@ -347,11 +350,18 @@ EOF
     PATH=$TMPTARGETTCDIR:$SAVED_PATH
     export PATH
 
-    local BJAMABI
+    local BJAMARCH=""
+    local BJAMABI=""
     case $ARCH in
         arm)
             BJAMARCH=arm
             BJAMABI=aapcs
+            ;;
+        arm64)
+            if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 58 ]; then
+                BJAMARCH=arm
+                BJAMABI=aapcs
+            fi
             ;;
         x86|x86_64)
             BJAMARCH=x86
@@ -370,30 +380,27 @@ EOF
         BJAMADDRMODEL=32
     fi
 
-    local EXTRA_OPTIONS
-    case $ARCH in
-        arm|x86|x86_64|mips)
-            EXTRA_OPTIONS="$EXTRA_OPTIONS \
-                architecture=$BJAMARCH \
-                abi=$BJAMABI \
-                binary-format=elf \
-                address-model=$BJAMADDRMODEL \
-                "
-            ;;
-    esac
+    local EXTRA_OPTIONS="binary-format=elf address-model=$BJAMADDRMODEL"
+    if [ -n "$BJAMARCH" ]; then
+        EXTRA_OPTIONS="$EXTRA_OPTIONS architecture=$BJAMARCH"
+    fi
+    if [ -n "$BJAMABI" ]; then
+        EXTRA_OPTIONS="$EXTRA_OPTIONS abi=$BJAMABI"
+    fi
 
     local WITHOUT="\
         --without-python \
         --without-mpi \
         "
-    case $ARCH in
-        arm64|mips64)
-            WITHOUT="$WITHOUT \
-                --without-context \
-                --without-coroutine \
-                "
-            ;;
-    esac
+    if [ -z "$BJAMARCH" -o -z "$BJAMABI" ]; then
+        WITHOUT="$WITHOUT \
+            --without-context \
+            --without-coroutine \
+            "
+        if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 59 ]; then
+            WITHOUT="$WITHOUT --without-coroutine2"
+        fi
+    fi
 
     local PREFIX=$BUILDDIR/install
 
@@ -533,9 +540,14 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                     grep -v "^lib\(c\|dl\|crystax\|stdc++\|gnustl_shared\)\.so$" | sed 's,^lib\([^\.]*\)\.so$,\1,')
 
                 case $lib in
-                    boost_context|boost_coroutine)
-                        echo "# $lib doesn't support yet arm64 and mips64 targets"
-                        echo 'ifeq (,$(filter arm64% mips64,$(TARGET_ARCH_ABI)))'
+                    boost_context|boost_coroutine|boost_coroutine2)
+                        if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 58 ]; then
+                            btargets="mips64"
+                        else
+                            btargets="arm64% mips64"
+                        fi
+                        echo "# $lib doesn't support yet these targets"
+                        echo "ifeq (,\$(filter $btargets,\$(TARGET_ARCH_ABI)))"
                         has_if=yes
                         ;;
                     *)
