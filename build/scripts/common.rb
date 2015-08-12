@@ -33,6 +33,7 @@
 
 
 require 'pathname'
+require_relative 'options.rb'
 
 
 class Common
@@ -48,60 +49,41 @@ class Common
   require "#{Common::CREW_DIR}/library/formulary"
 
   def self.parse_build_options(pkgname)
-    os, cpu = get_host_platform
     # set default values for build options
-    options = { host_os:         os,
-                host_cpu:        cpu,
-                target_os:       os,
-                target_cpu:      cpu,
-                num_jobs:        '1',
-                no_clean:        false,
-                no_check:        false,
-                force:           false,
-                log_rename:      true,
-                verbose:         false,
-                target_platform: "#{os}-#{cpu}",
-                host_platform:   "#{os}-#{cpu}",
-                log_file:        "#{BUILD_BASE_DIR}/build-#{pkgname}-#{os}-#{cpu}.log"
-              }
+    options = Options.new
+
     # parse command line args
     ARGV.each do |opt|
       case opt
       when /^--target-os=(\w+)/
-       options[:target_os] = $1
+       options.target_os = $1
       when /^--target-cpu=(\w+)/
-        options[:target_cpu] = $1
+        options.target_cpu = $1
       when /^--num-jobs=(\d+)/
-        options[:num_jobs] = $1
+        options.num_jobs = $1
       when '--no-clean'
-        options[:no_clean] = true
+        options.no_clean = true
       when '--no-check'
-        options[:no_check] = true
+        options.no_check = true
       when '--force'
-        @@force = true
+        options.force=true
       when /^--log-file=(\S+)/
-        options[:log_file] = $1
-        # explicit log-file options implies log-rename
-        options[:log_rename] = false
+        options.log_file = $1
+        # explicit log-file options implies log-rename disabling
+        options.rename_log = false
       when '--verbose'
-        options[:verbose] = true
+        options.verbose = true
       when '--help'
-        show_build_help options
+        show_build_help options, pkgname
         exit 1
       else
         raise "unknown option: #{opt}"
       end
     end
 
-    # reset options that depend on other values
-    options[:target_platform] = "#{options[:target_os]}-#{options[:target_cpu]}"
-    options[:host_platform]   = "#{options[:host_os]}-#{options[:host_cpu]}"
-    options[:log_file]        = "#{BUILD_BASE_DIR}/build-#{pkgname}-#{options[:target_platform]}.log"
-
+    options.log_file = default_logfile_name(options, pkgname) unless options.log_file
     # enforce no-check for cross builds
-    if !options[:no_check]
-      options[:no_check] = options[:target_os] != options[:host_os]
-    end
+    options.no_check = options.target_os != options.host_os unless options.no_check?
 
     options
   end
@@ -116,8 +98,7 @@ class Common
 
   def self.make_paths(pkgname, ver, bldnum, options)
     pkgver = pkg_version(ver, bldnum)
-    osdir = (options[:target_os] == 'windows' and options[:target_cpu] == 'x86') ? 'windows' : options[:target_platform]
-    prebuilt = "prebuilt/#{osdir}"
+    prebuilt = "prebuilt/#{options.target_platform_dir}"
 
     { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
       build_base_dir: "#{BUILD_BASE_DIR}/#{pkgname}",
@@ -148,40 +129,30 @@ class Common
 
   private
 
-  def self.get_host_platform
-    h = RUBY_PLATFORM.split('-')
-    cpu = h[0]
-    case h[1]
-    when /linux/
-      os = 'linux'
-    when /darwin/
-      os = 'darwin'
-    else
-      raise "unsupported host OS: #{h[1]}"
-    end
-    [os, cpu]
-  end
-
-  def self.show_build_help(options)
+  def self.show_build_help(options, pkgname)
     puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                              \
          "where OPTIONS are:\n"                                                             \
          "  --target-os=STR   set target OS; one of linux, darwin, windows;\n"              \
-         "                    default #{options[:host_os]}\n"                               \
+         "                    default #{options.host_os}\n"                                 \
          "  --target-cpu=STR  set target CPU; one of x86_64, x86;\n"                        \
-         "                    default #{options[:host_cpu]}\n"                              \
+         "                    default #{options.host_cpu}\n"                                \
          "  --num-jobs=N      specifies the number of make's jobs to run simultaneously;\n" \
-         "                    default #{options[:num_jobs]}\n"                              \
+         "                    default #{options.num_jobs}\n"                                \
          "  --no-clean        do not remove temporary files\n"                              \
          "  --no-check        do not run make check or make test\n"                         \
          "  --force           do not check cache, force build\n"                            \
          "  --log-file=NAME   set log filename\n"                                           \
-         "                    default #{options[:log_file]}\n"                              \
+         "                    default #{default_logfile_name(options, pkgname)}\n"          \
          "  --verbose         output more info to console\n"                                \
          "  --help            show this message and exit\n"
   end
 
   def self.pkg_version(ver, bldnum)
     "#{ver}_#{bldnum}"
+  end
+
+  def self.default_logfile_name(options, pkgname)
+    "#{BUILD_BASE_DIR}/build-#{pkgname}-#{options.target_platform}.log"
   end
 
 end

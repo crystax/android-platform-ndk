@@ -77,25 +77,25 @@ end
 
 begin
   options = Common.parse_build_options Crystax::PKG_NAME
-  Logger.open_log_file options[:log_file], options[:log_rename], options[:verbose]
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
 
   ver, bldnum  = Common.formula_data Crystax::PKG_NAME
   paths = Common.make_paths Crystax::PKG_NAME, ver, bldnum, options
-  archive = Common.make_archive_name Crystax::PKG_NAME, ver, bldnum, options[:target_platform]
+  archive = Common.make_archive_name Crystax::PKG_NAME, ver, bldnum, options.target_platform
 
-  if !options[:force] and Cache.try?(archive)
+  if !options.force? and Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
   Logger.start_msg archive
   check_version paths[:src_dir], ver
-  if options[:target_os] == 'windows'
+  if options.target_os == 'windows'
     Logger.msg "= coping windows prebuilts"
     dstdir = "#{paths[:install_dir]}/bin"
     FileUtils.mkdir_p(dstdir)
     pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
-    if options[:target_cpu] == 'x86'
+    if options.target_cpu == 'x86'
       FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{dstdir}/7za.exe" }
     else
       FileUtils.cd("#{pdir}/64") do
@@ -105,15 +105,15 @@ begin
     end
   else
     Builder.copy_sources paths
-    makefile = makefile_name options[:target_os], options[:target_cpu]
+    makefile = makefile_name options.target_os, options.target_cpu
     FileUtils.cd(paths[:build_dir]) do
       FileUtils.cp makefile, 'makefile.machine'
-      args = ["CRYSTAX_CC=#{Builder.cc(options[:target_os])}",
-              "CRYSTAX_CXX=#{Builder.cxx(options[:target_os])}",
-              "CRYSTAX_FLAGS=\"#{Builder.cflags(options[:target_platform])}\""
+      args = ["CRYSTAX_CC=#{Builder.cc(options.target_os)}",
+              "CRYSTAX_CXX=#{Builder.cxx(options.target_os)}",
+              "CRYSTAX_FLAGS=\"#{Builder.cflags(options.target_platform)}\""
              ]
-      Commander::run "make -j #{options[:num_jobs]} #{args.join(' ')}"
-      Commander::run "make test #{args.join(' ')}" unless options[:no_check]
+      Commander::run "make -j #{options.num_jobs} #{args.join(' ')}"
+      Commander::run "make test #{args.join(' ')}" unless options.no_check?
       bindir = "#{paths[:install_dir]}/bin"
       FileUtils.mkdir_p bindir
       FileUtils.cp 'bin/7za', bindir
@@ -128,5 +128,5 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.rm_rf paths[:build_base_dir] unless options[:no_clean]
+  FileUtils.rm_rf paths[:build_base_dir] unless options.no_clean?
 end
