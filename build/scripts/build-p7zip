@@ -44,13 +44,6 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
-module Crystax
-
-  PKG_NAME = 'p7zip'
-
-end
-
-
 # ChangeLog file should begin with line: Version 9.20.1
 #
 def check_version(srcdir, version)
@@ -75,20 +68,23 @@ def makefile_name(os, cpu)
 end
 
 
-begin
-  options = Common.parse_build_options Crystax::PKG_NAME
-  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+PKG_NAME = 'p7zip'
 
-  ver, bldnum  = Common.formula_data Crystax::PKG_NAME
-  paths = Common.make_paths Crystax::PKG_NAME, ver, bldnum, options
-  archive = Common.make_archive_name Crystax::PKG_NAME, ver, bldnum, options.target_platform
+
+begin
+  options = Common.parse_build_options PKG_NAME
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_msg PKG_NAME, options.target_platform
+
+  # ND: we're ignoring dependencies here since p7zip have none of them
+  ver, bldnum, _, paths, archive = Common.make_build_data PKG_NAME, options
 
   if !options.force? and Cache.try?(archive)
     Logger.msg "done"
     exit 0
   end
 
-  Logger.start_msg archive
+  Logger.log_msg "= building #{archive}; args: #{ARGV}"
   check_version paths[:src_dir], ver
   if options.target_os == 'windows'
     Logger.msg "= coping windows prebuilts"

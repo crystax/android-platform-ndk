@@ -88,24 +88,11 @@ class Common
     options
   end
 
-  def self.formula_data(name)
-    formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
-    release = formula.releases.last
-    ver = release[:version]
-    bldnum = release[:build_number]
-    [ver, bldnum]
-  end
-
-  def self.make_paths(pkgname, ver, bldnum, options)
-    pkgver = pkg_version(ver, bldnum)
-    prebuilt = "prebuilt/#{options.target_platform_dir}"
-
-    { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
-      build_base_dir: "#{BUILD_BASE_DIR}/#{pkgname}",
-      build_dir:      "#{BUILD_BASE_DIR}/#{pkgname}/#{pkgname}",
-      prebuilt_dir:   "#{NDK_DIR}/#{prebuilt}",
-      install_dir:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
-    }
+  def self.make_build_data(pkgname, options)
+    ver, bldnum, deps = formula_data(pkgname)
+    paths = make_paths(pkgname, ver, bldnum, options)
+    archive = make_archive_name(pkgname, ver, bldnum, options.target_platform)
+    [ver, bldnum, deps, paths, archive]
   end
 
   def self.make_archive_base(pkgname, ver, bldnum)
@@ -145,6 +132,28 @@ class Common
          "                    default #{default_logfile_name(options, pkgname)}\n"          \
          "  --verbose         output more info to console\n"                                \
          "  --help            show this message and exit\n"
+  end
+
+  def self.formula_data(name)
+    formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    release = formula.releases.last
+    ver = release[:version]
+    bldnum = release[:build_number]
+    # todo: get dependencies
+    deps = Hash.new
+    [ver, bldnum, deps]
+  end
+
+  def self.make_paths(pkgname, ver, bldnum, options)
+    pkgver = pkg_version(ver, bldnum)
+    prebuilt = "prebuilt/#{options.target_platform_dir}"
+
+    { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
+      build_base_dir: "#{BUILD_BASE_DIR}/#{pkgname}",
+      build_dir:      "#{BUILD_BASE_DIR}/#{pkgname}/#{pkgname}",
+      prebuilt_dir:   "#{NDK_DIR}/#{prebuilt}",
+      install_dir:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
+    }
   end
 
   def self.pkg_version(ver, bldnum)
