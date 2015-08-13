@@ -47,8 +47,8 @@ class Logger
     @@verbose = verbose
   end
 
-  def self.start_msg(archive)
-    msg "building #{archive}; args: #{ARGV}"
+  def self.start_msg(pkgname, platform)
+    msg "Building #{pkgname} for #{platform}"
   end
 
   def self.msg(msg)
