@@ -898,6 +898,32 @@ def test_for_abi(abi, testdir)
 
     bjam_options << "cxxflags='-std=#{OPTIONS[:std]}'" unless OPTIONS[:std].nil?
 
+    bjam_options << "binary-format=elf"
+
+    case abi
+    when /^armeabi/, 'x86', 'mips'
+        bjam_options << "address-model=32"
+    when /^arm64/, 'x86_64', 'mips64'
+        bjam_options << "address-model=64"
+    else
+        raise "Can't detect address model for abi '#{abi}'"
+    end
+
+    case abi
+    when /^armeabi/, /^arm64/
+        bjam_options << "architecture=arm"
+        bjam_options << "abi=aapcs"
+    when 'x86', 'x86_64'
+        bjam_options << "architecture=x86"
+        bjam_options << "abi=sysv"
+    when 'mips'
+        bjam_options << "architecture=mips1"
+        bjam_options << "abi=o32"
+    when 'mips64'
+        bjam_options << "architecture=mips1"
+        bjam_options << "abi=o64"
+    end
+
     resultsdir = File.join(srcdir, 'results')
     if File.directory?(resultsdir)
         # Remove this directory, but keep *.zip
