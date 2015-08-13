@@ -13,6 +13,7 @@ include/complex.h
 include/crystax/bionic/
 include/crystax/dlmalloc/
 include/crystax/freebsd/
+include/crystax/libpwq/
 include/ctype.h
 include/db.h
 include/err.h
@@ -32,6 +33,7 @@ include/math.h
 include/monetary.h
 include/nl_types.h
 include/printf.h
+include/pthread_workqueue.h
 include/runetype.h
 include/search.h
 include/stdio.h
