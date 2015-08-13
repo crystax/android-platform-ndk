@@ -13,6 +13,7 @@ include/crystax/bionic/
 include/crystax/dlmalloc/
 include/crystax/freebsd/
 include/ctype.h
+include/db.h
 include/err.h
 include/iconv.h
 include/inttypes.h
@@ -31,6 +32,7 @@ include/monetary.h
 include/nl_types.h
 include/printf.h
 include/runetype.h
+include/search.h
 include/stdio.h
 include/stdlib.h
 include/string.h
