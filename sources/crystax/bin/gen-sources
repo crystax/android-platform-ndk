@@ -40,5 +40,6 @@ $CWD/gen-bionic-sources || exit 1
 $CWD/gen-compiler-rt-headers || exit 1
 
 $CWD/gen-libpwq-sources || exit 1
+$CWD/gen-libkqueue-sources || exit 1
 
 exit 0

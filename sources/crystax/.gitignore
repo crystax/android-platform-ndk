@@ -13,6 +13,7 @@ include/complex.h
 include/crystax/bionic/
 include/crystax/dlmalloc/
 include/crystax/freebsd/
+include/crystax/libkqueue/
 include/crystax/libpwq/
 include/ctype.h
 include/db.h
@@ -43,6 +44,7 @@ include/strings.h
 include/sys/_null.h
 include/sys/_stdint.h
 include/sys/endian.h
+include/sys/event.h
 include/sys/glibc-syscalls.h
 include/sys/iconv.h
 include/sys/limits.h
