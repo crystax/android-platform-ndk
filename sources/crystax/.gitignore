@@ -7,6 +7,7 @@ obj/
 # BEGIN OF AUTO-GENERATED SOURCES
 gen/
 include/_ctype.h
+include/blocks-runtime/
 include/bzlib.h
 include/complex.h
 include/crystax/bionic/

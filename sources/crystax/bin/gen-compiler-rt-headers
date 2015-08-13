@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
 # Copyright (c) 2011-2015 CrystaX .NET.
 # All rights reserved.
@@ -27,16 +27,18 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of CrystaX .NET.
 
-CWD=$(dirname $0)
+require 'fileutils'
 
-$CWD/gen-bzip2-headers || exit 1
-$CWD/gen-dlmalloc-headers || exit 1
+TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
+SRCDIR = File.join(TOPDIR, 'vendor', 'compiler-rt', 'lib', 'BlocksRuntime')
+DSTDIR = File.join(TOPDIR, 'include', 'blocks-runtime')
 
-$CWD/gen-bsd-sources || exit 1
+Dir.glob(File.join(SRCDIR, '*.h')).each do |src|
+    dst = File.join(DSTDIR, File.basename(src))
 
-$CWD/gen-bionic-symbols || exit 1
-$CWD/gen-bionic-sources || exit 1
+    next if File.exists?(dst) && File.mtime(dst) > File.mtime(__FILE__) && File.mtime(dst) > File.mtime(src)
 
-$CWD/gen-compiler-rt-headers || exit 1
-
-exit 0
+    FileUtils.mkdir_p File.dirname(dst)
+    FileUtils.rm_f dst
+    FileUtils.cp src, dst
+end
