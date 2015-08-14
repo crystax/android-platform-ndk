@@ -16,7 +16,7 @@ fi
 if [ -z "$PLATFORMS" ]; then
     APILEVELS=$(cd $NDK/platforms && ls -d android-* | sed 's,^android-,,' | sed 's,L,,' | sort -n)
     test -d $NDK/platforms/android-L && APILEVELS="$APILEVELS L"
-    PLATFORMS=$(for a in $APILEVELS; do echo "android-$a"; done)
+    PLATFORMS=$(for a in $APILEVELS; do test $a -lt 9 && continue; echo "android-$a"; done)
 else
     PLATFORMS=$(echo $PLATFORMS | sed 's/,/ /g')
 fi
