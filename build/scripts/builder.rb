@@ -113,8 +113,8 @@ class Builder
     end
   end
 
-  def self.configure_host
-    case Common.target_platform
+  def self.configure_host(platform)
+    case platform
     when 'darwin-x86_64'
       'x86_64-darwin10'
     when 'darwin-x86'
@@ -128,7 +128,7 @@ class Builder
     when 'windows-x86'
       'mingw32'
     else
-      raise UnknownTargetPlatform, Common.target_platform, caller
+      raise UnknownTargetPlatform, target_platform, caller
     end
   end
 
@@ -142,31 +142,161 @@ class Builder
     "#{unpackdir}/#{Common.prebuilt_dir}"
   end
 
-  def self.copy_sources(paths)
-    basedir = paths[:build_base_dir]
-    FileUtils.rm_rf basedir
-    FileUtils.mkdir basedir
-    FileUtils.cp_r paths[:src_dir], basedir
+  def self.copy_sources(srcdir, dstdir)
+    pkgname = File.basename(srcdir)
+    FileUtils.rm_rf File.join(dstdir, pkgname)
+    FileUtils.mkdir dstdir unless Dir.exists?(dstdir)
+    FileUtils.cp_r srcdir, dstdir
   end
 
-  def self.clean_src(srcdir)
-      FileUtils.cd(srcdir) { Commander.run "git clean -ffdx" }
-  end
-
-  def self.clean
-    unless Common.no_clean?
-      Logger.log_msg "= cleaning"
-      Commander.run "rm -rf #{Common::BUILD_BASE}"
-      @@dependencies.each { |name| clean_dependency(name) }
-      clean_src Common::SRC_DIR
+  def self.build_zlib(options, paths)
+    # todo: check for cached package
+    Logger.log_msg "= building zlib for #{options.target_platform}"
+    prepare_sources 'zlib', paths[:build_base_dir]
+    build_dir = File.join(paths[:build_base_dir], 'zlib.build')
+    install_dir = File.join(paths[:build_base_dir], 'zlib')
+    FileUtils.cd(build_dir) do
+      if options.target_os == 'windows'
+        fname = 'win32/Makefile.gcc'
+        text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
+        File.open(fname, "w") {|f| f.puts text }
+        # chop 'gcc' from the end of the string
+        env = { 'PREFIX' => Builder.cc(options.target_os).chop.chop.chop }
+        loc = options.target_cpu == 'x86' ? 'LOC=-m32' : 'LOC=-m64'
+        Commander::run env, "make -j #{options.num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
+        FileUtils.mkdir_p ["#{install_dir}/lib", "#{install_dir}/include"]
+        FileUtils.cp 'libz.a', "#{install_dir}/lib/"
+        FileUtils.cp ['zlib.h', 'zconf.h'], "#{install_dir}/include/"
+      else
+        env = { 'CC' => Builder.cc(options.target_os),
+                'CFLAGS' => Builder.cflags(options.target_platform)
+              }
+        args = ["--prefix=#{install_dir}",
+                "--static"
+               ]
+        Commander::run env, "./configure #{args.join(' ')}"
+        Commander::run env, "make -j #{options.num_jobs}"
+        Commander::run env, "make check" unless options.no_check?
+        Commander::run env, "make install"
+        FileUtils.rm_rf ["#{install_dir}/share", "#{install_dir}/lib/pkgconfig"]
+      end
     end
+    FileUtils.rm_rf build_dir unless options.no_clean?
+
+    # todo: cache package
+    install_dir
+  end
+
+  def self.build_openssl(options, paths)
+    # todo:
+    # if Cache.try?(archive, :nounpack)
+    #   Logger.msg "done"
+    #   exit 0
+    # end
+    Logger.log_msg "= building openssl for #{options.target_platform}"
+    Builder.copy_sources File.join(Common::VENDOR_DIR, 'openssl'), paths[:build_base_dir]
+    FileUtils.cd(paths[:build_base_dir]) do
+      FileUtils.rm_rf 'openssl.build'
+      FileUtils.mv 'openssl', 'openssl.build'
+    end
+    build_dir   = File.join(paths[:build_base_dir], 'openssl.build')
+    install_dir = File.join(paths[:build_base_dir], 'openssl')
+    FileUtils.cd(build_dir) do
+      zlib_dir = paths[:zlib_dir]
+      env = { 'CC' => Builder.cc(options.target_os) }
+      args = ["--prefix=#{install_dir}",
+              "no-idea",
+              "no-mdc2",
+              "no-rc5",
+              "no-shared",
+              "zlib",
+              openssl_platform(options.target_platform),
+              Builder.cflags(options.target_platform),
+              "-I#{zlib_dir}/include",
+              "-L#{zlib_dir}/lib",
+              "-lz"
+             ]
+      Commander::run env, "./Configure #{args.join(' ')}"
+      Commander::run "make depend"
+      Commander::run "make" # -j N breaks build on OS X
+      Commander::run "make test" unless options.no_check?
+      Commander::run "make install"
+    end
+
+    # todo:
+    #Cache.add(archive)
+
+    install_dir
+  end
+
+  def self.build_libssh2(options, paths)
+    # todo:
+    # if Cache.try?(archive)
+    #   Logger.msg "done"
+    #   exit 0
+    # end
+    Logger.log_msg "= building libssh2 for #{options.target_platform}"
+    build_base_dir = paths[:build_base_dir]
+    prepare_sources 'libssh2', build_base_dir
+    #
+    build_dir = File.join(build_base_dir, 'libssh2.build')
+    install_dir = File.join(build_base_dir, 'libssh2')
+    #
+    FileUtils.cd(build_dir) do
+      Commander.run "./buildconf"
+      zlib_dir    = paths[:zlib_dir]
+      openssl_dir = paths[:openssl_dir]
+      env = { 'CC'      => Builder.cc(options.target_os),
+              'CFLAGS'  => "#{Builder.cflags(options.target_platform)} -I#{openssl_dir}/include -I#{zlib_dir}/include",
+              'LDFLAGS' => "-L#{openssl_dir}/lib -L#{zlib_dir}/lib -lz",
+              'DESTDIR' => install_dir,
+              'PATH'    => '/bin:/usr/bin:/sbin:/usr/sbin'
+            }
+      case options.target_os
+      when 'windows'
+        env['LIBS'] = "-lgdi32"
+      when 'linux'
+        env['LIBS'] = "-ldl"
+      end
+      args = ["--prefix=/",
+              "--host=#{Builder.configure_host(options.target_platform)}",
+              "--disable-shared",
+              "--disable-examples-build",
+              "--with-libssl-prefix=#{openssl_dir}",
+              "--with-libz=#{zlib_dir}"
+             ]
+      Commander::run env, "./configure #{args.join(' ')}"
+      Commander::run env, "make -j #{options.num_jobs}"
+      Commander::run env, "make check" unless options.no_check?
+      Commander::run env, "make install"
+    end
+    # todo:
+    # Cache.add(archive)
+
+    install_dir
   end
 
   private
 
-  @@dependencies = []
+  def self.prepare_sources(pkgname, build_base_dir)
+    Builder.copy_sources File.join(Common::VENDOR_DIR, pkgname), build_base_dir
+    build_dir = "#{pkgname}.build"
+    FileUtils.cd(build_base_dir) do
+      FileUtils.rm_rf build_dir
+      FileUtils.mv pkgname, build_dir
+    end
+  end
 
-  def self.clean_dependency(name)
-    Commander.run "rm -rf #{Common::NDK_BUILD_DIR}/#{name}"
+  def self.openssl_platform(platform)
+    case platform
+    when 'darwin-x86_64'  then 'darwin64-x86_64-cc'
+    when 'darwin-x86'     then 'darwin-i386-cc'
+    when 'linux-x86_64'   then 'linux-x86_64'
+    when 'linux-x86'      then 'linux-generic32'
+    when 'windows-x86_64' then 'mingw64'
+    when 'windows-x86'    then 'mingw'
+    else
+      raise UnknownTargetPlatform, platform, caller
+    end
   end
 end

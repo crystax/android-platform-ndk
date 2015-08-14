@@ -89,10 +89,10 @@ class Common
   end
 
   def self.make_build_data(pkgname, options)
-    ver, bldnum, deps = formula_data(pkgname)
+    ver, bldnum = formula_data(pkgname)
     paths = make_paths(pkgname, ver, bldnum, options)
     archive = make_archive_name(pkgname, ver, bldnum, options.target_platform)
-    [ver, bldnum, deps, paths, archive]
+    [ver, bldnum, paths, archive]
   end
 
   def self.make_archive_base(pkgname, ver, bldnum)
@@ -139,9 +139,7 @@ class Common
     release = formula.releases.last
     ver = release[:version]
     bldnum = release[:build_number]
-    # todo: get dependencies
-    deps = Hash.new
-    [ver, bldnum, deps]
+    [ver, bldnum]
   end
 
   def self.make_paths(pkgname, ver, bldnum, options)

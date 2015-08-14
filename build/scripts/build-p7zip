@@ -76,8 +76,7 @@ begin
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_msg PKG_NAME, options.target_platform
 
-  # ND: we're ignoring dependencies here since p7zip have none of them
-  ver, bldnum, _, paths, archive = Common.make_build_data PKG_NAME, options
+  ver, bldnum, paths, archive = Common.make_build_data PKG_NAME, options
 
   if !options.force? and Cache.try?(archive)
     Logger.msg "done"
@@ -100,7 +99,7 @@ begin
       end
     end
   else
-    Builder.copy_sources paths
+    Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
     makefile = makefile_name options.target_os, options.target_cpu
     FileUtils.cd(paths[:build_dir]) do
       FileUtils.cp makefile, 'makefile.machine'
@@ -117,6 +116,9 @@ begin
   end
 
   Cache.add archive, paths[:build_base_dir]
+  # todo:
+  # Cache.unpack(archive)
+
 
 rescue SystemExit => e
   exit e.status
