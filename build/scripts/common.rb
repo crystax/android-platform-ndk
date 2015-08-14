@@ -103,16 +103,16 @@ class Common
     "#{make_archive_base(pkgname, ver, bldnum)}-#{platform}.7z"
   end
 
-  # def self.ssl_cert_file
-  #   case host_os
-  #   when 'darwin'
-  #     '/usr/local/etc/openssl/osx_cert.pem'
-  #   when 'linux'
-  #     '/etc/ssl/certs/ca-certificates.crt'
-  #   else
-  #     raise "unknown host OS: #{host_os}"
-  #   end
-  # end
+  def self.host_ssl_cert_file(os)
+    case os
+    when 'darwin'
+      '/usr/local/etc/openssl/osx_cert.pem'
+    when 'linux'
+      '/etc/ssl/certs/ca-certificates.crt'
+    else
+      raise "unknown host OS: #{host_os}"
+    end
+  end
 
   private
 

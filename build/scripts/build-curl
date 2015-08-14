@@ -79,25 +79,25 @@ begin
   prefix = Pathname.new(paths[:install_dir]).realpath
   FileUtils.cd(paths[:build_dir]) do
     Commander.run "./buildconf"
-    env = { 'CC' => Builder.cc(options.target_os),
-            'CFLAGS' => "#{Builder.cflags(options.target_platform)} -DCURL_STATICLIB",
+    env = { 'CC' => Builder.cc(options),
+            'CFLAGS' => "#{Builder.cflags(options)} -DCURL_STATICLIB",
             'LANG' => 'C'
           }
     env['LDFLAGS'] = ' -ldl' if options.target_os == 'linux'
     # "--enable-debug",
     # "--with-sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot"
     args = ["--prefix=#{prefix}",
-            "--host=#{Builder.configure_host(options.target_platform)}",
+            "--host=#{Builder.configure_host(options)}",
             "--disable-shared",
             "--disable-ldap",
             "--with-ssl=#{paths[:openssl_dir]}",
             "--with-zlib=#{paths[:zlib_dir]}",
             "--with-libssh2=#{paths[:libssh2_dir]}"
            ]
-    Commander::run env, "./configure #{args.join(' ')}"
-    Commander::run env, "make -j #{options.num_jobs}"
-    Commander::run env, "make test" unless options.no_check?
-    Commander::run env, "make install"
+    Commander.run env, "./configure #{args.join(' ')}"
+    Commander.run env, "make -j #{options.num_jobs}"
+    Commander.run env, "make test" unless options.no_check?
+    Commander.run env, "make install"
   end
 
   Cache.add archive, paths[:build_base_dir]

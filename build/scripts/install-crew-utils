@@ -34,78 +34,73 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-module Crystax
-
-  PKG_NAME = 'dummy'
-
-end
-
-require_relative 'versions.rb'
 require_relative 'common.rb'
 require_relative 'cache.rb'
 require_relative 'logger.rb'
 
 
-USAGE_STR = <<-EOS
-Usage: #{$PROGRAM_NAME} [OPTIONS]
-where OPTIONS are:
-  --system=STR     target system name, as used in NDK build scripts
-  --out32-dir=STR  destination dir for 32-bit release, as defined in
-                   package-release.sh build script
-  --out64-dir=STR  destination dir for 64-bit release, as defined in
-                   package-release.sh build script
-  --log-file=STR   log filename; default value is taken from environment
-                   variable 'TMPLOG'
-  --help           output this message and exit
-EOS
+# USAGE_STR = <<-EOS
+# Usage: #{$PROGRAM_NAME} [OPTIONS]
+# where OPTIONS are:
+#   --system=STR     target system name, as used in NDK build scripts
+#   --out32-dir=STR  destination dir for 32-bit release, as defined in
+#                    package-release.sh build script
+#   --out64-dir=STR  destination dir for 64-bit release, as defined in
+#                    package-release.sh build script
+#   --log-file=STR   log filename; default value is taken from environment
+#                    variable 'TMPLOG'
+#   --help           output this message and exit
+# EOS
 
 
 begin
-  os = nil
-  out32_dir = nil
-  out64_dir = nil
-  systems = ['linux', 'darwin', 'windows']
-  logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
+  # os = nil
+  # out32_dir = nil
+  # out64_dir = nil
+  # systems = ['linux', 'darwin', 'windows']
+  # logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
 
-  # parse command line options
-  ARGV.each do |arg|
-    case arg
-    when /^--system=(\S+)/
-      system = $1
-      a = system.split('-')
-      os = a[0]
-    when /^--out32-dir=(\S+)/
-      out32_dir = $1
-    when /^--out64-dir=(\S+)/
-      out64_dir = $1
-    when /^--log-file=(\S+)/
-      logfile = $1
-    when '--help'
-      puts USAGE_STR
-      exit 1
-    else
-      raise "unknown option #{arg}"
-    end
-  end
+  # # parse command line options
+  # ARGV.each do |arg|
+  #   case arg
+  #   when /^--system=(\S+)/
+  #     system = $1
+  #     a = system.split('-')
+  #     os = a[0]
+  #   when /^--out32-dir=(\S+)/
+  #     out32_dir = $1
+  #   when /^--out64-dir=(\S+)/
+  #     out64_dir = $1
+  #   when /^--log-file=(\S+)/
+  #     logfile = $1
+  #   when '--help'
+  #     puts USAGE_STR
+  #     exit 1
+  #   else
+  #     raise "unknown option #{arg}"
+  #   end
+  # end
 
-  Logger.rename = false
-  Logger.open_log_file logfile
-  Logger.msg "Installing vendor utilities"
+  # Logger.rename = false
+  # Logger.open_log_file logfile
+  # Logger.msg "Installing vendor utilities"
 
-  # test that all vars are set
-  raise "bad system value #{system}" unless systems.include?(os)
-  raise "use --system=STR to set target OS" unless os
-  raise "use --out32-dir=STR to set output dir for 32 bit release" unless out32_dir
-  raise "use --out64-dir=STR to set output dir for 64 bit release" unless out64_dir
+  # # test that all vars are set
+  # raise "bad system value #{system}" unless systems.include?(os)
+  # raise "use --system=STR to set target OS" unless os
+  # raise "use --out32-dir=STR to set output dir for 32 bit release" unless out32_dir
+  # raise "use --out64-dir=STR to set output dir for 64 bit release" unless out64_dir
 
-  # unpack utils
-  Crystax::INSTALL_UTILS.each do |name|
-    base = "#{Common.make_archive_base(name)}-#{os}"
-    arch32 = "#{base}-x86.7z"
-    arch64 = "#{base}-x86_64.7z"
-    Cache.unpack(arch32, out32_dir)
-    Cache.unpack(arch64, out64_dir)
-  end
+  # # unpack utils
+  # Crystax::INSTALL_UTILS.each do |name|
+  #   base = "#{Common.make_archive_base(name)}-#{os}"
+  #   arch32 = "#{base}-x86.7z"
+  #   arch64 = "#{base}-x86_64.7z"
+  #   Cache.unpack(arch32, out32_dir)
+  #   Cache.unpack(arch64, out64_dir)
+  # end
+
+
 rescue SystemExit => e
   exit e.status
 rescue Exception => e

@@ -44,8 +44,8 @@ class Builder
 
   MACOSX_VERSION_MIN = '10.6'
 
-  def self.cc(os)
-    case os
+  def self.cc(options)
+    case options.target_os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang")
@@ -54,12 +54,12 @@ class Builder
     when 'windows'
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-gcc")
     else
-      raise UnknownTargetOS, os, caller
+      raise UnknownTargetOS, options.target_os, caller
     end
   end
 
-  def self.cxx(os)
-    case os
+  def self.cxx(options)
+    case options.target_os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang++")
@@ -68,12 +68,12 @@ class Builder
     when 'windows'
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin/x86_64-w64-mingw32-g++")
     else
-      raise UnknownTargetOS, Common.target_os, caller
+      raise UnknownTargetOS, options.target_os, caller
     end
   end
 
-  def self.cflags(platform)
-    case platform
+  def self.cflags(options)
+    case options.target_platform
     when 'darwin-x86_64'
       "-isysroot#{Common::NDK_ROOT_DIR}/platform/prebuilts/sysroot/darwin-x86/MacOSX10.6.sdk " \
       "-mmacosx-version-min=#{MACOSX_VERSION_MIN} " \
@@ -94,27 +94,25 @@ class Builder
     when 'windows-x86'
       '-m32'
     else
-      raise UnknownTargetPlatform, platform, caller
+      raise UnknownTargetPlatform, options.target_platform, caller
     end
   end
 
-  def self.toolchain_path_and_path
-    case Common.target_platform
-    when 'windows-x86_64'
+  def self.toolchain_path_and_path(options)
+    case options.target_os
+    when 'windows'
       "#{Common::NDK_ROOT_DIR}/" \
       "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin" \
       ":#{ENV['PATH']}"
-    when 'windows-x86'
-      "#{Common::NDK_ROOT_DIR}/" \
-      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin" \
-      ":#{ENV['PATH']}"
+    when 'linux', 'darwin'
+      '/bin:/usr/bin:/sbin:/usr/sbin'
     else
-      raise UnknownTargetPlatform, Common.target_platform, caller
+      raise UnknownTargetPlatform, options.target_os, caller
     end
   end
 
-  def self.configure_host(platform)
-    case platform
+  def self.configure_host(options)
+    case options.target_platform
     when 'darwin-x86_64'
       'x86_64-darwin10'
     when 'darwin-x86'
@@ -128,7 +126,7 @@ class Builder
     when 'windows-x86'
       'mingw32'
     else
-      raise UnknownTargetPlatform, target_platform, caller
+      raise UnknownTargetPlatform, options.target_platform, caller
     end
   end
 
@@ -161,15 +159,15 @@ class Builder
         text = File.read(fname).gsub(/^PREFIX/, '#PREFIX')
         File.open(fname, "w") {|f| f.puts text }
         # chop 'gcc' from the end of the string
-        env = { 'PREFIX' => Builder.cc(options.target_os).chop.chop.chop }
+        env = { 'PREFIX' => cc(options).chop.chop.chop }
         loc = options.target_cpu == 'x86' ? 'LOC=-m32' : 'LOC=-m64'
         Commander::run env, "make -j #{options.num_jobs} #{loc} -f win32/Makefile.gcc libz.a"
         FileUtils.mkdir_p ["#{install_dir}/lib", "#{install_dir}/include"]
         FileUtils.cp 'libz.a', "#{install_dir}/lib/"
         FileUtils.cp ['zlib.h', 'zconf.h'], "#{install_dir}/include/"
       else
-        env = { 'CC' => Builder.cc(options.target_os),
-                'CFLAGS' => Builder.cflags(options.target_platform)
+        env = { 'CC' => cc(options),
+                'CFLAGS' => cflags(options)
               }
         args = ["--prefix=#{install_dir}",
                 "--static"
@@ -181,7 +179,6 @@ class Builder
         FileUtils.rm_rf ["#{install_dir}/share", "#{install_dir}/lib/pkgconfig"]
       end
     end
-    FileUtils.rm_rf build_dir unless options.no_clean?
 
     # todo: cache package
     install_dir
@@ -194,16 +191,12 @@ class Builder
     #   exit 0
     # end
     Logger.log_msg "= building openssl for #{options.target_platform}"
-    Builder.copy_sources File.join(Common::VENDOR_DIR, 'openssl'), paths[:build_base_dir]
-    FileUtils.cd(paths[:build_base_dir]) do
-      FileUtils.rm_rf 'openssl.build'
-      FileUtils.mv 'openssl', 'openssl.build'
-    end
+    prepare_sources 'openssl', paths[:build_base_dir]
     build_dir   = File.join(paths[:build_base_dir], 'openssl.build')
     install_dir = File.join(paths[:build_base_dir], 'openssl')
     FileUtils.cd(build_dir) do
       zlib_dir = paths[:zlib_dir]
-      env = { 'CC' => Builder.cc(options.target_os) }
+      env = { 'CC' => cc(options) }
       args = ["--prefix=#{install_dir}",
               "no-idea",
               "no-mdc2",
@@ -211,7 +204,7 @@ class Builder
               "no-shared",
               "zlib",
               openssl_platform(options.target_platform),
-              Builder.cflags(options.target_platform),
+              cflags(options),
               "-I#{zlib_dir}/include",
               "-L#{zlib_dir}/lib",
               "-lz"
@@ -246,8 +239,8 @@ class Builder
       Commander.run "./buildconf"
       zlib_dir    = paths[:zlib_dir]
       openssl_dir = paths[:openssl_dir]
-      env = { 'CC'      => Builder.cc(options.target_os),
-              'CFLAGS'  => "#{Builder.cflags(options.target_platform)} -I#{openssl_dir}/include -I#{zlib_dir}/include",
+      env = { 'CC'      => cc(options),
+              'CFLAGS'  => "#{cflags(options)} -I#{openssl_dir}/include -I#{zlib_dir}/include",
               'LDFLAGS' => "-L#{openssl_dir}/lib -L#{zlib_dir}/lib -lz",
               'DESTDIR' => install_dir,
               'PATH'    => '/bin:/usr/bin:/sbin:/usr/sbin'
@@ -259,7 +252,7 @@ class Builder
         env['LIBS'] = "-ldl"
       end
       args = ["--prefix=/",
-              "--host=#{Builder.configure_host(options.target_platform)}",
+              "--host=#{configure_host(options)}",
               "--disable-shared",
               "--disable-examples-build",
               "--with-libssl-prefix=#{openssl_dir}",
@@ -276,10 +269,47 @@ class Builder
     install_dir
   end
 
+  def self.build_libgit2(options, paths)
+    # todo:
+    # if Cache.try?(archive)
+    #   Logger.msg "done"
+    #   exit 0
+    # end
+    Logger.log_msg "= building libgit2 for #{options.target_platform}"
+    build_base_dir = paths[:build_base_dir]
+    prepare_sources 'libgit2', build_base_dir
+    #
+    build_dir = File.join(build_base_dir, 'libgit2.build')
+    install_dir = File.join(build_base_dir, 'libgit2')
+    #
+    FileUtils.cd(build_dir) do
+      zlib_dir    = paths[:zlib_dir]
+      openssl_dir = paths[:openssl_dir]
+      libssh2_dir = paths[:libssh2_dir]
+      env = { 'CC' => cc(options),
+              'EXTRA_CFLAGS' => "#{cflags(options)}",
+              'EXTRA_DEFINES' => "-DGIT_SSL -DOPENSSL_SHA1 -DGIT_SSH",
+              'EXTRA_INCLUDES' => "-I#{zlib_dir}/include -I#{openssl_dir}/include -I#{libssh2_dir}/include",
+              'PATH' => '/bin:/usr/bin:/sbin:/usr/sbin'
+            }
+      mingw_flag = (options.target_os) == 'windows' ? "MINGW=1" : ''
+      Commander.run env, "make -f Makefile.crystax #{mingw_flag}"
+      FileUtils.mkdir_p ["#{install_dir}/lib", "#{install_dir}/include"]
+      FileUtils.cp "./libgit2.a", "#{install_dir}/lib/"
+      FileUtils.cp "./include/git2.h", "#{install_dir}/include/"
+      FileUtils.cp_r "./include/git2", "#{install_dir}/include/"
+    end
+
+    # todo:
+    #Cache.add(archive)
+
+    install_dir
+  end
+
   private
 
   def self.prepare_sources(pkgname, build_base_dir)
-    Builder.copy_sources File.join(Common::VENDOR_DIR, pkgname), build_base_dir
+    copy_sources File.join(Common::VENDOR_DIR, pkgname), build_base_dir
     build_dir = "#{pkgname}.build"
     FileUtils.cd(build_base_dir) do
       FileUtils.rm_rf build_dir

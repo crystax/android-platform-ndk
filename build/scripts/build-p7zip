@@ -103,9 +103,9 @@ begin
     makefile = makefile_name options.target_os, options.target_cpu
     FileUtils.cd(paths[:build_dir]) do
       FileUtils.cp makefile, 'makefile.machine'
-      args = ["CRYSTAX_CC=#{Builder.cc(options.target_os)}",
-              "CRYSTAX_CXX=#{Builder.cxx(options.target_os)}",
-              "CRYSTAX_FLAGS=\"#{Builder.cflags(options.target_platform)}\""
+      args = ["CRYSTAX_CC=#{Builder.cc(options)}",
+              "CRYSTAX_CXX=#{Builder.cxx(options)}",
+              "CRYSTAX_FLAGS=\"#{Builder.cflags(options)}\""
              ]
       Commander::run "make -j #{options.num_jobs} #{args.join(' ')}"
       Commander::run "make test #{args.join(' ')}" unless options.no_check?
