@@ -45,8 +45,9 @@ class Common
   CREW_DIR       = "#{NDK_DIR}/tools/crew"
   BUILD_BASE_DIR = "/tmp/ndk-#{ENV['USER']}/crew"
 
-  require "#{Common::CREW_DIR}/library/formula"
-  require "#{Common::CREW_DIR}/library/formulary"
+  require "#{Common::CREW_DIR}/library/formula.rb"
+  require "#{Common::CREW_DIR}/library/formulary.rb"
+  require "#{Common::CREW_DIR}/library/utility.rb"
 
   def self.parse_build_options(pkgname)
     # set default values for build options
@@ -89,14 +90,14 @@ class Common
   end
 
   def self.make_build_data(pkgname, options)
-    ver, bldnum = formula_data(pkgname)
+    ver, bldnum, formula = formula_data(pkgname)
     paths = make_paths(pkgname, ver, bldnum, options)
     archive = make_archive_name(pkgname, ver, bldnum, options.target_platform)
-    [ver, bldnum, paths, archive]
+    [ver, bldnum, paths, archive, formula]
   end
 
   def self.make_archive_base(pkgname, ver, bldnum)
-    "crew-#{pkgname}-#{pkg_version(ver, bldnum)}"
+    "crew-#{pkgname}-#{Formula.package_version(ver, bldnum)}"
   end
 
   def self.make_archive_name(pkgname, ver, bldnum, platform)
@@ -139,11 +140,11 @@ class Common
     release = formula.releases.last
     ver = release[:version]
     bldnum = release[:build_number]
-    [ver, bldnum]
+    [ver, bldnum, formula]
   end
 
   def self.make_paths(pkgname, ver, bldnum, options)
-    pkgver = pkg_version(ver, bldnum)
+    pkgver = Formula.package_version(ver, bldnum)
     prebuilt = "prebuilt/#{options.target_platform_dir}"
 
     { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
@@ -152,10 +153,6 @@ class Common
       prebuilt_dir:   "#{NDK_DIR}/#{prebuilt}",
       install_dir:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
     }
-  end
-
-  def self.pkg_version(ver, bldnum)
-    "#{ver}_#{bldnum}"
   end
 
   def self.default_logfile_name(options, pkgname)

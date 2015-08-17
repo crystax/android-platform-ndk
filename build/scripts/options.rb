@@ -85,6 +85,10 @@ class Options
     (target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform
   end
 
+  def same_platform?
+    host_platform == target_platform
+  end
+
   private
 
   def get_host_platform

@@ -44,21 +44,16 @@ module Cache
   ARCH_DIR = 'prebuilt'
 
   def self.try?(archive)
-    if !exists?(archive)
-      false
-    else
-      Logger.msg "found cached file: #{archive}"
-      true
-    end
+    exists?(archive) ? true : false
   end
 
   def self.exists?(archive)
     File.exists? "#{PATH}/#{archive}"
   end
 
-  # def self.unpack(archive, dstdir = Common::DST_DIR)
-  #   Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
-  # end
+  def self.unpack(archive, dstdir)
+    Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
+  end
 
   def self.add(archive, buildbase)
     FileUtils.cd(buildbase) { Commander::run "7z a #{PATH}/#{archive} #{ARCH_DIR}" }

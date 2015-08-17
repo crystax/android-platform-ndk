@@ -76,49 +76,48 @@ begin
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_msg PKG_NAME, options.target_platform
 
-  ver, bldnum, paths, archive = Common.make_build_data PKG_NAME, options
+  ver, bldnum, paths, archive, formula = Common.make_build_data PKG_NAME, options
 
-  if !options.force? and Cache.try?(archive)
-    Logger.msg "done"
-    exit 0
-  end
-
-  Logger.log_msg "= building #{archive}; args: #{ARGV}"
-  check_version paths[:src_dir], ver
-  if options.target_os == 'windows'
-    Logger.msg "= coping windows prebuilts"
-    dstdir = "#{paths[:install_dir]}/bin"
-    FileUtils.mkdir_p(dstdir)
-    pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
-    if options.target_cpu == 'x86'
-      FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{dstdir}/7za.exe" }
+  if Cache.try?(archive) and !options.force?
+    Logger.log_msg "= using cached file: #{archive}"
+  else
+    Logger.log_msg "= building #{archive}; args: #{ARGV}"
+    check_version paths[:src_dir], ver
+    if options.target_os == 'windows'
+      Logger.msg "= coping windows prebuilts"
+      dstdir = "#{paths[:install_dir]}/bin"
+      FileUtils.mkdir_p(dstdir)
+      pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
+      if options.target_cpu == 'x86'
+        FileUtils.cd("#{pdir}/32") { FileUtils.cp '7za.exe', "#{dstdir}/7za.exe" }
+      else
+        FileUtils.cd("#{pdir}/64") do
+          FileUtils.cp '7z.exe', "#{dstdir}/7za.exe"
+          FileUtils.cp '7z.dll', "#{dstdir}/7z.dll"
+        end
+      end
     else
-      FileUtils.cd("#{pdir}/64") do
-        FileUtils.cp '7z.exe', "#{dstdir}/7za.exe"
-        FileUtils.cp '7z.dll', "#{dstdir}/7z.dll"
+      Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
+      makefile = makefile_name options.target_os, options.target_cpu
+      FileUtils.cd(paths[:build_dir]) do
+        FileUtils.cp makefile, 'makefile.machine'
+        args = ["CRYSTAX_CC=#{Builder.cc(options)}",
+                "CRYSTAX_CXX=#{Builder.cxx(options)}",
+                "CRYSTAX_FLAGS=\"#{Builder.cflags(options)}\""
+               ]
+        Commander::run "make -j #{options.num_jobs} #{args.join(' ')}"
+        Commander::run "make test #{args.join(' ')}" unless options.no_check?
+        bindir = "#{paths[:install_dir]}/bin"
+        FileUtils.mkdir_p bindir
+        FileUtils.cp 'bin/7za', bindir
       end
     end
-  else
-    Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
-    makefile = makefile_name options.target_os, options.target_cpu
-    FileUtils.cd(paths[:build_dir]) do
-      FileUtils.cp makefile, 'makefile.machine'
-      args = ["CRYSTAX_CC=#{Builder.cc(options)}",
-              "CRYSTAX_CXX=#{Builder.cxx(options)}",
-              "CRYSTAX_FLAGS=\"#{Builder.cflags(options)}\""
-             ]
-      Commander::run "make -j #{options.num_jobs} #{args.join(' ')}"
-      Commander::run "make test #{args.join(' ')}" unless options.no_check?
-      bindir = "#{paths[:install_dir]}/bin"
-      FileUtils.mkdir_p bindir
-      FileUtils.cp 'bin/7za', bindir
-    end
+
+    Cache.add archive, paths[:build_base_dir]
   end
 
-  Cache.add archive, paths[:build_base_dir]
-  # todo:
-  # Cache.unpack(archive)
-
+  Cache.unpack(archive, Common::NDK_DIR)
+  formula.link(Common::NDK_DIR, options.target_platform, ver, bldnum) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status
