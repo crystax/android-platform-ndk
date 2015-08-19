@@ -48,14 +48,16 @@ module Cache
   end
 
   def self.exists?(archive)
-    File.exists? "#{PATH}/#{archive}"
+    File.exists? File.join(PATH, archive)
   end
 
   def self.unpack(archive, dstdir)
-    Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
+    Commander::run "7z x -y -o#{dstdir} #{File.join(PATH, archive)}"
   end
 
   def self.add(archive, buildbase)
-    FileUtils.cd(buildbase) { Commander::run "7z a #{PATH}/#{archive} #{ARCH_DIR}" }
+    file = File.join(PATH, archive)
+    FileUtils.rm_rf file
+    FileUtils.cd(buildbase) { Commander::run "7z a #{file} #{ARCH_DIR}" }
   end
 end

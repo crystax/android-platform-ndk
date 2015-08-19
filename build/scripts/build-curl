@@ -61,48 +61,52 @@ begin
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_msg PKG_NAME, options.target_platform
 
-  ver, bldnum, paths, archive = Common.make_build_data PKG_NAME, options
+  ver, bldnum, paths, archive, formula = Common.make_build_data PKG_NAME, options
 
-  if !options.force? and Cache.try?(archive)
-    Logger.msg "done"
-    exit 0
+  if Cache.try?(archive) and !options.force?
+    Logger.log_msg "= using cached file: #{archive}"
+  else
+    paths[:zlib_dir]    = Builder.build_zlib    options, paths
+    paths[:openssl_dir] = Builder.build_openssl options, paths
+    paths[:libssh2_dir] = Builder.build_libssh2 options, paths
+
+    Logger.log_msg "= building #{archive}; args: #{ARGV}"
+    check_version paths[:src_dir], ver
+    Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
+    FileUtils.mkdir_p(paths[:install_dir])
+    prefix = Pathname.new(paths[:install_dir]).realpath
+    FileUtils.cd(paths[:build_dir]) do
+      Commander.run "./buildconf"
+      env = { 'CC' => Builder.cc(options),
+              'CFLAGS' => "#{Builder.cflags(options)} -DCURL_STATICLIB",
+              'LANG' => 'C'
+            }
+      env['LDFLAGS'] = ' -ldl' if options.target_os == 'linux'
+      args = ["--prefix=#{prefix}",
+              "--host=#{Builder.configure_host(options)}",
+              "--disable-shared",
+              "--disable-ldap",
+              "--with-ssl=#{paths[:openssl_dir]}",
+              "--with-zlib=#{paths[:zlib_dir]}",
+              "--with-libssh2=#{paths[:libssh2_dir]}"
+             ]
+      Commander.run env, "./configure #{args.join(' ')}"
+      Commander.run env, "make -j #{options.num_jobs}"
+      Commander.run env, "make test" unless options.no_check?
+      Commander.run env, "make install"
+      # remove unneeded files before packaging
+      FileUtils.cd(prefix) do
+        Commander.run "ls #{paths[:install_dir]}"
+        Commander.run "ls ."
+        FileUtils.rm_rf(['include', 'lib', 'share'])
+      end
+    end
+
+    Cache.add archive, paths[:build_base_dir]
   end
 
-  paths[:zlib_dir]    = Builder.build_zlib    options, paths
-  paths[:openssl_dir] = Builder.build_openssl options, paths
-  paths[:libssh2_dir] = Builder.build_libssh2 options, paths
-
-  Logger.log_msg "= building #{archive}; args: #{ARGV}"
-  check_version paths[:src_dir], ver
-  Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
-  FileUtils.mkdir_p(paths[:install_dir])
-  prefix = Pathname.new(paths[:install_dir]).realpath
-  FileUtils.cd(paths[:build_dir]) do
-    Commander.run "./buildconf"
-    env = { 'CC' => Builder.cc(options),
-            'CFLAGS' => "#{Builder.cflags(options)} -DCURL_STATICLIB",
-            'LANG' => 'C'
-          }
-    env['LDFLAGS'] = ' -ldl' if options.target_os == 'linux'
-    # "--enable-debug",
-    # "--with-sysroot=#{Common::NDK_ROOT_DIR}/platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot"
-    args = ["--prefix=#{prefix}",
-            "--host=#{Builder.configure_host(options)}",
-            "--disable-shared",
-            "--disable-ldap",
-            "--with-ssl=#{paths[:openssl_dir]}",
-            "--with-zlib=#{paths[:zlib_dir]}",
-            "--with-libssh2=#{paths[:libssh2_dir]}"
-           ]
-    Commander.run env, "./configure #{args.join(' ')}"
-    Commander.run env, "make -j #{options.num_jobs}"
-    Commander.run env, "make test" unless options.no_check?
-    Commander.run env, "make install"
-  end
-
-  Cache.add archive, paths[:build_base_dir]
-  # todo:
-  # Cache.unpack(archive)
+  Cache.unpack(archive, Common::NDK_DIR)
+  formula.link(Common::NDK_DIR, options.target_platform, ver, bldnum) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status
