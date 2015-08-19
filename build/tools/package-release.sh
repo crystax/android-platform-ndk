@@ -410,6 +410,12 @@ LIBKQUEUE_TESTS_DSTDIR="$REFERENCE/$LIBKQUEUE_TESTS_SUBDIR"
 rm -Rf "$LIBKQUEUE_TESTS_DSTDIR" && mkdir -p "$LIBKQUEUE_TESTS_DSTDIR" && rsync -aL "$LIBKQUEUE_TESTS_SRCDIR/" "$LIBKQUEUE_TESTS_DSTDIR/"
 fail_panic "Could not copy libkqueue tests sources"
 
+echo "Copying libpwq tests"
+LIBPWQ_TESTS_SUBDIR="sources/crystax/tests/libpwq"
+LIBPWQ_TESTS_SRCDIR="$NDK_ROOT_DIR/$LIBPWQ_TESTS_SUBDIR"
+LIBPWQ_TESTS_DSTDIR="$REFERENCE/$LIBPWQ_TESTS_SUBDIR"
+rm -Rf "$LIBPWQ_TESTS_DSTDIR" && mkdir -p "$LIBPWQ_TESTS_DSTDIR" && rsync -aL "$LIBPWQ_TESTS_SRCDIR/" "$LIBPWQ_TESTS_DSTDIR/"
+fail_panic "Could not copy libpwq tests sources"
 
 # Copy platform and sample files
 if [ "$PREBUILT_DIR" ]; then

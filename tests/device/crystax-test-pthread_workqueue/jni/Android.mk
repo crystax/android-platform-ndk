@@ -4,7 +4,7 @@ ifeq (,$(strip $(NDK)))
 NDK := $(abspath $(LOCAL_PATH)/../../../..)
 endif
 
-TDIR := $(NDK)/sources/crystax/vendor/libpwq/testing
+TDIR := $(NDK)/sources/crystax/tests/libpwq
 
 CFLAGS := -Wall -Wextra -Werror
 CFLAGS += -DNO_CONFIG_H
