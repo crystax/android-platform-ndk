@@ -95,11 +95,7 @@ begin
       Commander.run env, "make test" unless options.no_check?
       Commander.run env, "make install"
       # remove unneeded files before packaging
-      FileUtils.cd(prefix) do
-        Commander.run "ls #{paths[:install_dir]}"
-        Commander.run "ls ."
-        FileUtils.rm_rf(['include', 'lib', 'share'])
-      end
+      FileUtils.cd(prefix) { FileUtils.rm_rf(['include', 'lib', 'share']) }
     end
 
     Cache.add archive, paths[:build_base_dir]
