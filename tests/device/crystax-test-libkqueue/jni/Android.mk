@@ -4,7 +4,7 @@ ifeq (,$(strip $(NDK)))
 NDK := $(abspath $(LOCAL_PATH)/../../../..)
 endif
 
-TDIR := $(NDK)/sources/crystax/vendor/libkqueue/test
+TDIR := $(NDK)/sources/crystax/tests/libkqueue
 
 include $(CLEAR_VARS)
 LOCAL_MODULE     := crystax-test-libkqueue

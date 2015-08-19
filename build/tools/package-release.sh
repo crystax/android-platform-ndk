@@ -403,6 +403,12 @@ OPENPTS_DSTDIR="$REFERENCE/$OPENPTS_SUBDIR"
 rm -Rf "$OPENPTS_DSTDIR" && mkdir -p "$OPENPTS_DSTDIR" && rsync -aL --exclude=/.git "$OPENPTS_SRCDIR/" "$OPENPTS_DSTDIR/"
 fail_panic "Could not copy OpenPTS sources"
 
+echo "Copying libkqueue tests"
+LIBKQUEUE_TESTS_SUBDIR="sources/crystax/tests/libkqueue"
+LIBKQUEUE_TESTS_SRCDIR="$NDK_ROOT_DIR/$LIBKQUEUE_TESTS_SUBDIR"
+LIBKQUEUE_TESTS_DSTDIR="$REFERENCE/$LIBKQUEUE_TESTS_SUBDIR"
+rm -Rf "$LIBKQUEUE_TESTS_DSTDIR" && mkdir -p "$LIBKQUEUE_TESTS_DSTDIR" && rsync -aL "$LIBKQUEUE_TESTS_SRCDIR/" "$LIBKQUEUE_TESTS_DSTDIR/"
+
 # Copy platform and sample files
 if [ "$PREBUILT_DIR" ]; then
     echo "Unpacking platform files" &&
