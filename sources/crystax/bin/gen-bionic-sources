@@ -204,6 +204,16 @@ g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/arch-x86/syscalls/__fcntl64.S",  fixup: "redefine_fcntl64"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
+# eventfd
+g.add "libc/arch-arm/syscalls/eventfd.S"
+g.add "libc/arch-arm64/syscalls/eventfd.S"
+g.add "libc/arch-mips/syscalls/eventfd.S"
+g.add "libc/arch-mips64/syscalls/eventfd.S"
+g.add "libc/arch-x86/syscalls/eventfd.S"
+g.add "libc/arch-x86_64/syscalls/eventfd.S"
+g.add "libc/bionic/eventfd_read.cpp"
+g.add "libc/bionic/eventfd_write.cpp"
+
 # sysconf
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
