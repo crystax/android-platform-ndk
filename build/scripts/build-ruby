@@ -107,13 +107,6 @@ def install_gems(options, install_dir, *gems)
           'GEM_PATH' => "#{install_dir}/lib/ruby/gems/2.2.0",
           'SSL_CERT_FILE' => Common.host_ssl_cert_file(options.host_os)
         }
-
-  # if Common::target_os != 'windows'
-  #   gem = "#{install_dir}/bin/gem"
-  # else
-  #   gem = "/usr/bin/gem"
-  # end
-
   Commander.run env, "gem install -V --backtrace #{gems.join(' ')} #{args.join(' ')}"
 end
 
@@ -126,75 +119,81 @@ begin
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_msg PKG_NAME, options.target_platform
 
-  ver, bldnum, paths, archive = Common.make_build_data(PKG_NAME, options)
+  ver, bldnum, paths, archive, formula = Common.make_build_data(PKG_NAME, options)
 
-  if !options.force? and Cache.try?(archive)
-    Logger.msg "done"
-    exit 0
-  end
+  if Cache.try?(archive) and !options.force?
+    Logger.log_msg "= using cached file: #{archive}"
+  else
+    # if Common.target_os == 'windows'
+    #   libsdir = "#{Common::BUILD_BASE}/libs"
+    #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
+    #   build_libffi(libsdir)
+    # end
+    paths[:zlib_dir]    = Builder.build_zlib    options, paths
+    paths[:openssl_dir] = Builder.build_openssl options, paths
+    paths[:libssh2_dir] = Builder.build_libssh2 options, paths
+    paths[:libgit2_dir] = Builder.build_libgit2 options, paths
 
-  # if Common.target_os == 'windows'
-  #   libsdir = "#{Common::BUILD_BASE}/libs"
-  #   FileUtils.mkdir_p([Common::BUILD_BASE, "#{libsdir}/lib", "#{libsdir}/include"])
-  #   build_libffi(libsdir)
-  # end
-
-  paths[:zlib_dir]    = Builder.build_zlib    options, paths
-  paths[:openssl_dir] = Builder.build_openssl options, paths
-  paths[:libssh2_dir] = Builder.build_libssh2 options, paths
-  paths[:libgit2_dir] = Builder.build_libgit2 options, paths
-
-  Logger.log_msg "= building #{archive}; args: #{ARGV}"
-  check_version paths[:src_dir], ver
-  Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
-  copy_rugged paths[:build_dir]
-  FileUtils.cd(paths[:build_dir]) do
-    zlib_dir    = paths[:zlib_dir]
-    openssl_dir = paths[:openssl_dir]
-    libssh2_dir = paths[:libssh2_dir]
-    libgit2_dir = paths[:libgit2_dir]
-    #
-    cflags  = "#{Builder.cflags(options)}  -I#{zlib_dir}/include"
-    ldflags = "-L#{libssh2_dir}/lib -L#{libgit2_dir}/lib -L#{zlib_dir}/lib"
-    if options.target_os != 'windows'
-      libs = '-lz -lgit2 -lssh2 -lz'
-    else
-      # cflags  += " -I#{libsdir}/include -g"
-      # ldflags += " -L#{libsdir}/lib -g"
-      libs     = "#{zlib_dir}/lib/libz.a #{libgit2_dir}/lib/libgit2.a #{libssh2_dir}/lib/libssh2.a #{zlib_dir}/lib/libz.a"
+    Logger.log_msg "= building #{archive}; args: #{ARGV}"
+    check_version paths[:src_dir], ver
+    Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
+    copy_rugged paths[:build_dir]
+    FileUtils.cd(paths[:build_dir]) do
+      zlib_dir    = paths[:zlib_dir]
+      openssl_dir = paths[:openssl_dir]
+      libssh2_dir = paths[:libssh2_dir]
+      libgit2_dir = paths[:libgit2_dir]
+      #
+      cflags  = "#{Builder.cflags(options)}  -I#{zlib_dir}/include"
+      ldflags = "-L#{libssh2_dir}/lib -L#{libgit2_dir}/lib -L#{zlib_dir}/lib"
+      if options.target_os != 'windows'
+        libs = '-lz -lgit2 -lssh2 -lz'
+      else
+        # cflags  += " -I#{libsdir}/include -g"
+        # ldflags += " -L#{libsdir}/lib -g"
+        libs     = "#{zlib_dir}/lib/libz.a #{libgit2_dir}/lib/libgit2.a #{libssh2_dir}/lib/libssh2.a #{zlib_dir}/lib/libz.a"
+      end
+      env = { 'CC' => Builder.cc(options),
+              'CFLAGS' => cflags,
+              'LDFLAGS' => ldflags,
+              'DESTDIR' => paths[:install_dir],
+              'LIBS' => libs,
+              'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssl_dir}/include -I#{libssh2_dir}/include -I#{libgit2_dir}/include",
+              'RUGGED_MAKEFILE' => "#{paths[:build_dir]}/ext/rugged/Makefile",
+              'PATH' => Builder.toolchain_path_and_path(options),
+              'SSL_CERT_FILE' => Common.host_ssl_cert_file(options.host_os)
+            }
+      args = ["--prefix=/",
+              "--host=#{Builder.configure_host(options)}",
+              "--disable-install-doc",
+              "--enable-load-relative",
+              "--with-openssl-dir=#{openssl_dir}",
+              "--with-static-linked-ext",
+              "--without-gmp",
+              "--without-tk",
+              "--without-gdbm",
+              "--enable-bundled-libyaml"
+             ]
+      Commander.run "autoconf"
+      Commander.run env, "./configure #{args.join(' ')}"
+      Commander.run env, "make -j #{options.num_jobs} V=1"
+      Commander.run env, "make check" unless options.no_check?
+      Commander.run env, "make install"
+      # remove unneeded files before packaging
+      FileUtils.cd(paths[:install_dir]) do
+        FileUtils.rm_rf(['include', 'share'])
+        FileUtils.rm_rf([File.join('lib', 'pkgconfig'), File.join('lib', 'libruby-static.a')])
+        FileUtils.rm_rf([File.join('lib', 'ruby', 'site_ruby'), File.join('lib', 'ruby', 'vendor_ruby')])
+      end
     end
-    env = { 'CC' => Builder.cc(options),
-            'CFLAGS' => cflags,
-            'LDFLAGS' => ldflags,
-            'DESTDIR' => paths[:install_dir],
-            'LIBS' => libs,
-            'RUGGED_CFLAGS' => "#{cflags} -DRUBY_UNTYPED_DATA_WARNING=0 -I#{openssl_dir}/include -I#{libssh2_dir}/include -I#{libgit2_dir}/include",
-            'RUGGED_MAKEFILE' => "#{paths[:build_dir]}/ext/rugged/Makefile",
-            'PATH' => Builder.toolchain_path_and_path(options),
-            'SSL_CERT_FILE' => Common.host_ssl_cert_file(options.host_os)
-          }
-    args = ["--prefix=/",
-            "--host=#{Builder.configure_host(options)}",
-            "--disable-install-doc",
-            "--enable-load-relative",
-            "--with-openssl-dir=#{openssl_dir}",
-            "--with-static-linked-ext",
-            "--without-gmp",
-            "--without-tk",
-            "--without-gdbm",
-            "--enable-bundled-libyaml"
-           ]
-    Commander.run "autoconf"
-    Commander.run env, "./configure #{args.join(' ')}"
-    Commander.run env, "make -j #{options.num_jobs} V=1"
-    Commander.run env, "make check" unless options.no_check?
-    Commander.run env, "make install"
+
+    install_gems options, paths[:install_dir], 'rspec', 'minitest'
+
+    Cache.add archive, paths[:build_base_dir]
   end
 
-  install_gems options, paths[:install_dir], 'rspec', 'minitest'
-
-  Cache.add archive, paths[:build_base_dir]
-  #Cache.unpack(archive)
+  Cache.unpack(archive, Common::NDK_DIR)
+  formula.link(Common::NDK_DIR, options.target_platform, ver, bldnum) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status
