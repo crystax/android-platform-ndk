@@ -91,7 +91,7 @@ SUPPORT_SUBDIR=sources/android/support
 TOOLCHAIN_GIT_DATE=now
 
 # The space-separated list of all GCC versions we support in this NDK
-DEFAULT_GCC_VERSION_LIST="4.9"
+DEFAULT_GCC_VERSION_LIST="4.9 5.1"
 
 DEFAULT_GCC32_VERSION=4.9
 DEFAULT_GCC64_VERSION=4.9
