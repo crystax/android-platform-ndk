@@ -147,6 +147,11 @@ typedef __pthread_mutex_t pthread_mutex_t;
 #define _PTHREAD_MUTEX_T_DECLARED
 #endif
 
+#ifndef _PTHREAD_COND_T_DECLARED
+typedef __pthread_cond_t pthread_cond_t;
+#define _PTHREAD_COND_T_DECLARED
+#endif
+
 #if __ANDROID_API__ < 21
 typedef __kernel_blkcnt_t  blkcnt_t;
 typedef __kernel_blksize_t blksize_t;

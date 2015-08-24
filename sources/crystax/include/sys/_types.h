@@ -94,10 +94,19 @@ typedef __uint16_t __sa_family_t;
 typedef long __pthread_t;
 
 typedef struct {
-    int volatile value;
-#ifdef __LP64__
-    char __reserved[36];
+#if defined(__LP64__)
+    __int32_t __private[10];
+#else
+    __int32_t __private[1];
 #endif
 } __pthread_mutex_t;
+
+typedef struct {
+#if defined(__LP64__)
+    __int32_t __private[12];
+#else
+    __int32_t __private[1];
+#endif
+} __pthread_cond_t;
 
 #endif /* __CRYSTAX_SYS__TYPES_H_B94AFA76630A41EC924D80883BAB5389 */
