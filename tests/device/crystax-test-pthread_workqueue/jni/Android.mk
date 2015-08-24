@@ -21,8 +21,8 @@ LOCAL_SRC_FILES  := $(TDIR)/idle/main.c
 LOCAL_CFLAGS     := $(CFLAGS)
 include $(BUILD_EXECUTABLE)
 
-include $(CLEAR_VARS)
-LOCAL_MODULE     := crystax-test-pthread_workqueue-3
-LOCAL_SRC_FILES  := $(TDIR)/latency/latency.c
-LOCAL_CFLAGS     := $(CFLAGS)
-include $(BUILD_EXECUTABLE)
+#include $(CLEAR_VARS)
+#LOCAL_MODULE     := crystax-test-pthread_workqueue-3
+#LOCAL_SRC_FILES  := $(TDIR)/latency/latency.c
+#LOCAL_CFLAGS     := $(CFLAGS)
+#include $(BUILD_EXECUTABLE)
