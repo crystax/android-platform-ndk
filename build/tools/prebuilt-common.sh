@@ -12,7 +12,7 @@ export LC_ALL=C
 if [ -z "$NDK_BUILDTOOLS_PATH" ]; then
     NDK_BUILDTOOLS_PATH=$(dirname $0)
     if [ ! -f "$NDK_BUILDTOOLS_PATH/prebuilt-common.sh" ]; then
-        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to $$NDK/build/tools"
+        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to \$NDK/build/tools"
         exit 1
     fi
 fi
@@ -846,7 +846,7 @@ EOF
     # generate wrappers for BUILD toolchain
     # this is required for mingw/darwin build to avoid tools canadian cross configuration issues
     # 32-bit BUILD toolchain
-    LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8"
+    LEGACY_TOOLCHAIN_DIR="$ANDROID_BUILD_TOP/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8"
     $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=i386-linux-gnu- \
             --cflags="-m32" --cxxflags="-m32" --ldflags="-m elf_i386" --asflags="--32" \
             --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/x86_64-linux-" "$CROSS_WRAP_DIR"
@@ -925,7 +925,7 @@ prepare_common_build ()
     if [ -z "$CC" ]; then
         LEGACY_TOOLCHAIN_DIR=
         if [ "$HOST_OS" = "linux" ]; then
-            LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin"
+            LEGACY_TOOLCHAIN_DIR="$ANDROID_BUILD_TOP/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/x86_64-linux-"
         elif [ "$HOST_OS" = "darwin" ]; then
             local GCCVER=4.9.2
@@ -1361,16 +1361,6 @@ get_llvm_toolchain_binprefix ()
     DIR=$(get_toolchain_install . $NAME $SYSTEM)
     BINPREFIX=${DIR#./}/bin/
     echo "$BINPREFIX"
-}
-
-# Return the default toochain binary path prefix for a given architecture
-# For example: arm -> toolchains/arm-linux-androideabi-4.8/prebuilt/<system>/bin/arm-linux-androideabi-
-# $1: Architecture name
-# $2: optional, system name, defaults to $HOST_TAG
-get_default_toolchain_binprefix_for_arch ()
-{
-    local GCCVER=$(get_default_gcc_version_for_arch $ARCH)
-    get_toolchain_binprefix_for_arch $1 $GCCVER $2
 }
 
 # Return default API level for a given arch

@@ -1,4 +1,3 @@
-compiler-rt/libs
 gccunwind/libs
 
 native_app_glue/
