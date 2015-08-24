@@ -282,7 +282,7 @@ class Project
         log_info "== OK: all on-host tests PASSED"
     rescue => e
         log_info "ERROR: #{e.message}"
-        log_notice "   ---> FAILURE: HOST TEST [#{name}]"
+        log_notice "   ---> FAILURE: HOST TEST    [#{name}]"
         MRO.dump event: "build-failed", path: path
         raise
     end
@@ -451,11 +451,11 @@ class Project
                 exe = obj["exe"]
                 argv = obj["args"]
                 rc = obj["exitcode"]
-                log_notice "   ---> FAILURE: TARGET TEST [#{([File.basename(exe)] + argv).join(' ')}: $?=#{rc}]"
+                log_notice "   ---> FAILURE: TARGET TEST  [#{name}] \"#{([File.basename(exe)] + argv).join(' ')}\": $?=#{rc}"
             when "pause"
                 log_notice "RUN #{logprefix} [paused]"
             when "timeout"
-                log_notice "   ---> FAILURE: TARGET TEST [TIMEOUT: #{obj["timeout"]} seconds]"
+                log_notice "   ---> FAILURE: TARGET TEST  [#{name}] TIMEOUT: #{obj["timeout"]} seconds"
             end
 
             skipreason = obj["event"] == "skip" ? obj["reason"] : nil
