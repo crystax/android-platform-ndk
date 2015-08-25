@@ -357,18 +357,20 @@ def rm_rf(path)
 end
 
 def fetch_boost_impl(url, dir, branch, name)
-    6.times do |i|
+    max_attempts = 6
+    max_attempts.times do |i|
         attempt = i + 1
         begin
             Log.notice "Fetching #{name} sources (attempt ##{attempt})"
             fetch url, dir, branch
             return true
         rescue => err
-            Log.warning "Can't fetch #{url} to #{dir}: #{err.message}"
+            Log.warning "Can't fetch #{url} to #{dir} (attempt ##{attempt}): #{err.message}"
             rm_rf dir
             sleep attempt * 30
         end
     end
+    raise "Can't fetch #{url} to #{dir} with #{max_attempts} attempts due to continuous errors"
 end
 
 def fetch_boost(dir)
