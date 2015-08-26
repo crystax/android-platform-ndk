@@ -61,6 +61,11 @@ static int check_idiv(void) {
 
 int main(void)
 {
+    if (android_getRuntimeCpuFamily() != ANDROID_CPU_FAMILY_ARM) {
+        printf("This is emulated ARM device, skip this test\n");
+        return 0;
+    }
+
     uint32_t cpu_id = android_getCpuIdArm();
     printf("cpu-features reports the following CPUID: 0x%08x\n",
            cpu_id);
