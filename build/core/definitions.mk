@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014 The Android Open Source Project
+# Copyright (C) 2009, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -875,12 +875,13 @@ module-has-c++-sources = $(strip $(call module-get-c++-sources,$1))
 # Add C++ dependencies to any module that has C++ sources.
 # $1: list of C++ runtime static libraries (if any)
 # $2: list of C++ runtime shared libraries (if any)
+# $3: list of C++ runtime ldlibs (if any)
 #
 modules-add-c++-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(if $(or $(call module-has-c++-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
             $(call ndk_log,Module '$(__module)' has C++ sources)\
-            $(call module-add-deps,$(__module),$1,$2)\
+            $(call module-add-deps,$(__module),$1,$2,$3)\
         )\
     )
 
@@ -959,14 +960,17 @@ module-has-c++-features = $(strip \
 # Add standard dependencies to a given module
 #
 # $1: module name
-# $2: list of runtime static libraries (if any)
-# $3: list of runtime shared libraries (if any)
+# $2: list of C++ runtime static libraries (if any)
+# $3: list of C++ runtime shared libraries (if any)
+# $4: list of C++ runtime ldlibs (if any)
 #
 module-add-deps = \
     $(if $(call strip,$2),$(call ndk_log,Add dependency '$(call strip,$2)' to module '$1'))\
     $(eval __ndk_modules.$1.STATIC_LIBRARIES += $(2))\
     $(if $(call strip,$3),$(call ndk_log,Add dependency '$(call strip,$3)' to module '$1'))\
-    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))
+    $(eval __ndk_modules.$1.SHARED_LIBRARIES += $(3))\
+    $(if $(call strip,$4),$(call ndk_log,Add dependency '$(call strip,$4)' to module '$1'))\
+    $(eval __ndk_modules.$1.LDLIBS += $(4))
 
 
 # =============================================================================
@@ -2150,7 +2154,8 @@ ndk-objc-register = \
     $(eval NDK_OBJC_LIST += $(__ndk_objc)) \
     $(eval NDK_OBJC.$(__ndk_objc).IMPORT_MODULE := $(strip $2)) \
     $(eval NDK_OBJC.$(__ndk_objc).STATIC_LIBS := $(strip $3)) \
-    $(eval NDK_OBJC.$(__ndk_objc).SHARED_LIBS := $(strip $4))
+    $(eval NDK_OBJC.$(__ndk_objc).SHARED_LIBS := $(strip $4)) \
+    $(eval NDK_OBJC.$(__ndk_objc).LDLIBS := $(strip $5))
 
 # Called to check that the value of APP_OBJC is a valid one.
 # $1: Objective-C runtime name as it apperas in APP_OBJC (e.g. 'gnuobjc')
@@ -2182,7 +2187,7 @@ ndk-objc-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
         $(if $(or $(call module-has-objc-sources,$(__module)),$(call module-has-objc++-sources,$(__module))),\
             $(call ndk_log,Module '$(__module)' has Objective-C sources)\
-            $(call module-add-deps,$(__module),$(NDK_OBJC.$1.STATIC_LIBS),$(NDK_OBJC.$1.SHARED_LIBS))\
+            $(call module-add-deps,$(__module),$(NDK_OBJC.$1.STATIC_LIBS),$(NDK_OBJC.$1.SHARED_LIBS),$(NDK_OBJC.$1.LDLIBS))\
         )\
     )
 
@@ -2231,13 +2236,15 @@ NDK_STL_LIST :=
 # $2: STL module name (e.g. cxx-stl/system)
 # $3: list of static libraries all modules will depend on
 # $4: list of shared libraries all modules will depend on
+# $5: list of ldlibs all modules will link
 #
 ndk-stl-register = \
     $(eval __ndk_stl := $(strip $1)) \
     $(eval NDK_STL_LIST += $(__ndk_stl)) \
     $(eval NDK_STL.$(__ndk_stl).IMPORT_MODULE := $(strip $2)) \
     $(eval NDK_STL.$(__ndk_stl).STATIC_LIBS := $(strip $(call strip-lib-prefix,$3))) \
-    $(eval NDK_STL.$(__ndk_stl).SHARED_LIBS := $(strip $(call strip-lib-prefix,$4)))
+    $(eval NDK_STL.$(__ndk_stl).SHARED_LIBS := $(strip $(call strip-lib-prefix,$4))) \
+    $(eval NDK_STL.$(__ndk_stl).LDLIBS := $(strip $5))
 
 # Called to check that the value of APP_STL is a valid one.
 # $1: STL name as it apperas in APP_STL (e.g. 'system')
@@ -2262,7 +2269,8 @@ ndk-stl-select = \
 ndk-stl-add-dependencies = \
     $(call modules-add-c++-dependencies,\
         $(NDK_STL.$1.STATIC_LIBS),\
-        $(NDK_STL.$1.SHARED_LIBS))
+        $(NDK_STL.$1.SHARED_LIBS),\
+        $(NDK_STL.$1.LDLIBS))
 
 #
 #
@@ -2273,6 +2281,8 @@ $(call ndk-stl-register,\
     system,\
     cxx-stl/system,\
     libstdc++,\
+    ,\
+    \
     )
 
 # Register the 'stlport_static' STL implementation
@@ -2281,6 +2291,8 @@ $(call ndk-stl-register,\
     stlport_static,\
     cxx-stl/stlport,\
     stlport_static,\
+    ,\
+    \
     )
 
 # Register the 'stlport_shared' STL implementation
@@ -2289,7 +2301,8 @@ $(call ndk-stl-register,\
     stlport_shared,\
     cxx-stl/stlport,\
     ,\
-    stlport_shared\
+    stlport_shared,\
+    \
     )
 
 # Register the 'gnustl_static' STL implementation
@@ -2298,6 +2311,7 @@ $(call ndk-stl-register,\
     gnustl_static,\
     cxx-stl/gnu-libstdc++,\
     gnustl_static,\
+    ,\
     \
     )
 
@@ -2307,7 +2321,8 @@ $(call ndk-stl-register,\
     gnustl_shared,\
     cxx-stl/gnu-libstdc++,\
     ,\
-    gnustl_shared\
+    gnustl_shared,\
+    \
     )
 
 # Register the 'gabi++_static' STL implementation
@@ -2316,6 +2331,7 @@ $(call ndk-stl-register,\
     gabi++_static,\
     cxx-stl/gabi++,\
     gabi++_static,\
+    ,\
     \
     )
 
@@ -2325,7 +2341,8 @@ $(call ndk-stl-register,\
     gabi++_shared,\
     cxx-stl/gabi++,\
     ,\
-    gabi++_shared\
+    gabi++_shared,\
+    \
     )
 
 # Register the 'c++_static' STL implementation
@@ -2334,7 +2351,8 @@ $(call ndk-stl-register,\
     c++_static,\
     cxx-stl/llvm-libc++,\
     c++_static,\
-    \
+    ,\
+    -ldl\
     )
 
 # Register the 'c++_shared' STL implementation
@@ -2343,7 +2361,8 @@ $(call ndk-stl-register,\
     c++_shared,\
     cxx-stl/llvm-libc++,\
     ,\
-    c++_shared\
+    c++_shared,\
+    \
     )
 
 # The 'none' APP_STL value corresponds to no C++ support at

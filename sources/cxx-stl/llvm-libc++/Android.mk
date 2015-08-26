@@ -144,13 +144,8 @@ else
 llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=0
 endif
 
-ifeq (clang3.5,$(NDK_TOOLCHAIN_VERSION))
-# Workaround an issue of integrated-as (default in clang3.5) where it fails to compile
-# llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersRestore.S
-llvm_libc++_cflags += -no-integrated-as
 endif
 
-endif
 
 ifneq ($(__libcxx_force_rebuild),true)
 
@@ -211,13 +206,13 @@ LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
-# For armeabi's shared version of libc++ compiled by clang, we need compiler-rt or libatomic
-# for __atomic_fetch_add_4.  Note that "clang -gcc-toolchain" uses gcc4.8's as/ld/libs, including
-# libatomic (which is not available in gcc4.6)
+# For armeabi's shared version of libc++ compiled by clang libatomic for
+# __atomic_fetch_add_4.  Note that "clang -gcc-toolchain" uses gcc4.9's
+# as/ld/libs, including libatomic
 #
 # On the other hand, all prebuilt libc++ libaries at sources/cxx-stl/llvm-libc++/libs are
-# compiled with "clang -gcc-toolchain *4.8*" with -latomic, such that uses of prebuilt
-# libc++_shared.so don't automatically requires -latomic or compiler-rt, unless code does
+# compiled with "clang -gcc-toolchain *4.9*" with -latomic, such that uses of prebuilt
+# libc++_shared.so don't automatically requires -latomic, unless code does
 # "#include <atomic>" where  __atomic_is_lock_free is needed for armeabi and mips
 #
 ifeq ($(TARGET_ARCH_ABI),armeabi)
@@ -229,5 +224,3 @@ endif
 include $(BUILD_SHARED_LIBRARY)
 
 endif # __libcxx_force_rebuild == true
-
-$(call import-module, android/compiler-rt)
