@@ -103,7 +103,7 @@ optparser = OptionParser.new do |o|
         OPTIONS[:emutag] = tag
     end
 
-    o.on("--run-on-all-devices", "If specified, run on all compatible devices") do |r|
+    o.on("--run-on-all-devices", "If specified, run on all compatible devices (default: run on first compatible device)") do |r|
         OPTIONS[:run_on_all_devices] = r
     end
 
@@ -919,7 +919,7 @@ begin
                         end
                     end
 
-                    break if rc != 0 || !RUN_ON_ALL_DEVICES
+                    break if rc != 0 && !RUN_ON_ALL_DEVICES
                 rescue Timeout::Error
                     # Ignore. Just switch to next device
                 rescue AdbError => e
