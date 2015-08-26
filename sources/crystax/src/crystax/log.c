@@ -27,15 +27,12 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <android/log.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <dlfcn.h>
 
-#if 1
+#ifndef CRYSTAX_DEBUG_SINK
 #define CRYSTAX_DEBUG_SINK CRYSTAX_SINK_STDOUT
-#else
-#define CRYSTAX_DEBUG_SINK CRYSTAX_SINK_LOGCAT
 #endif
 
 #define CRYSTAX_SINK_STDOUT 0
@@ -67,7 +64,7 @@ static int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list
         pf = dlsym(pc, "__android_log_vprint");
         if (!pf) abort();
 
-        __crystax_atomic_swap((void*)&func_android_log_vprint, pf);
+        __crystax_atomic_swap(&func_android_log_vprint, pf);
         __crystax_atomic_swap(&initialized, 1);
     }
     return func_android_log_vprint(prio, tag, fmt, ap);
@@ -91,18 +88,18 @@ int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
     va_list ap;
 
 #if defined(CRYSTAX_DEBUG_SINK) && CRYSTAX_DEBUG_SINK != CRYSTAX_SINK_LOGCAT
-    char buf[256];
+    char buf[4096];
     char *newfmt;
     int newfmtlen;
 
     newfmtlen = strlen(tag) + 2 + strlen(fmt) + 2;
     if (newfmtlen > (int)sizeof(buf))
     {
-        newfmt = (char*)malloc(newfmtlen);
-        if (!newfmt) abort();
+        fprintf(stderr, "CRYSTAX_PANI: format string too long: %d\n", newfmtlen);
+        abort();
     }
-    else
-        newfmt = buf;
+
+    newfmt = buf;
     newfmt[0] = '\0';
     strcat(newfmt, tag);
     strcat(newfmt, ": ");
@@ -117,11 +114,6 @@ int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
     rc = vfprintf(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr, newfmt, ap);
 #else
 #error Unknown debug sink
-#endif
-
-#if defined(CRYSTAX_DEBUG_SINK) && CRYSTAX_DEBUG_SINK != CRYSTAX_SINK_LOGCAT
-    if (newfmt != buf)
-        free(newfmt);
 #endif
 
     va_end(ap);

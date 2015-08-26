@@ -544,7 +544,6 @@ ldflags_for_abi()
     echo "-Wl,-Bstatic,-lgcc"
     echo "-Wl,-Bdynamic,-lc"
     echo "-Wl,-Bdynamic,-ldl"
-    is_debug_mode && echo "-Wl,-Bdynamic,-llog"
 }
 
 # $1: ABI
