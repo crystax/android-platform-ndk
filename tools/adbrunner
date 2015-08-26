@@ -912,14 +912,14 @@ begin
                     rc = run_test(attempt, id, exe, args)
                     if rc != 0
                         MRO.dump mrofields.merge({event: "fail", exitcode: rc})
-                        if KEEPGOING
-                            fails += 1
-                        else
-                            exit rc
-                        end
+                        fails += 1
+                        exit rc unless KEEPGOING
                     end
 
-                    break if rc != 0 && !RUN_ON_ALL_DEVICES
+                    # Here we have result of execution on device (either positive or negative)
+                    # so we stop trying other compatible devices unless --run-on-all-devices option was specified
+                    # and promote this result as result of whole run
+                    break if !RUN_ON_ALL_DEVICES
                 rescue Timeout::Error
                     # Ignore. Just switch to next device
                 rescue AdbError => e
