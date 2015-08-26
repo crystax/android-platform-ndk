@@ -1,3 +1,8 @@
+/* This tests here to ensure that popen() works
+ * Earlier, there was crashes on call of popen().
+ * See https://tracker.crystax.net/issues/958 for details.
+ */
+
 #ifdef NDEBUG
 #undef NDEBUG
 #endif

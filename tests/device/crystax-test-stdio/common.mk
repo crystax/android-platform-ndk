@@ -5,6 +5,7 @@ CTESTS :=            \
 	getline          \
 	open_memstream   \
 	open_wmemstream  \
+	popen            \
 	print-positional \
 	printbasic       \
 	printf           \
