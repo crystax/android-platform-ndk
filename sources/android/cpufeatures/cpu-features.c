@@ -69,11 +69,13 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/system_properties.h>
 
 static  pthread_once_t     g_once;
 static  int                g_inited;
 static  AndroidCpuFamily   g_cpuFamily;
+static  AndroidCpuFamily   g_runtimeCpuFamily;
 static  uint64_t           g_cpuFeatures;
 static  int                g_cpuCount;
 
@@ -668,12 +670,66 @@ android_cpuInitFamily(void)
 }
 
 static void
+android_cpuInitRuntimeFamily(void)
+{
+    FILE *pfp;
+    char abibuf[PROP_VALUE_MAX];
+    char *s;
+
+    g_runtimeCpuFamily = ANDROID_CPU_FAMILY_UNKNOWN;
+
+    pfp = popen("getprop ro.product.cpu.abi", "r");
+    if (pfp == NULL) {
+        D("can't run getprop");
+        return;
+    }
+
+    if (fgets(abibuf, sizeof(abibuf), pfp) == NULL) {
+        D("can't read line from getprop");
+        fclose(pfp);
+        return;
+    }
+
+    for (s = abibuf; *s != '\0'; ++s)
+        if (*s == '\r' || *s == '\n')
+            *s = '\0';
+
+    D("abi: '%s'\n", abibuf);
+
+    if (strcmp(abibuf, "armeabi") == 0 || strcmp(abibuf, "armeabi-v7a") == 0)
+        g_runtimeCpuFamily = ANDROID_CPU_FAMILY_ARM;
+    else if (strcmp(abibuf, "x86") == 0)
+        g_runtimeCpuFamily = ANDROID_CPU_FAMILY_X86;
+    else if (strcmp(abibuf, "mips") == 0)
+        g_runtimeCpuFamily = ANDROID_CPU_FAMILY_MIPS;
+    else if (strcmp(abibuf, "arm64-v8a") == 0)
+        g_runtimeCpuFamily = ANDROID_CPU_FAMILY_ARM64;
+    else if (strcmp(abibuf, "x86_64") == 0)
+        g_runtimeCpuFamily = ANDROID_CPU_FAMILY_X86_64;
+
+    switch (g_runtimeCpuFamily) {
+#define DUMP_RUNTIME_CPU_FAMILY(f) case ANDROID_CPU_FAMILY_ ## f : D("RUNTIME CPU FAMILY: " #f "\n"); break
+        DUMP_RUNTIME_CPU_FAMILY(ARM);
+        DUMP_RUNTIME_CPU_FAMILY(X86);
+        DUMP_RUNTIME_CPU_FAMILY(MIPS);
+        DUMP_RUNTIME_CPU_FAMILY(ARM64);
+        DUMP_RUNTIME_CPU_FAMILY(X86_64);
+        DUMP_RUNTIME_CPU_FAMILY(MIPS64);
+#undef DUMP_RUNTIME_CPU_FAMILY
+        default: D("RUNTIME CPU FAMILY: UNKNOWN\n");
+    }
+
+    fclose(pfp);
+}
+
+static void
 android_cpuInit(void)
 {
     char* cpuinfo = NULL;
     int   cpuinfo_len;
 
     android_cpuInitFamily();
+    android_cpuInitRuntimeFamily();
 
     g_cpuFeatures = 0;
     g_cpuCount    = 1;
@@ -1044,6 +1100,14 @@ android_getCpuFamily(void)
 {
     pthread_once(&g_once, android_cpuInit);
     return g_cpuFamily;
+}
+
+
+AndroidCpuFamily
+android_getRuntimeCpuFamily(void)
+{
+    pthread_once(&g_once, android_cpuInit);
+    return g_runtimeCpuFamily;
 }
 
 

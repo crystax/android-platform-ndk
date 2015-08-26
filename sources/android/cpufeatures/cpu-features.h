@@ -57,6 +57,10 @@ typedef enum {
  */
 extern AndroidCpuFamily android_getCpuFamily(void);
 
+/* Return the CPU family of the current device, detected in runtime
+ */
+extern AndroidCpuFamily android_getRuntimeCpuFamily(void);
+
 /* Return a bitmap describing a set of optional CPU features that are
  * supported by the current device's CPU. The exact bit-flags returned
  * depend on the value returned by android_getCpuFamily(). See the
