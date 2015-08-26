@@ -76,13 +76,13 @@ begin
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_msg PKG_NAME, options.target_platform
 
-  ver, bldnum, paths, archive, formula = Common.make_build_data PKG_NAME, options
+  release, paths, archive, formula = Common.make_build_data PKG_NAME, options
 
   if Cache.try?(archive) and !options.force?
     Logger.log_msg "= using cached file: #{archive}"
   else
     Logger.log_msg "= building #{archive}; args: #{ARGV}"
-    check_version paths[:src_dir], ver
+    check_version paths[:src_dir], release[:version]
     if options.target_os == 'windows'
       Logger.msg "= coping windows prebuilts"
       dstdir = "#{paths[:install_dir]}/bin"
@@ -117,7 +117,7 @@ begin
   end
 
   Cache.unpack(archive, Common::NDK_DIR)
-  formula.link(Common::NDK_DIR, options.target_platform, ver, bldnum) if options.same_platform?
+  formula.link(Common::NDK_DIR, options.target_platform, release) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status

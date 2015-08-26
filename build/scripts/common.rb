@@ -90,18 +90,18 @@ class Common
   end
 
   def self.make_build_data(pkgname, options)
-    ver, bldnum, formula = formula_data(pkgname)
-    paths = make_paths(pkgname, ver, bldnum, options)
-    archive = make_archive_name(pkgname, ver, bldnum, options.target_platform)
-    [ver, bldnum, paths, archive, formula]
+    release, formula = formula_data(pkgname)
+    paths = make_paths(pkgname, release, options)
+    archive = make_archive_name(pkgname, release, options.target_platform)
+    [release, paths, archive, formula]
   end
 
-  def self.make_archive_base(pkgname, ver, bldnum)
-    "crew-#{pkgname}-#{Formula.package_version(ver, bldnum)}"
+  def self.make_archive_base(pkgname, release)
+    "crew-#{pkgname}-#{Formula.package_version(release)}"
   end
 
-  def self.make_archive_name(pkgname, ver, bldnum, platform)
-    "#{make_archive_base(pkgname, ver, bldnum)}-#{platform}.7z"
+  def self.make_archive_name(pkgname, release, platform)
+    "#{make_archive_base(pkgname, release)}-#{platform}.7z"
   end
 
   def self.host_ssl_cert_file(os)
@@ -138,13 +138,11 @@ class Common
   def self.formula_data(name)
     formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
     release = formula.releases.last
-    ver = release[:version]
-    bldnum = release[:build_number]
-    [ver, bldnum, formula]
+    [release, formula]
   end
 
-  def self.make_paths(pkgname, ver, bldnum, options)
-    pkgver = Formula.package_version(ver, bldnum)
+  def self.make_paths(pkgname, release, options)
+    pkgver = Formula.package_version(release)
     prebuilt = "prebuilt/#{options.target_platform_dir}"
 
     { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
