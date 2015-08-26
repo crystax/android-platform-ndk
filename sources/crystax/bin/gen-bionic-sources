@@ -160,6 +160,7 @@ g.fixup :redefine_fcntl64 do |f|
 end
 
 # public headers
+g.add "libc/include/sys/auxv.h",           public: true
 g.add "libc/include/sys/glibc-syscalls.h", public: true
 g.add "libc/include/sys/syscall.h",        public: true
 g.add "libc/include/sys/sysconf.h",        public: true
@@ -167,7 +168,6 @@ g.add "libc/include/sys/sysinfo.h",        public: true
 
 # common headers
 g.add "libc/include/machine/posix_limits.h"
-g.add "libc/include/sys/auxv.h"
 g.add "libc/private/ScopedReaddir.h"
 g.add "libc/private/bionic_asm.h"
 g.add "libc/private/bionic_macros.h"
