@@ -375,7 +375,7 @@ class Project
 
         logprefix = "#{@display_type} [#{name}]#{variants(options)}"
 
-        binaries = Dir.glob(File.join(dstdir, 'libs', abi, '*'))
+        binaries = Dir.glob(File.join(dstdir, 'libs', abi, '*')).sort
         executables = binaries.reject { |e| e =~ /\.so$/ }
 
         broken = @properties['broken-run']
