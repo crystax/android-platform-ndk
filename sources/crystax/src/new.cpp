@@ -32,18 +32,12 @@
 
 void * operator new (std::size_t n)
 {
-    void *p = ::malloc(n);
-    if (!p)
-        PANIC("Can't allocate %zu bytes", n);
-    return p;
+    return ::malloc(n);
 }
 
 void * operator new[] (std::size_t n)
 {
-    void *p = ::malloc(n);
-    if (!p)
-        PANIC("Can't allocate %zu bytes", n);
-    return p;
+    return ::malloc(n);
 }
 
 void operator delete (void *ptr) throw()
