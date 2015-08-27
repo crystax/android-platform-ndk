@@ -1,0 +1,5 @@
+{
+    "adbrunner-options": {
+        "exec_throwing_lib_catching": {"min-api-level": 18}
+    }
+}

@@ -118,6 +118,10 @@ optparser = OptionParser.new do |o|
     o.on("--args-path-prefixes=LIST", Array, "Prefixes for command line arguments indicating paths") do |l|
         OPTIONS[:args_path_prefixes] = l
     end
+
+    o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on") do |l|
+        OPTIONS[:min_api_level] = l
+    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -186,6 +190,7 @@ KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
 SYMDIRS = OPTIONS[:symdirs]
 ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
+MIN_API_LEVEL = OPTIONS[:min_api_level]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -386,6 +391,8 @@ def adb_devices
             next if apilevel == 0
             next if apilevel <= 15 && PIE
             next if apilevel >= 21 && !PIE
+
+            next if !MIN_API_LEVEL.nil? && apilevel < MIN_API_LEVEL
 
             devabilist = []
             devabilist += props['ro.product.cpu.abilist'].split(',') rescue []
@@ -884,6 +891,14 @@ begin
     CMDS.each do |cmd|
         cmdnum += 1
 
+        if cmd.size > 1 && cmd.last =~ /^ADBRUNNER-OPTIONS:/
+            cmdoptions = JSON.parse(cmd.pop.sub(/^ADBRUNNER-OPTIONS:/, '')) rescue {}
+        else
+            cmdoptions = {}
+        end
+
+        cmdminapilevel = cmdoptions['min-api-level'].to_i rescue 0
+
         log "EXEC: #{cmd.join(' ')}"
 
         exe = cmd.shift
@@ -899,6 +914,7 @@ begin
 
             rc = nil
             devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
+                next if cmdminapilevel != 0 && d[:apilevel] < cmdminapilevel
                 begin
                     rc = nil
                     paused = false if paused

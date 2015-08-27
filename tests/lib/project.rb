@@ -402,7 +402,13 @@ class Project
         FileUtils.mkdir_p File.dirname(cmdslist)
         File.open(cmdslist, "w") do |f|
             executables.each do |e|
-                f.puts e
+                eopts = @properties['adbrunner-options'][File.basename(e)] rescue nil?
+                eopts = {} unless eopts.is_a?(Hash)
+
+                line = e.dup
+                line << " ADBRUNNER-OPTIONS:#{eopts.to_json}" unless eopts.empty?
+
+                f.puts line
             end
         end
 
@@ -439,8 +445,12 @@ class Project
         run_cmd args.join(' '), env: env, errmsg: "Test #{name} failed", mroprefix: mroprefix do |obj|
             case obj["event"]
             when "skip"
+                num = obj["number"].to_i
+                total = obj["total"].to_i
+                w = total.to_s.length
+                cnt = "%#{w}d/%#{w}d" % [num, total]
                 # Log only first SKIP event
-                log_notice "SKP #{logprefix}: #{obj["reason"]}" if obj["reason"] != skipreason
+                log_notice "SKP #{logprefix} [#{cnt}] #{obj["reason"]}" #if obj["reason"] != skipreason
             when "run"
                 num = obj["number"].to_i
                 total = obj["total"].to_i
