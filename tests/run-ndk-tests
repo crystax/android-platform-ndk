@@ -125,6 +125,10 @@ optparser = OptionParser.new do |o|
         options[:stimeout] = t
     end
 
+    o.on("--[no-]pie", "Run only PIE-enabled (or only PIE-disabled) tests") do |p|
+        options[:pie] = p
+    end
+
     o.on("--full", "Run all tests, including those marked as 'long'") do |f|
         options[:full_testing] = f
     end

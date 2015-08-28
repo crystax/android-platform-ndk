@@ -495,12 +495,15 @@ class Project
         fails = 0
 
         pies = []
-        if @type == 'device'
-            pies << false if @options[:toolchain_version].to_s !~ /^clang/
-            pies << true
-        else
+        if @options[:pie].nil?
             pies << false
+            pies << true if @type == 'device'
+        else
+            pies << @options[:pie]
         end
+
+        # clang don't support non-PIE binaries
+        pies.select! { |p| p } if @options[:toolchain_version].to_s =~ /^clang/
 
         pies.each do |pie|
             begin
