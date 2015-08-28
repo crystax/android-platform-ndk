@@ -559,7 +559,7 @@ create_unwind_library ()
 
 # Only create libgccunwind.a when building default version of gcc
 DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
-if [ "$HOST_OS" = "linux" -a "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
+if [ "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
     run create_unwind_library $ARCH $NDK_DIR
 fi
 
@@ -707,16 +707,18 @@ if [ "$PACKAGE_DIR" ]; then
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SUBDIR"
     cache_package "$PACKAGE_DIR" "$ARCHIVE"
     # package libgccunwind.a
-    ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
-    for ABI in $ABIS; do
-        FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
-        PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
-        PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI libgccunwind binaries!"
-        dump "Packaging: $PACKAGE"
-        cache_package "$PACKAGE_DIR" "$PACKAGE_FILE_NAME"
-    done
+    if [ "$GCC_VERSION" = "$DEFAULT_GCC_VERSION" ]; then
+        ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
+        for ABI in $ABIS; do
+            FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
+            PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
+            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+            fail_panic "Could not package $ABI libgccunwind binaries!"
+            dump "Packaging: $PACKAGE"
+            cache_package "$PACKAGE_DIR" "$PACKAGE_FILE_NAME"
+        done
+    fi
 fi
 
 if [ -z "$OPTION_BUILD_OUT" ] ; then
