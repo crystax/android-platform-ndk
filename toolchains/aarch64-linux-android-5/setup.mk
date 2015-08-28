@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2014 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the x86 gcc-5.1
+# this file is used to prepare the NDK to build with the arm64 gcc-5
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,35 +23,34 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := x86-5.1
-TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/i686-linux-android-
+TOOLCHAIN_NAME   := aarch64-linux-android-5
+TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/aarch64-linux-android-
 
 TARGET_CFLAGS := \
+    -fpic \
     -ffunction-sections \
     -funwind-tables \
+    -fstack-protector-strong \
     -no-canonical-prefixes
 
 TARGET_C_INCLUDES := \
     $(SYSROOT_INC)/usr/include
 
-# Add and LDFLAGS for the target here
 TARGET_LDFLAGS := -no-canonical-prefixes
 
-TARGET_CFLAGS += -fstack-protector-strong
+TARGET_arm64_release_CFLAGS := -O2 \
+                               -g \
+                               -DNDEBUG \
+                               -fomit-frame-pointer \
+                               -fstrict-aliasing    \
+                               -funswitch-loops     \
+                               -finline-limit=300
 
-TARGET_x86_release_CFLAGS := -O2 \
-                             -g \
-                             -DNDEBUG \
-                             -fomit-frame-pointer \
-                             -fstrict-aliasing    \
-                             -funswitch-loops     \
-                             -finline-limit=300
-
-TARGET_x86_debug_CFLAGS := $(TARGET_x86_release_CFLAGS) \
-                           -O0 \
-                           -UNDEBUG \
-                           -fno-omit-frame-pointer \
-                           -fno-strict-aliasing
+TARGET_arm64_debug_CFLAGS := $(TARGET_arm64_release_CFLAGS) \
+                             -O0 \
+                             -UNDEBUG \
+                             -fno-omit-frame-pointer \
+                             -fno-strict-aliasing
 
 # This function will be called to determine the target CFLAGS used to build
 # a C or Assembler source file, based on its tags.
@@ -59,9 +58,5 @@ TARGET_x86_debug_CFLAGS := $(TARGET_x86_release_CFLAGS) \
 TARGET-process-src-files-tags = \
 $(eval __debug_sources := $(call get-src-files-with-tag,debug)) \
 $(eval __release_sources := $(call get-src-files-without-tag,debug)) \
-$(call set-src-files-target-cflags, $(__debug_sources), $(TARGET_x86_debug_CFLAGS)) \
-$(call set-src-files-target-cflags, $(__release_sources),$(TARGET_x86_release_CFLAGS)) \
-
-# The ABI-specific sub-directory that the SDK tools recognize for
-# this toolchain's generated binaries
-TARGET_ABI_SUBDIR := x86
+$(call set-src-files-target-cflags, $(__debug_sources), $(TARGET_arm64_debug_CFLAGS)) \
+$(call set-src-files-target-cflags, $(__release_sources),$(TARGET_arm64_release_CFLAGS)) \

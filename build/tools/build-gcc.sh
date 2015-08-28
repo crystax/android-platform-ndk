@@ -187,8 +187,8 @@ fi
 
 if [ -z "$EXPLICIT_CLOOG_VERSION" ]; then
     case $TOOLCHAIN in
-        *-5.1)
-            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION_FOR_GCC51
+        *-5)
+            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION_FOR_GCC5
             ;;
         *)
             CLOOG_VERSION=$DEFAULT_CLOOG_VERSION

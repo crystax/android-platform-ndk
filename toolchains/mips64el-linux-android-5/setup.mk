@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the mips64el gcc-5.1
+# this file is used to prepare the NDK to build with the mips64el gcc-5
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build

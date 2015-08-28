@@ -13,7 +13,7 @@
 # limitations under the License.
 #
 
-# this file is used to prepare the NDK to build with the x86_64 gcc-5.1
+# this file is used to prepare the NDK to build with the x86_64 gcc-5
 # toolchain any number of source files
 #
 # its purpose is to define (or re-define) templates used to build
@@ -23,7 +23,7 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := x86_64-5.1
+TOOLCHAIN_NAME   := x86_64-5
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/x86_64-linux-android-
 
 TARGET_CFLAGS := \

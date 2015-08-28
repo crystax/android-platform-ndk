@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-# config file for the x86 gcc-5.1 toolchain for the Android NDK
+# config file for the x86_64 gcc-5 toolchain for the Android NDK
 # the real meat is in the setup.mk file adjacent to this one
 #
-TOOLCHAIN_ARCH := x86
-TOOLCHAIN_ABIS := x86
+TOOLCHAIN_ARCH := x86_64
+TOOLCHAIN_ABIS := x86_64
