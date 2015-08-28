@@ -30,22 +30,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <errno.h>
 
-#ifndef CRYSTAX_DEBUG_SINK
-#define CRYSTAX_DEBUG_SINK CRYSTAX_SINK_STDOUT
+#define CRYSTAX_LOG_SINK_STDOUT 0
+#define CRYSTAX_LOG_SINK_LOGCAT 1
+
+#ifndef CRYSTAX_LOG_SINK
+#define CRYSTAX_LOG_SINK CRYSTAX_LOG_SINK_STDOUT
 #endif
 
-#define CRYSTAX_SINK_STDOUT 0
-#define CRYSTAX_SINK_LOGCAT 1
-
-#ifndef CRYSTAX_DEBUG_SINK
-#error  CRYSTAX_DEBUG_SINK not defined
+#ifndef CRYSTAX_LOG_SINK
+#error  CRYSTAX_LOG_SINK not defined
 #endif
 
 #include <crystax/private.h>
 #include <crystax/atomic.h>
 
-#if CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_LOGCAT
+#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_LOGCAT
 
 static int (*func_android_log_vprint)(int, const char *, const char *, va_list) = NULL;
 
@@ -69,53 +70,63 @@ static int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list
     }
     return func_android_log_vprint(prio, tag, fmt, ap);
 }
-#endif /* CRYSTAX_SINK_LOGCAT */
+#endif /* CRYSTAX_LOG_SINK_LOGCAT */
 
 const char *__crystax_log_short_file(const char *f)
 {
     int const MAXLEN = 25;
-    int flen = strlen(f);
+    const char *s;
 
-    if (flen < MAXLEN)
+    for (s = f; *s != '\0'; ++s);
+
+    if ((s - f) < MAXLEN)
         return f;
 
-    return f + (flen - MAXLEN);
+    return s - MAXLEN;
 }
 
 int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
 {
     int rc;
     va_list ap;
+    int serrno;
 
-#if defined(CRYSTAX_DEBUG_SINK) && CRYSTAX_DEBUG_SINK != CRYSTAX_SINK_LOGCAT
-    char buf[4096];
-    char *newfmt;
-    int newfmtlen;
+    serrno = errno;
 
-    newfmtlen = strlen(tag) + 2 + strlen(fmt) + 2;
-    if (newfmtlen > (int)sizeof(buf))
+#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
+    char *newfmtfmt = "%s: %s\n";
+    rc = snprintf(NULL, 0, newfmtfmt, tag, fmt);
+    if (rc < 0)
     {
-        fprintf(stderr, "CRYSTAX_PANI: format string too long: %d\n", newfmtlen);
+        fprintf(stderr, "CRYSTAX_PANI: can't create new format string\n");
         abort();
     }
-
-    newfmt = buf;
-    newfmt[0] = '\0';
-    strcat(newfmt, tag);
-    strcat(newfmt, ": ");
-    strcat(newfmt, fmt);
-    strcat(newfmt, "\n");
+    if (rc > 4096)
+    {
+        fprintf(stderr, "CRYSTAX_PANI: format string too long: \"%s\"\n", fmt);
+        abort();
+    }
+    char newfmt[rc + 1];
+    rc = snprintf(newfmt, sizeof(newfmt), newfmtfmt, tag, fmt);
+    if (rc < 0)
+    {
+        fprintf(stderr, "CRYSTAX_PANI: can't create new format string\n");
+        abort();
+    }
 #endif
 
     va_start(ap, fmt);
-#if defined(CRYSTAX_DEBUG_SINK) && CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_LOGCAT
+#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_LOGCAT
     rc = __crystax_vlogcat(prio, tag, fmt, ap);
-#elif defined(CRYSTAX_DEBUG_SINK) && CRYSTAX_DEBUG_SINK == CRYSTAX_SINK_STDOUT
+#elif CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
     rc = vfprintf(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr, newfmt, ap);
 #else
-#error Unknown debug sink
+#error Unknown log sink
 #endif
 
     va_end(ap);
+
+    errno = serrno;
+
     return rc;
 }
