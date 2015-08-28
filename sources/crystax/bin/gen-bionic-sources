@@ -152,11 +152,7 @@ end
 g = Generator.new
 
 g.fixup :redefine_fcntl do |f|
-    f.puts "#define fcntl __bionic_fcntl"
-end
-
-g.fixup :redefine_fcntl64 do |f|
-    f.puts "#define __fcntl64 __bionic_fcntl"
+    f.puts "#define fcntl __fcntl64"
 end
 
 # public headers
@@ -197,11 +193,11 @@ g.add "libc/arch-x86/syscalls/fallocate64.S"
 g.add "libc/arch-x86_64/syscalls/fallocate.S"
 
 # fcntl/__fcntl64
-g.add "libc/arch-arm/syscalls/__fcntl64.S",  fixup: "redefine_fcntl64"
+g.add "libc/arch-arm/syscalls/__fcntl64.S"
 g.add "libc/arch-arm64/syscalls/fcntl.S",    fixup: "redefine_fcntl"
-g.add "libc/arch-mips/syscalls/__fcntl64.S", fixup: "redefine_fcntl64"
+g.add "libc/arch-mips/syscalls/__fcntl64.S"
 g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
-g.add "libc/arch-x86/syscalls/__fcntl64.S",  fixup: "redefine_fcntl64"
+g.add "libc/arch-x86/syscalls/__fcntl64.S"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
 # eventfd

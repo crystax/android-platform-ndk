@@ -34,35 +34,50 @@
 #include <stdlib.h>
 #include <crystax/log.h>
 
-extern int __bionic_fcntl(int fd, int command, ...);
+extern int __fcntl64(int fd, int command, ...);
+
+static int dupfd_cloexec(int fd, int fd2)
+{
+    int rc = __fcntl64(fd, F_DUPFD, fd2);
+    if (rc < 0) return -1;
+
+    if (__fcntl64(rc, F_SETFD, FD_CLOEXEC) < 0)
+    {
+        int serrno = errno;
+        close(rc);
+        errno = serrno;
+        return -1;
+    }
+
+    return rc;
+}
+
+static int dup2fd_cloexec(int fd, int fd2)
+{
+    int rc = dup2(fd, fd2);
+    if (rc < 0) return -1;
+
+    if (__fcntl64(rc, F_SETFD, FD_CLOEXEC) < 0)
+    {
+        int serrno = errno;
+        close(rc);
+        errno = serrno;
+        return -1;
+    }
+
+    return rc;
+}
 
 static int crystax_fcntl(int fd, int command, va_list args)
 {
-    int rc;
-    int fd2;
-
     switch (command)
     {
         case F_DUPFD_CLOEXEC:
-            rc = __bionic_fcntl(fd, F_DUPFD);
-            if (rc < 0) return rc;
-            fd2 = rc;
-            rc = __bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
-            if (rc < 0)
-                close(fd2);
-            return rc;
+            return dupfd_cloexec(fd, va_arg(args, int));
         case F_DUP2FD:
+            return dup2(fd, va_arg(args, int));
         case F_DUP2FD_CLOEXEC:
-            fd2 = va_arg(args, int);
-            rc = dup2(fd, fd2);
-            if (rc < 0) return rc;
-            if (command == F_DUP2FD_CLOEXEC)
-            {
-                rc = __bionic_fcntl(fd, F_SETFD, FD_CLOEXEC);
-                if (rc < 0)
-                    close(fd2);
-            }
-            return rc;
+            return dup2fd_cloexec(fd, va_arg(args, int));
         default:
             DBG("Unknown crystax_fcntl command: %d", command);
             errno = EINVAL;
@@ -77,25 +92,23 @@ int fcntl(int fd, int command, ...)
     int n;
     struct flock *flck;
 
-    if (command & __CRYSTAX_FCNTL_BASE)
-    {
-        va_start(args, command);
-        rc = crystax_fcntl(fd, command, args);
-        va_end(args);
-        return rc;
-    }
-
     switch (command)
     {
-        case F_DUPFD:
         case F_DUPFD_CLOEXEC:
+        case F_DUP2FD:
+        case F_DUP2FD_CLOEXEC:
+            va_start(args, command);
+            rc = crystax_fcntl(fd, command, args);
+            va_end(args);
+            return rc;
+        case F_DUPFD:
         case F_GETFD:
         case F_GETFL:
         case F_GETLEASE:
         case F_GETOWN:
         case F_GETPIPE_SZ:
         case F_GETSIG:
-            return __bionic_fcntl(fd, command);
+            return __fcntl64(fd, command);
         case F_NOTIFY:
         case F_SETFD:
         case F_SETFL:
@@ -105,7 +118,7 @@ int fcntl(int fd, int command, ...)
         case F_SETSIG:
             va_start(args, command);
             n = va_arg(args, int);
-            rc = __bionic_fcntl(fd, command, n);
+            rc = __fcntl64(fd, command, n);
             va_end(args);
             return rc;
         case F_GETLK:
@@ -118,7 +131,7 @@ int fcntl(int fd, int command, ...)
 #endif
             va_start(args, command);
             flck = va_arg(args, struct flock *);
-            rc = __bionic_fcntl(fd, command, flck);
+            rc = __fcntl64(fd, command, flck);
             va_end(args);
             return rc;
         default:

@@ -35,20 +35,23 @@
 
 #define __CRYSTAX_FCNTL_BASE 0x80000000
 
-#ifndef F_DUPFD_CLOEXEC
-#define F_DUPFD_CLOEXEC  ((int)(__CRYSTAX_FCNTL_BASE | 0x0001))
-#endif
-
 #define F_DUP2FD         ((int)(__CRYSTAX_FCNTL_BASE | 0x0002))
 #define F_DUP2FD_CLOEXEC ((int)(__CRYSTAX_FCNTL_BASE | 0x0003))
 
-#ifndef F_GETPIPE_SZ
-#define F_GETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0004))
+#ifdef F_DUPFD_CLOEXEC
+#undef F_DUPFD_CLOEXEC
 #endif
+#define F_DUPFD_CLOEXEC (F_LINUX_SPECIFIC_BASE + 6)
 
-#ifndef F_SETPIPE_SZ
-#define F_SETPIPE_SZ     ((int)(__CRYSTAX_FCNTL_BASE | 0x0005))
+#ifdef F_GETPIPE_SZ
+#undef F_GETPIPE_SZ
 #endif
+#define F_GETPIPE_SZ (F_LINUX_SPECIFIC_BASE + 8)
+
+#ifdef F_SETPIPE_SZ
+#undef F_SETPIPE_SZ
+#endif
+#define F_SETPIPE_SZ (F_LINUX_SPECIFIC_BASE + 7)
 
 #define POSIX_FADV_NORMAL     0
 #define POSIX_FADV_RANDOM     1
