@@ -144,9 +144,7 @@ for PLATFORM in $PLATFORMS; do
     echo "================================================================="
     echo ""
 
-    #echo "APP_ABI := $(abis_for_platform $PLATFORM)" >jni/Application.mk || exit 1
-
-    run $NDK/ndk-build -C $MYDIR -B "$@" APP_PLATFORM=$PLATFORM APP_ABI=$(abis_for_platform $PLATFORM) V=1
+    run $NDK/ndk-build -C $MYDIR -B "$@" APP_PLATFORM=$PLATFORM APP_ABI=$(abis_for_platform $PLATFORM) APP_OBJC=none V=1
     if [ $? -ne 0 ]; then
         echo "ERROR: Can't compile CrystaX headers for $PLATFORM alone" 1>&2
         exit 1
