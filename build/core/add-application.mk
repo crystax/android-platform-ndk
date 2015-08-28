@@ -290,7 +290,7 @@ endif
 $(call ndk_log,Using APP_LIBCRYSTAX: $(APP_LIBCRYSTAX))
 
 ifndef APP_OBJC
-    APP_OBJC := $(DEFAULT_LIBOBJC)_shared
+    APP_OBJC := $(DEFAULT_LIBOBJC)$(if $(filter gnuobjc,$(DEFAULT_LIBOBJC)),_shared)
 else
     APP_OBJC := $(strip $(APP_OBJC))
     $(call ndk-objc-check,$(APP_OBJC))

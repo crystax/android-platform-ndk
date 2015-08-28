@@ -1,4 +1,0 @@
-{
-    "broken-toolchain-type": "gcc",
-    "onhost-disable-cc": ["gcc4.8", "gcc4.9"]
-}
