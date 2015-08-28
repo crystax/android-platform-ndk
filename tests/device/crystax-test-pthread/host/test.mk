@@ -8,5 +8,8 @@ LAUNCHER := $(LAUNCHERBIN) 240
 .PHONY: build-launcher
 build-launcher: $(LAUNCHERBIN)
 
-$(LAUNCHERBIN): $(OPENPTS)/t0.c
+$(dir $(LAUNCHERBIN)):
+	mkdir -p $@
+
+$(LAUNCHERBIN): $(OPENPTS)/t0.c | $(dir $(LAUNCHERBIN))
 	$(CC) -O2 -o $@ $<

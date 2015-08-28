@@ -1,13 +1,5 @@
 MYDIR := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 
-ifneq (,$(shell uname -s | grep -iq darwin && echo yes))
-
-.PHONY: test
-test:
-	@echo "These tests are disabled on this system"
-
-else
-
 include $(MYDIR)/../common.mk
 
 CFLAGS += -O2 -D_POSIX_C_SOURCE=200112L
@@ -35,5 +27,3 @@ endef
 $(foreach __t,$(CTESTS),\
     $(eval $(call add-test-rule,$(__t)))\
 )
-
-endif

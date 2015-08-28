@@ -8,22 +8,24 @@ ifeq (,$(strip $(OPENPTS)))
 $(error Can not locate OpenPTS sources!)
 endif
 
-TSUITES := $(addprefix conformance/interfaces/, \
-	pthread_attr_destroy                        \
-	pthread_attr_getdetachstate                 \
-	pthread_attr_getinheritsched                \
-	pthread_attr_getschedparam                  \
-	pthread_attr_getschedpolicy                 \
-	pthread_attr_getscope                       \
-	pthread_attr_getstack                       \
-	pthread_attr_getstackaddr                   \
-	pthread_attr_getstacksize                   \
-	pthread_attr_init                           \
-	pthread_attr_setdetachstate                 \
-	pthread_attr_setstack                       \
-	pthread_attr_setstackaddr                   \
-	pthread_attr_setstacksize                   \
+CTSUITES := $(strip              \
+	pthread_attr_destroy         \
+	pthread_attr_getdetachstate  \
+	pthread_attr_getinheritsched \
+	pthread_attr_getschedparam   \
+	pthread_attr_getschedpolicy  \
+	pthread_attr_getscope        \
+	pthread_attr_getstack        \
+	pthread_attr_getstackaddr    \
+	pthread_attr_getstacksize    \
+	pthread_attr_init            \
+	pthread_attr_setdetachstate  \
+	pthread_attr_setstack        \
+	pthread_attr_setstackaddr    \
+	pthread_attr_setstacksize    \
 )
+
+TSUITES := $(addprefix conformance/interfaces/,$(CTSUITES))
 
 FILES := $(sort $(foreach __t,$(TSUITES),\
     $(foreach __f,\
