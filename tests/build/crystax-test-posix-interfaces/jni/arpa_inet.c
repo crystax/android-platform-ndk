@@ -41,7 +41,7 @@ void arpa_inet_check_functions()
 {
     uint16_t v16;
     uint32_t v32;
-    struct in_addr inaddr;
+    struct in_addr inaddr = {0};
 
     v16 = htons(0);
     v16 = ntohs(0);

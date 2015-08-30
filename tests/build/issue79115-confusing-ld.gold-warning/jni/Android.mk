@@ -7,9 +7,6 @@ LOCAL_DISABLE_NO_EXECUTE := true
 LOCAL_LDFLAGS += -Wl,--fatal-warnings
 
 # Disable integrated assembler because -Wa,--execstack isn't supported
-LOCAL_CFLAGS += $(strip \
-    $(if $(filter clang3.5,$(NDK_TOOLCHAIN_VERSION)),-no-integrated-as)\
-    $(if $(filter clang3.6,$(NDK_TOOLCHAIN_VERSION)),-fno-integrated-as)\
-)
+LOCAL_CFLAGS += $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),-fno-integrated-as)
 
 include $(BUILD_EXECUTABLE)
