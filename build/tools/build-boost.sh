@@ -62,20 +62,15 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 BOOST_VERSION=
 register_var_option "--version=<ver>" BOOST_VERSION "Boost version to build"
 
-TOOLCHAIN_VERSION=4.9
-#register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
-
 ICU_VERSION=
 register_var_option "--with-icu=<version>" ICU_VERSION "ICU version to build with [without ICU]"
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 if [ -z "$BOOST_VERSION" ]; then
-    echo "ERROR: Please specify Boost version"
+    echo "ERROR: Please specify Boost version" 1>&2
     exit 1
 fi
 
@@ -131,18 +126,25 @@ mktool()
 # $1: ABI
 # $2: build directory
 # $3: build type: "static" or "shared"
+# $4: C++ Standard Library implementation
 build_boost_for_abi ()
 {
     local ABI=$1
     local BUILDDIR="$2"
     local TYPE="$3"
+    local LIBSTDCXX="$4"
 
     local V
     if [ "$VERBOSE2" = "yes" ]; then
         V=1
     fi
 
-    dump "Building Boost $BOOST_VERSION $TYPE $ABI libraries"
+    local LVERSION="$BOOST_VERSION"
+    if [ -n "$ICU_VERSION" ]; then
+        LVERSION="$LVERSION (with ICU $ICU_VERSION)"
+    fi
+
+    dump "Building Boost $LVERSION $TYPE $ABI libraries (C++ stdlib: $LIBSTDCXX)"
 
     local APILEVEL=9
     if [ ${ABI%%64*} != ${ABI} ]; then
@@ -230,6 +232,15 @@ build_boost_for_abi ()
             ;;
     esac
 
+    local TOOLCHAIN_VERSION
+    case $LIBSTDCXX in
+        gnu-*)
+            TOOLCHAIN_VERSION=$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
+            ;;
+        *)
+            TOOLCHAIN_VERSION=$DEFAULT_GCC_VERSION
+    esac
+
     local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
 
     local SRCDIR=$BUILDDIR/src
@@ -272,11 +283,29 @@ build_boost_for_abi ()
 
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
     local LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
-    local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$TOOLCHAIN_VERSION
     local ICU=""
     if [ -n "$ICU_VERSION" ]; then
         ICU=$NDK_DIR/sources/icu/$ICU_VERSION
     fi
+
+    local LIBSTDCXX_CFLAGS LIBSTDCXX_LDFLAGS LIBSTDCXX_LDLIBS
+    case $LIBSTDCXX in
+        gnu-*)
+            local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
+            LIBSTDCXX_CFLAGS="-I$GNULIBCXX/include -I$GNULIBCXX/libs/$ABI/include"
+            LIBSTDCXX_LDFLAGS="-L$GNULIBCXX/libs/$ABI"
+            LIBSTDCXX_LDLIBS="-lgnustl_${TYPE}"
+            ;;
+        llvm-*)
+            local LLVMLIBCXX=$NDK_DIR/sources/cxx-stl/llvm-libc++
+            LIBSTDCXX_CFLAGS="-I$LLVMLIBCXX/libcxx/include"
+            LIBSTDCXX_LDFLAGS="-L$LLVMLIBCXX/libs/$ABI"
+            LIBSTDCXX_LDLIBS="-lc++_${TYPE}"
+            ;;
+        *)
+            echo "ERROR: Unknown C++ Standard Library: '$LIBSTDCXX'" 1>&2
+            exit 1
+    esac
 
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
@@ -318,20 +347,19 @@ if [ "x\$LINKER" = "xyes" ]; then
         FLAGS="\$FLAGS -L$ICU/libs/$ABI"
     fi
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
-    FLAGS="\$FLAGS -L$GNULIBCXX/libs/$ABI"
+    FLAGS="\$FLAGS $LIBSTDCXX_LDFLAGS"
 else
     if [ -n "$ICU" ]; then
         FLAGS="\$FLAGS -I$ICU/include"
     fi
-    FLAGS="\$FLAGS -I$GNULIBCXX/include"
-    FLAGS="\$FLAGS -I$GNULIBCXX/libs/$ABI/include"
+    FLAGS="\$FLAGS $LIBSTDCXX_CFLAGS"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
     FLAGS="\$FLAGS -Wno-long-long"
 fi
 
 PARAMS="\$FLAGS \$PARAMS"
 if [ "x\$LINKER" = "xyes" ]; then
-    PARAMS="\$PARAMS -lgnustl_${TYPE}"
+    PARAMS="\$PARAMS $LIBSTDCXX_LDLIBS"
 fi
 
 exec $TCPATH/bin/$TCPREFIX-$TOOL \$PARAMS
@@ -430,8 +458,10 @@ EOF
         export BOOST_HEADERS_INSTALLED
     fi
 
+    local INSTALLDIR=$BOOST_DSTDIR/libs/$ABI/$LIBSTDCXX
+
     log "Install Boost $BOOST_VERSION $TYPE $ABI libraries into $BOOST_DSTDIR"
-    run mkdir -p $BOOST_DSTDIR/libs/$ABI
+    run mkdir -p $INSTALLDIR
     fail_panic "Couldn't create Boost $BOOST_VERSION target $ABI libraries directory"
 
     local LIBSUFFIX
@@ -440,10 +470,10 @@ EOF
     else
         LIBSUFFIX=a
     fi
-    rm -f $BOOST_DSTDIR/libs/$ABI/lib*.$LIBSUFFIX
+    rm -f $INSTALLDIR/lib*.$LIBSUFFIX
 
     for f in $(find $PREFIX -name "lib*.$LIBSUFFIX" -print); do
-        run cp -pRH $f $BOOST_DSTDIR/libs/$ABI/$(basename $f)
+        run cp -pRH $f $INSTALLDIR/$(basename $f)
         fail_panic "Couldn't install Boost $BOOST_VERSION $ABI $(basename $f) library"
     done
 
@@ -495,8 +525,16 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_boost_for_abi $ABI "$BUILD_DIR/$ABI/shared" "shared"
-        build_boost_for_abi $ABI "$BUILD_DIR/$ABI/static" "static"
+        GNULIBSTDCXX_VERSIONS=$(for e in $(ls -1d $NDK_DIR/sources/cxx-stl/gnu-libstdc++/* 2>/dev/null); do test -d $e && basename $e; done)
+        CXXIMPLS=""
+        for GNULIBSTDCXX_VERSION in $GNULIBSTDCXX_VERSIONS; do
+            CXXIMPLS="$CXXIMPLS gnu-$GNULIBSTDCXX_VERSION"
+        done
+        for CXXIMPL in $CXXIMPLS; do
+            for TYPE in shared static; do
+                build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$TYPE/$CXXIMPL" "$TYPE" "$CXXIMPL"
+            done
+        done
     fi
 done
 
@@ -509,12 +547,6 @@ log "Copying Boost $BOOST_VERSION license"
 run cp -f $BOOST_SRCDIR/LICENSE_1_0.txt $BOOST_DSTDIR/
 fail_panic "Couldn't copy Boost $BOOST_VERSION license"
 
-OBJDUMP=$NDK_DIR/toolchains/arm-linux-androideabi-4.9/prebuilt/$(uname -s | tr '[A-Z]' '[a-z]')-$(uname -m)/bin/arm-linux-androideabi-objdump
-if [ ! -e $OBJDUMP ]; then
-    echo "ERROR: Can't find objdump: $OBJDUMP" 1>&2
-    exit 1
-fi
-
 # Generate Android.mk
 log "Generating $BOOST_DSTDIR/Android.mk"
 {
@@ -523,58 +555,104 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     cat $NDK_DIR/$CRYSTAX_SUBDIR/LICENSE | sed 's,^,# ,' | sed 's,^#\s*$,#,'
     echo ""
     echo 'LOCAL_PATH := $(call my-dir)'
+    echo ''
+    echo 'define boost-libstdcxx-subdir'
+    echo '$(strip $(if $(filter c++_%,$(APP_STL)),\'
+    echo '    llvm,\'
+    echo '    gnu\'
+    echo '))-$(strip $(if $(filter c++_%,$(APP_STL)),\'
+    echo '    $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_LLVM_VERSION'),\'
+    echo '    $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_GCC_VERSION',$(NDK_TOOLCHAIN_VERSION))\'
+    echo '))'
+    echo 'endef'
 
-    for suffix in a so; do
-        if [ "$suffix" = "a" ]; then
-            type=static
+    for SUFFIX in a so; do
+        if [ "$SUFFIX" = "a" ]; then
+            LIBTYPE=static
         else
-            type=shared
+            LIBTYPE=shared
         fi
-        find $BOOST_DSTDIR/libs -name "libboost_*.$suffix" -exec basename '{}' \; | \
-            sed "s,^lib\\([^\\.]*\\)\\.${suffix}$,\\1," | sort | uniq | \
-        {
-            while read lib; do
-                echo ''
+        BOOST_ABIS=$(ls -1 $BOOST_DSTDIR/libs)
+        for BOOST_ABI in $BOOST_ABIS; do
+            case $BOOST_ABI in
+                armeabi*)
+                    OBJDUMP=$NDK_DIR/toolchains/arm-linux-androideabi-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/arm-linux-androideabi-objdump
+                    ;;
+                arm64*)
+                    OBJDUMP=$NDK_DIR/toolchains/aarch64-linux-android-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/aarch64-linux-android-objdump
+                    ;;
+                x86)
+                    OBJDUMP=$NDK_DIR/toolchains/x86-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/i686-linux-android-objdump
+                    ;;
+                x86_64)
+                    OBJDUMP=$NDK_DIR/toolchains/x86_64-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/x86_64-linux-android-objdump
+                    ;;
+                mips)
+                    OBJDUMP=$NDK_DIR/toolchains/mipsel-linux-android-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/mipsel-linux-android-objdump
+                    ;;
+                mips64)
+                    OBJDUMP=$NDK_DIR/toolchains/mips64el-linux-android-$DEFAULT_GCC_VERSION/prebuilt/$HOST_TAG/bin/mips64el-linux-android-objdump
+                    ;;
+                *)
+                    echo "ERROR: Unknown ABI: '$BOOST_ABI'" 1>&2
+                    exit 1
+            esac
 
-                DEPS=$($OBJDUMP -p $BOOST_DSTDIR/libs/armeabi-v7a/lib${lib}.so 2>/dev/null | grep "^ *NEEDED\>" | awk '{print $2}' | \
-                    grep -v "^lib\(c\|dl\|crystax\|stdc++\|gnustl_shared\)\.so$" | sed 's,^lib\([^\.]*\)\.so$,\1,')
+            if [ ! -e $OBJDUMP ]; then
+                echo "ERROR: Can't find $BOOST_ABI objdump: $OBJDUMP" 1>&2
+                exit 1
+            fi
 
-                case $lib in
-                    boost_context|boost_coroutine|boost_coroutine2)
-                        if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 58 ]; then
-                            btargets="mips64"
-                        else
-                            btargets="arm64% mips64"
-                        fi
-                        echo "# $lib doesn't support yet these targets"
-                        echo "ifeq (,\$(filter $btargets,\$(TARGET_ARCH_ABI)))"
-                        has_if=yes
-                        ;;
-                    *)
-                        has_if=no
-                esac
+            find $BOOST_DSTDIR/libs/$BOOST_ABI/gnu-$DEFAULT_GCC_VERSION -name "libboost_*.$SUFFIX" -exec basename '{}' \; | \
+                sed "s,^lib\\([^\\.]*\\)\\.${SUFFIX}$,\\1," | sort | uniq | \
+            {
+                while read LIB; do
 
-                echo 'include $(CLEAR_VARS)'
-                echo "LOCAL_MODULE := ${lib}_${type}"
-                echo "LOCAL_SRC_FILES := libs/\$(TARGET_ARCH_ABI)/lib${lib}.${suffix}"
-                echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
-                echo 'ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))'
-                echo 'LOCAL_EXPORT_LDLIBS := -latomic'
-                echo 'endif'
-                for d in $DEPS; do
-                    if [ "$type" = "static" ]; then
-                        echo "LOCAL_STATIC_LIBRARIES += ${d}_static"
-                    else
-                        echo "LOCAL_SHARED_LIBRARIES += ${d}_shared"
+                    DEPS=$($OBJDUMP -p $BOOST_DSTDIR/libs/$BOOST_ABI/gnu-$DEFAULT_GCC_VERSION/lib${LIB}.so 2>/dev/null | grep "^ *NEEDED\>" | awk '{print $2}' | \
+                        grep -v "^lib\(c\|dl\|crystax\|stdc++\|gnustl_shared\|c++_shared\)\.so$" | sed 's,^lib\([^\.]*\)\.so$,\1,')
+
+                    SKIP=no
+                    case $LIB in
+                        boost_context|boost_coroutine|boost_coroutine2)
+                            case $BOOST_ABI in
+                                arm64*)
+                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 57 \) ]; then
+                                        SKIP=yes
+                                    fi
+                                    ;;
+                                mips64)
+                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+                                        SKIP=yes
+                                    fi
+                                    ;;
+                            esac
+                    esac
+
+                    if [ "$SKIP" = "yes" ]; then
+                        continue
                     fi
-                done
-                echo "include \$(PREBUILT_$(echo $type | tr '[a-z]' '[A-Z]')_LIBRARY)"
 
-                if [ "$has_if" = "yes" ]; then
+                    echo ''
+                    echo 'ifneq (,$(filter '$BOOST_ABI',$(TARGET_ARCH_ABI)))'
+                    echo 'include $(CLEAR_VARS)'
+                    echo 'LOCAL_MODULE := '$LIB'_'$LIBTYPE
+                    echo 'LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/$(call boost-libstdcxx-subdir)/lib'$LIB'.'$SUFFIX
+                    echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
+                    echo 'ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))'
+                    echo 'LOCAL_EXPORT_LDLIBS := -latomic'
                     echo 'endif'
-                fi
-            done
-        }
+                    for d in $DEPS; do
+                        if [ "$LIBTYPE" = "static" ]; then
+                            echo "LOCAL_STATIC_LIBRARIES += ${d}_static"
+                        else
+                            echo "LOCAL_SHARED_LIBRARIES += ${d}_shared"
+                        fi
+                    done
+                    echo 'include $(PREBUILT_'$(echo $LIBTYPE | tr '[a-z]' '[A-Z]')'_LIBRARY)'
+                    echo 'endif'
+                done
+            }
+        done
     done
 
     if [ -n "$ICU_VERSION" ]; then

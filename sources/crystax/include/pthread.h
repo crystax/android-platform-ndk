@@ -32,6 +32,7 @@
 
 #include <crystax/id.h>
 #include <sys/cdefs.h>
+#include <sys/types.h>
 
 #define pthread_attr_getscope __crystax_disabled_pthread_attr_getscope
 #include <crystax/google/pthread.h>
@@ -55,6 +56,26 @@
 
 #ifndef PTHREAD_MUTEX_RECURSIVE
 #define PTHREAD_MUTEX_RECURSIVE PTHREAD_MUTEX_RECURSIVE
+#endif
+
+#ifdef PTHREAD_MUTEX_INITIALIZER
+#undef PTHREAD_MUTEX_INITIALIZER
+#define PTHREAD_MUTEX_INITIALIZER { { ((PTHREAD_MUTEX_NORMAL & 3) << 14) } }
+#endif
+
+#ifdef PTHREAD_RECURSIVE_MUTEX_INITIALIZER
+#undef PTHREAD_RECURSIVE_MUTEX_INITIALIZER
+#define PTHREAD_RECURSIVE_MUTEX_INITIALIZER { { ((PTHREAD_MUTEX_RECURSIVE & 3) << 14) } }
+#endif
+
+#ifdef PTHREAD_ERRORCHECK_MUTEX_INITIALIZER
+#undef PTHREAD_ERRORCHECK_MUTEX_INITIALIZER
+#define PTHREAD_ERRORCHECK_MUTEX_INITIALIZER { { ((PTHREAD_MUTEX_ERRORCHECK & 3) << 14) } }
+#endif
+
+#ifdef PTHREAD_COND_INITIALIZER
+#undef PTHREAD_COND_INITIALIZER
+#define PTHREAD_COND_INITIALIZER { { 0 } }
 #endif
 
 __BEGIN_DECLS

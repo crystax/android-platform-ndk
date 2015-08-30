@@ -67,7 +67,12 @@ MPC_VERSION=$DEFAULT_MPC_VERSION
 register_var_option "--mpc-version=<version>" MPC_VERSION "Specify mpc version"
 
 CLOOG_VERSION=$DEFAULT_CLOOG_VERSION
-register_var_option "--cloog-version=<version>" CLOOG_VERSION "Specify cloog version"
+EXPLICIT_CLOOG_VERSION=
+register_option "--cloog-version=<version>" do_cloog_version "Specify cloog version" "$CLOOG_VERSION"
+do_cloog_version() {
+    CLOOG_VERSION=$1
+    EXPLICIT_CLOOG_VERSION=true
+}
 
 ISL_VERSION=$DEFAULT_ISL_VERSION
 register_var_option "--isl-version=<version>" ISL_VERSION "Specify ISL version"
@@ -178,6 +183,17 @@ if [ ! -d $SRC_DIR/gdb/gdb-$GDB_VERSION ] ; then
     echo "ERROR: Missing gdb sources: $SRC_DIR/gdb/gdb-$GDB_VERSION"
     echo "       Use --gdb-version=<version> to specify alternative."
     exit 1
+fi
+
+if [ -z "$EXPLICIT_CLOOG_VERSION" ]; then
+    case $TOOLCHAIN in
+        *-5)
+            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION_FOR_GCC5
+            ;;
+        *)
+            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION
+    esac
+    dump "Auto-config: --cloog-version=$CLOOG_VERSION"
 fi
 
 if [ -z "$EXPLICIT_BINUTILS_VERSION" ]; then

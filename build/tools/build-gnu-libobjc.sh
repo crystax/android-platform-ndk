@@ -279,34 +279,30 @@ for VERSION in $GCC_VERSION_LIST; do
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     for ABI in $ABIS; do
-        if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
-            dump "Skipping building $ABI and $VERSION"
-        else
-            DO_BUILD_PACKAGE="yes"
-            if [ -n "$PACKAGE_DIR" ]; then
-                PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
-                echo "Look for: $PACKAGE_NAME"
-                try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
-                if [ $? = 0 ]; then
-                    DO_BUILD_PACKAGE="no"
-                    if [ "$ABI" == "armeabi" ]; then
-                        # todo zuav: check for absent packages and
-                        # rebuild all armeabi if v7a or v7a-hard packages not found
-                        try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a.tar.bz2" no_exit
-                        try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a-hard.tar.bz2" no_exit
-                    fi
-                else
-                    BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
-                    BUILT_ABIS="$BUILT_ABIS $ABI"
-                    if [ "$ABI" != "${ABI%%armeabi*}" ]; then
-                        BUILT_ABIS="$BUILT_ABIS armeabi-v7a armeabi-v7a-hard"
-                    fi
+        DO_BUILD_PACKAGE="yes"
+        if [ -n "$PACKAGE_DIR" ]; then
+            PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+            echo "Look for: $PACKAGE_NAME"
+            try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+            if [ $? = 0 ]; then
+                DO_BUILD_PACKAGE="no"
+                if [ "$ABI" == "armeabi" ]; then
+                    # todo zuav: check for absent packages and
+                    # rebuild all armeabi if v7a or v7a-hard packages not found
+                    try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a.tar.bz2" no_exit
+                    try_cached_package "$PACKAGE_DIR" "gnu-libobjc-libs-$VERSION-armeabi-v7a-hard.tar.bz2" no_exit
+                fi
+            else
+                BUILT_GCC_VERSION_LIST="$BUILT_GCC_VERSION_LIST $VERSION"
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+                if [ "$ABI" != "${ABI%%armeabi*}" ]; then
+                    BUILT_ABIS="$BUILT_ABIS armeabi-v7a armeabi-v7a-hard"
                 fi
             fi
-            if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-                build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
-                copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
-            fi
+        fi
+        if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+            build_gnuobjc_for_abi $ABI "$BUILD_DIR" $VERSION
+            copy_gnuobjc_libs $ABI "$BUILD_DIR" $VERSION
         fi
     done
 done

@@ -11,16 +11,12 @@ VERSION=4.9
 
 if [ -n "$NDK_TOOLCHAIN_VERSION" ];  then
     case "$NDK_TOOLCHAIN_VERSION" in
-        4.9*)
-           VERSION=$NDK_TOOLCHAIN_VERSION
-            ;;
         clang*)
            echo "No need to test clang on this issue"
            exit 0
             ;;
         *)
-           echo "ERROR: invalid NDK_TOOLCHAIN_VERSION $NDK_TOOLCHAIN_VERSION"
-           exit 1
+           VERSION=$NDK_TOOLCHAIN_VERSION
     esac
 fi
 
