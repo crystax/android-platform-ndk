@@ -57,12 +57,16 @@ static void test_F_DUPFD(int fd)
 
 static void test_F_DUPFD_CLOEXEC(int fd)
 {
+#if __APPLE__ && !defined(__MAC_10_7)
+    (void)fd;
+#else
     int rc = fcntl(fd, F_DUPFD_CLOEXEC, fd + 1);
     assert(rc >= fd + 1);
 
     assert((fcntl(rc, F_GETFD) & FD_CLOEXEC) == FD_CLOEXEC);
 
     close(rc);
+#endif
 }
 
 static void test_F_DUP2FD(int fd)
