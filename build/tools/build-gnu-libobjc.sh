@@ -321,20 +321,16 @@ if [ -n "$PACKAGE_DIR" ] ; then
         # Then, one package per version/ABI for libraries
         PACKAGE_NAME=""
         for ABI in $BUILT_ABIS; do
-            if [ "$ABI" != "${ABI%%64*}" -a "$VERSION" != "4.9" ]; then
-                dump "Skipping packaging $ABI and $VERSION"
-            else
-                FILES=""
-                for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
-                    FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
-                done
-                PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
-                PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-                dump "Packaging: $PACKAGE"
-                pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-                fail_panic "Could not package $ABI GNU libobjc binaries!"
-                cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
-            fi
+            FILES=""
+            for LIB in libgnuobjc_static.a libgnuobjc_shared.so; do
+                FILES="$FILES $GNUOBJC_SUBDIR/$VERSION/libs/$ABI/$LIB"
+            done
+            PACKAGE_NAME="gnu-libobjc-libs-$VERSION-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+            dump "Packaging: $PACKAGE"
+            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+            fail_panic "Could not package $ABI GNU libobjc binaries!"
+            cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
         done
     done
 fi
