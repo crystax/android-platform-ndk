@@ -496,14 +496,15 @@ class Project
 
         pies = []
         if @options[:pie].nil?
-            pies << false
-            pies << true if @type == 'device'
+            pies << false if @type == 'device'
+            pies << true
         else
             pies << @options[:pie]
         end
 
         # clang don't support non-PIE binaries
         pies.select! { |p| p } if @options[:toolchain_version].to_s =~ /^clang/
+        pies << true if pies.empty?
 
         pies.each do |pie|
             begin
