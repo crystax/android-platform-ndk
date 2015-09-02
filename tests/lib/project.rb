@@ -220,12 +220,11 @@ class Project
         [
             'cc',
             'gcc',
-            'gcc-4.8',
             'gcc-4.9',
+            'gcc-5',
             'clang',
-            'clang-3.4',
-            'clang-3.5',
             'clang-3.6',
+            'clang-3.7',
         ].each do |cc|
             found = false
             ENV['PATH'].split(':').each do |p|
