@@ -118,7 +118,15 @@ for ABI in $(ls -1 libs | sort); do
         exit 1
     fi
 
-    $NM -D libs/$ABI/libtest.so | grep -q "^ *U _ZTIe\>"
+    case $ABI in
+        x86_64)
+            TYPEINFO="_ZTIg"
+            ;;
+        *)
+            TYPEINFO="_ZTIe"
+    esac
+
+    $NM -D libs/$ABI/libtest.so | grep -q "^ *U $TYPEINFO\>"
     if [ $? -ne 0 ]; then
         echo "ERROR: $ABI library don't contain 'typeinfo for long double' reference" 1>&2
         exit 1
