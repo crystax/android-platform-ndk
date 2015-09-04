@@ -373,6 +373,7 @@ run $SRC_DIR/$TOOLCHAIN/llvm/configure \
     --enable-targets=arm,mips,x86,aarch64 \
     --enable-optimized \
     --with-binutils-include=$SRC_DIR/binutils/binutils-$BINUTILS_VERSION/include \
+    --disable-lldb \
     --disable-debugserver \
     $EXTRA_CONFIG_FLAGS
 fail_panic "Couldn't configure llvm toolchain"
