@@ -62,8 +62,6 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 COCOTRON_SRCDIR=$(echo $PARAMETERS | sed 1q)
@@ -95,22 +93,18 @@ build_cocotron_for_abi ()
     local ABI=$1
     local OUTDIR="$2"
 
-    local V
-    if [ "$VERBOSE2" = "yes" ]; then
-        V=1
-    fi
-
     dump "Building $ABI Cocotron"
 
     rm -Rf $OUTDIR
 
     run make -C $COCOTRON_SRCDIR/android -j$NUM_JOBS install \
-        V=$V \
+        V=1 \
         NDK=$NDK_DIR \
         PREFIX=$NDK_DIR/$COCOTRON_SUBDIR/frameworks \
-        OUT=$OUTDIR \
         ABIS=$ABI \
-        CLANG_VERSION=$DEFAULT_LLVM_VERSION \
+        LLVM_VERSION=$DEFAULT_LLVM_VERSION \
+        GCC_VERSION=$DEFAULT_GCC_VERSION \
+        OUT=$OUTDIR \
 
     fail_panic "Couldn't build $ABI Cocotron"
 }
