@@ -64,8 +64,6 @@ register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolc
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 LIBOBJC2_SRCDIR=$(echo $PARAMETERS | sed 1q)
@@ -209,7 +207,7 @@ build_libobjc2_for_abi ()
     SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
 
     if [ "${TOOLCHAIN_VERSION##clang}" != "${TOOLCHAIN_VERSION}" ]; then
-        GCC_VERSION=4.9
+        GCC_VERSION=$DEFAULT_GCC_VERSION
     else
         GCC_VERSION=${TOOLCHAIN_VERSION##gcc}
     fi
@@ -220,7 +218,7 @@ build_libobjc2_for_abi ()
     if [ "${TOOLCHAIN_VERSION##clang}" != "${TOOLCHAIN_VERSION}" ]; then
         LLVM_VERSION=${TOOLCHAIN_VERSION##clang}
         if [ -z "$LLVM_VERSION" ]; then
-            LLVM_VERSION=3.5
+            LLVM_VERSION=$DEFAULT_LLVM_VERSION
         fi
 
         LLVM_DIR=$NDK_DIR/toolchains/llvm-$LLVM_VERSION/prebuilt/$HOST_TAG
@@ -259,22 +257,10 @@ build_libobjc2_for_abi ()
             ;;
     esac
 
-    if [ "${TOOLCHAIN_VERSION##clang}" != "$TOOLCHAIN_VERSION" ]; then
-        CCFLAGS="$CCFLAGS -fintegrated-as"
-    fi
-
-    CCFLAGS="$CCFLAGS -fPIC"
+    CCFLAGS="$CCFLAGS --sysroot=$SYSROOT"
 
     CFLAGS=""
-    CFLAGS="$CFLAGS -g -O2"
-    CFLAGS="$CFLAGS --sysroot=$SYSROOT"
-
-    if [ "${TOOLCHAIN_VERSION##clang}" != "$TOOLCHAIN_VERSION" ]; then
-        CFLAGS="$CFLAGS -Wno-deprecated-objc-isa-usage"
-        CFLAGS="$CFLAGS -Wno-objc-root-class"
-    fi
-
-    CXXFLAGS="$CFLAGS -I$NDK_DIR/sources/cxx-stl/llvm-libc++/libcxx/include"
+    CXXFLAGS="-I$NDK_DIR/sources/cxx-stl/llvm-libc++/libcxx/include"
 
     LDFLAGS=""
     LDFLAGS="$LDFLAGS -nostdlib"
@@ -296,8 +282,8 @@ build_libobjc2_for_abi ()
         CC="$CC $CCFLAGS" \
         CXX="$CXX $CCFLAGS" \
         AR="$AR" \
-        CFLAGS="-std=c99 $CFLAGS" \
-        CXXFLAGS="-std=c++11 $CXXFLAGS" \
+        CFLAGS="$CFLAGS" \
+        CXXFLAGS="$CXXFLAGS" \
         LDFLAGS="$LDFLAGS" \
         SILENT="" \
 
