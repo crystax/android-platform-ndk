@@ -110,6 +110,7 @@ build_cocotron_for_abi ()
         PREFIX=$NDK_DIR/$COCOTRON_SUBDIR/frameworks \
         OUT=$OUTDIR \
         ABIS=$ABI \
+        CLANG_VERSION=$DEFAULT_LLVM_VERSION \
 
     fail_panic "Couldn't build $ABI Cocotron"
 }
@@ -135,7 +136,7 @@ done
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
-        FILES="$COCOTRON_SUBDIR/frameworks"
+        FILES="$COCOTRON_SUBDIR/frameworks/$ABI"
         PACKAGE_NAME="cocotron-$ABI.tar.bz2"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
