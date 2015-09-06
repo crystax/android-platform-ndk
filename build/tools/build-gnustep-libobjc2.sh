@@ -262,11 +262,7 @@ build_libobjc2_for_abi ()
     CFLAGS=""
     CXXFLAGS="-I$NDK_DIR/sources/cxx-stl/llvm-libc++/$DEFAULT_LLVM_VERSION/libcxx/include"
 
-    LDFLAGS=""
-    LDFLAGS="$LDFLAGS -nostdlib"
-    LDFLAGS="$LDFLAGS -fPIC"
-
-    LDFLAGS="$LDFLAGS -L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
+    LDFLAGS="-L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
     if [ "${ABI##armeabi}" != "$ABI" ]; then
         LDFLAGS="$LDFLAGS/thumb"
     fi
