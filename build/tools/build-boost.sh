@@ -65,6 +65,16 @@ register_var_option "--version=<ver>" BOOST_VERSION "Boost version to build"
 ICU_VERSION=
 register_var_option "--with-icu=<version>" ICU_VERSION "ICU version to build with [without ICU]"
 
+STDLIBS=""
+for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+    STDLIBS="$STDLIBS gnu-$VERSION"
+done
+for VERSION in $DEFAULT_LLVM_VERSION_LIST; do
+    STDLIBS="$STDLIBS llvm-$VERSION"
+done
+STDLIBS=$(spaces_to_commas $STDLIBS)
+register_var_option "--stdlibs=<list>" STDLIBS "List of Standard C++ Library implementations to build with"
+
 register_jobs_option
 
 extract_parameters "$@"
@@ -99,6 +109,8 @@ mkdir -p $BOOST_DSTDIR
 fail_panic "Could not create Boost $BOOST_VERSION destination directory: $BOOST_DSTDIR"
 
 ABIS=$(commas_to_spaces $ABIS)
+
+STDLIBS=$(commas_to_spaces $STDLIBS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-boost
@@ -232,16 +244,54 @@ build_boost_for_abi ()
             ;;
     esac
 
-    local TOOLCHAIN_VERSION
-    case $LIBSTDCXX in
-        gnu-*)
-            TOOLCHAIN_VERSION=$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
+    local LLVMTRIPLE
+    case $ABI in
+        armeabi)
+            LLVMTRIPLE="armv5te-none-linux-androideabi"
+            ;;
+        armeabi-v7a*)
+            LLVMTRIPLE="armv7-none-linux-androideabi"
+            ;;
+        arm64-v8a)
+            LLVMTRIPLE="aarch64-none-linux-android"
+            ;;
+        x86)
+            LLVMTRIPLE="i686-none-linux-android"
+            ;;
+        x86_64)
+            LLVMTRIPLE="x86_64-none-linux-android"
+            ;;
+        mips)
+            LLVMTRIPLE="mipsel-none-linux-android"
+            ;;
+        mips64)
+            LLVMTRIPLE="mips64el-none-linux-android"
             ;;
         *)
-            TOOLCHAIN_VERSION=$DEFAULT_GCC_VERSION
+            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
+            exit 1
     esac
 
-    local TCPATH=$NDK_DIR/toolchains/$TCNAME-$TOOLCHAIN_VERSION/prebuilt/$HOST_TAG
+    local GCC_VERSION
+    case $LIBSTDCXX in
+        gnu-*)
+            GCC_VERSION=$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
+            ;;
+        *)
+            GCC_VERSION=$DEFAULT_GCC_VERSION
+    esac
+
+    local LLVM_VERSION
+    case $LIBSTDCXX in
+        llvm-*)
+            LLVM_VERSION=$(expr "$LIBSTDCXX" : "^llvm-\(.*\)$")
+            ;;
+        *)
+            LLVM_VERSION=$DEFAULT_LLVM_VERSION
+    esac
+
+    local GCC_DIR=$NDK_DIR/toolchains/$TCNAME-$GCC_VERSION/prebuilt/$HOST_TAG
+    local LLVM_DIR=$NDK_DIR/toolchains/llvm-$LLVM_VERSION/prebuilt/$HOST_TAG
 
     local SRCDIR=$BUILDDIR/src
     copy_directory $BOOST_SRCDIR $SRCDIR
@@ -270,8 +320,16 @@ build_boost_for_abi ()
     {
         echo "import option ;"
         echo "import feature ;"
-        echo "using gcc : $ARCH : g++ ;"
-        echo "project : default-build <toolset>gcc ;"
+        case $LIBSTDCXX in
+            gnu-*)
+                echo "using gcc : $ARCH : g++ ;"
+                echo "project : default-build <toolset>gcc ;"
+                ;;
+            llvm-*)
+                echo "using clang : $ARCH : clang++ ;"
+                echo "project : default-build <toolset>clang ;"
+                ;;
+        esac
         echo "libraries = ;"
         echo "option.set keep-going : false ;"
     } | cat >project-config.jam
@@ -288,19 +346,29 @@ build_boost_for_abi ()
         ICU=$NDK_DIR/sources/icu/$ICU_VERSION
     fi
 
+    local CXX CXXNAME
     local LIBSTDCXX_CFLAGS LIBSTDCXX_LDFLAGS LIBSTDCXX_LDLIBS
+    local TOOLSET
     case $LIBSTDCXX in
         gnu-*)
+            CXX=$GCC_DIR/bin/$TCPREFIX-g++
+            CXXNAME=g++
             local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
             LIBSTDCXX_CFLAGS="-I$GNULIBCXX/include -I$GNULIBCXX/libs/$ABI/include"
             LIBSTDCXX_LDFLAGS="-L$GNULIBCXX/libs/$ABI"
             LIBSTDCXX_LDLIBS="-lgnustl_${TYPE}"
+            TOOLSET=gcc-$ARCH
             ;;
         llvm-*)
-            local LLVMLIBCXX=$NDK_DIR/sources/cxx-stl/llvm-libc++
-            LIBSTDCXX_CFLAGS="-I$LLVMLIBCXX/libcxx/include"
+            CXX="$LLVM_DIR/bin/clang++ -target $LLVMTRIPLE -gcc-toolchain $GCC_DIR"
+            CXXNAME=clang++
+            local LLVMLIBCXX=$NDK_DIR/sources/cxx-stl/llvm-libc++/$(expr "$LIBSTDCXX" : "^llvm-\(.*\)$")
+            local LLVMLIBCXXABI=$NDK_DIR/sources/cxx-stl/llvm-libc++abi
+            LIBSTDCXX_CFLAGS="-I$LLVMLIBCXX/libcxx/include -I$LLVMLIBCXXABI/libcxxabi/include"
             LIBSTDCXX_LDFLAGS="-L$LLVMLIBCXX/libs/$ABI"
             LIBSTDCXX_LDLIBS="-lc++_${TYPE}"
+            TOOLSET=clang-$ARCH
+            FLAGS="$FLAGS -fno-integrated-as"
             ;;
         *)
             echo "ERROR: Unknown C++ Standard Library: '$LIBSTDCXX'" 1>&2
@@ -310,13 +378,12 @@ build_boost_for_abi ()
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
 
-    local TOOL
-
-    for TOOL in gcc g++ c++ cpp; do
-        mktool $TMPTARGETTCDIR/$TOOL <<EOF
+    mktool $TMPTARGETTCDIR/$CXXNAME <<EOF
 #!/bin/sh
 
 if echo "\$@" | tr ' ' '\\n' | grep -q -x -e -c; then
+    LINKER=no
+elif echo "\$@" | tr ' ' '\\n' | grep -q -x -e -emit-pth; then
     LINKER=no
 else
     LINKER=yes
@@ -362,15 +429,14 @@ if [ "x\$LINKER" = "xyes" ]; then
     PARAMS="\$PARAMS $LIBSTDCXX_LDLIBS"
 fi
 
-exec $TCPATH/bin/$TCPREFIX-$TOOL \$PARAMS
+exec $CXX \$PARAMS
 EOF
-        fail_panic "Could not create target tool $TOOL"
-    done
+    fail_panic "Could not create target $CXXNAME wrapper"
 
-    for TOOL in as ar ranlib strip gcc-ar gcc-ranlib; do
+    for TOOL in as ar ranlib strip; do
         {
             echo "#!/bin/sh"
-            echo "exec $TCPATH/bin/$TCPREFIX-$TOOL \"\$@\""
+            echo "exec $GCC_DIR/bin/$TCPREFIX-$TOOL \"\$@\""
         } | mktool $TMPTARGETTCDIR/$TOOL
         fail_panic "Could not create target tool $TOOL"
     done
@@ -439,7 +505,7 @@ EOF
         threading=multi \
         threadapi=pthread \
         target-os=android \
-        toolset=gcc-$ARCH \
+        toolset=$TOOLSET \
         $EXTRA_OPTIONS \
         --layout=system \
         --prefix=$PREFIX \
@@ -525,14 +591,9 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        GNULIBSTDCXX_VERSIONS=$(for e in $(ls -1d $NDK_DIR/sources/cxx-stl/gnu-libstdc++/* 2>/dev/null); do test -d $e && basename $e; done)
-        CXXIMPLS=""
-        for GNULIBSTDCXX_VERSION in $GNULIBSTDCXX_VERSIONS; do
-            CXXIMPLS="$CXXIMPLS gnu-$GNULIBSTDCXX_VERSION"
-        done
-        for CXXIMPL in $CXXIMPLS; do
+        for STDLIB in $STDLIBS; do
             for TYPE in shared static; do
-                build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$TYPE/$CXXIMPL" "$TYPE" "$CXXIMPL"
+                build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$TYPE/$STDLIB" "$TYPE" "$STDLIB"
             done
         done
     fi
@@ -556,15 +617,22 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     echo ""
     echo 'LOCAL_PATH := $(call my-dir)'
     echo ''
-    echo 'define boost-libstdcxx-subdir'
-    echo '$(strip $(if $(filter c++_%,$(APP_STL)),\'
-    echo '    llvm,\'
-    echo '    gnu\'
-    echo '))-$(strip $(if $(filter c++_%,$(APP_STL)),\'
-    echo '    $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_LLVM_VERSION'),\'
-    echo '    $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_GCC_VERSION',$(NDK_TOOLCHAIN_VERSION))\'
-    echo '))'
-    echo 'endef'
+    echo 'ifeq (,$(filter gnustl_% c++_%,$(APP_STL)))'
+    echo '$(error $(strip \'
+    echo '    We do not support APP_STL '"'"'$(APP_STL)'"'"' for Boost libraries! \'
+    echo '    Please use either "gnustl_shared", "gnustl_static", "c++_shared" or "c++_static". \'
+    echo ')'
+    echo 'endif'
+    echo ''
+    echo '__boost_libstdcxx_subdir := $(strip \'
+    echo '    $(strip $(if $(filter c++_%,$(APP_STL)),\'
+    echo '        llvm,\'
+    echo '        gnu\'
+    echo '    ))-$(strip $(if $(filter c++_%,$(APP_STL)),\'
+    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_LLVM_VERSION'),\'
+    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_GCC_VERSION',$(NDK_TOOLCHAIN_VERSION))\'
+    echo '    ))\'
+    echo ')'
 
     for SUFFIX in a so; do
         if [ "$SUFFIX" = "a" ]; then
@@ -626,6 +694,12 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                                     fi
                                     ;;
                             esac
+                            ;;
+                        boost_locale)
+                            if [ "$BOOST_ABI" = "armeabi" -a "$LIBTYPE" = "static" ]; then
+                                SKIP=yes
+                            fi
+                            ;;
                     esac
 
                     if [ "$SKIP" = "yes" ]; then
@@ -636,7 +710,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                     echo 'ifneq (,$(filter '$BOOST_ABI',$(TARGET_ARCH_ABI)))'
                     echo 'include $(CLEAR_VARS)'
                     echo 'LOCAL_MODULE := '$LIB'_'$LIBTYPE
-                    echo 'LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/$(call boost-libstdcxx-subdir)/lib'$LIB'.'$SUFFIX
+                    echo 'LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/$(__boost_libstdcxx_subdir)/lib'$LIB'.'$SUFFIX
                     echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
                     echo 'ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))'
                     echo 'LOCAL_EXPORT_LDLIBS := -latomic'
