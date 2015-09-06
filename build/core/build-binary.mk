@@ -403,9 +403,9 @@ LOCAL_RS_OBJECTS := $(subst :,_,$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(foreach _obj,$(LOCAL_RS_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
 
 ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
-    LOCAL_OBJCFLAGS += -fobjc-exceptions
+    LOCAL_OBJCFLAGS += $(if $(filter -fobjc-exceptions,$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,-fobjc-exceptions)
     ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
-        LOCAL_OBJCFLAGS += -fblocks
+        LOCAL_OBJCFLAGS += $(if $(filter -fblocks,$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,-fblocks)
     endif
 endif
 
