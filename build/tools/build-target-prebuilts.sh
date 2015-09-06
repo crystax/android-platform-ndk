@@ -32,8 +32,8 @@ register_var_option "--no-gen-platforms" NO_GEN_PLATFORMS "Don't generate platfo
 GCC_VERSION_LIST="default" # it's arch defined by default so use default keyword
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "GCC version list (libgnustl should be built per each GCC version)"
 
-LLVM_VERSION=
-register_var_option "--llvm-version=<vers>" LLVM_VERSION "LLVM version"
+LLVM_VERSION_LIST=$(spaces_to_commas $DEFAULT_LLVM_VERSION_LIST)
+register_var_option "--llvm-version-list=<vers>" LLVM_VERSION_LIST "LLVM version list"
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Package toolchain into this directory"
@@ -52,28 +52,15 @@ extract_parameters "$@"
 
 # Pickup one GCC_VERSION for the cases where we want only one build
 # That's actually all cases except libgnustl where we are building for each GCC version
-GCC_VERSION="4.9"
+GCC_VERSION=$DEFAULT_GCC_VERSION
 if [ "$GCC_VERSION_LIST" != "default" ]; then
    GCC_VERSIONS=$(commas_to_spaces $GCC_VERSION_LIST)
    GCC_VERSION=${GCC_VERSIONS%% *}
 fi
 
-# Use DEFAULT_LLVM_VERSION to build targets unless we want to build with some particular version
-if [ -z "$GCC_VERSION_LIST" -a -z "$LLVM_VERSION" ]; then
-   LLVM_VERSION=$DEFAULT_LLVM_VERSION
-fi
+LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 
 BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
-
-# the code below just makes no sense
-# since some packages could not be build with clang compiler
-# some could be build only with clang,
-# and some require both toolchains
-#if [ ! -z "$LLVM_VERSION" ]; then
-#   BUILD_TOOLCHAIN="--llvm-version=$LLVM_VERSION"
-#elif [ ! -z "$GCC_VERSION" ]; then
-#   BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
-#fi
 
 # Check toolchain source path
 SRC_DIR="$PARAMETERS"
@@ -144,7 +131,7 @@ run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
 
 dump "Building $ABIS compiler-rt binaries..."
-run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$LLVM_VERSION
+run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$DEFAULT_LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$DEFAULT_LLVM_VERSION
 fail_panic "Could not build compiler-rt!"
 
 dump "Building $ABIS gabi++ binaries..."
@@ -155,17 +142,19 @@ dump "Building $ABIS stlport binaries..."
 run $BUILDTOOLS/build-cxx-stl.sh --stl=stlport --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
 fail_panic "Could not build stlport with debug info!"
 
-dump "Building $ABIS libc++ binaries... with libc++abi"
-run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$LLVM_VERSION
-fail_panic "Could not build libc++ with libc++abi and debug info!"
+for VERSION in $LLVM_VERSION_LIST; do
+    dump "Building $ABIS LLVM libc++ binaries... with libc++abi"
+    run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$VERSION
+    fail_panic "Could not build libc++ with libc++abi and debug info!"
 
-# workaround issues in libc++/libc++abi for x86 and mips
-for abi in $ABIS; do
-  case $abi in
-     x86|x86_64|mips|mips32r6|mips64)
-  dump "Rebuilding $abi libc++ binaries... with gabi++"
-  run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-gabi++ --abis=$abi $FLAGS --with-debug-info $BUILD_TOOLCHAIN
-  esac
+    # workaround issues in libc++/libc++abi for x86 and mips
+    #for abi in $(commas_to_spaces $ABIS); do
+    #    case $abi in
+    #        x86|x86_64|mips|mips32r6|mips64)
+    #            dump "Rebuilding $abi libc++ binaries... with gabi++"
+    #            run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-gabi++ --abis=$abi $FLAGS --with-debug-info --llvm-version=$VERSION
+    #    esac
+    #done
 done
 
 dump "Building $ABIS gnuobjc binaries..."

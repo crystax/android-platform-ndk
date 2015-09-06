@@ -36,7 +36,7 @@ register_var_option "--no-gen-platforms" NO_GEN_PLATFORMS "Don't generate platfo
 GCC_VERSION_LIST="default" # it's arch defined by default so use default keyword
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC release versions"
 
-LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
+LLVM_VERSION_LIST=$(spaces_to_commas $DEFAULT_LLVM_VERSION_LIST)
 register_var_option "--llvm-version-list=<vers>" LLVM_VERSION_LIST "List of LLVM release versions"
 
 SYSTEMS=$HOST_TAG32
@@ -137,28 +137,11 @@ $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
 fail_panic "Could not build host prebuilts!"
 fi # SKIP_HOST_PREBUILTS
 
-if [ ! -z "$LLVM_VERSION_LIST" ]; then
-    LLVM_VERSIONS=$(commas_to_spaces $LLVM_VERSION_LIST)
-    LLVM_VERSION=${LLVM_VERSIONS%% *}
-    TARGET_FLAGS=$TARGET_FLAGS" --llvm-version=$LLVM_VERSION"
-    if [ "$GCC_VERSION_LIST" != "default" ]; then
-       for ARCH in $(commas_to_spaces $ARCHS); do
-         if [ "$ARCH" != "${ARCH%%64*}" ] ; then
-           if [ "${GCC_VERSION_LIST%%$DEFAULT_LLVM_GCC64_VERSION*}" = "$GCC_VERSION_LIST" ]; then
-              echo "ERROR: LLVM $LLVM_VERSION require GCC $DEFAULT_LLVM_GCC64_VERSION for $ARCH to be available. Try to include it in build list."
-              exit 1
-           fi
-         else
-           if [ "${GCC_VERSION_LIST%%$DEFAULT_LLVM_GCC32_VERSION*}" = "$GCC_VERSION_LIST" ]; then
-              echo "ERROR: LLVM $LLVM_VERSION require GCC $DEFAULT_LLVM_GCC32_VERSION for $ARCH to be available. Try to include it in build list."
-              exit 1
-           fi
-         fi
-       done
-    fi
+if [ -n "$LLVM_VERSION_LIST" ]; then
+    TARGET_FLAGS=$TARGET_FLAGS" --llvm-version-list=$(spaces_to_commas $LLVM_VERSION_LIST)"
 fi
 if [ "$GCC_VERSION_LIST" != "default" ]; then
-   TARGET_FLAGS=$TARGET_FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
+    TARGET_FLAGS=$TARGET_FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 fi
 
 if [ "$SKIP_TARGET_PREBUILTS" = "no" ]; then

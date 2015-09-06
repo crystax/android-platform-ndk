@@ -20,8 +20,19 @@
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
 $(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_OBJC)
 
-LLVM_VERSION_LIST := 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.7 3.6
+LLVM_VERSION_LIST := 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7
 NDK_64BIT_TOOLCHAIN_LIST := clang3.6 clang3.7 clang3.5 clang3.4 5 4.9
+
+DEFAULT_LLVM_VERSION := $(patsubst clang%,%,$(firstword $(filter clang%,$(NDK_64BIT_TOOLCHAIN_LIST))))
+DEFAULT_GCC_VERSION := $(lastword $(filter-out clang%,$(NDK_64BIT_TOOLCHAIN_LIST)))
+
+ifeq (,$(strip $(DEFAULT_LLVM_VERSION)))
+$(error Can not detect default LLVM version!)
+endif
+
+ifeq (,$(strip $(DEFAULT_GCC_VERSION)))
+$(error Can not detect default GCC version!)
+endif
 
 # Check that we have a toolchain that supports the current ABI.
 # NOTE: If NDK_TOOLCHAIN is defined, we're going to use it.
@@ -66,7 +77,7 @@ ifndef NDK_TOOLCHAIN
     ifdef NDK_TOOLCHAIN_VERSION
         # Replace "clang" with the most recent verion
         ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
-            override NDK_TOOLCHAIN_VERSION := clang$(lastword $(LLVM_VERSION_LIST))
+            override NDK_TOOLCHAIN_VERSION := clang$(DEFAULT_LLVM_VERSION)
         endif
         __use_ndk_toolchain_version := true
         ifneq (,$(findstring 64,$(TARGET_ARCH_ABI)))
@@ -75,17 +86,6 @@ ifndef NDK_TOOLCHAIN
                 $(call ndk_log,Specified NDK_TOOLCHAIN_VERSION $(NDK_TOOLCHAIN_VERSION) does not support 64-bit)
                 $(call ndk_log,Using default target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
                 __use_ndk_toolchain_version := false;
-            endif
-            # clang3.4 doesn't support mips64 properly
-            ifneq (,$(and $(filter mips64,$(TARGET_ARCH_ABI)),$(filter clang3.4,$(NDK_TOOLCHAIN_VERSION))))
-                $(call ndk_log,Specified NDK_TOOLCHAIN_VERSION $(NDK_TOOLCHAIN_VERSION) does not support $(TARGET_ARCH_ABI))
-                ifeq (3.4,$(lastword $(LLVM_VERSION_LIST)))
-                    $(call ndk_log,Using default target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
-                    __use_ndk_toolchain_version := false;
-                else
-                    $(call ndk_log,Using clang$(lastword $(LLVM_VERSION_LIST)) for '$(TARGET_ARCH_ABI)' ABI)
-                    override NDK_TOOLCHAIN_VERSION := clang$(lastword $(LLVM_VERSION_LIST))
-                endif
             endif
         endif
         ifeq ($(__use_ndk_toolchain_version),true)

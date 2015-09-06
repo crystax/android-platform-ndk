@@ -4,8 +4,26 @@
 
 LOCAL_PATH := $(call my-dir)
 
+ifeq (,$(strip $(DEFAULT_LLVM_VERSION)))
+$(error INTERNAL ERROR: 'DEFAULT_LLVM_VERSION' is empty!)
+endif
+
+__libcxx_version := $(strip \
+    $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),\
+        $(or \
+            $(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),\
+            $(DEFAULT_LLVM_VERSION)\
+        ),\
+        $(DEFAULT_LLVM_VERSION)\
+    )\
+)
+
+ifeq (,$(strip $(__libcxx_version)))
+$(error INTERNAL ERROR: Can not detect LLVM libc++ version!)
+endif
+
 # Normally, we distribute the NDK with prebuilt binaries of libc++
-# in $LOCAL_PATH/libs/<abi>/. However,
+# in $LOCAL_PATH/<libcxx-version>/libs/<abi>/. However,
 #
 
 LIBCXX_FORCE_REBUILD := $(strip $(LIBCXX_FORCE_REBUILD))
@@ -13,7 +31,7 @@ LIBCXX_FORCE_REBUILD := $(strip $(LIBCXX_FORCE_REBUILD))
 __libcxx_force_rebuild := $(LIBCXX_FORCE_REBUILD)
 
 ifndef LIBCXX_FORCE_REBUILD
-  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/libs/$(TARGET_ARCH_ABI)/libc++_static$(TARGET_LIB_EXTENSION))))
+  ifeq (,$(strip $(wildcard $(LOCAL_PATH)/$(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/libc++_static$(TARGET_LIB_EXTENSION))))
     $(call __ndk_info,WARNING: Rebuilding libc++ libraries from sources!)
     $(call __ndk_info,You might want to use $$NDK/build/tools/build-cxx-stl.sh --stl=libc++)
     $(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
@@ -22,11 +40,12 @@ ifndef LIBCXX_FORCE_REBUILD
 endif
 
 # Use gabi++ for x86* and mips* until libc++/libc++abi is ready for them
-ifneq (,$(filter x86% mips%,$(TARGET_ARCH_ABI)))
-  __prebuilt_libcxx_compiled_with_gabixx := true
-else
-  __prebuilt_libcxx_compiled_with_gabixx := false
-endif
+#ifneq (,$(filter x86% mips%,$(TARGET_ARCH_ABI)))
+#  __prebuilt_libcxx_compiled_with_gabixx := true
+#else
+#  __prebuilt_libcxx_compiled_with_gabixx := false
+#endif
+__prebuilt_libcxx_compiled_with_gabixx := false
 
 __libcxx_use_gabixx := $(__prebuilt_libcxx_compiled_with_gabixx)
 
@@ -48,7 +67,7 @@ ifneq ($(__libcxx_use_gabixx),$(__prebuilt_libcxx_compiled_with_gabixx))
   endif
 endif
 
-llvm_libc++_includes := $(LOCAL_PATH)/libcxx/include
+llvm_libc++_includes := $(LOCAL_PATH)/$(__libcxx_version)/libcxx/include
 llvm_libc++_export_includes := $(llvm_libc++_includes)
 llvm_libc++_sources := \
 	algorithm.cpp \
@@ -78,7 +97,7 @@ llvm_libc++_sources := \
 	utility.cpp \
 	valarray.cpp \
 
-llvm_libc++_sources := $(llvm_libc++_sources:%=libcxx/src/%)
+llvm_libc++_sources := $(llvm_libc++_sources:%=$(__libcxx_version)/libcxx/src/%)
 
 # For now, this library can only be used to build C++11 binaries.
 llvm_libc++_export_cxxflags := -std=c++11
@@ -153,32 +172,34 @@ $(call ndk_log,Using prebuilt libc++ libraries)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_static
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE)$(TARGET_LIB_EXTENSION)
+LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE)$(TARGET_LIB_EXTENSION)
 # For armeabi*, choose thumb mode unless LOCAL_ARM_MODE := arm
 ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
 ifneq (arm,$(LOCAL_ARM_MODE))
 ifneq (arm,$(TARGET_ARM_MODE))
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_LIB_EXTENSION)
+LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_LIB_EXTENSION)
 endif
 endif
 endif
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
+LOCAL_EXPORT_LDLIBS := -latomic
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_shared
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE)$(TARGET_SONAME_EXTENSION)
+LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE)$(TARGET_SONAME_EXTENSION)
 # For armeabi*, choose thumb mode unless LOCAL_ARM_MODE := arm
 ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
 ifneq (arm,$(LOCAL_ARM_MODE))
 ifneq (arm,$(TARGET_ARM_MODE))
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_SONAME_EXTENSION)
+LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_MODULE)$(TARGET_SONAME_EXTENSION)
 endif
 endif
 endif
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
+LOCAL_EXPORT_LDLIBS := -latomic
 include $(PREBUILT_SHARED_LIBRARY)
 
 else
@@ -195,6 +216,8 @@ LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
+LOCAL_LDLIBS := -latomic
+LOCAL_EXPORT_LDLIBS := -latomic
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
@@ -206,21 +229,8 @@ LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
 LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
-# For armeabi's shared version of libc++ compiled by clang libatomic for
-# __atomic_fetch_add_4.  Note that "clang -gcc-toolchain" uses gcc4.9's
-# as/ld/libs, including libatomic
-#
-# On the other hand, all prebuilt libc++ libaries at sources/cxx-stl/llvm-libc++/libs are
-# compiled with "clang -gcc-toolchain *4.9*" with -latomic, such that uses of prebuilt
-# libc++_shared.so don't automatically requires -latomic, unless code does
-# "#include <atomic>" where  __atomic_is_lock_free is needed for armeabi and mips
-#
-ifeq ($(TARGET_ARCH_ABI),armeabi)
-ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
 LOCAL_LDLIBS := -latomic
-endif
-endif
-
+LOCAL_EXPORT_LDLIBS := -latomic
 include $(BUILD_SHARED_LIBRARY)
 
 endif # __libcxx_force_rebuild == true

@@ -160,10 +160,17 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 rm -f $BUILD_DIR/ndk
 ln -sf $ANDROID_NDK_ROOT $BUILD_DIR/ndk
 
+if [ "$CXX_STL" = "libc++" ]; then
+    # Use clang to build libc++ by default.
+    if [ -z "$LLVM_VERSION" -a -z "$GCC_VERSION" ]; then
+        LLVM_VERSION=$DEFAULT_LLVM_VERSION
+    fi
+fi
+
 CRYSTAX_SRCDIR=$BUILD_DIR/ndk/$CRYSTAX_SUBDIR
 GABIXX_SRCDIR=$BUILD_DIR/ndk/$GABIXX_SUBDIR
 STLPORT_SRCDIR=$BUILD_DIR/ndk/$STLPORT_SUBDIR
-LIBCXX_SRCDIR=$BUILD_DIR/ndk/$LIBCXX_SUBDIR
+LIBCXX_SRCDIR=$BUILD_DIR/ndk/$LIBCXX_SUBDIR/$LLVM_VERSION
 LIBCXXABI_SRCDIR=$BUILD_DIR/ndk/$LIBCXXABI_SUBDIR
 
 if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
@@ -180,13 +187,6 @@ COMMON_CXXFLAGS="-fexceptions -frtti -fuse-cxa-atexit"
 
 if [ "$WITH_DEBUG_INFO" ]; then
     COMMON_C_CXX_FLAGS="$COMMON_C_CXX_FLAGS -g"
-fi
-
-if [ "$CXX_STL" = "libc++" ]; then
-    # Use clang to build libc++ by default.
-    if [ -z "$LLVM_VERSION" -a -z "$GCC_VERSION" ]; then
-        LLVM_VERSION=$DEFAULT_LLVM_VERSION
-    fi
 fi
 
 # Determine GAbi++ build parameters. Note that GAbi++ is also built as part
@@ -281,35 +281,39 @@ libcxx/src/valarray.cpp \
 "
 
 LIBCXXABI_SOURCES=\
-"../llvm-libc++abi/libcxxabi/src/abort_message.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_aux_runtime.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_default_handlers.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_demangle.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_exception.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_exception_storage.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_guard.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_handlers.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_new_delete.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_personality.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_thread_atexit.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_unexpected.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_vector.cpp \
-../llvm-libc++abi/libcxxabi/src/cxa_virtual.cpp \
-../llvm-libc++abi/libcxxabi/src/exception.cpp \
-../llvm-libc++abi/libcxxabi/src/private_typeinfo.cpp \
-../llvm-libc++abi/libcxxabi/src/stdexcept.cpp \
-../llvm-libc++abi/libcxxabi/src/typeinfo.cpp
+"abort_message.cpp \
+cxa_aux_runtime.cpp \
+cxa_default_handlers.cpp \
+cxa_demangle.cpp \
+cxa_exception.cpp \
+cxa_exception_storage.cpp \
+cxa_guard.cpp \
+cxa_handlers.cpp \
+cxa_new_delete.cpp \
+cxa_personality.cpp \
+cxa_thread_atexit.cpp \
+cxa_unexpected.cpp \
+cxa_vector.cpp \
+cxa_virtual.cpp \
+exception.cpp \
+private_typeinfo.cpp \
+stdexcept.cpp \
+typeinfo.cpp
 "
 
+LIBCXXABI_SOURCES=$(echo $LIBCXXABI_SOURCES | tr ' ' '\n' | grep -v '^$' | sed 's,^,../../llvm-libc++abi/libcxxabi/src/,' | tr '\n' ' ')
+
 LIBCXXABI_UNWIND_SOURCES=\
-"../llvm-libc++abi/libcxxabi/src/Unwind/libunwind.cpp \
-../llvm-libc++abi/libcxxabi/src/Unwind/Unwind-EHABI.cpp \
-../llvm-libc++abi/libcxxabi/src/Unwind/Unwind-sjlj.c \
-../llvm-libc++abi/libcxxabi/src/Unwind/UnwindLevel1.c \
-../llvm-libc++abi/libcxxabi/src/Unwind/UnwindLevel1-gcc-ext.c \
-../llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersRestore.S \
-../llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersSave.S \
+"Unwind/libunwind.cpp \
+Unwind/Unwind-EHABI.cpp \
+Unwind/Unwind-sjlj.c \
+Unwind/UnwindLevel1.c \
+Unwind/UnwindLevel1-gcc-ext.c \
+Unwind/UnwindRegistersRestore.S \
+Unwind/UnwindRegistersSave.S \
 "
+
+LIBCXXABI_UNWIND_SOURCES=$(echo $LIBCXXABI_UNWIND_SOURCES | tr ' ' '\n' | grep -v '^$' | sed 's,^,../../llvm-libc++abi/libcxxabi/src/,' | tr '\n' ' ')
 
 # If the --no-makefile flag is not used, we're going to put all build
 # commands in a temporary Makefile that we will be able to invoke with
@@ -345,7 +349,7 @@ case $CXX_STL in
     ;;
   libc++)
     CXX_STL_LIB=libc++
-    CXX_STL_SUBDIR=$LIBCXX_SUBDIR
+    CXX_STL_SUBDIR=$LIBCXX_SUBDIR/$LLVM_VERSION
     CXX_STL_SRCDIR=$LIBCXX_SRCDIR
     CXX_STL_CFLAGS=$LIBCXX_CFLAGS
     CXX_STL_CXXFLAGS=$LIBCXX_CXXFLAGS
@@ -463,26 +467,15 @@ build_stl_libs_for_abi ()
         GCCVER=$(get_default_gcc_version_for_arch $ARCH)
     fi
 
-    # libc++ built with clang (for ABI armeabi-only) produces
-    # libc++_shared.so and libc++_static.a with undefined __atomic_fetch_add_4
-    # Add -latomic.
     if [ -n "$LLVM_VERSION" -a "$CXX_STL_LIB" = "libc++" ]; then
         # clang3.5+ use integrated-as as default, which has trouble compiling
         # llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersRestore.S
-        if [ "$LLVM_VERSION" \> "3.4" ]; then
-            EXTRA_CFLAGS="${EXTRA_CFLAGS} -no-integrated-as"
-            EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -no-integrated-as"
-        fi
+        EXTRA_CFLAGS="${EXTRA_CFLAGS} -fno-integrated-as"
+        EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -fno-integrated-as"
+        # libc++ built with clang (for ABI armeabi-only) produces
+        # libc++_shared.so and libc++_static.a with undefined __atomic_fetch_add_4
+        # Add -latomic.
         if [ "$ABI" = "armeabi" ]; then
-            # EHABI tables were added as experimental flags in llvm 3.4. In clang3.5+, these
-            # are now the defaults and the flags have been removed. Add these flags
-            # explicitly only for llvm 3.4.
-            if [ "$LLVM_VERSION" = "3.4" ]; then
-                EXTRA_CFLAGS="${EXTRA_CFLAGS} -mllvm -arm-enable-ehabi-descriptors \
-                              -mllvm -arm-enable-ehabi"
-                EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -mllvm -arm-enable-ehabi-descriptors \
-                                -mllvm -arm-enable-ehabi"
-            fi
             EXTRA_LDFLAGS="$EXTRA_LDFLAGS -latomic"
         fi
     fi
@@ -537,7 +530,11 @@ get_libstdcxx_package_name_for_abi ()
 {
     local package_name
     
-    package_name="${CXX_STL_PACKAGE}-libs-$1"
+    package_name="${CXX_STL_PACKAGE}-libs"
+    if [ "$CXX_STL" = "libc++" ]; then
+        package_name="${package_name}-${LLVM_VERSION}"
+    fi
+    package_name="${package_name}-$1"
     if [ "$WITH_DEBUG_INFO" ]; then
         package_name="${package_name}-g"
     fi

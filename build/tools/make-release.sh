@@ -53,6 +53,9 @@ if [ "$HOST_OS" = "linux" ] ; then
 register_var_option "--darwin-ssh=<hostname>" DARWIN_SSH "Specify Darwin hostname to ssh to for the build."
 fi
 
+LLVM_VERSION_LIST=$(spaces_to_commas $DEFAULT_LLVM_VERSION_LIST)
+register_var_option "--llvm-version-list=<vers>" LLVM_VERSION_LIST "List of LLVM release versions"
+
 SKIP_HOST_PREBUILTS=no
 register_var_option "--skip-host-prebuilts" SKIP_HOST_PREBUILTS "Skip build of host prebuilts (toolchains etc)"
 
@@ -104,6 +107,8 @@ TOOLCHAIN_SRCDIR=
 register_var_option "--toolchain-src-dir=<path>" TOOLCHAIN_SRCDIR "Use toolchain sources from <path>"
 
 extract_parameters "$@"
+
+LLVM_VERSION_LIST=$(commas_to_spaces $LLVM_VERSION_LIST)
 
 VERBOSE_FLAG=
 if [ "$VERBOSE" = "yes" ]; then
@@ -263,14 +268,26 @@ if timestamp_check build-prebuilts; then
     PREBUILT_DIR="$RELEASE_DIR/prebuilt"
     if timestamp_check build-host-prebuilts; then
         dump "Building host toolchain binaries..."
-        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS" --build-dir="$RELEASE_DIR/build" "$TOOLCHAIN_SRCDIR" $HOST_FLAGS
+        run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh \
+            --package-dir="$PREBUILT_DIR" \
+            --arch="$ARCHS" \
+            --build-dir="$RELEASE_DIR/build" \
+            --llvm-version-list=$(spaces_to_commas $LLVM_VERSION_LIST) \
+            $HOST_FLAGS \
+            "$TOOLCHAIN_SRCDIR"
         fail_panic "Can't build $HOST_SYSTEM binaries."
         timestamp_set build-host-prebuilts
     fi
     if [ -n "$DARWIN_SSH" ] ; then
         if timestamp_check build-darwin-prebuilts; then
             dump "Building Darwin prebuilts through ssh to $DARWIN_SSH..."
-            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh --package-dir="$PREBUILT_DIR" --arch="$ARCHS"  --darwin-ssh="$DARWIN_SSH" "$TOOLCHAIN_SRCDIR"
+            run $ANDROID_NDK_ROOT/build/tools/rebuild-all-prebuilt.sh \
+                --package-dir="$PREBUILT_DIR" \
+                --arch="$ARCHS" \
+                --darwin-ssh="$DARWIN_SSH" \
+                --llvm-version-list=$(spaces_to_commas $LLVM_VERSION_LIST) \
+                $HOST_FLAGS \
+                "$TOOLCHAIN_SRCDIR"
             fail_panic "Can't build Darwin binaries!"
             timestamp_set build-darwin-prebuilts
         fi
@@ -283,7 +300,17 @@ fi
 if timestamp_check make-packages; then
     if [ "$SKIP_PACKAGING" = "no" ]; then
         dump "Generating NDK release packages"
-        run $ANDROID_NDK_ROOT/build/tools/package-release.sh $VERBOSE_FLAG --release=$RELEASE --prefix=$PREFIX --out-dir="$OUT_DIR" --arch="$ARCHS" --prebuilt-dir="$PREBUILT_DIR" --systems="$HOST_SYSTEMS" --development-root="$DEVELOPMENT_ROOT" "$SEPARATE_64_FLAG"
+        run $ANDROID_NDK_ROOT/build/tools/package-release.sh \
+            $VERBOSE_FLAG \
+            --release=$RELEASE \
+            --prefix=$PREFIX \
+            --out-dir="$OUT_DIR" \
+            --arch="$ARCHS" \
+            --prebuilt-dir="$PREBUILT_DIR" \
+            --systems="$HOST_SYSTEMS" \
+            --development-root="$DEVELOPMENT_ROOT" \
+            --llvm-version-list=$(spaces_to_commas $LLVM_VERSION_LIST) \
+            "$SEPARATE_64_FLAG"
         if [ $? != 0 ] ; then
             dump "ERROR: Can't generate proper release packages."
             exit 1

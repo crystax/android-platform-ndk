@@ -260,7 +260,7 @@ build_libobjc2_for_abi ()
     CCFLAGS="$CCFLAGS --sysroot=$SYSROOT"
 
     CFLAGS=""
-    CXXFLAGS="-I$NDK_DIR/sources/cxx-stl/llvm-libc++/libcxx/include"
+    CXXFLAGS="-I$NDK_DIR/sources/cxx-stl/llvm-libc++/$DEFAULT_LLVM_VERSION/libcxx/include"
 
     LDFLAGS=""
     LDFLAGS="$LDFLAGS -nostdlib"

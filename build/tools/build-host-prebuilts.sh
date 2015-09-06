@@ -59,7 +59,7 @@ register_var_option "--no-gen-platforms" NO_GEN_PLATFORMS "Don't generate platfo
 GCC_VERSION_LIST="default" # it's arch defined by default so use default keyword
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC release versions"
 
-LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
+LLVM_VERSION_LIST=$(spaces_to_commas $DEFAULT_LLVM_VERSION_LIST)
 register_var_option "--llvm-version-list=<vers>" LLVM_VERSION_LIST "List of LLVM release versions"
 
 CHECK_FLAG=

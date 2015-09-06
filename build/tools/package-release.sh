@@ -155,16 +155,20 @@ else
 fi
 
 if [ "$GCC_VERSION_LIST" != "default" ]; then
-   TOOLCHAIN_NAMES=
-   for VERSION in $(commas_to_spaces $GCC_VERSION_LIST); do
-      for TOOLCHAIN in $TOOLCHAINS; do
-         if [ $TOOLCHAIN != ${TOOLCHAIN%%$VERSION} ]; then
-            TOOLCHAIN_NAMES="$TOOLCHAIN $TOOLCHAIN_NAMES"
-         fi
-      done
-   done
-   TOOLCHAINS=$TOOLCHAIN_NAMES
+    TOOLCHAIN_NAMES=
+    for VERSION in $(commas_to_spaces $GCC_VERSION_LIST); do
+        for TOOLCHAIN in $TOOLCHAINS; do
+            if [ $TOOLCHAIN != ${TOOLCHAIN%%$VERSION} ]; then
+                TOOLCHAIN_NAMES="$TOOLCHAIN $TOOLCHAIN_NAMES"
+            fi
+        done
+    done
+    TOOLCHAINS=$TOOLCHAIN_NAMES
+else
+    GCC_VERSION_LIST="$DEFAULT_GCC_VERSION_LIST"
 fi
+
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 # Check the prebuilt path
 #
@@ -266,34 +270,33 @@ name64 ()
 # $4: optional flag to use 32-bit prebuilt in place of 64-bit
 unpack_prebuilt ()
 {
+    local NAME=$1
     local PREBUILT=
-    local PREBUILT64=null
+    local PREBUILT64=
     local DDIR="$2"
     local DDIR64="${3:-$DDIR}"
     local USE32="${4:-no}"
 
     if [ "$TRY64" = "yes" -a "$USE32" = "no" ]; then
-        PREBUILT=`name64 $1`
+        PREBUILT=$(name64 $NAME)
+        PREBUILT64=$PREBUILT
     else
-        PREBUILT=$1
-        PREBUILT64=`name64 $1`
+        PREBUILT=$NAME
+        PREBUILT64=$(name64 $NAME)
     fi
 
     PREBUILT=${PREBUILT}.tar.bz2
     PREBUILT64=${PREBUILT64}.tar.bz2
 
     echo "Unpacking $PREBUILT"
-    if [ -f "$PREBUILT_DIR/$PREBUILT" ] ; then
-        unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
-        fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
-        if [ -f "$PREBUILT_DIR/$PREBUILT64" ] ; then
-            echo "Unpacking $PREBUILT64"
-            unpack_archive "$PREBUILT_DIR/$PREBUILT64" "$DDIR64"
-            fail_panic "Could not unpack prebuilt $PREBUILT64. Aborting."
-        fi
-    else
-        fail_panic "Could not find $PREBUILT in $PREBUILT_DIR"
-    fi
+    unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
+    fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
+
+    test "$PREBUILT" = "$PREBUILT64" && return
+
+    echo "Unpacking $PREBUILT64"
+    unpack_archive "$PREBUILT_DIR/$PREBUILT64" "$DDIR64"
+    fail_panic "Could not unpack prebuilt $PREBUILT64. Aborting."
 }
 
 # Copy a prebuilt directory from the previous
@@ -383,18 +386,21 @@ copy_file_list "$NDK_ROOT_DIR" "$REFERENCE" $GIT_FILES &&
 rm -f $REFERENCE/Android.mk
 fail_panic "Could not create reference. Aborting."
 
-echo "Coping LIBC++ headers and sources"
-# first remove symlink
-rm "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx"
-fail_panic "Could not remove LIBCXX link. Aborting."
-# create dir and copy headers and sources
-mkdir -p "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx"
-cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/include" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
-fail_panic "Could not copy LIBCXX include files. Aborting."
-cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/src" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
-fail_panic "Could not copy LIBCXX src files. Aborting."
-cp -r "$NDK_ROOT_DIR/sources/cxx-stl/llvm-libc++/libcxx/test" "$REFERENCE/sources/cxx-stl/llvm-libc++/libcxx/"
-fail_panic "Could not copy LIBCXX test files. Aborting."
+for VERSION in $LLVM_VERSION_LIST; do
+    THIS_LLVM_LIBCXX_SUBDIR="sources/cxx-stl/llvm-libc++/$VERSION/libcxx"
+    echo "Copying LLVM-$VERSION libc++ headers and sources"
+    # first remove symlink
+    rm "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR"
+    fail_panic "Could not remove LLVM-$VERSION libc++ link. Aborting."
+    # create dir and copy headers and sources
+    mkdir -p "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR"
+    cp -r "$NDK_ROOT_DIR/$THIS_LLVM_LIBCXX_SUBDIR/include" "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR/"
+    fail_panic "Could not copy LLVM-$VERSION libc++ include files. Aborting."
+    cp -r "$NDK_ROOT_DIR/$THIS_LLVM_LIBCXX_SUBDIR/src" "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR/"
+    fail_panic "Could not copy LLVM-$VERSION libc++ src files. Aborting."
+    cp -r "$NDK_ROOT_DIR/$THIS_LLVM_LIBCXX_SUBDIR/test" "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR/"
+    fail_panic "Could not copy LLVM-$VERSION libc++ test files. Aborting."
+done
 
 echo "Copying OpenPTS sources"
 OPENPTS_SUBDIR="sources/crystax/tests/openpts"
@@ -459,7 +465,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt $ARCH-gdbserver "$REFERENCE"
     done
     # Unpack Objective-C, C++ runtimes
-    for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+    for VERSION in $GCC_VERSION_LIST; do
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
         unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
@@ -493,12 +499,10 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
         unpack_prebuilt gabixx-libs-$ABI-g "$REFERENCE"
         unpack_prebuilt stlport-libs-$ABI-g "$REFERENCE"
-        unpack_prebuilt libcxx-libs-$ABI-g "$REFERENCE"
-        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
-            if [ "${ABI/64/}" != "$ABI" -a "$VERSION" = "4.8" ]; then
-                # only gcc 4.9 is used for 64-bit abis
-                continue
-            fi
+        for VERSION in $LLVM_VERSION_LIST; do
+            unpack_prebuilt libcxx-libs-$VERSION-$ABI-g "$REFERENCE"
+        done
+        for VERSION in $GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
             unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
@@ -610,23 +614,20 @@ for SYSTEM in $SYSTEMS; do
             echo "WARNING: Could not find STLport source tree!"
         fi
 
-        if [ -d "$DSTDIR/$LIBCXX_SUBDIR" ]; then
-            LIBCXX_ABIS=$PREBUILT_ABIS
-            for STL_ABI in $LIBCXX_ABIS; do
-                copy_prebuilt "$LIBCXX_SUBDIR/libs/$STL_ABI" "$LIBCXX_SUBDIR/libs"
+        for VERSION in $LLVM_VERSION_LIST; do
+            for STL_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$LIBCXX_SUBDIR/$VERSION/libs/$STL_ABI" "$LIBCXX_SUBDIR/$VERSION/libs"
             done
-        else
-            echo "WARNING: Could not find Libc++ source tree!"
-        fi
+        done
 
-        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+        for VERSION in $GCC_VERSION_LIST; do
             copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
             done
         done
 
-        for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+        for VERSION in $GCC_VERSION_LIST; do
             copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
             for OBJC_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
