@@ -1,6 +1,7 @@
 CTESTS :=  \
 	assert \
-	string \
 	base   \
+	nslog  \
+	string \
 
 CFLAGS := -UNDEBUG
