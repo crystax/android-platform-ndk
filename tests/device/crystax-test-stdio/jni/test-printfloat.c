@@ -122,7 +122,7 @@ main(int argc, char *argv[])
      */
 	testfmt("NAN", "%LE", (long double)NAN);
 #endif
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("  nan", "%05e", NAN);
 #endif
 
@@ -136,7 +136,7 @@ main(int argc, char *argv[])
 	testfmt(" inf", "%4.2Le", HUGE_VALL);
 	testfmt("-inf", "%Lf", -HUGE_VALL);
 #endif
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("  inf", "%05e", HUGE_VAL);
 	testfmt(" -inf", "%05e", -HUGE_VAL);
 #endif
@@ -277,7 +277,7 @@ main(int argc, char *argv[])
 	testfmt("4.437", "%.3f", 4.4375);
 	testfmt("-4.438", "%.3f", -4.4375);
 	testfmt("4.437", "%.3Lf", 4.4375L);
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("-4.438", "%.3Lf", -4.4375L);
 #endif
 #endif /* !FLOAT_DECIMAL_ROUNDING_DOWNWARD_BROKEN */
@@ -287,7 +287,7 @@ main(int argc, char *argv[])
 	testfmt("4.438", "%.3f", 4.4375);
 	testfmt("-4.437", "%.3f", -4.4375);
 	testfmt("4.438", "%.3Lf", 4.4375L);
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("-4.437", "%.3Lf", -4.4375L);
 #endif
 #endif /* !FLOAT_DECIMAL_ROUNDING_UPWARD_BROKEN */
@@ -411,14 +411,14 @@ main(int argc, char *argv[])
 	testfmt("-0x1.23456p+0", "%.5a", -0x1.23456789abcdep0);
 	testfmt("0x1.23456p+0", "%.5a", 0x1.23456789abcdep0);
 	testfmt("0x1.234568p+0", "%.6a", 0x1.23456789abcdep0);
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("-0x1.234567p+0", "%.6a", -0x1.23456689abcdep0);
 #endif
 #if !__APPLE__ && !__gnu_linux__
 	testfmt("0x1.00p-1029", "%.2a", 0x1.fffp-1030);
 	testfmt("0x1.00p-1026", "%.2a", 0xf.fffp-1030);
 #endif /* !__APPLE__ && !__gnu_linux__ */
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("0x1.83p+0", "%.2a", 1.51);
 #endif
 
