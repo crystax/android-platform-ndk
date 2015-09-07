@@ -43,7 +43,7 @@ The output will be placed in appropriate sub-directories of
 option.
 "
 
-GCC_VERSION_LIST=
+GCC_VERSION_LIST=$(spaces_to_commas $DEFAULT_GCC_VERSION_LIST)
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC versions"
 
 PACKAGE_DIR=
@@ -81,12 +81,7 @@ register_try64_option
 
 extract_parameters "$@"
 
-# set compiler version to any even earlier than default
-EXPLICIT_COMPILER_VERSION=1
-if [ -z "$GCC_VERSION_LIST" ]; then
-    EXPLICIT_COMPILER_VERSION=
-    GCC_VERSION_LIST=$DEFAULT_GCC_VERSION_LIST
-fi
+GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 
 SRCDIR=$(echo $PARAMETERS | sed 1q)
 check_toolchain_src_dir "$SRCDIR"
@@ -434,7 +429,6 @@ get_libstdcpp_package_name_for_abi ()
     echo "$package_name"
 }
 
-GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
 BUILT_GCC_VERSION_LIST=""
 BUILT_ABIS=""
 for VERSION in $GCC_VERSION_LIST; do

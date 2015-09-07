@@ -67,6 +67,8 @@ SRC_DIR="$PARAMETERS"
 check_toolchain_src_dir "$SRC_DIR"
 SRC_DIR=`cd $SRC_DIR; pwd`
 
+VENDOR_SRC_DIR=$(cd $SRC_DIR/../vendor && pwd)
+
 # Now we can do the build
 BUILDTOOLS=$ANDROID_NDK_ROOT/build/tools
 
@@ -143,9 +145,9 @@ run $BUILDTOOLS/build-cxx-stl.sh --stl=stlport --abis="$ABIS" $FLAGS --with-debu
 fail_panic "Could not build stlport with debug info!"
 
 for VERSION in $LLVM_VERSION_LIST; do
-    dump "Building $ABIS LLVM libc++ binaries... with libc++abi"
+    dump "Building $ABIS LLVM libc++ $VERSION binaries... with libc++abi"
     run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$VERSION
-    fail_panic "Could not build libc++ with libc++abi and debug info!"
+    fail_panic "Could not build LLVM libc++ $VERSION!"
 
     # workaround issues in libc++/libc++abi for x86 and mips
     #for abi in $(commas_to_spaces $ABIS); do
@@ -157,16 +159,18 @@ for VERSION in $LLVM_VERSION_LIST; do
     #done
 done
 
-dump "Building $ABIS gnuobjc binaries..."
-run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST) "$SRC_DIR"
-fail_panic "Could not build gnuobjc!"
+for VERSION in $(commas_to_spaces $GCC_VERSION_LIST); do
+    dump "Building $ABIS GNU libobjc $VERSION binaries..."
+    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$VERSION "$SRC_DIR"
+    fail_panic "Could not build GNU libobjc $VERSION!"
+done
 
 dump "Building $ABIS Objective-C v2 runtime..."
-run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/libobjc2 && pwd)
+run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/libobjc2
 fail_panic "Could not build Objective-C v2 runtime"
 
 dump "Building $ABIS Cocotron frameworks..."
-run $BUILDTOOLS/build-cocotron.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/cocotron && pwd)
+run $BUILDTOOLS/build-cocotron.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/cocotron
 fail_panic "Could not build Cocotron frameworks"
 
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
@@ -174,55 +178,59 @@ if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
 fi
 
 if [ ! -z "$GCC_VERSION_LIST" ]; then
-  STDCXX_GCC_VERSIONS=
-  if [ "$GCC_VERSION_LIST" != "default" ]; then
-     STDCXX_GCC_VERSIONS="--gcc-version-list=$GCC_VERSION_LIST"
-  fi
-  dump "Building $ABIS gnustl binaries..."
-  run $BUILDTOOLS/build-gnu-libstdc++.sh --abis="$ABIS" $FLAGS $GNUSTL_STATIC_VIS_FLAG "$SRC_DIR" --with-debug-info $STDCXX_GCC_VERSIONS
-  fail_panic "Could not build gnustl with debug info!"
+    if [ "$GCC_VERSION_LIST" = "default" ]; then
+        STDCXX_GCC_VERSIONS="$DEFAULT_GCC_VERSION_LIST"
+    else
+        STDCXX_GCC_VERSIONS="$GCC_VERSION_LIST"
+    fi
+    for VERSION in $(commas_to_spaces $STDCXX_GCC_VERSIONS); do
+        dump "Building $ABIS GNU libstdc++ $VERSION binaries..."
+        run $BUILDTOOLS/build-gnu-libstdc++.sh --abis="$ABIS" $FLAGS $GNUSTL_STATIC_VIS_FLAG "$SRC_DIR" \
+            --with-debug-info --gcc-version-list=$VERSION
+        fail_panic "Could not build GNU libstdc++ $VERSION!"
+    done
 fi
 
 dump "Building $ABIS sqlite3 binaries..."
-run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $(cd $SRC_DIR/../vendor/sqlite3 && pwd)
+run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/sqlite3
 fail_panic "Could not build sqlite3"
 
 for LIBPNG_VERSION in $LIBPNG_VERSIONS; do
     dump "Building $ABIS libpng-$LIBPNG_VERSION binaries..."
-    run $BUILDTOOLS/build-libpng.sh $FLAGS --abis="$ABIS" --version=$LIBPNG_VERSION $(cd $SRC_DIR/../vendor/libpng && pwd)
+    run $BUILDTOOLS/build-libpng.sh $FLAGS --abis="$ABIS" --version=$LIBPNG_VERSION $VENDOR_SRC_DIR/libpng
     fail_panic "Could not build libpng-$LIBPNG_VERSION"
 done
 
 for LIBJPEG_VERSION in $LIBJPEG_VERSIONS; do
     dump "Building $ABIS libjpeg-$LIBJPEG_VERSION binaries..."
-    run $BUILDTOOLS/build-libjpeg.sh $FLAGS --abis="$ABIS" --version=$LIBJPEG_VERSION $(cd $SRC_DIR/../vendor/libjpeg && pwd)
+    run $BUILDTOOLS/build-libjpeg.sh $FLAGS --abis="$ABIS" --version=$LIBJPEG_VERSION $VENDOR_SRC_DIR/libjpeg
     fail_panic "Could not build libjpeg-$LIBJPEG_VERSION"
 done
 
 for LIBJPEGTURBO_VERSION in $LIBJPEGTURBO_VERSIONS; do
     dump "Building $ABIS libjpeg-turbo-$LIBJPEGTURBO_VERSION binaries..."
-    run $BUILDTOOLS/build-libjpeg-turbo.sh $FLAGS --abis="$ABIS" --version=$LIBJPEGTURBO_VERSION $(cd $SRC_DIR/../vendor/libjpeg-turbo && pwd)
+    run $BUILDTOOLS/build-libjpeg-turbo.sh $FLAGS --abis="$ABIS" --version=$LIBJPEGTURBO_VERSION $VENDOR_SRC_DIR/libjpeg-turbo
     fail_panic "Could not build libjpeg-turbo-$LIBJPEGTURBO_VERSION"
 done
 
 for LIBTIFF_VERSION in $LIBTIFF_VERSIONS; do
     dump "Building $ABIS libtiff-$LIBTIFF_VERSION binaries..."
-    run $BUILDTOOLS/build-libtiff.sh $FLAGS --abis="$ABIS" --version=$LIBTIFF_VERSION $(cd $SRC_DIR/../vendor/libtiff && pwd)
+    run $BUILDTOOLS/build-libtiff.sh $FLAGS --abis="$ABIS" --version=$LIBTIFF_VERSION $VENDOR_SRC_DIR/libtiff
     fail_panic "Could not build libtiff-$LIBTIFF_VERSION"
 done
 
 ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
 dump "Building $ABIS ICU-$ICU_VERSION binaries..."
-run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/icu && pwd)
+run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $VENDOR_SRC_DIR/icu
 fail_panic "Could not build ICU-$ICU_VERSION!"
 
 for VERSION in $BOOST_VERSIONS; do
     dump "Building $ABIS boost-$VERSION binaries..."
-    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" $(cd $SRC_DIR/../vendor/boost && pwd)
+    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" $VENDOR_SRC_DIR/boost
     fail_panic "Could not build Boost-$VERSION!"
 
     dump "Building $ABIS boost+icu-$VERSION binaries..."
-    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=$ICU_VERSION $(cd $SRC_DIR/../vendor/boost && pwd)
+    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=$ICU_VERSION $VENDOR_SRC_DIR/boost
     fail_panic "Could not build Boost+ICU-$VERSION!"
 done
 
