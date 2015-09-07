@@ -101,6 +101,7 @@ llvm_libc++_sources := $(llvm_libc++_sources:%=$(__libcxx_version)/libcxx/src/%)
 
 # For now, this library can only be used to build C++11 binaries.
 llvm_libc++_export_cxxflags := -std=c++11
+llvm_libc++_export_cxxflags += -frtti -fexceptions
 
 ifeq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
 # Add -fno-strict-aliasing because __list_imp::_end_ breaks TBAA rules by declaring
