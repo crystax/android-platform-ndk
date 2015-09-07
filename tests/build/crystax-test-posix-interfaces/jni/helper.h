@@ -35,7 +35,7 @@
 #include <AvailabilityMacros.h>
 #endif
 
-#if __APPLE__ && MAC_OS_X_VERSION_MIN_REQUIRED < 1090
+#if __APPLE__ && MAC_OS_X_VERSION_MIN_REQUIRED < 101000
 #define HAVE_XXXAT 0
 #define HAVE_FDOPENDIR 0
 #else
