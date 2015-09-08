@@ -31,7 +31,7 @@ run()
 
 cleanup()
 {
-    rm -Rf obj libs
+    rm -Rf obj libs jni/Android.mk
 }
 
 for TV in $TOOLCHAIN_VERSIONS; do
