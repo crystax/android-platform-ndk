@@ -273,7 +273,7 @@ end
 def run(*args, &block)
     env = args.first.is_a?(Hash) ? args.shift : {}
     options = args.last.is_a?(Hash) ? args.pop : {}
-    cmd = args.join(' ')
+    cmd = args.map { |a| a =~ /\s+/ ? "'#{a}'" : a }.join(' ')
     Log.info "## COMMAND: #{cmd}"
     Open3.popen3(env, *args, options) do |i,o,e,t|
         if block_given?
