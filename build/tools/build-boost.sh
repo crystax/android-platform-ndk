@@ -394,13 +394,29 @@ PARAMS=\`echo "\$@" | tr ' ' '\\n' | grep -v -x -e -m32 | grep -v -x -e -m64 | t
 if [ "x\$LINKER" = "xyes" ]; then
     # Fix SONAME for shared libraries
     NPARAMS=""
-    SONAME_DETECTED=no
+    NEXT_PARAM_IS_LIBNAME=no
     for p in \$PARAMS; do
-        if [ "x\$p" = "x-Wl,-soname" -o "x\$p" = "x-Wl,-h" ]; then
-            SONAME_DETECTED=yes
-        elif [ "x\$SONAME_DETECTED" = "xyes" ]; then
-            p=\`echo \$p | sed 's!^\\(-Wl,lib[^\\.]*\\.so\\)\\..*\$!\\1!'\`
-            SONAME_DETECTED=no
+        if [ "x\$NEXT_PARAM_IS_LIBNAME" = "xyes" ]; then
+            LIBNAME=\`expr "x\$p" : "^x.*\\(lib[^\\.]*\\.so\\)"\`
+            p="-Wl,\$LIBNAME"
+            NEXT_PARAM_IS_LIBNAME=no
+        else
+            case \$p in
+                -Wl,-soname|-Wl,-h|-install_name)
+                    p="-Wl,-soname"
+                    NEXT_PARAM_IS_LIBNAME=yes
+                    ;;
+                -Wl,-soname,lib*|-Wl,-h,lib*)
+                    LIBNAME=\`expr "x\$p" : "^x.*\\(lib[^\\.]*\\.so\\)"\`
+                    p="-Wl,-soname,-l\$LIBNAME"
+                    ;;
+                -dynamiclib)
+                    p="-shared"
+                    ;;
+                -single_module)
+                    p=""
+                    ;;
+            esac
         fi
         NPARAMS="\$NPARAMS \$p"
     done
