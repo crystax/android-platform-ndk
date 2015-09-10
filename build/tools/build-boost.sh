@@ -591,28 +591,28 @@ fi
 
 BUILT_ABIS=""
 for ABI in $ABIS; do
-    DO_BUILD_PACKAGE="yes"
-    if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$ABI.tar.bz2"
-        echo "Look for: $PACKAGE_NAME"
-        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
-        if [ $? -eq 0 ]; then
-            if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
-                BUILT_ABIS="$BUILT_ABIS $ABI"
+    for STDLIB in $STDLIBS; do
+        DO_BUILD_PACKAGE="yes"
+        if [ -n "$PACKAGE_DIR" ]; then
+            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.bz2"
+            echo "Look for: $PACKAGE_NAME"
+            try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+            if [ $? -eq 0 ]; then
+                if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+                    BUILT_ABIS="$BUILT_ABIS $ABI"
+                else
+                    DO_BUILD_PACKAGE="no"
+                fi
             else
-                DO_BUILD_PACKAGE="no"
+                BUILT_ABIS="$BUILT_ABIS $ABI"
             fi
-        else
-            BUILT_ABIS="$BUILT_ABIS $ABI"
         fi
-    fi
-    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        for STDLIB in $STDLIBS; do
+        if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
             for TYPE in shared static; do
                 build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$TYPE/$STDLIB" "$TYPE" "$STDLIB"
             done
-        done
-    fi
+        fi
+    done
 done
 
 # Restore PATH
@@ -777,13 +777,15 @@ if [ -n "$PACKAGE_DIR" ] ; then
     fi
 
     for ABI in $BUILT_ABIS; do
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI"
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$ABI.tar.bz2"
-        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-        dump "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package $ABI Boost $BOOST_VERSION binaries!"
-        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+        for STDLIB in $STDLIBS; do
+            FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
+            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.bz2"
+            PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+            dump "Packaging: $PACKAGE"
+            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+            fail_panic "Could not package $ABI Boost $BOOST_VERSION (C++ stdlib: $STDLIB) binaries!"
+            cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+        done
     done
 fi
 
