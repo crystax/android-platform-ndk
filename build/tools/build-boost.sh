@@ -137,14 +137,12 @@ mktool()
 
 # $1: ABI
 # $2: build directory
-# $3: build type: "static" or "shared"
-# $4: C++ Standard Library implementation
+# $3: C++ Standard Library implementation
 build_boost_for_abi ()
 {
     local ABI=$1
     local BUILDDIR="$2"
-    local TYPE="$3"
-    local LIBSTDCXX="$4"
+    local LIBSTDCXX="$3"
 
     local V
     if [ "$VERBOSE2" = "yes" ]; then
@@ -156,7 +154,7 @@ build_boost_for_abi ()
         LVERSION="$LVERSION (with ICU $ICU_VERSION)"
     fi
 
-    dump "Building Boost $LVERSION $TYPE $ABI libraries (C++ stdlib: $LIBSTDCXX)"
+    dump "Building Boost $LVERSION $ABI libraries (C++ stdlib: $LIBSTDCXX)"
 
     local APILEVEL=9
     if [ ${ABI%%64*} != ${ABI} ]; then
@@ -341,9 +339,15 @@ build_boost_for_abi ()
 
     local SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
     local LIBCRYSTAX=$NDK_DIR/$CRYSTAX_SUBDIR
-    local ICU=""
+
+    local ICU_CFLAGS ICU_LDFLAGS
     if [ -n "$ICU_VERSION" ]; then
-        ICU=$NDK_DIR/sources/icu/$ICU_VERSION
+        local ICU=$NDK_DIR/sources/icu/$ICU_VERSION
+        ICU_CFLAGS="-I$ICU/include"
+        ICU_LDFLAGS="-L$ICU/libs/$ABI"
+    else
+        ICU_CFLAGS=""
+        ICU_LDFLAGS=""
     fi
 
     local CXX CXXNAME
@@ -356,7 +360,7 @@ build_boost_for_abi ()
             local GNULIBCXX=$NDK_DIR/sources/cxx-stl/gnu-libstdc++/$(expr "$LIBSTDCXX" : "^gnu-\(.*\)$")
             LIBSTDCXX_CFLAGS="-I$GNULIBCXX/include -I$GNULIBCXX/libs/$ABI/include"
             LIBSTDCXX_LDFLAGS="-L$GNULIBCXX/libs/$ABI"
-            LIBSTDCXX_LDLIBS="-lgnustl_${TYPE}"
+            LIBSTDCXX_LDLIBS="-lgnustl_shared"
             TOOLSET=gcc-$ARCH
             ;;
         llvm-*)
@@ -366,7 +370,7 @@ build_boost_for_abi ()
             local LLVMLIBCXXABI=$NDK_DIR/sources/cxx-stl/llvm-libc++abi
             LIBSTDCXX_CFLAGS="-I$LLVMLIBCXX/libcxx/include -I$LLVMLIBCXXABI/libcxxabi/include"
             LIBSTDCXX_LDFLAGS="-L$LLVMLIBCXX/libs/$ABI"
-            LIBSTDCXX_LDLIBS="-lc++_${TYPE}"
+            LIBSTDCXX_LDLIBS="-lc++_shared"
             TOOLSET=clang-$ARCH
             FLAGS="$FLAGS -fno-integrated-as"
             ;;
@@ -375,6 +379,7 @@ build_boost_for_abi ()
             exit 1
     esac
 
+    FLAGS="$FLAGS -v"
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
 
@@ -426,15 +431,11 @@ fi
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
-    if [ -n "$ICU" ]; then
-        FLAGS="\$FLAGS -L$ICU/libs/$ABI"
-    fi
+    FLAGS="\$FLAGS $ICU_LDFLAGS"
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS $LIBSTDCXX_LDFLAGS"
 else
-    if [ -n "$ICU" ]; then
-        FLAGS="\$FLAGS -I$ICU/include"
-    fi
+    FLAGS="\$FLAGS $ICU_CFLAGS"
     FLAGS="\$FLAGS $LIBSTDCXX_CFLAGS"
     FLAGS="\$FLAGS -I$LIBCRYSTAX/include"
     FLAGS="\$FLAGS -Wno-long-long"
@@ -445,7 +446,15 @@ if [ "x\$LINKER" = "xyes" ]; then
     PARAMS="\$PARAMS $LIBSTDCXX_LDLIBS"
 fi
 
-exec $CXX \$PARAMS
+run()
+{
+    if [ -n "\$NDK_LOGFILE" ]; then
+        echo "## COMMAND: \$@" >>\$NDK_LOGFILE
+    fi
+    exec "\$@"
+}
+
+run $CXX \$PARAMS
 EOF
     fail_panic "Could not create target $CXXNAME wrapper"
 
@@ -516,7 +525,7 @@ EOF
 
     run ./b2 -d+2 -q -j$NUM_JOBS \
         variant=release \
-        link=$TYPE \
+        link=static,shared \
         runtime-link=shared \
         threading=multi \
         threadapi=pthread \
@@ -542,24 +551,22 @@ EOF
 
     local INSTALLDIR=$BOOST_DSTDIR/libs/$ABI/$LIBSTDCXX
 
-    log "Install Boost $BOOST_VERSION $TYPE $ABI libraries into $BOOST_DSTDIR"
+    log "Install Boost $BOOST_VERSION $ABI libraries into $BOOST_DSTDIR"
     run mkdir -p $INSTALLDIR
     fail_panic "Couldn't create Boost $BOOST_VERSION target $ABI libraries directory"
 
     local LIBSUFFIX
-    if [ "$TYPE" = "shared" ]; then
-        LIBSUFFIX=so
-    else
-        LIBSUFFIX=a
-    fi
-    rm -f $INSTALLDIR/lib*.$LIBSUFFIX
+    for LIBSUFFIX in a so; do
+        rm -f $INSTALLDIR/lib*.$LIBSUFFIX
 
-    for f in $(find $PREFIX -name "lib*.$LIBSUFFIX" -print); do
-        run cp -pRH $f $INSTALLDIR/$(basename $f)
-        fail_panic "Couldn't install Boost $BOOST_VERSION $ABI $(basename $f) library"
+        for f in $(find $PREFIX -name "lib*.$LIBSUFFIX" -print); do
+            local bf=$(basename $f)
+            run cp -pRH $f $INSTALLDIR/$bf
+            fail_panic "Couldn't install Boost $BOOST_VERSION $ABI $bf library"
+        done
     done
 
-    log "Boost $BOOST_VERSION $TYPE $ABI binaries built successfully"
+    log "Boost $BOOST_VERSION $ABI binaries built successfully"
 }
 
 SAVED_PATH=$PATH
@@ -608,9 +615,7 @@ for ABI in $ABIS; do
             fi
         fi
         if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-            for TYPE in shared static; do
-                build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$TYPE/$STDLIB" "$TYPE" "$STDLIB"
-            done
+            build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$STDLIB" "$STDLIB"
         fi
     done
 done
