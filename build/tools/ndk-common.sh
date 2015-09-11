@@ -251,8 +251,8 @@ case "$HOST_OS" in
         ;;
 esac
 
-log "HOST_OS=$HOST_OS"
-log "HOST_EXE=$HOST_EXE"
+#log "HOST_OS=$HOST_OS"
+#log "HOST_EXE=$HOST_EXE"
 
 ## Now find the host architecture. This must correspond to the bitness of
 ## the binaries we're going to run with this NDK. Certain platforms allow
@@ -304,7 +304,7 @@ case "$HOST_OS-$HOST_ARCH" in
     ;;
 esac
 
-log "HOST_ARCH=$HOST_ARCH"
+#log "HOST_ARCH=$HOST_ARCH"
 
 # at this point, the supported values for HOST_ARCH are:
 #   x86
@@ -345,7 +345,7 @@ compute_host_tag ()
             HOST_TAG="windows"
             ;;
     esac
-    log "HOST_TAG=$HOST_TAG"
+    #log "HOST_TAG=$HOST_TAG"
 }
 
 compute_host_tag
@@ -374,7 +374,7 @@ esac
 test -z "$HOST_NUM_CPUS" && HOST_NUM_CPUS=1
 test $HOST_NUM_CPUS -lt 1 && HOST_NUM_CPUS=1
 
-log "HOST_NUM_CPUS=$HOST_NUM_CPUS"
+#log "HOST_NUM_CPUS=$HOST_NUM_CPUS"
 
 # If BUILD_NUM_CPUS is not already defined in your environment,
 # define it as the double of HOST_NUM_CPUS. This is used to
@@ -384,7 +384,7 @@ if [ -z "$BUILD_NUM_CPUS" ] ; then
     BUILD_NUM_CPUS=`expr $HOST_NUM_CPUS \* 2`
 fi
 
-log "BUILD_NUM_CPUS=$BUILD_NUM_CPUS"
+#log "BUILD_NUM_CPUS=$BUILD_NUM_CPUS"
 
 
 ##  HOST TOOLCHAIN SUPPORT
