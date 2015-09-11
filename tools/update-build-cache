@@ -116,8 +116,15 @@ def update
                 ii.close
                 oo.close
 
-                while c = ee.getc
-                    $stderr.putc c
+                while !ee.eof?
+                    ios, = IO.select([ee])
+                    ios.each do |io|
+                        c = io.read_nonblock(4096) rescue nil
+                        next if c.nil?
+
+                        $stderr.write c
+                        $stderr.flush
+                    end
                 end
 
                 raise "curl failed" unless tt.value.success?
