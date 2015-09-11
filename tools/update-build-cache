@@ -1,0 +1,153 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'open3'
+require 'fileutils'
+require 'digest'
+
+case RUBY_PLATFORM
+when /(cygwin|mingw|win32)/
+    HOST_OS = :windows
+when /linux/
+    HOST_OS = :linux
+when /darwin/
+    HOST_OS = :darwin
+else
+    $stderr.puts "ERROR: Unsupported host platform: #{RUBY_PLATFORM}"
+    exit 1
+end
+
+OPTIONS = {}
+OPTIONS[:targets] = [HOST_OS, 'android']
+
+optparser = OptionParser.new do |o|
+    o.on("-h", "--help", "Show help screen and exit") do
+        $stdout.puts o
+        exit 0
+    end
+
+    o.on("-bN", "--build-number=N", Integer, "CrystaX NDK build number [autodetect]") do |n|
+        OPTIONS[:build_number] = n
+    end
+
+    o.on("--targets=LIST", Array, "List of host OS to update cache for [#{OPTIONS[:targets].join(',')}]") do |t|
+        OPTIONS[:targets] = t
+    end
+end
+ENV['POSIXLY_CORRECT'] = '1'
+optparser.parse!(ARGV)
+
+if OPTIONS[:build_number].nil?
+    url = "https://dl.crystax.net/ndk/#{HOST_OS}/latest"
+    o,e,s = Open3.capture3("curl -fSL #{url}")
+    if !s.success?
+        $stderr.puts "ERROR: Can't autodetect latest build number:\n\n#{e}"
+        exit 1
+    end
+
+    OPTIONS[:build_number] = o.chomp.split("\n").first.to_i
+end
+BNUM = OPTIONS[:build_number]
+$stdout.puts "=== Using build number: #{BNUM}"
+
+TARGETS = OPTIONS[:targets]
+$stdout.puts "=== Updating cache for: #{TARGETS.join(',')}"
+
+CACHEDIR = "/var/tmp/ndk-cache-#{ENV['USER']}"
+
+def files(target, bnum)
+    baseurl = "https://dl.crystax.net/cache/#{bnum}/#{target}"
+    o,e,s = Open3.capture3("curl -fSL #{baseurl}/checksum.sha256")
+    if !s.success?
+        $stderr.puts "ERROR: Can't get checksums for #{target}/##{bnum} cache files:\n\n#{e}"
+        exit 1
+    end
+
+    fs = []
+    o.split("\n").each do |line|
+        next unless line =~ /^SHA256\(([^\)]+)\)\s*=\s*(\S+)\s*$/
+        fs << {file: $1, sha256: $2, url: "#{baseurl}/#{$1}"}
+    end
+    fs
+end
+
+def checksum(file)
+    d = Digest::SHA256.new
+    File.open(file, 'rb') do |f|
+        while buf = f.read(64*1024*1024)
+            d.update buf
+        end
+    end
+    d.hexdigest
+rescue
+    nil
+end
+
+def update
+    fls = []
+    TARGETS.each do |t|
+        fls += files(t, BNUM)
+    end
+
+    Dir.glob(File.join(CACHEDIR, '*')).each do |cf|
+        next unless fls.index { |f| f[:file] == File.basename(cf) }.nil?
+        $stdout.puts "=== [RM]  #{cf}"
+        FileUtils.rm_f cf
+    end
+
+    fls.sort { |a,b| a[:file] <=> b[:file] }.each do |f|
+        dst = File.join(CACHEDIR, f[:file])
+        $stdout.write "=== [CHK] #{dst} ... "
+        $stdout.flush
+        if checksum(dst) == f[:sha256]
+            $stdout.puts "OK"
+            next
+        end
+
+        $stdout.puts "OUTDATED"
+
+        attempt = 0
+        begin
+            FileUtils.rm_f dst
+
+            $stdout.puts "=== [DL]  #{dst}"
+            Open3.popen3("curl -SL -o #{dst} #{f[:url]}") do |ii,oo,ee,tt|
+                ii.close
+                oo.close
+
+                while c = ee.getc
+                    $stderr.putc c
+                end
+
+                raise "curl failed" unless tt.value.success?
+            end
+
+            raise "corrupted file" if checksum(dst) != f[:sha256]
+        rescue => e
+            FileUtils.rm_f dst
+
+            attempt += 1
+            wt = attempt * 5
+
+            if attempt <= 3
+                $stderr.puts "WARNING: Can't download #{f[:url]} (attempt ##{attempt}): #{e.message}; try again in #{wt} seconds"
+                sleep(wt)
+                retry
+            else
+                $stderr.puts "ERROR: Can't download #{f[:url]}"
+                exit 1
+            end
+        end
+    end
+end
+
+def elapsed(seconds)
+    s = seconds.to_i % 60
+    m = (seconds.to_i / 60) % 60
+    h = seconds.to_i / 60*60
+    "%d:%02d:%02d" % [h, m, s]
+end
+
+start = Time.now
+update
+$stdout.puts "=== DONE (took #{elapsed(Time.now - start)})"
