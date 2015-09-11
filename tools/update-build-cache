@@ -157,5 +157,10 @@ def elapsed(seconds)
 end
 
 start = Time.now
-update
+begin
+    update
+rescue Interrupt
+    $stderr.puts "INTERRUPTED"
+    exit 1
+end
 $stdout.puts "=== DONE (took #{elapsed(Time.now - start)})"
