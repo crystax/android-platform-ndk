@@ -93,7 +93,7 @@ def update
 
     Dir.glob(File.join(CACHEDIR, '*')).each do |cf|
         next unless fls.index { |f| f[:file] == File.basename(cf) }.nil?
-        $stdout.puts "=== [RM]  #{cf}"
+        $stdout.puts "=== [DEL] #{cf}"
         FileUtils.rm_f cf
     end
 
@@ -112,7 +112,6 @@ def update
         begin
             FileUtils.rm_f dst
 
-            $stdout.puts "=== [DL]  #{dst}"
             Open3.popen3("curl -SL -o #{dst} #{f[:url]}") do |ii,oo,ee,tt|
                 ii.close
                 oo.close
