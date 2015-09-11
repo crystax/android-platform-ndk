@@ -224,14 +224,26 @@ dump "Building $ABIS ICU-$ICU_VERSION binaries..."
 run $BUILDTOOLS/build-icu.sh $FLAGS --version=$ICU_VERSION --abis="$ABIS" $VENDOR_SRC_DIR/icu
 fail_panic "Could not build ICU-$ICU_VERSION!"
 
-for VERSION in $BOOST_VERSIONS; do
-    dump "Building $ABIS boost-$VERSION binaries..."
-    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" $VENDOR_SRC_DIR/boost
-    fail_panic "Could not build Boost-$VERSION!"
+CXXSTDLIBS=""
+for VERSION in $DEFAULT_GCC_VERSION_LIST; do
+    CXXSTDLIBS="$CXXSTDLIBS gnu-$VERSION"
+done
+for VERSION in $DEFAULT_LLVM_VERSION_LIST; do
+    CXXSTDLIBS="$CXXSTDLIBS llvm-$VERSION"
+done
 
-    dump "Building $ABIS boost+icu-$VERSION binaries..."
-    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --with-icu=$ICU_VERSION $VENDOR_SRC_DIR/boost
-    fail_panic "Could not build Boost+ICU-$VERSION!"
+for VERSION in $BOOST_VERSIONS; do
+    for CXXSTDLIB in $CXXSTDLIBS; do
+        dump "Building $ABIS boost-$VERSION (with $CXXSTDLIB C++ Standard Library) binaries..."
+        run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --stdlibs=$CXXSTDLIB $VENDOR_SRC_DIR/boost
+        fail_panic "Could not build Boost-$VERSION!"
+    done
+
+    for CXXSTDLIB in $CXXSTDLIBS; do
+        dump "Building $ABIS boost+icu-$VERSION (with $CXXSTDLIB C++ Standard Library) binaries..."
+        run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --stdlibs=$CXXSTDLIB --with-icu=$ICU_VERSION $VENDOR_SRC_DIR/boost
+        fail_panic "Could not build Boost+ICU-$VERSION!"
+    done
 done
 
 dump "Cleanup sysroot folders..."
