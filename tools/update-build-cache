@@ -89,6 +89,8 @@ def update
         fls += files(t, BNUM)
     end
 
+    FileUtils.mkdir_p CACHEDIR
+
     Dir.glob(File.join(CACHEDIR, '*')).each do |cf|
         next unless fls.index { |f| f[:file] == File.basename(cf) }.nil?
         $stdout.puts "=== [RM]  #{cf}"
