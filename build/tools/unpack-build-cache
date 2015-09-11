@@ -50,7 +50,7 @@ extract_parameters "$@"
 cd $NDK_DIR
 fail_panic "Can't CD to $NDK_DIR"
 
-for f in $CACHE_DIR/*; do
+for f in $(ls -1 $CACHE_DIR/* 2>/dev/null | sort); do
     printf "=== [UNP] $f ... "
     case $f in
         *.7z)
