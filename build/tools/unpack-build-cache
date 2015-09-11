@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Copyright (c) 2011-2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of CrystaX .NET.
+
+# include common function and variable definitions
+. $(dirname $0)/prebuilt-common.sh
+
+PROGRAM_PARAMETERS=""
+
+PROGRAM_DESCRIPTION=\
+"Unpack prebuilt packages from cache.
+
+By default, this will try with the current NDK directory, unless
+you use the --ndk-dir=<path> option.
+"
+
+NDK_DIR=$ANDROID_NDK_ROOT
+register_var_option "--ndk-dir=<path>" NDK_DIR "Specify NDK root path for the build"
+
+CACHE_DIR=/var/tmp/ndk-cache-$USER
+register_var_option "--cache-dir=<path>" CACHE_DIR "Specify build cache directory"
+
+extract_parameters "$@"
+
+cd $NDK_DIR
+fail_panic "Can't CD to $NDK_DIR"
+
+for f in $CACHE_DIR/*; do
+    echo "=== [UNP] $f ..."
+    case $f in
+        *.7z)
+            7z x $f >/dev/null
+            ;;
+        *.tar.bz2)
+            tar xf $f
+            ;;
+        *)
+            echo "ERROR: Don't know how to unpack $f" 1>&2
+            exit 1
+    esac
+    fail_panic "Can't unpack $f"
+done
