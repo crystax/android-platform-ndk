@@ -51,7 +51,7 @@ cd $NDK_DIR
 fail_panic "Can't CD to $NDK_DIR"
 
 for f in $CACHE_DIR/*; do
-    echo "=== [UNP] $f ..."
+    printf "=== [UNP] $f ... "
     case $f in
         *.7z)
             7z x $f >/dev/null
@@ -64,4 +64,6 @@ for f in $CACHE_DIR/*; do
             exit 1
     esac
     fail_panic "Can't unpack $f"
+
+    echo "OK"
 done
