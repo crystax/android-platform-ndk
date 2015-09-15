@@ -78,7 +78,7 @@ register_var_option "--development-root=<path>" DEVELOPMENT_ROOT "Specify platfo
 GCC_VERSION_LIST="default" # it's arch defined by default so use default keyword
 register_var_option "--gcc-version-list=<vers>" GCC_VERSION_LIST "List of GCC release versions"
 
-LLVM_VERSION_LIST=$DEFAULT_LLVM_VERSION_LIST
+LLVM_VERSION_LIST=$(spaces_to_commas $DEFAULT_LLVM_VERSION_LIST)
 register_var_option "--llvm-version-list=<versions>" LLVM_VERSION_LIST "List of LLVM release versions"
 
 register_try64_option
@@ -169,6 +169,14 @@ else
 fi
 
 GCC_VERSION_LIST=$(commas_to_spaces $GCC_VERSION_LIST)
+
+BOOST_CXX_STDLIBS=""
+for VERSION in $GCC_VERSION_LIST; do
+    BOOST_CXX_STDLIBS="$BOOST_CXX_STDLIBS gnu-$VERSION"
+done
+for VERSION in $LLVM_VERSION_LIST; do
+    BOOST_CXX_STDLIBS="$BOOST_CXX_STDLIBS llvm-$VERSION"
+done
 
 # Check the prebuilt path
 #
@@ -525,8 +533,10 @@ if [ -z "$PREBUILT_NDK" ]; then
             unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
         done
         for VERSION in $BOOST_VERSIONS; do
-            unpack_prebuilt boost-$VERSION-libs-$ABI "$REFERENCE"
-            unpack_prebuilt boost+icu-$VERSION-libs-$ABI "$REFERENCE"
+            for STDLIB in $BOOST_CXX_STDLIBS; do
+                unpack_prebuilt boost-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
+                unpack_prebuilt boost+icu-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
+            done
         done
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
         unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
