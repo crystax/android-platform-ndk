@@ -77,7 +77,7 @@ LIBJPEGTURBO_VERSIONS="1.4.1"
 
 # Location of the libtiff libraries, relative to the NDK root directory
 LIBTIFF_SUBDIR=sources/libtiff
-LIBTIFF_VERSIONS="4.0.4"
+LIBTIFF_VERSIONS="4.0.6"
 
 # Location of the gccunwind sources, relative to the NDK root directory
 GCCUNWIND_SUBDIR=sources/android/gccunwind

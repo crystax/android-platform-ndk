@@ -68,8 +68,6 @@ register_var_option "--version=<ver>" LIBTIFF_VERSION "Specify libtiff version t
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 LIBTIFF_SRCDIR=$(echo $PARAMETERS | sed 1q)
