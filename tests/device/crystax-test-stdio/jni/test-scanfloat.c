@@ -123,7 +123,7 @@ main(int argc, char *argv[])
 	assert(eq(DBL, d, 12345.));
 	assert(strcmp(buf, "6") == 0);
 
-#if !__APPLE__ || defined(__MAC_10_7)
+#if !__APPLE__ || defined(__MAC_10_8)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"
 

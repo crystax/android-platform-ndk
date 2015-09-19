@@ -53,7 +53,7 @@ void semaphore_check_functions(sem_t *s)
     (void)sem_unlink((const char*)0);
     (void)sem_wait(s);
 
-#if __APPLE__ && defined(__MAC_10_7)
+#if __APPLE__ && defined(__MAC_10_8)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
@@ -62,7 +62,7 @@ void semaphore_check_functions(sem_t *s)
     (void)sem_getvalue(s, (int*)0);
     (void)sem_init(s, 0, 0);
 
-#if __APPLE__ && defined(__MAC_10_7)
+#if __APPLE__ && defined(__MAC_10_8)
 #pragma GCC diagnostic pop
 #endif
 }
