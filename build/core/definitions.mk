@@ -2220,7 +2220,7 @@ $(call ndk-objc-register,\
     cocotron,\
     objc/cocotron/0.1.0,\
     ,\
-    Foundation CoreFoundation CFNetwork CoreServices objc2rt_shared\
+    Foundation CoreVideo CoreText CoreData CoreGraphics CoreFoundation CFNetwork CoreServices objc2rt_shared\
     )
 
 #
