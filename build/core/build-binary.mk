@@ -403,10 +403,21 @@ LOCAL_RS_OBJECTS := $(subst :,_,$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(foreach _obj,$(LOCAL_RS_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
 
 ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
-    LOCAL_OBJCFLAGS += $(if $(filter -fobjc-exceptions,$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,-fobjc-exceptions)
+    objc_cflags  := -fobjc-exception
+    objc_ldflags :=
     ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
-        LOCAL_OBJCFLAGS += $(if $(filter -fblocks,$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,-fblocks)
+        objc_cflags += -fblocks
+        objc_cflags += -fgnu-runtime -fobjc-nonfragile-abi
+        objc_cflags += -fobjc-arc
+        objc_ldflags += -fobjc-arc
+        objc_ldflags += -fobjc-link-runtime
     endif
+    $(foreach __f,$(objc_cflags),\
+        $(eval LOCAL_OBJCFLAGS += $(if $(filter $(__f),$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,$(__f)))\
+    )
+    $(foreach __f,$(objc_ldflags),\
+        $(eval LOCAL_LDFLAGS += $(if $(filter $(__f),$(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)),,$(__f)))\
+    )
 endif
 
 # If the module has any kind of C++ features, enable them in LOCAL_CPPFLAGS
