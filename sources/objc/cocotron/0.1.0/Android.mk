@@ -8,7 +8,7 @@ LOCAL_SRC_FILES := frameworks/$(TARGET_ARCH_ABI)/$(1).framework/Versions/Current
 LOCAL_EXPORT_CFLAGS := -F$(LOCAL_PATH)/frameworks/$(TARGET_ARCH_ABI) -framework $(1)
 sinclude $(LOCAL_PATH)/frameworks/$(TARGET_ARCH_ABI)/$(1).framework/deps.mk
 LOCAL_SHARED_LIBRARIES += objc2rt_shared
-LOCAL_EXPORT_LDLIBS := -llog
+LOCAL_EXPORT_LDLIBS := -llog -lGLESv2
 include $(PREBUILT_SHARED_LIBRARY)
 endif
 endef
