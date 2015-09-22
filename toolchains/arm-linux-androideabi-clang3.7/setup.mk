@@ -56,10 +56,6 @@ TARGET_CFLAGS := \
     -Wno-unused-command-line-argument \
     -no-canonical-prefixes
 
-# Disable integrated-as for better compatibility
-TARGET_CFLAGS += \
-    -fno-integrated-as
-
 TARGET_LDFLAGS += \
     -gcc-toolchain $(call host-path,$(TOOLCHAIN_PREBUILT_ROOT)) \
     -no-canonical-prefixes

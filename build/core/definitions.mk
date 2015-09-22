@@ -1806,7 +1806,7 @@ _SRC:=$$(LOCAL_PATH)/$(1)
 _OBJ:=$$(LOCAL_OBJS_DIR)/$(2)
 
 _FLAGS := $$($$(my)CFLAGS) \
-          $$(if $$(filter %clang %clang.exe %clang++ %clang++.exe,$$(TARGET_CC)),-integrated-as) \
+          $$(if $$(filter %clang %clang.exe %clang++ %clang++.exe,$$(TARGET_CC)),-fintegrated-as) \
           $$(call get-src-file-target-cflags,$(1)) \
           $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_CFLAGS) \
