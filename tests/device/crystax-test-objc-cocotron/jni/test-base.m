@@ -8,7 +8,7 @@
 }
 
 @property (nonatomic, assign) int intProperty;
-@property (nonatomic, assign) NSString *stringProperty;
+@property (nonatomic, retain) NSString *stringProperty;
 
 - (NSString*)testMethod;
 

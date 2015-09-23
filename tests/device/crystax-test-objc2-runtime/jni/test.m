@@ -8,24 +8,11 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-#ifdef __NEXT_RUNTIME__
-#import <objc/NSObject.h>
-#else
-#import <objc/Object.h>
-#endif
-
-
 #define MAGIC_STRING "AHBJAYEBDMAJ*EUDIQKJNSADJY^G#JAHBELAKJHBS"
 
 const char *s = NULL;
 
-#ifdef __NEXT_RUNTIME__
-typedef NSObject BaseObject;
-#else
-typedef Object BaseObject;
-#endif
-
-@interface TestClass : BaseObject
+@interface TestClass
 - (void)testMethod;
 @end
 

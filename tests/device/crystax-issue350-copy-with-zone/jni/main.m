@@ -1,52 +1,9 @@
 #define UNUSED(x) (void)x
 
-#if defined(__NEXT_RUNTIME__)
-
 #import <Foundation/Foundation.h>
 
 typedef NSObject BaseObject;
-
-#elif defined(__GNUC__)
-
-#import <objc/runtime.h>
-#import <objc/Object.h>
-#import <objc/NXConstStr.h>
-
-#if (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) && !__clang__
-
-typedef Object BaseObject;
-
-#else
-
-@interface BaseObject : Object
-
-+ (id)alloc;
-- (void)free;
-
-@end
-
-@implementation BaseObject
-
-+ (id)alloc
-{
-    return class_createInstance(self, 0);
-}
-
-- (void)free
-{
-    object_dispose(self);
-}
-
-@end /* BaseObject */
-
-#endif /* (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) && !__clang__ */
-#endif
-
-#ifdef __NEXT_RUNTIME__
 typedef NSZone Zone;
-#else
-typedef id Zone;
-#endif
 
 @interface Bar : BaseObject
 {
@@ -101,7 +58,7 @@ typedef id Zone;
 
 @property BOOL boolProperty;
 @property (copy) Bar *barProperty;
-@property (assign) id stringProperty;
+@property (retain) id stringProperty;
 
 - (id)init;
 - (void)test;

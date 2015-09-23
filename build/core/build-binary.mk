@@ -403,20 +403,18 @@ LOCAL_RS_OBJECTS := $(subst :,_,$(LOCAL_RS_OBJECTS))
 LOCAL_RS_OBJECTS := $(foreach _obj,$(LOCAL_RS_OBJECTS),$(LOCAL_OBJS_DIR)/$(_obj))
 
 ifneq (,$(call module-has-objc-sources,$(LOCAL_MODULE)))
-    objc_cflags  := -fobjc-exception
+    objc_cflags  :=
     objc_ldflags :=
+    #objc_cflags  += objc-exception
     ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
-        objc_cflags += -fblocks
-        objc_cflags += -fgnu-runtime -fobjc-nonfragile-abi
-        objc_cflags += -fobjc-arc
-        objc_ldflags += -fobjc-arc
-        objc_ldflags += -fobjc-link-runtime
+        objc_cflags += objc-arc
+        objc_ldflags += objc-arc
     endif
     $(foreach __f,$(objc_cflags),\
-        $(eval LOCAL_OBJCFLAGS += $(if $(filter $(__f),$(TARGET_OBJCFLAGS) $(LOCAL_OBJCFLAGS) $(NDK_APP_OBJCFLAGS)),,$(__f)))\
+        $(eval LOCAL_OBJCFLAGS += $(if $(filter -f$(__f) -fno-$(__f),$(foreach __t,TARGET LOCAL NDK_APP,$(foreach __l,C OBJC,$($(__t)_$(__l)FLAGS)))),,-f$(__f)))\
     )
     $(foreach __f,$(objc_ldflags),\
-        $(eval LOCAL_LDFLAGS += $(if $(filter $(__f),$(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)),,$(__f)))\
+        $(eval LOCAL_LDFLAGS += $(if $(filter -f$(__f) -fno-$(__f),$(foreach __t,TARGET LOCAL NDK_APP,$($(__t)_LDFLAGS))),,-f$(__f)))\
     )
 endif
 

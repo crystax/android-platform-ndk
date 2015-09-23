@@ -3,5 +3,6 @@ CTESTS :=  \
 	base   \
 	nslog  \
 	string \
+	exception \
 
 CFLAGS := -UNDEBUG

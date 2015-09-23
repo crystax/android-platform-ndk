@@ -117,18 +117,26 @@ for HEADER in $HEADERS; do
             echo "#endif"
         } | cat >jni/$fname || exit 1
 
-        SKIP=no
         case $LANG in
             c|objc)
-                echo $HEADER | grep -q '\.hpp$'
-                if [ $? -eq 0 ]; then
-                    SKIP=yes
-                fi
+                echo $HEADER | grep -q '\.hpp$' && continue
                 ;;
         esac
-        if [ "$SKIP" != "yes" ]; then
-            echo "LOCAL_SRC_FILES += $fname" >>jni/Android.mk || exit 1
-        fi
+
+        EXCLUDE_PLATFORMS=
+        [[ ${HEADER##OpenGLES/ES1/} != $HEADER ]] && EXCLUDE_PLATFORMS="$EXCLUDE_PLATFORMS 3"
+        [[ ${HEADER##OpenGLES/ES2/} != $HEADER ]] && EXCLUDE_PLATFORMS="$EXCLUDE_PLATFORMS 3 4"
+        [[ ${HEADER##OpenGLES/ES3/} != $HEADER ]] && EXCLUDE_PLATFORMS="$EXCLUDE_PLATFORMS 3 4 5 8 9 12 13 14 15 16 17"
+
+        {
+            for PLATFORM in $EXCLUDE_PLATFORMS; do
+                echo 'ifeq (,$(filter android-'$PLATFORM',$(APP_PLATFORM)))'
+            done
+            echo "LOCAL_SRC_FILES += $fname"
+            for PLATFORM in $EXCLUDE_PLATFORMS; do
+                echo 'endif'
+            done
+        } | cat >>jni/Android.mk || exit 1
     done
 
 done

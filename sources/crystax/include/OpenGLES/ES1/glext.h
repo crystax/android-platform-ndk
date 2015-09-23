@@ -31,6 +31,11 @@
 #define __CRYSTAX_OPENGL_ES1_GLEXT_H_0DA1498D381444FFA5B4EECB6B5BD99A
 
 #include <crystax/id.h>
+#include <android/api-level.h>
+#if __ANDROID_API__ >= 4
 #include <GLES/glext.h>
+#else
+#error "GLES is not supported for this Android API level"
+#endif
 
 #endif /* __CRYSTAX_OPENGL_ES1_GLEXT_H_0DA1498D381444FFA5B4EECB6B5BD99A */

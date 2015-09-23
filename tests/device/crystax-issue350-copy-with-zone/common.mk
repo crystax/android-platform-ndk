@@ -1,6 +1,3 @@
-SRCFILES := \
-	main.m \
+SRCFILES := main.m
 
-CFLAGS := -Wall -Wextra -Werror
-
-
+CFLAGS := -Wall -Werror

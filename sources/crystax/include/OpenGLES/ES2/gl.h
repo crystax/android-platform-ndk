@@ -31,6 +31,11 @@
 #define __CRYSTAX_OPENGL_ES2_GL_H_1603C985363E4429B5339FD8240DB935
 
 #include <crystax/id.h>
+#include <android/api-level.h>
+#if __ANDROID_API__ >= 4
 #include <GLES2/gl2.h>
+#else
+#error "GLES is not supported for this Android API level"
+#endif
 
 #endif /* __CRYSTAX_OPENGL_ES2_GL_H_1603C985363E4429B5339FD8240DB935 */
