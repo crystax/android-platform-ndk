@@ -33,10 +33,6 @@ LIBCXX_SUBDIR=sources/cxx-stl/llvm-libc++
 # Location of the LLVM libc++abi headers, relative to the NDK # root directory.
 LIBCXXABI_SUBDIR=sources/cxx-stl/llvm-libc++abi/libcxxabi
 
-# Location of the GNU libobjc headers and libraries, relative to the NDK
-# root directory.
-GNUOBJC_SUBDIR=sources/objc/gnu-libobjc
-
 # Location of the GNUstep libobjc2 headers and libraries, relative to the NDK root directory
 GNUSTEP_OBJC2_SUBDIR=sources/objc/gnustep-libobjc2
 

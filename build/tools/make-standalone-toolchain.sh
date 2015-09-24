@@ -603,58 +603,6 @@ for ABI in $(tr ',' ' ' <<< $ABIS); do
     copy_libtiff_libs_for_abi "$ABI"
 done
 
-dump "Copying libobjc headers and libraries..."
-
-GNUOBJC_DIR=$NDK_DIR/$GNUOBJC_SUBDIR
-
-
-# $1: Source ABI (e.g. 'armeabi')
-copy_objc_libs_for_abi () {
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    case $ABI in
-        armeabi)
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
-            #
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi" "$ABI_TARGET/lib/thumb" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/thumb/libobjc.a"
-            ;;
-        armeabi-v7a)
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/armv7-a/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/libobjc.a"
-            #
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/armv7-a/thumb/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/thumb/libobjc.a"
-            ;;
-        armeabi-v7a-hard)
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/armv7-a/hard/libgnuobjc_static.a" "$ABI_TARGET/lib/armv7-a/hard/libobjc.a"
-            ;;
-        *)
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/$ABI" "$ABI_TARGET/lib" "libgnuobjc_static.a"
-            copy_file_list "$GNUOBJC_DIR/$GCC_VERSION/libs/$ABI" "$ABI_TARGET/lib" "libgnuobjc_shared.so"
-            mv -f "$ABI_TARGET/lib/libgnuobjc_static.a" "$ABI_TARGET/lib/libobjc.a"
-            ;;
-    esac
-}
-
-copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$ABI_TARGET/include"
-copy_directory "$GNUOBJC_DIR/$GCC_VERSION/include" "$TMPDIR/lib/clang/$LLVM_VERSION/include"
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-  copy_objc_libs_for_abi "$ABI"
-done
-
 GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION
 GNUSTL_LIBS=$GNUSTL_DIR/libs
 

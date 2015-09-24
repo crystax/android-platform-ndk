@@ -475,7 +475,6 @@ if [ -z "$PREBUILT_NDK" ]; then
     # Unpack Objective-C, C++ runtimes
     for VERSION in $GCC_VERSION_LIST; do
         unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
-        unpack_prebuilt gnu-libobjc-headers-$VERSION "$REFERENCE"
     done
     unpack_prebuilt gnustep-objc2-headers "$REFERENCE"
 
@@ -512,7 +511,6 @@ if [ -z "$PREBUILT_NDK" ]; then
         done
         for VERSION in $GCC_VERSION_LIST; do
             unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
-            unpack_prebuilt gnu-libobjc-libs-$VERSION-$ABI "$REFERENCE"
         done
         unpack_prebuilt gnustep-objc2-libs-$ABI "$REFERENCE"
         unpack_prebuilt cocotron-$ABI "$REFERENCE"
@@ -634,13 +632,6 @@ for SYSTEM in $SYSTEMS; do
             copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $GCC_VERSION_LIST; do
-            copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/include" "$GNUOBJC_SUBDIR/$VERSION/"
-            for OBJC_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$GNUOBJC_SUBDIR/$VERSION/libs/$OBJC_ABI" "$GNUOBJC_SUBDIR/$VERSION/libs"
             done
         done
 

@@ -159,12 +159,6 @@ for VERSION in $LLVM_VERSION_LIST; do
     #done
 done
 
-for VERSION in $(commas_to_spaces $GCC_VERSION_LIST); do
-    dump "Building $ABIS GNU libobjc $VERSION binaries..."
-    run $BUILDTOOLS/build-gnu-libobjc.sh $FLAGS --abis="$ABIS" --gcc-version-list=$VERSION "$SRC_DIR"
-    fail_panic "Could not build GNU libobjc $VERSION!"
-done
-
 dump "Building $ABIS Objective-C v2 runtime..."
 run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/libobjc2
 fail_panic "Could not build Objective-C v2 runtime"
