@@ -2144,8 +2144,8 @@ NDK_OBJC_LIST :=
 
 # Used internally to register a given Objective-C runtime, see below
 #
-# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
-# $2: Objective-C runtime module name (e.g. objc/gnu-libobjc)
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. cocotron)
+# $2: Objective-C runtime module name (e.g. objc/cocotron)
 # $3: list of static libraries all modules will depend on
 # $4: list of shared libraries all modules will depend on
 #
@@ -2158,7 +2158,7 @@ ndk-objc-register = \
     $(eval NDK_OBJC.$(__ndk_objc).LDLIBS := $(strip $5))
 
 # Called to check that the value of APP_OBJC is a valid one.
-# $1: Objective-C runtime name as it apperas in APP_OBJC (e.g. 'gnuobjc')
+# $1: Objective-C runtime name as it apperas in APP_OBJC (e.g. 'cocotron')
 #
 ndk-objc-check = \
     $(if $(call set_is_member,$(NDK_OBJC_LIST),$1),,\
@@ -2168,7 +2168,7 @@ ndk-objc-check = \
 
 # Called before the top-level Android.mk is parsed to
 # select the Objective-C runtime.
-# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. cocotron)
 #
 ndk-objc-select = \
     $(if $(strip \
@@ -2181,7 +2181,7 @@ ndk-objc-select = \
 
 # Called after all Android.mk files are parsed to add
 # proper Objective-C dependencies to every Objective-C module.
-# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. gnuobjc)
+# $1: Objective-C runtime name as it appears in APP_OBJC (e.g. cocotron)
 #
 ndk-objc-add-dependencies = \
     $(foreach __module,$(__ndk_modules),\
@@ -2195,24 +2195,6 @@ ndk-objc-add-dependencies = \
 $(call ndk-objc-register,\
     none,\
     objc/none\
-    )
-
-# Register the 'gnuobjc_static' Objective-C runtime
-#
-$(call ndk-objc-register,\
-    gnuobjc_static,\
-    objc/gnu-libobjc,\
-    gnuobjc_static,\
-    \
-    )
-
-# Register the 'gnuobjc_shared' Objective-C runtime
-#
-$(call ndk-objc-register,\
-    gnuobjc_shared,\
-    objc/gnu-libobjc,\
-    ,\
-    gnuobjc_shared\
     )
 
 # Register the 'cocotron' Objective-C runtime
