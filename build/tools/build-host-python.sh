@@ -413,6 +413,33 @@ build_host_python ()
 
     # .. for STLPort
     run cp -rf $NDK_DIR/sources/host-tools/gdb-pretty-printers/stlport/gppfs-0.2 $PYPPDIR/stlport
+
+    # Generate proper python-config wrapper
+    local PYCONFIG
+    for PYCONFIG in $DSTDIR/bin/python*-config; do
+        test -L $PYCONFIG && continue
+        if [ ! -f ${PYCONFIG}.py ]; then
+            run mv $PYCONFIG ${PYCONFIG}.py
+            fail_panic "Can't move $PYCONFIG to ${PYCONFIG}.py"
+        fi
+        cat >$PYCONFIG <<EOF
+#!/bin/sh
+
+exec \`dirname \$0\`/python \`dirname \$0\`/$(basename $PYCONFIG).py "\$@"
+EOF
+        fail_panic "Can't generate $PYCONFIG"
+        run chmod +x $PYCONFIG
+        fail_panic "Can't chmod +x $PYCONFIG"
+        case $1 in
+            windows*)
+                cat >${PYCONFIG}.cmd <<EOF
+@echo off
+set BINDIR=%~dp0
+"%BINDIR%/python" "%BINDIR%/$(basename $PYCONFIG).py" %*
+EOF
+                fail_panic "Can't generate ${PYCONFIG}.cmd"
+        esac
+    done
 }
 
 need_build_host_python ()
@@ -436,32 +463,6 @@ install_host_python ()
         run copy_directory "$SRCDIR/lib"     "$DSTDIR/lib"
         run copy_directory "$SRCDIR/share"   "$DSTDIR/share"
         run copy_directory "$SRCDIR/include" "$DSTDIR/include"
-        # Generate proper python-config wrapper
-        local PYCONFIG
-        for PYCONFIG in $DSTDIR/bin/python*-config; do
-            test -L $PYCONFIG && continue
-            if [ ! -f ${PYCONFIG}.py ]; then
-                run mv $PYCONFIG ${PYCONFIG}.py
-                fail_panic "Can't move $PYCONFIG to ${PYCONFIG}.py"
-            fi
-            cat >$PYCONFIG <<EOF
-#!/bin/sh
-
-exec \`dirname \$0\`/python \`dirname \$0\`/$(basename $PYCONFIG).py "\$@"
-EOF
-            fail_panic "Can't generate $PYCONFIG"
-            run chmod +x $PYCONFIG
-            fail_panic "Can't chmod +x $PYCONFIG"
-            case $1 in
-                windows*)
-                    cat >${PYCONFIG}.cmd <<EOF
-@echo off
-set BINDIR=%~dp0
-"%BINDIR%/python" "%BINDIR%/$(basename $PYCONFIG).py" %*
-EOF
-                    fail_panic "Can't generate ${PYCONFIG}.cmd"
-            esac
-        done
         # remove unneeded files
         run rm -rf "$DSTDIR/share/man"
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-4.9.*"
