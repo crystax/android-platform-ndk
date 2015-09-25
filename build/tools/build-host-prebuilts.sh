@@ -326,7 +326,10 @@ for SYSTEM in $SYSTEMS; do
     # build crystax vendor utils
     $SCRIPTS_DIR/build-vendor-utils --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
     fail_panic "Failed to build vendor utils"
-    
+
+    # Cleanup prebuilt libraries after building vendor utils
+    find $NDK_DIR/prebuilt/$HOST_TAG/lib -name 'lib*.a' -a -not -name 'libpython*.a' -delete
+
     # We're done for this system
 done
 
