@@ -416,7 +416,7 @@ build_host_python ()
 
     # Generate proper python-config wrapper
     local PYCONFIG
-    for PYCONFIG in $DSTDIR/bin/python*-config; do
+    for PYCONFIG in $INSTALLDIR/bin/python*-config; do
         test -L $PYCONFIG && continue
         if [ ! -f ${PYCONFIG}.py ]; then
             run mv $PYCONFIG ${PYCONFIG}.py
