@@ -38,7 +38,7 @@ class Options
   attr_writer :no_clean, :no_check, :force, :verbose, :rename_log
 
   def initialize
-    os, cpu = get_host_platform
+    os, cpu = Options.get_host_platform
     @host_os = os
     @host_cpu = cpu
     @target_os = os
@@ -89,9 +89,14 @@ class Options
     host_platform == target_platform
   end
 
+  def self.host_platform
+    os, cpu = get_host_platform
+    "#{os}-#{cpu}"
+  end
+
   private
 
-  def get_host_platform
+  def self.get_host_platform
     h = RUBY_PLATFORM.split('-')
     cpu = h[0]
     case h[1]

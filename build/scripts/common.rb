@@ -33,6 +33,7 @@
 
 
 require 'pathname'
+require 'fileutils'
 require_relative 'options.rb'
 
 
@@ -44,6 +45,8 @@ class Common
   VENDOR_DIR     = "#{NDK_ROOT_DIR}/vendor"
   CREW_DIR       = "#{NDK_DIR}/tools/crew"
   BUILD_BASE_DIR = "/tmp/ndk-#{ENV['USER']}/crew"
+
+  FileUtils.mkdir_p "#{NDK_DIR}/prebuilt/#{Options.host_platform}/crew"
 
   require "#{Common::CREW_DIR}/library/formula.rb"
   require "#{Common::CREW_DIR}/library/formulary.rb"
@@ -113,6 +116,27 @@ class Common
     else
       raise "unknown host OS: #{host_os}"
     end
+  end
+
+  def self.write_properties(dir, release)
+    props = {crystax_version: release.crystax_version}
+    File.open(File.join(dir, Formula::PROPERTIES_FILE), 'w') { |f| f.puts props.to_json }
+  end
+
+  def self.update_release_shasum(formula_file, release)
+    ver = release.version
+    cxver = release.crystax_version
+    regexp = /^[[:space:]]*release[[:space:]]+version:[[:space:]]+'#{ver}',[[:space:]]+crystax_version:[[:space:]]+#{cxver}/
+    lines = []
+    File.foreach(formula_file) do |l|
+      if l !~ regexp
+        lines << l
+      else
+        lines << "  release version: '#{ver}', crystax_version: #{cxver}, sha256: '#{release.shasum}'"
+      end
+    end
+
+    File.open(formula_file, 'w') { |f| f.puts lines }
   end
 
   private

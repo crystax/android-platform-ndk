@@ -34,6 +34,7 @@
 #
 
 require 'fileutils'
+require 'digest'
 require_relative 'common.rb'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
@@ -59,5 +60,6 @@ module Cache
     file = File.join(PATH, archive)
     FileUtils.rm_rf file
     FileUtils.cd(buildbase) { Commander::run "7z a #{file} #{ARCH_DIR}" }
+    Digest::SHA256.hexdigest(File.read(file, mode: "rb"))
   end
 end

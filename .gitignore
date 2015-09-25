@@ -24,7 +24,6 @@ prebuilt/windows/
 prebuilt/windows-x86_64/
 prebuilt/common/scan-build/
 prebuilt/common/scan-view/
-prebuilt/crew/
 tests/abcc/prebuilts/
 tests/device/crystax-test-big-switch/jni/main.c
 tests/device/crystax-test-big-switch/jni/switch.c

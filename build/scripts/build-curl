@@ -35,6 +35,7 @@
 #
 
 require 'fileutils'
+require 'json'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
 require_relative 'builder.rb'
@@ -71,7 +72,7 @@ begin
     paths[:libssh2_dir] = Builder.build_libssh2 options, paths
 
     Logger.log_msg "= building #{archive}; args: #{ARGV}"
-    check_version paths[:src_dir], release[:version]
+    check_version paths[:src_dir], release.version
     Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
     FileUtils.mkdir_p(paths[:install_dir])
     prefix = Pathname.new(paths[:install_dir]).realpath
@@ -96,13 +97,16 @@ begin
       Commander.run env, "make install"
       # remove unneeded files before packaging
       FileUtils.cd(prefix) { FileUtils.rm_rf(['include', 'lib', 'share']) }
+      # add properties file
+      Common.write_properties prefix, release
     end
 
-    Cache.add archive, paths[:build_base_dir]
+    release.shasum = Cache.add archive, paths[:build_base_dir]
+    Common.update_release_shasum formula.path, release
   end
 
   Cache.unpack(archive, Common::NDK_DIR)
-  formula.link(Common::NDK_DIR, options.target_platform, release) if options.same_platform?
+  formula.link(release, File.join(Common::NDK_DIR, 'prebuilt', options.host_platform)) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status

@@ -135,7 +135,7 @@ begin
     paths[:libgit2_dir] = Builder.build_libgit2 options, paths
 
     Logger.log_msg "= building #{archive}; args: #{ARGV}"
-    check_version paths[:src_dir], release[:version]
+    check_version paths[:src_dir], release.version
     Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
     copy_rugged paths[:build_dir]
     FileUtils.cd(paths[:build_dir]) do
@@ -185,15 +185,18 @@ begin
         FileUtils.rm_rf([File.join('lib', 'pkgconfig'), File.join('lib', 'libruby-static.a')])
         FileUtils.rm_rf([File.join('lib', 'ruby', 'site_ruby'), File.join('lib', 'ruby', 'vendor_ruby')])
       end
+      # add properties file
+      Common.write_properties paths[:install_dir], release
     end
 
     install_gems options, paths[:install_dir], 'rspec', 'minitest'
 
-    Cache.add archive, paths[:build_base_dir]
+    release.shasum = Cache.add archive, paths[:build_base_dir]
+    Common.update_release_shasum formula.path, release
   end
 
   Cache.unpack(archive, Common::NDK_DIR)
-  formula.link(Common::NDK_DIR, options.target_platform, release) if options.same_platform?
+  formula.link(release, File.join(Common::NDK_DIR, 'prebuilt', options.host_platform)) if options.same_platform?
 
 rescue SystemExit => e
   exit e.status
