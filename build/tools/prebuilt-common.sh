@@ -929,20 +929,24 @@ prepare_common_build ()
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/x86_64-linux-"
         elif [ "$HOST_OS" = "darwin" ]; then
             local GCCVER=4.9.3
-            LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-$GCCVER/bin"
+            local LLVMVER=3.7.0
+            local GCCDIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-$GCCVER"
+            local LLVMDIR="$ANDROID_NDK_ROOT/../prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-$LLVMVER"
+
+            LEGACY_TOOLCHAIN_DIR="$GCCDIR/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/"
 
             # For compilation LLDB's Objective-C++ sources we need use clang++, since g++ have a bug
             # not distinguishing between Objective-C call and definition of C++11 lambda:
             # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57607
-            # To workaround this, we're using host-installed clang++ (part of Xcode installation)
+            # To workaround this, we're using prebuilt clang++
             # with includes from our g++, to keep binary compatibility of produced code
             CXXINC="$LEGACY_TOOLCHAIN_DIR/../include/c++/$GCCVER"
             CXXBITSINC="$CXXINC/x86_64-apple-darwin"
             if [ "$TRY64" != "yes" ]; then
                 CXXBITSINC="$CXXBITSINC/i386"
             fi
-            OBJCXX="clang++ -I$CXXBITSINC -I$CXXINC"
+            OBJCXX="$LLVMDIR/bin/clang++ -I$CXXBITSINC -I$CXXINC"
             export OBJCXX
         fi
         if [ -d "$LEGACY_TOOLCHAIN_DIR" ] ; then
