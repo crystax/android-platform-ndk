@@ -928,7 +928,7 @@ prepare_common_build ()
             LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/x86_64-linux-"
         elif [ "$HOST_OS" = "darwin" ]; then
-            local GCCVER=4.9.2
+            local GCCVER=4.9.3
             LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-$GCCVER/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/"
 
