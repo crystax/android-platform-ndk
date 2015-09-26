@@ -425,9 +425,7 @@ _bh_select_toolchain_for_host ()
         linux-x86)
             # If possible, automatically use our custom toolchain to generate
             # 32-bit executables that work on Ubuntu 8.04 and higher.
-            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.6" i686-linux
-            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilts/gcc/linux-x86/host/i686-linux-glibc2.7-4.4.3" i686-linux
-            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilt/linux-x86/toolchain/i686-linux-glibc2.7-4.4.3" i686-linux
+            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8" x86_64-linux
             _bh_try_host_prefix i686-linux-gnu
             _bh_try_host_prefix i686-linux
             _bh_try_host_prefix x86_64-linux-gnu -m32
@@ -437,7 +435,7 @@ _bh_select_toolchain_for_host ()
         linux-x86_64)
             # If possible, automaticaly use our custom toolchain to generate
             # 64-bit executables that work on Ubuntu 8.04 and higher.
-            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.7-4.6" x86_64-linux
+            _bh_try_host_fullprefix "$(dirname $ANDROID_NDK_ROOT)/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8" x86_64-linux
             _bh_try_host_prefix x86_64-linux-gnu
             _bh_try_host_prefix x84_64-linux
             _bh_try_host_prefix i686-linux-gnu -m64
