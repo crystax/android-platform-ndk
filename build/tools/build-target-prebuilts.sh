@@ -159,14 +159,6 @@ for VERSION in $LLVM_VERSION_LIST; do
     #done
 done
 
-dump "Building $ABIS Objective-C v2 runtime..."
-run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/libobjc2
-fail_panic "Could not build Objective-C v2 runtime"
-
-dump "Building $ABIS Cocotron frameworks..."
-run $BUILDTOOLS/build-cocotron.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/cocotron
-fail_panic "Could not build Cocotron frameworks"
-
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
     GNUSTL_STATIC_VIS_FLAG=--visible-libgnustl-static
 fi
@@ -184,6 +176,14 @@ if [ ! -z "$GCC_VERSION_LIST" ]; then
         fail_panic "Could not build GNU libstdc++ $VERSION!"
     done
 fi
+
+dump "Building $ABIS Objective-C v2 runtime..."
+run $BUILDTOOLS/build-gnustep-libobjc2.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/libobjc2
+fail_panic "Could not build Objective-C v2 runtime"
+
+dump "Building $ABIS Cocotron frameworks..."
+run $BUILDTOOLS/build-cocotron.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/cocotron
+fail_panic "Could not build Cocotron frameworks"
 
 dump "Building $ABIS sqlite3 binaries..."
 run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/sqlite3
