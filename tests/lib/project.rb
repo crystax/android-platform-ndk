@@ -434,10 +434,10 @@ class Project
         end
         args << "--mro-prefix=#{mroprefix}"
         args << "--symbols-directories=#{objdirs.join(',')}"
+        args << "--ld-library-path=#{File.join(dstdir, 'libs', abi)}"
         args << "@#{cmdslist}"
 
         env = {}
-        env['LD_LIBRARY_PATH'] = File.join(dstdir, 'libs', abi)
 
         skipreason = nil
 

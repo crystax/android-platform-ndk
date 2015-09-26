@@ -122,6 +122,10 @@ optparser = OptionParser.new do |o|
     o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on") do |l|
         OPTIONS[:min_api_level] = l
     end
+
+    o.on("--ld-library-path=PATHS", Array, "Load libraries from specified path to device") do |l|
+        OPTIONS[:ld_library_path] = l
+    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -191,6 +195,12 @@ MROPREFIX = OPTIONS[:mroprefix]
 SYMDIRS = OPTIONS[:symdirs]
 ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
 MIN_API_LEVEL = OPTIONS[:min_api_level]
+
+OPTIONS[:ld_library_path] ||= []
+['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
+    OPTIONS[:ld_library_path] += ENV[e].split(':') unless ENV[e].nil?
+end
+LD_LIBRARY_PATH = OPTIONS[:ld_library_path]
 
 $stdout.sync = true
 $stderr.sync = true
@@ -700,12 +710,10 @@ def do_run_test(attempt, devid, tag, exe, args)
         end
     end if File.exists?("#{exe}.ldlp")
 
-    ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
-        ENV[e].split(':').each do |dir|
-            Dir.glob(File.join(dir, 'lib*.so*')).each do |lib|
-                binaries << lib
-            end
-        end if ENV[e]
+    LD_LIBRARY_PATH.each do |dir|
+        Dir.glob(File.join(dir, 'lib*.so')).each do |lib|
+            binaries << lib
+        end
     end
 
     binaries.reject! { |b| b =~ /\.ldlp$/ }
