@@ -12,4 +12,4 @@ LOCAL_SRC_FILES        := test.c
 LOCAL_STATIC_LIBRARIES := libtiff_shared
 include $(BUILD_EXECUTABLE)
 
-$(call import-module,libtiff/4.0.4)
+$(call import-module,libtiff/4.0.6)
