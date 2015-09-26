@@ -403,7 +403,7 @@ EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-eh-frame-hdr-for-static"
 
 # Enable aarch64 workaround for Cortex-A53 Erratum number 835769 and 843419
 case "$TOOLCHAIN" in
-    aarch64*-4.9)
+    aarch64*)
         EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" \
             --enable-fix-cortex-a53-835769 \
             --enable-fix-cortex-a53-843419 \
