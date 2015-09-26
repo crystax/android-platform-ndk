@@ -377,17 +377,11 @@ case "$TOOLCHAIN" in
         ENABLE_GOLD_FLAGS="--enable-gold=default"
     ;;
 esac
+EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" "$ENABLE_GOLD_FLAGS
+
 if [ "$MINGW" != "yes" ] ; then
     EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
 fi
-
-# Current mingw has an internal compiler error when building gold.
-# Bug: http://b/22045105
-if [ "$MINGW" = "yes" ]; then
-    ENABLE_GOLD_FLAGS=
-fi
-
-EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" "$ENABLE_GOLD_FLAGS
 
 # We're not using gold for mips yet, and there is no support for threaded
 # linking on Windows (no pthreads).
