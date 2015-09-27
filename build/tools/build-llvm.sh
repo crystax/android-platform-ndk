@@ -52,9 +52,9 @@ CHECK=no
 do_check_option () { CHECK=yes; }
 register_option "--check" do_check_option "Check LLVM"
 
-USE_PYTHON=no
-do_use_python_option () { USE_PYTHON=yes; }
-register_option "--use-python" do_use_python_option "Use python bc2native instead of integrated one"
+USE_PYTHON_BC2NATIVE=no
+do_use_python_bc2native_option () { USE_PYTHON_BC2NATIVE=yes; }
+register_option "--use-python-bc2native" do_use_python_bc2native_option "Use python bc2native instead of integrated one"
 
 register_jobs_option
 register_canadian_option
@@ -350,15 +350,6 @@ LLVM_BUILD_OUT=$BUILD_OUT/llvm
 mkdir -p $LLVM_BUILD_OUT && cd $LLVM_BUILD_OUT
 fail_panic "Couldn't cd into llvm build path: $LLVM_BUILD_OUT"
 
-# Only start using integrated bc2native source >= 3.3 by default
-LLVM_VERSION_MAJOR=`echo $LLVM_VERSION | tr '.' '\n' | head -n 1`
-LLVM_VERSION_MINOR=`echo $LLVM_VERSION | tr '.' '\n' | tail -n 1`
-if [ $LLVM_VERSION_MAJOR -lt 3 ]; then
-    USE_PYTHON=yes
-elif [ $LLVM_VERSION_MAJOR -eq 3 ] && [ $LLVM_VERSION_MINOR -lt 3 ]; then
-    USE_PYTHON=yes
-fi
-
 BINUTILS_VERSION=$(get_default_binutils_version_for_llvm $TOOLCHAIN)
 
 if [ "$MINGW" != "yes" ]; then
@@ -467,7 +458,7 @@ if [ -f "$TOOLCHAIN_BUILD_PREFIX/bin/ndk-translate${HOST_EXE}" ]; then
 fi
 
 # install script
-if [ "$USE_PYTHON" != "yes" ]; then
+if [ "$USE_PYTHON_BC2NATIVE" != "yes" ]; then
     # Remove those intermediate cpp
     rm -f $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/*.cpp
     rm -f $SRC_DIR/$TOOLCHAIN/llvm/tools/ndk-bc2native/*.c
