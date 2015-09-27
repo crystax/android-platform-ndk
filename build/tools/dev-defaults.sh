@@ -152,7 +152,7 @@ DEFAULT_LLVM_URL="http://llvm.org/releases"
 DEFAULT_SYSTEMS="linux-x86 windows darwin-x86"
 
 # The default issue tracker URL
-DEFAULT_ISSUE_TRACKER_URL="http://source.android.com/source/report-bugs.html"
+DEFAULT_ISSUE_TRACKER_URL="https://tracker.crystax.net/projects/ndk"
 
 # Return the default gcc version for a given architecture
 # $1: Architecture name (e.g. 'arm')
