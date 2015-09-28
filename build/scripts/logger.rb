@@ -47,8 +47,12 @@ class Logger
     @@verbose = verbose
   end
 
-  def self.start_msg(pkgname, platform)
+  def self.start_build_msg(pkgname, platform)
     msg "Building #{pkgname} for #{platform}"
+  end
+
+  def self.start_install_msg(platform)
+    msg "Installing CREW utilities for #{platform}"
   end
 
   def self.msg(msg)

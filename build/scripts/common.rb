@@ -87,9 +87,46 @@ class Common
       end
     end
 
-    options.log_file = default_logfile_name(options, pkgname) unless options.log_file
+    options.log_file = default_build_logfile_name(options, pkgname) unless options.log_file
     # enforce no-check for cross builds
     options.no_check = options.target_os != options.host_os unless options.no_check?
+
+    options
+  end
+
+  def self.parse_install_options
+    # set default values for build options
+    options = Options.new
+
+    # parse command line args
+    ARGV.each do |opt|
+      case opt
+      when /^--target-os=(\w+)/
+       options.target_os = $1
+      when /^--target-cpu=(\w+)/
+        options.target_cpu = $1
+      when /^--log-file=(\S+)/
+        options.log_file = $1
+        # explicit log-file options implies log-rename disabling
+        options.rename_log = false
+      when /^--out-dir=(\S+)/
+       options.out_dir = $1
+      when /^--download-base=(\S+)/
+       options.download_base = $1
+      when '--verbose'
+        options.verbose = true
+      when '--help'
+        show_install_help options
+        exit 1
+      else
+        raise "unknown option: #{opt}"
+      end
+    end
+
+    raise "out-dir must be specified" unless options.out_dir
+    raise "download-base must be specified" unless options.download_base
+
+    options.log_file = default_install_logfile_name(options) unless options.log_file
 
     options
   end
@@ -156,9 +193,26 @@ class Common
          "  --no-check        do not run make check or make test\n"                         \
          "  --force           do not check cache, force build\n"                            \
          "  --log-file=NAME   set log filename\n"                                           \
-         "                    default #{default_logfile_name(options, pkgname)}\n"          \
+         "                    default #{default_build_logfile_name(options, pkgname)}\n"    \
          "  --verbose         output more info to console\n"                                \
          "  --help            show this message and exit\n"
+  end
+
+  def self.show_install_help(options)
+    puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                             \
+         "where OPTIONS are:\n"                                                            \
+         "  --target-os=STR      set target OS; one of linux, darwin, windows;\n"          \
+         "                       default #{options.host_os}\n"                             \
+         "  --target-cpu=STR     set target CPU; one of x86_64, x86;\n"                    \
+         "                       default #{options.host_cpu}\n"                            \
+         "  --log-file=NAME      set log filename\n"                                       \
+         "                       default #{default_install_logfile_name(options)}\n"       \
+         "  --out-dir=NAME       set output directory; crew utilities will be installed\n" \
+         "                       into that directory; required\n"                          \
+         "  --download-base=URL  crew utilities archives will be downloaded from the\n"    \
+         "                       specified URL;required\n"                                 \
+         "  --verbose            output more info to console\n"                            \
+         "  --help               show this message and exit\n"
   end
 
   def self.formula_data(name)
@@ -179,8 +233,11 @@ class Common
     }
   end
 
-  def self.default_logfile_name(options, pkgname)
+  def self.default_build_logfile_name(options, pkgname)
     "#{BUILD_BASE_DIR}/build-#{pkgname}-#{options.target_platform}.log"
   end
 
+  def self.default_install_logfile_name(options)
+    "#{BUILD_BASE_DIR}/install-crew-utils-#{options.target_platform}.log"
+  end
 end

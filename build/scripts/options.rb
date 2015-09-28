@@ -34,7 +34,7 @@
 
 class Options
 
-  attr_accessor :host_os, :host_cpu, :target_os, :target_cpu, :num_jobs, :log_file
+  attr_accessor :host_os, :host_cpu, :target_os, :target_cpu, :num_jobs, :log_file, :out_dir, :download_base
   attr_writer :no_clean, :no_check, :force, :verbose, :rename_log
 
   def initialize
@@ -45,6 +45,8 @@ class Options
     @target_cpu = cpu
     @num_jobs = '16'
     @log_file = nil
+    @out_dir = nil
+    @download_base = nil
     #
     @no_clean = false
     @no_check = false

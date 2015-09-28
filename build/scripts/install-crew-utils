@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Install Crew utils used with Crystax NDK
+# Install Crew Utilities
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -34,72 +34,40 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
+require 'digest'
 require_relative 'common.rb'
 require_relative 'cache.rb'
 require_relative 'logger.rb'
 
 
-# USAGE_STR = <<-EOS
-# Usage: #{$PROGRAM_NAME} [OPTIONS]
-# where OPTIONS are:
-#   --system=STR     target system name, as used in NDK build scripts
-#   --out32-dir=STR  destination dir for 32-bit release, as defined in
-#                    package-release.sh build script
-#   --out64-dir=STR  destination dir for 64-bit release, as defined in
-#                    package-release.sh build script
-#   --log-file=STR   log filename; default value is taken from environment
-#                    variable 'TMPLOG'
-#   --help           output this message and exit
-# EOS
-
-
 begin
-  # os = nil
-  # out32_dir = nil
-  # out64_dir = nil
-  # systems = ['linux', 'darwin', 'windows']
-  # logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
+  options = Common.parse_install_options
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_install_msg options.target_platform
 
-  # # parse command line options
-  # ARGV.each do |arg|
-  #   case arg
-  #   when /^--system=(\S+)/
-  #     system = $1
-  #     a = system.split('-')
-  #     os = a[0]
-  #   when /^--out32-dir=(\S+)/
-  #     out32_dir = $1
-  #   when /^--out64-dir=(\S+)/
-  #     out64_dir = $1
-  #   when /^--log-file=(\S+)/
-  #     logfile = $1
-  #   when '--help'
-  #     puts USAGE_STR
-  #     exit 1
-  #   else
-  #     raise "unknown option #{arg}"
-  #   end
-  # end
+  path = File.dirname($0)
 
-  # Logger.rename = false
-  # Logger.open_log_file logfile
-  # Logger.msg "Installing vendor utilities"
-
-  # # test that all vars are set
-  # raise "bad system value #{system}" unless systems.include?(os)
-  # raise "use --system=STR to set target OS" unless os
-  # raise "use --out32-dir=STR to set output dir for 32 bit release" unless out32_dir
-  # raise "use --out64-dir=STR to set output dir for 64 bit release" unless out64_dir
-
-  # # unpack utils
-  # Crystax::INSTALL_UTILS.each do |name|
-  #   base = "#{Common.make_archive_base(name)}-#{os}"
-  #   arch32 = "#{base}-x86.7z"
-  #   arch64 = "#{base}-x86_64.7z"
-  #   Cache.unpack(arch32, out32_dir)
-  #   Cache.unpack(arch64, out64_dir)
-  # end
-
+  Common::CREW_UTILS.each do |name|
+    args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
+    Logger.msg "Install #{options.target_platform} #{name}"
+    release, _, archive, formula = Common.make_build_data(name, options)
+    if Cache.exists? archive
+      Logger.log_msg "= using cached file: #{archive}"
+      Cache.unpack archive, options.out_dir
+    else
+      url = "#{options.download_base}/utils/#{name}/archive"
+      Logger.log_msg "= cached file not found"
+      Logger.log_msg "= try to download archive: #{url}"
+      file = download_archive(url)
+      Logger.log_msg "= checking sha256 of the downloaded file: #{file}"
+      if Digest::SHA256.hexdigest(File.read(archive, mode: "rb")) != release.shasum
+        raise "bad SHA256 sum of the file #{file} for #{name} release #{release}"
+      end
+      Logger.log_msg "= unpack downloaded file: #{file}"
+      Commander::run "7z x -y -o#{options.out_dir} #{file}"
+    end
+    formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.host_platform)
+  end
 
 rescue SystemExit => e
   exit e.status

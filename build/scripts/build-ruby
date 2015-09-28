@@ -117,7 +117,7 @@ PKG_NAME = 'ruby'
 begin
   options = Common.parse_build_options(PKG_NAME)
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
-  Logger.start_msg PKG_NAME, options.target_platform
+  Logger.start_build_msg PKG_NAME, options.target_platform
 
   release, paths, archive, formula = Common.make_build_data(PKG_NAME, options)
 
