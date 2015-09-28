@@ -105,8 +105,10 @@ begin
     Common.update_release_shasum formula.path, release
   end
 
-  Cache.unpack(archive, Common::NDK_DIR)
-  formula.link(release, File.join(Common::NDK_DIR, 'prebuilt', options.host_platform)) if options.same_platform?
+  if options.same_platform?
+    Cache.unpack(archive, Common::NDK_DIR)
+    formula.link(release, File.join(Common::NDK_DIR, 'prebuilt', options.host_platform))
+  end
 
 rescue SystemExit => e
   exit e.status
