@@ -39,6 +39,8 @@ require_relative 'options.rb'
 
 class Common
 
+  CREW_UTILS = ['curl', 'p7zip', 'ruby']
+
   NDK_ROOT_DIR = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.dirname.dirname.to_s
 
   NDK_DIR        = "#{NDK_ROOT_DIR}/platform/ndk"
