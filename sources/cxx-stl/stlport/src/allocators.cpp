@@ -541,12 +541,12 @@ char* __node_alloc_impl::_S_chunk_alloc(size_t _p_size, int& __nobjs) {
   char*  __result       = 0;
   __add_atomic_t __total_bytes  = __STATIC_CAST(__add_atomic_t, _p_size) * __nobjs;
 
-  _FreeBlockHeader* __block = __STATIC_CAST(_FreeBlockHeader*, _S_free_mem_blocks.pop());
-  if (__block != 0) {
+  _FreeBlockHeader* __stlp_block = __STATIC_CAST(_FreeBlockHeader*, _S_free_mem_blocks.pop());
+  if (__stlp_block != 0) {
     // We checked a block out and can now mess with it with impugnity.
     // We'll put the remainder back into the list if we're done with it below.
-    char*  __buf_start  = __REINTERPRET_CAST(char*, __block);
-    __add_atomic_t __bytes_left = __block->_M_end - __buf_start;
+    char*  __buf_start  = __REINTERPRET_CAST(char*, __stlp_block);
+    __add_atomic_t __bytes_left = __stlp_block->_M_end - __buf_start;
 
     if ((__bytes_left < __total_bytes) && (__bytes_left >= __STATIC_CAST(__add_atomic_t, _p_size))) {
       // There's enough left for at least one object, but not as much as we wanted
@@ -569,7 +569,7 @@ char* __node_alloc_impl::_S_chunk_alloc(size_t _p_size, int& __nobjs) {
         // We were able to allocate at least one object and there is still enough
         // left to put remainder back into list.
         _FreeBlockHeader* __newblock = __REINTERPRET_CAST(_FreeBlockHeader*, __buf_start);
-        __newblock->_M_end  = __block->_M_end;
+        __newblock->_M_end  = __stlp_block->_M_end;
         _S_free_mem_blocks.push(__newblock);
       }
       else {
