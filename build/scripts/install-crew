@@ -34,14 +34,7 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-module Crystax
-
-  PKG_NAME = 'dummy'
-
-end
-
 require 'fileutils'
-require_relative 'versions.rb'
 require_relative 'commander.rb'
 require_relative 'logger.rb'
 
@@ -52,17 +45,19 @@ where OPTIONS are:
   --out-dir=STR    destination dir, as defined in package-release.sh build script
   --log-file=STR   log filename; default value is taken from environment
                    variable 'TMPLOG' or 'NDK_LOGFILE'
+  --verbose        output more info to console
   --help           output this message and exit
 EOS
 
 
 CREW_URL    = ENV['CREW_DEVEL_URL']    || 'https://github.com/crystax/android-crew.git'
-CREW_BRANCH = 'master'
+CREW_BRANCH = ENV['CREW_DEVEL_BRANCH'] || 'master'
 
 
 begin
   out_dir = nil
   logfile = ENV['TMPLOG'] || ENV['NDK_LOGFILE']
+  verbose = false
 
   # parse command line options
   ARGV.each do |arg|
@@ -71,6 +66,8 @@ begin
       out_dir = $1
     when /^--log-file=(\S+)/
       logfile = $1
+    when '--verbose'
+      verbose = true
     when '--help'
       puts USAGE_STR
       exit 1
@@ -79,14 +76,21 @@ begin
     end
   end
 
-  Logger.rename = false
-  Logger.open_log_file logfile
-  Logger.msg "Installing CREW"
-
   # test that all vars are set
-  raise "use --out-dir=STR to set output dir" unless out_dir
+  raise "use --out-dir=STR to set output dir"    unless out_dir
+  raise "use --log-file=STR to set log filename" unless logfile
 
-  FileUtils.cd(out_dir) { Commander.run "git clone -b #{CREW_BRANCH} #{CREW_URL} crew" }
+  Logger.open_log_file logfile, false, verbose
+  Logger.msg "Installing CREW"
+  Logger.log_msg "= using CREW URL:    #{CREW_URL}"
+  Logger.log_msg "= using CREW branch: #{CREW_BRANCH}"
+
+  FileUtils.cd(out_dir) do
+    Commander.run "git clone -b #{CREW_BRANCH} #{CREW_URL} crew"
+    if CREW_BRANCH != 'master'
+      FileUtils.cd("#{out_dir}/crew") { Commander.run "git checkout -b master origin/#{CREW_BRANCH}" }
+    end
+  end
 
 rescue SystemExit => e
   exit e.status
