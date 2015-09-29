@@ -797,10 +797,22 @@ for SYSTEM in $SYSTEMS; do
     find $DSTDIR -name ".git*" -exec rm -rf {} \;
     find $DSTDIR64 -name ".git*" -exec rm -rf {} \;
 
-    # unpack vendor utils
-    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
-    fail_panic "Could not install vendor utils"
+    # install crew utils and crew
+    #   first, remove crew related files that were copied from source dir
+    rm -rf $DSTDIR/prebuilt/*/crew
+    rm -rf $DSTDIR/tools/crew
+    rm -rf $DSTDIR64/prebuilt/*/crew
+    rm -rf $DSTDIR64/tools/crew
+    #   second, install 32 and 64 bit versions of the crew utilties
+    #   NB: the code below will work correctly only wneh both 32 and 64 bit releases are build
+    #       I hope we'll change the whole build proccess really soon
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
+    fail_panic "Could not install 32-bit crew utils"
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86-64" --out-dir="$DSTDIR64"
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86-64" --out-dir="$DSTDIR64"
+    fail_panic "Could not install 64-bit crew utils"
+    #   third, install crew
     echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
     $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
     fail_panic "Could not install CREW"
