@@ -315,20 +315,9 @@ for SYSTEM in $SYSTEMS; do
         fail_panic "Could not build llvm for $SYSNAME"
     done
 
-    # build crystax host tools
-    target_os=$(echo "$SYSTEM" | cut -d'-' -f1)
-    if [ "$TRY64" = "yes" ]; then
-        target_cpu="x86_64"
-    else
-        target_cpu="x86"
-    fi
-
-    # build crystax vendor utils
-    $SCRIPTS_DIR/build-vendor-utils --target-os=$target_os --target-cpu=$target_cpu --log-file=$TMPLOG
-    fail_panic "Failed to build vendor utils"
-
     # Cleanup prebuilt libraries after building vendor utils
-    find $NDK_DIR/prebuilt/$HOST_TAG/lib -name 'lib*.a' -a -not -name 'libpython*.a' -delete
+    # todo: zuav: what's the reason?
+    #find $NDK_DIR/prebuilt/$HOST_TAG/lib -name 'lib*.a' -a -not -name 'libpython*.a' -delete
 
     # We're done for this system
 done
