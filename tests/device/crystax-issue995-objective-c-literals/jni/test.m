@@ -72,14 +72,6 @@ int main()
     NSNumber *fortyTwoLongLong = @42LL;
     assert([fortyTwoLongLong longLongValue] == 42);
 
-    NSNumber *piFloat = @3.141592654F;
-    NSLog(@"piFloat=%@", piFloat);
-    assert(fabsf([piFloat floatValue] - 3.141592654F) < 0.000001);
-
-    NSNumber *piDouble = @3.1415926535;
-    NSLog(@"piDouble=%@", piDouble);
-    assert(fabs([piDouble doubleValue] - 3.1415926535) < 0.000001);
-
     NSNumber *yesNumber = @YES;
     assert([yesNumber boolValue] == YES);
 
@@ -89,9 +81,22 @@ int main()
     NSNumber *smallestInt = @(-INT_MAX - 1);
     assert([smallestInt intValue] == (-INT_MAX - 1));
 
+    // There is bug with clang/armeabi-v7a-hard interpreting float literals
+    // as zero values. See https://tracker.crystax.net/issues/1080.
+    // Temporary disable this block til bug #1080 would be fixed.
+#if !__ARM_PCS_VFP
+    NSNumber *piFloat = @3.141592654F;
+    NSLog(@"piFloat=%@", piFloat);
+    assert(fabsf([piFloat floatValue] - 3.141592654F) < 0.000001);
+
+    NSNumber *piDouble = @3.1415926535;
+    NSLog(@"piDouble=%@", piDouble);
+    assert(fabs([piDouble doubleValue] - 3.1415926535) < 0.000001);
+
     NSNumber *piOverTwo = @(M_PI / 2);
     NSLog(@"piOverTwo=%@", piOverTwo);
     assert(fabs([piOverTwo doubleValue] - M_PI / 2) < 0.000001);
+#endif // !__ARM_PCS_VFP
 
     typedef enum { Red, Green, Blue } Color;
     NSNumber *favoriteColor = @(Green);

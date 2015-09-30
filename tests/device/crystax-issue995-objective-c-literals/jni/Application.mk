@@ -25,5 +25,4 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of CrystaX .NET.
 
-#APP_ABI := all
-APP_ABI := armeabi-v7a armeabi-v7a-hard x86 x86_64 mips mips64
+APP_ABI := all
