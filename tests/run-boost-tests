@@ -890,6 +890,7 @@ def test_for_abi(abi, testdir)
 
     bjam_options = [
         "-j#{OPTIONS[:jobs]}",
+        "-m64",
         "variant=release",
         "link=static,shared",
         "runtime-link=shared",
