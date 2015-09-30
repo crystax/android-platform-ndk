@@ -809,8 +809,8 @@ for SYSTEM in $SYSTEMS; do
     echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
     $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
     fail_panic "Could not install 32-bit crew utils"
-    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86-64" --out-dir="$DSTDIR64"
-    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86-64" --out-dir="$DSTDIR64"
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64"
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64"
     fail_panic "Could not install 64-bit crew utils"
     #   third, install crew
     echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
