@@ -42,8 +42,12 @@ require_relative 'logger.rb'
 
 begin
   options = Common.parse_install_options
+
   Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
   Logger.start_install_msg options.target_platform
+  Logger.log_msg "= will install CREW utilities into directory: #{options.out_dir}"
+  Logger.log_msg "= using DOWLOAD_BASE: #{Global::DOWNLOAD_BASE}"
+  Logger.log_msg "= using target platform: #{options.target_platform}"
 
   path = File.dirname($0)
 
@@ -55,7 +59,7 @@ begin
       Logger.log_msg "= using cached file: #{archive}"
       Cache.unpack archive, options.out_dir
     else
-      url = "#{options.download_base}/utils/#{name}/archive"
+      url = "#{Global::DOWNLOAD_BASE}/utils/#{name}/archive"
       Logger.log_msg "= cached file not found"
       Logger.log_msg "= try to download archive: #{url}"
       file = download_archive(url)
@@ -66,7 +70,7 @@ begin
       Logger.log_msg "= unpack downloaded file: #{file}"
       Commander::run "7z x -y -o#{options.out_dir} #{file}"
     end
-    formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.host_platform)
+    formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.target_platform)
   end
 
 rescue SystemExit => e

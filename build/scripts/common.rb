@@ -111,8 +111,6 @@ class Common
         options.rename_log = false
       when /^--out-dir=(\S+)/
        options.out_dir = $1
-      when /^--download-base=(\S+)/
-       options.download_base = $1
       when '--verbose'
         options.verbose = true
       when '--help'
@@ -124,7 +122,6 @@ class Common
     end
 
     raise "out-dir must be specified" unless options.out_dir
-    raise "download-base must be specified" unless options.download_base
 
     options.log_file = default_install_logfile_name(options) unless options.log_file
 
@@ -209,8 +206,6 @@ class Common
          "                       default #{default_install_logfile_name(options)}\n"       \
          "  --out-dir=NAME       set output directory; crew utilities will be installed\n" \
          "                       into that directory; required\n"                          \
-         "  --download-base=URL  crew utilities archives will be downloaded from the\n"    \
-         "                       specified URL;required\n"                                 \
          "  --verbose            output more info to console\n"                            \
          "  --help               show this message and exit\n"
   end
