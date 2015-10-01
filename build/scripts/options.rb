@@ -79,11 +79,7 @@ class Options
   end
 
   def target_platform
-    "#{target_os}-#{target_cpu}"
-  end
-
-  def target_platform_dir
-    (target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform
+    (target_os == 'windows' and target_cpu == 'x86') ? 'windows' : "#{target_os}-#{target_cpu}"
   end
 
   def same_platform?

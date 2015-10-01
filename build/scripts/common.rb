@@ -218,7 +218,7 @@ class Common
 
   def self.make_paths(pkgname, release, options)
     pkgver = Formula.package_version(release)
-    prebuilt = "prebuilt/#{options.target_platform_dir}"
+    prebuilt = "prebuilt/#{options.target_platform}"
 
     { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
       build_base_dir: "#{BUILD_BASE_DIR}/#{pkgname}",

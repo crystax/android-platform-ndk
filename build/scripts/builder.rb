@@ -91,7 +91,7 @@ class Builder
       "-m32"
     when 'windows-x86_64'
       '-m64'
-    when 'windows-x86'
+    when 'windows'
       '-m32'
     else
       raise UnknownTargetPlatform, options.target_platform, caller
@@ -123,7 +123,7 @@ class Builder
       'i686-linux'
     when 'windows-x86_64'
       'x86_64-mingw64'
-    when 'windows-x86'
+    when 'windows'
       'mingw32'
     else
       raise UnknownTargetPlatform, options.target_platform, caller
@@ -324,7 +324,7 @@ class Builder
     when 'linux-x86_64'   then 'linux-x86_64'
     when 'linux-x86'      then 'linux-generic32'
     when 'windows-x86_64' then 'mingw64'
-    when 'windows-x86'    then 'mingw'
+    when 'windows'        then 'mingw'
     else
       raise UnknownTargetPlatform, platform, caller
     end
