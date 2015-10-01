@@ -110,6 +110,26 @@ def install_gems(options, install_dir, *gems)
   Commander.run env, "gem install -V --backtrace #{gems.join(' ')} #{args.join(' ')}"
 end
 
+# by default windres included with 64bit gcc toolchain (mingw) generates 64-bit obj files
+# we need to provide '-F pe-i386' to windres to generate 32bit output
+def fix_winres_params
+  file = 'GNUmakefile'
+  lines = []
+  replaced = false
+  File.foreach(file) do |l|
+    if not l.start_with?('WINDRES = windres --preprocessor="$(CPP) -xc" -DRC_INVOKED')
+      lines << l
+    else
+      lines << 'WINDRES = windres -F pe-i386 --preprocessor="$(CPP) -xc" -DRC_INVOKED'
+      replaced = true
+    end
+  end
+
+  raise "not found WINDRES line in GNUmakefile" unless replaced
+
+  File.open(file, 'w') { |f| f.puts lines }
+end
+
 
 PKG_NAME = 'ruby'
 
@@ -176,6 +196,7 @@ begin
              ]
       Commander.run "autoconf"
       Commander.run env, "./configure #{args.join(' ')}"
+      fix_winres_params if options.target_platform == 'windows'
       Commander.run env, "make -j #{options.num_jobs} V=1"
       Commander.run env, "make check" unless options.no_check?
       Commander.run env, "make install"
