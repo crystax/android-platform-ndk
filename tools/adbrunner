@@ -711,8 +711,10 @@ def do_run_test(attempt, devid, tag, exe, args)
     end if File.exists?("#{exe}.ldlp")
 
     LD_LIBRARY_PATH.each do |dir|
-        Dir.glob(File.join(dir, 'lib*.so')).each do |lib|
-            binaries << lib
+        ['lib*.so', 'lib*.so.*'].each do |wildcard|
+            Dir.glob(File.join(dir, wildcard)).each do |lib|
+                binaries << lib
+            end
         end
     end
 
