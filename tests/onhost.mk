@@ -6,6 +6,169 @@ ifneq (yes,$(shell which awk >/dev/null 2>&1 && echo yes))
 $(error No 'awk' tool found)
 endif
 
+empty :=
+space := $(empty) $(empty)
+comma := ,
+
+define check-function
+$(if $(strip $(2)),,$(error INTERNAL ERROR: function '$(1)' is broken!))
+endef
+
+define not
+$(if $(strip $(1)),,yes)
+endef
+
+define is-empty
+$(if $(strip $(1)),,yes)
+endef
+
+define head
+$(firstword $(1))
+endef
+
+$(call check-function,head,$(filter a,$(call head,a b c)))
+
+define tail
+$(wordlist 2,$(words $(1)),$(1))
+endef
+
+$(call check-function,tail,$(filter 2,$(words $(call tail,a b c))))
+$(call check-function,tail,$(filter b,$(word 1,$(call tail,a b c))))
+$(call check-function,tail,$(filter c,$(word 2,$(call tail,a b c))))
+
+define str.eq
+$(or $(call is-empty,$(1) $(2)),$(if $(call is-empty,$(2)),,$(if $(strip $(subst $(1),,$(2))),,yes)))
+endef
+
+$(call check-function,str.eq,$(call str.eq,asd,asd))
+$(call check-function,str.eq,$(call str.eq,amaimiblaend12,amaimiblaend12))
+$(call check-function,str.eq,$(call str.eq,,))
+$(call check-function,str.eq,$(call not,$(call str.eq,asd,dsa)))
+$(call check-function,str.eq,$(call not,$(call str.eq,km92uenijna,)))
+$(call check-function,str.eq,$(call not,$(call str.eq,,lakjoiln)))
+
+define str.le
+$(or $(call is-empty,$(1)),$(if $(call is-empty,$(2)),,$(call str.eq,$(word 1,$(sort $(1) $(2))),$(1))))
+endef
+
+$(call check-function,str.le,$(call str.le,,,))
+$(call check-function,str.le,$(call str.le,,abc))
+$(call check-function,str.le,$(call str.le,abc,abc))
+$(call check-function,str.le,$(call str.le,abc,bbc))
+$(call check-function,str.le,$(call str.le,1,1))
+$(call check-function,str.le,$(call str.le,1,2))
+$(call check-function,str.le,$(call not,$(call str.le,abc,)))
+$(call check-function,str.le,$(call not,$(call str.le,bbc,abc)))
+$(call check-function,str.le,$(call not,$(call str.le,9,5)))
+
+define num.mklist-impl
+$(strip \
+    $(subst 0,0 ,\
+    $(subst 1,1 ,\
+    $(subst 2,2 ,\
+    $(subst 3,3 ,\
+    $(subst 4,4 ,\
+    $(subst 5,5 ,\
+    $(subst 6,6 ,\
+    $(subst 7,7 ,\
+    $(subst 8,8 ,\
+    $(subst 9,9 ,\
+    $(1)\
+    ))))))))))\
+)
+endef
+
+define check-isnum
+$(strip \
+    $(if $(filter 1,$(words $(1))),,$(error Usage: call num.isnum,number))\
+    $(if $(filter-out 0 1 2 3 4 5 6 7 8 9,$(call num.mklist-impl,$(1))),$(error passed values is not a number: '$(1)'))\
+)
+endef
+
+define num.mklist
+$(strip \
+    $(if $(filter 1,$(words $(1))),,$(error Usage: call num.mklist,number))\
+    $(call check-isnum,$(1))\
+    $(call num.mklist-impl,$(1))\
+)
+endef
+
+$(call check-function,num.mklist,$(filter 3,$(words $(call num.mklist,975))))
+$(call check-function,num.mklist,$(filter 9,$(word 1,$(call num.mklist,975))))
+$(call check-function,num.mklist,$(filter 7,$(word 2,$(call num.mklist,975))))
+$(call check-function,num.mklist,$(filter 5,$(word 3,$(call num.mklist,975))))
+$(call check-function,num.mklist,$(filter 3,$(words $(call num.mklist,975))))
+
+define num.le
+$(strip \
+    $(if $(and $(filter 1,$(words $(1))),$(filter 1,$(words $(2)))),,$(error Usage: call num.le,number1,number2))\
+    $(call check-isnum,$(1))\
+    $(call check-isnum,$(2))\
+    $(if $(call str.eq,$(words $(call num.mklist,$(1))),$(words $(call num.mklist,$(2)))),\
+        $(call str.le,$(strip $(1)),$(strip $(2))),\
+        $(call str.le,$(words $(call num.mklist,$(1))),$(words $(call num.mklist,$(2))))\
+    )\
+)
+endef
+
+$(call check-function,num.le,$(call num.le,0,0))
+$(call check-function,num.le,$(call num.le,0,1))
+$(call check-function,num.le,$(call num.le,1,1))
+$(call check-function,num.le,$(call num.le,1,2))
+$(call check-function,num.le,$(call num.le,1,11))
+$(call check-function,num.le,$(call num.le,2,10))
+$(call check-function,num.le,$(call num.le,57818273,57818274))
+$(call check-function,num.le,$(call num.le,57818273,178182740))
+$(call check-function,num.le,$(call not,$(call num.le,1,0)))
+$(call check-function,num.le,$(call not,$(call num.le,10,5)))
+$(call check-function,num.le,$(call not,$(call num.le,178182740,57818273)))
+
+define num.gt
+$(strip \
+    $(if $(and $(filter 1,$(words $(1))),$(filter 1,$(words $(2)))),,$(error Usage: call num.gt,number1,number2))\
+    $(call not,$(call num.le,$(1),$(2)))\
+)
+endef
+
+define num.eq
+$(strip \
+    $(if $(and $(filter 1,$(words $(1))),$(filter 1,$(words $(2)))),,$(error Usage: call num.eq,number1,number2))\
+    $(call check-isnum,$(1))\
+    $(call check-isnum,$(2))\
+    $(call str.eq,$(strip $(1)),$(strip $(2)))\
+)
+endef
+
+define num.ge
+$(or $(call num.gt,$(1),$(2)),$(call num.eq,$(1),$(2)))
+endef
+
+define num.lt
+$(and $(call num.le,$(1),$(2)),$(call not,$(call num.eq,$(1),$(2))))
+endef
+
+# $1: major.minor
+# $2: major.minor
+# return: true if $1 < $2
+define is-version-less
+$(strip \
+    $(if $(and $(filter 2,$(words $(subst ., ,$(1)))),$(filter 2,$(words $(subst ., ,$(2))))),,\
+        $(error Usage: call is-version-less,major1.minor1,major2.minor2)\
+    )\
+    $(or \
+        $(call num.lt,$(word 1,$(subst ., ,$(1))),$(word 1,$(subst ., ,$(2)))),\
+        $(and \
+            $(call num.eq,$(word 1,$(subst ., ,$(1))),$(word 1,$(subst ., ,$(2)))),\
+            $(call num.lt,$(word 2,$(subst ., ,$(1))),$(word 2,$(subst ., ,$(2))))\
+        )\
+    )\
+)
+endef
+
+$(call check-function,is-version-less,$(call is-version-less,1.0,1.1))
+$(call check-function,is-version-less,$(call is-version-less,1.9,2.1))
+$(call check-function,is-version-less,$(call is-version-less,2.9,2.10))
+
 downcase = $(strip \
 $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,\
 $(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,\
@@ -98,22 +261,6 @@ define is-host-os-darwin
 $(if $(filter darwin,$(call host-os)),yes)
 endef
 
-define head
-$(firstword $(1))
-endef
-
-ifneq (a,$(call head,a b c))
-$(error Function 'head' broken)
-endif
-
-define tail
-$(wordlist 2,$(words $(1)),$(1))
-endef
-
-ifneq (b c,$(call tail,a b c))
-$(error Function 'tail' broken)
-endif
-
 define objc-runtime
 $(if $(or $(and $(call is-clang,$(CC)),$(call is-host-os-darwin)),$(call is-old-apple-gcc,$(CC))),next,gnu)
 endef
@@ -154,8 +301,7 @@ define is-old-apple-gcc
 $(strip $(and \
     $(call is-host-os-darwin),\
     $(call is-gcc,$(1)),\
-    $(filter 4,$(call gcc-major-version,$(1))),\
-    $(filter 2,$(call gcc-minor-version,$(1)))\
+    $(filter 4.2,$(call gcc-major-version,$(1)).$(call gcc-minor-version,$(1)))\
 ))
 endef
 
@@ -241,14 +387,25 @@ TARGETNAME := $(or $(strip $(TARGETNAME)),$(if $(filter 1,$(words $(SRCFILES))),
 TARGET := $(TARGETDIR)/$(TARGETNAME)
 
 .PHONY: test
-test: $(TARGET)
-	$(if $(call is-true,$(BUILD_ONLY)),true,$(strip $(LAUNCHER) $(realpath $(TARGET))))
+test: do-test
 
 .PHONY: clean
 clean:
 	@rm -Rf $(TARGETDIR) $(OBJDIR)
 	@rmdir $$(dirname $(TARGETDIR)) 2>/dev/null || true
 	@rmdir $$(dirname $(OBJDIR)) 2>/dev/null || true
+
+ifneq (,$(and $(call is-host-os-linux),$(call is-gcc,$(CC)),$(call is-version-less,$(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)),4.6)))
+
+.PHONY: do-test
+do-test:
+	@echo "SKIP on-host testing: host's gcc is too old ($(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)))"
+
+else
+
+.PHONY: test
+do-test: $(TARGET)
+	$(if $(call is-true,$(BUILD_ONLY)),true,$(strip $(LAUNCHER) $(realpath $(TARGET))))
 
 $(TARGET): $(OBJFILES) | $(dir $(TARGET))
 	$(strip \
@@ -303,3 +460,5 @@ endef
 $(foreach __f,$(SRCFILES),\
     $(eval $(call add-compile-rule,$(__f)))\
 )
+
+endif
