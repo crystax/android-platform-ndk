@@ -80,6 +80,52 @@ class Project
         @last_notice = Time.now
     end
 
+    def gnumake
+        if @gnumake.nil?
+            case RUBY_PLATFORM
+            when /linux/
+                tag = 'linux'
+            when /darwin/
+                tag = 'darwin'
+            when /(cygwin|mingw|win32)/
+                tag = 'windows'
+            else
+                raise "Unknown RUBY_PLATFORM: #{RUBY_PLATFORM}"
+            end
+
+            if RUBY_PLATFORM =~ /linux/
+                ft = `file -b /bin/ls`.chomp
+                if ft =~ /64-bit/
+                    harch = 'x86_64'
+                elsif ft =~ /32-bit/
+                    harch = 'x86'
+                else
+                    harch = RbConfig::CONFIG['host_cpu']
+                end
+            else
+                harch = RbConfig::CONFIG['host_cpu']
+                harch = 'x86' if harch =~ /^i\d86$/
+            end
+            archs = [harch]
+            archs << 'x86' if harch == 'x86_64'
+
+            archs.each do |arch|
+                if tag == 'windows' && arch == 'x86'
+                    host_tag = 'windows'
+                else
+                    host_tag = "#{tag}-#{arch}"
+                end
+                make = File.join(@ndk, 'prebuilt', host_tag, 'bin', "make#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
+                next unless File.exists?(make)
+                @gnumake = make
+                break
+            end
+            raise "Can't find 'make' in #{@ndk}" if @gnumake.nil?
+        end
+
+        @gnumake
+    end
+
     def cleanup
         FileUtils.rm_rf tmpdir
     end
@@ -266,7 +312,7 @@ class Project
             max_attempts = 5
             attempt = 1
             begin
-                cmd = "#{ENV['GNUMAKE'] || 'make'} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
+                cmd = "#{gnumake} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
                 run_cmd cmd, errmsg: "On-host test of #{name} failed", track_mkdir_errors: true
             rescue MkdirFailed
                 attempt += 1
