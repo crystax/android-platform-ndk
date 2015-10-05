@@ -317,6 +317,14 @@ define is-not-old-apple-clang
 $(if $(call is-old-apple-clang,$(1)),,yes)
 endef
 
+define is-apple-clang
+$(if $(filter __apple_build_version__,$(call preprocess,$(1),__apple_build_version__)),,yes)
+endef
+
+define is-not-apple-clang
+$(if $(call is-apple-clang,$(1)),,yes)
+endef
+
 # $1: source file
 define objfile
 $(OBJDIR)/$(1).o
@@ -395,11 +403,26 @@ clean:
 	@rmdir $$(dirname $(TARGETDIR)) 2>/dev/null || true
 	@rmdir $$(dirname $(OBJDIR)) 2>/dev/null || true
 
-ifneq (,$(and $(call is-host-os-linux),$(call is-gcc,$(CC)),$(call is-version-less,$(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)),4.6)))
+override SKIP := $(or \
+    $(strip $(if \
+        $(and \
+            $(call is-host-os-linux),\
+            $(call is-gcc,$(CC)),\
+            $(call is-version-less,$(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)),4.6)\
+        ),\
+        host gcc is too old ($(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC))) \
+    )),\
+    $(strip $(if \
+        $(and $(call is-host-os-darwin),$(call has-objective-c-sources),$(call is-not-apple-clang,$(CC))),\
+        '$(CC)' is not Apple clang \
+    ))\
+)
+
+ifneq (,$(SKIP))
 
 .PHONY: do-test
 do-test:
-	@echo "SKIP on-host testing: host's gcc is too old ($(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)))"
+	@echo "SKIP on-host testing: $(SKIP)"
 
 else
 
