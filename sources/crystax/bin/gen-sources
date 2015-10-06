@@ -37,6 +37,8 @@ $CWD/gen-bsd-sources || exit 1
 $CWD/gen-bionic-symbols || exit 1
 $CWD/gen-bionic-sources || exit 1
 
+$CWD/gen-system-core-headers || exit 1
+
 $CWD/gen-compiler-rt-headers || exit 1
 
 $CWD/gen-libpwq-sources || exit 1

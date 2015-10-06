@@ -27,36 +27,56 @@
  * or implied, of CrystaX .NET.
  */
 
-#ifndef __CRYSTAX_INCLUDE_UNISTD_H_03C293AE50EC4668ABCC15CAF1E1046F
-#define __CRYSTAX_INCLUDE_UNISTD_H_03C293AE50EC4668ABCC15CAF1E1046F
+#include <pwd.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/sysconf.h>
 
-#include <crystax/id.h>
-#include <sys/limits.h>
+static struct passwd me;
+static struct passwd *entries[] = {NULL, NULL};
+static size_t current = 0;
 
-#define getpagesize crystax_google_getpagesize
-#include <crystax/google/unistd.h>
-#undef getpagesize
+static void init()
+{
+    struct passwd *p;
+    char *buf;
+    int buflen;
 
-#if __XSI_VISIBLE || __POSIX_VISIBLE >= 200112
-#define F_ULOCK     0   /* unlock locked section */
-#define F_LOCK      1   /* lock a section for exclusive use */
-#define F_TLOCK     2   /* test and lock a section for exclusive use */
-#define F_TEST      3   /* test a section for locks by other procs */
-#endif
+    if (entries[0] != NULL)
+        return;
 
-__BEGIN_DECLS
+    buflen = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (buflen <= 0) abort();
+    buf = malloc(buflen);
+    if (!buf) abort();
 
-#if __XSI_VISIBLE
-int lockf(int, int, off_t);
-#endif
+    getpwuid_r(getuid(), &me, buf, buflen, &p);
+    if (!p) abort();
 
-int issetugid();
-int getdtablesize();
+    entries[0] = &me;
+}
 
-int pipe2(int *, int);
+struct passwd *getpwent()
+{
+    struct passwd *p;
 
-int getpagesize(void);
+    init();
 
-__END_DECLS
+    p = entries[current];
+    if (current < sizeof(entries)/sizeof(entries[0]) - 1)
+        ++current;
 
-#endif /* __CRYSTAX_INCLUDE_UNISTD_H_03C293AE50EC4668ABCC15CAF1E1046F */
+    return p;
+}
+
+void endpwent()
+{
+    init();
+}
+
+void setpwent()
+{
+    init();
+    current = 0;
+}

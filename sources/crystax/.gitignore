@@ -35,6 +35,7 @@ include/monetary.h
 include/nl_types.h
 include/printf.h
 include/pthread_workqueue.h
+include/pwd.h
 include/runetype.h
 include/search.h
 include/stdio.h

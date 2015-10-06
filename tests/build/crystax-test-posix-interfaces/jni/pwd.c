@@ -44,42 +44,8 @@ void pwd_check_passwd_fields(struct passwd *s)
     s->pw_gid   = (gid_t)0;
     s->pw_dir   = (char*)0;
     s->pw_shell = (char*)0;
+    s->pw_gecos = (char*)0;
 }
-
-#if __ANDROID__
-/* WARNING!!! These functions not defined in Android, so we define empty stubs here */
-
-int getpwnam_r(const char* s, struct passwd* p, char* n, size_t nl, struct passwd** o)
-{
-    (void)s;
-    (void)p;
-    (void)n;
-    (void)nl;
-    (void)o;
-    return -1;
-}
-
-int getpwuid_r(uid_t u, struct passwd* p, char* n, size_t nl, struct passwd** o)
-{
-    (void)u;
-    (void)p;
-    (void)n;
-    (void)nl;
-    (void)o;
-    return -1;
-}
-
-struct passwd* getpwent()
-{
-    return (struct passwd *)0;
-}
-
-int setpwent()
-{
-    return -1;
-}
-
-#endif /* __ANDROID__ */
 
 void pwd_check_functions()
 {

@@ -334,6 +334,7 @@ common_cflags_for_abi()
     crystax=$CRYSTAX_SRCDIR
     freebsd=$CRYSTAX_SRCDIR/gen/freebsd
     bionic=$CRYSTAX_SRCDIR/gen/bionic
+    systemcore=$CRYSTAX_SRCDIR/gen/systemcore
     cxx=$CRYSTAX_SRCDIR/../cxx-stl/system
 
     arch_flags_for_abi $abi $mlib
@@ -366,9 +367,10 @@ common_cflags_for_abi()
         echo "-Wno-unknown-pragmas"
     fi
 
-    # First, include Bionic headers, which can override some of public headers
+    # First, include Bionic and system/core headers, which can override some of public headers
     echo "-I$bionic/libc/include"
     echo "-I$bionic/libc"
+    echo "-I$systemcore/include"
 
     echo "-I$crystax/include"
     echo "-I$crystax/src/include"

@@ -34,9 +34,9 @@ require 'digest'
 MYNAME = Pathname.new(File.expand_path(__FILE__)).relative_path_from(Pathname.new(File.expand_path('../..', __FILE__))).to_s
 
 TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
-SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'bionic'))
+SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'system', 'core'))
 
-PRIVATEDIR = File.join(TOPDIR, 'gen', 'bionic')
+PRIVATEDIR = File.join(TOPDIR, 'gen', 'systemcore')
 PUBLICDIR  = File.join(TOPDIR, 'include')
 
 ARCHS = [
@@ -85,7 +85,7 @@ class Generator
             options = e[:options]
 
             src = File.join(SRCDIR, f)
-            mdst = File.join(options[:public] ? File.join(PUBLICDIR, 'crystax', 'bionic') : PRIVATEDIR, File.dirname(f), "mangled-#{File.basename(f)}")
+            mdst = File.join(options[:public] ? File.join(PUBLICDIR, 'crystax', 'systemcore') : PRIVATEDIR, File.dirname(f), "mangled-#{File.basename(f)}")
 
             if options[:public]
                 f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == ['libc', 'include']
@@ -151,86 +151,6 @@ end
 
 g = Generator.new
 
-g.fixup :redefine_fcntl do |f|
-    f.puts "#define fcntl __fcntl64"
-end
-
-# public headers
-g.add "libc/include/pwd.h",                public: true
-g.add "libc/include/sys/auxv.h",           public: true
-g.add "libc/include/sys/glibc-syscalls.h", public: true
-g.add "libc/include/sys/syscall.h",        public: true
-g.add "libc/include/sys/sysconf.h",        public: true
-g.add "libc/include/sys/sysinfo.h",        public: true
-
-# common headers
-g.add "libc/include/machine/posix_limits.h"
-g.add "libc/private/ErrnoRestorer.h"
-g.add "libc/private/ScopedReaddir.h"
-g.add "libc/private/ThreadLocalBuffer.h"
-g.add "libc/private/bionic_asm.h"
-g.add "libc/private/bionic_macros.h"
-g.add "libc/private/libc_events.h"
-g.add "libc/private/libc_logging.h"
-
-# include/machine/asm.h
-g.add "libc/arch-arm/include/machine/asm.h"
-g.add "libc/arch-arm64/include/machine/asm.h"
-g.add "libc/arch-mips/include/machine/asm.h"
-g.add "libc/arch-mips64/include/machine/asm.h"
-g.add "libc/arch-x86/include/machine/asm.h"
-g.add "libc/arch-x86_64/include/machine/asm.h"
-
-# getpwnam/getpwuid
-g.add "libc/bionic/stubs.cpp"
-
-# fadvise
-g.add "libc/arch-arm/syscalls/__arm_fadvise64_64.S"
-g.add "libc/arch-arm64/syscalls/__fadvise64.S"
-g.add "libc/arch-mips/syscalls/__fadvise64.S"
-g.add "libc/arch-mips64/syscalls/__fadvise64.S"
-g.add "libc/arch-x86/syscalls/__fadvise64.S"
-g.add "libc/arch-x86_64/syscalls/__fadvise64.S"
-
-# fallocate/fallocate64
-g.add "libc/arch-arm/syscalls/fallocate64.S"
-g.add "libc/arch-arm64/syscalls/fallocate.S"
-g.add "libc/arch-mips/syscalls/fallocate64.S"
-g.add "libc/arch-mips64/syscalls/fallocate.S"
-g.add "libc/arch-x86/syscalls/fallocate64.S"
-g.add "libc/arch-x86_64/syscalls/fallocate.S"
-
-# fcntl/__fcntl64
-g.add "libc/arch-arm/syscalls/__fcntl64.S"
-g.add "libc/arch-arm64/syscalls/fcntl.S",    fixup: "redefine_fcntl"
-g.add "libc/arch-mips/syscalls/__fcntl64.S"
-g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
-g.add "libc/arch-x86/syscalls/__fcntl64.S"
-g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
-
-# eventfd
-g.add "libc/arch-arm/syscalls/eventfd.S"
-g.add "libc/arch-arm64/syscalls/eventfd.S"
-g.add "libc/arch-mips/syscalls/eventfd.S"
-g.add "libc/arch-mips64/syscalls/eventfd.S"
-g.add "libc/arch-x86/syscalls/eventfd.S"
-g.add "libc/arch-x86_64/syscalls/eventfd.S"
-g.add "libc/bionic/eventfd_read.cpp"
-g.add "libc/bionic/eventfd_write.cpp"
-
-# sysconf
-g.add "libc/bionic/sysconf.cpp"
-g.add "libc/bionic/sysinfo.cpp"
-
-# termios
-g.add "libc/bionic/termios.cpp"
-
-# pipe2
-g.add "libc/arch-arm/syscalls/pipe2.S"
-g.add "libc/arch-arm64/syscalls/pipe2.S"
-g.add "libc/arch-mips/syscalls/pipe2.S"
-g.add "libc/arch-mips64/syscalls/pipe2.S"
-g.add "libc/arch-x86/syscalls/pipe2.S"
-g.add "libc/arch-x86_64/syscalls/pipe2.S"
+g.add "include/private/android_filesystem_config.h"
 
 g.generate
