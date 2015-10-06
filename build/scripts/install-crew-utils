@@ -38,6 +38,7 @@ require 'digest'
 require_relative 'common.rb'
 require_relative 'cache.rb'
 require_relative 'logger.rb'
+require "#{Common::CREW_DIR}/library/utility.rb"
 
 
 begin
@@ -57,19 +58,19 @@ begin
     release, _, archive, formula = Common.make_build_data(name, options)
     if Cache.exists? archive
       Logger.log_msg "= using cached file: #{archive}"
-      Cache.unpack archive, options.out_dir
     else
-      url = "#{Global::DOWNLOAD_BASE}/utils/#{name}/archive"
+      url = "#{formula.download_base}/#{name}/#{archive}"
       Logger.log_msg "= cached file not found"
       Logger.log_msg "= try to download archive: #{url}"
-      file = download_archive(url)
+      file = Cache.full_path(archive)
+      Utils.download(url, file)
       Logger.log_msg "= checking sha256 of the downloaded file: #{file}"
-      if Digest::SHA256.hexdigest(File.read(archive, mode: "rb")) != release.shasum
+      if Digest::SHA256.hexdigest(File.read(file, mode: "rb")) != release.shasum
         raise "bad SHA256 sum of the file #{file} for #{name} release #{release}"
       end
-      Logger.log_msg "= unpack downloaded file: #{file}"
-      Commander::run "7z x -y -o#{options.out_dir} #{file}"
+      Logger.log_msg "= unpack downloaded file: #{archive}"
     end
+    Cache.unpack archive, options.out_dir
     formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.target_platform)
   end
 

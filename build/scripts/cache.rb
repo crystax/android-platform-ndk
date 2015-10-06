@@ -44,6 +44,10 @@ module Cache
   PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
   ARCH_DIR = 'prebuilt'
 
+  def self.full_path(archive)
+    File.join(PATH, archive)
+  end
+
   def self.try?(archive)
     exists?(archive) ? true : false
   end
