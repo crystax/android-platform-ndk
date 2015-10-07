@@ -500,17 +500,25 @@ def generate_toolchain(abi, type, version, dir)
 
     case type
     when :gcc
-        gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{version}", 'prebuilt', hosttag)
+        gcc_version = version
+        llvm_version = `source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_LLVM_VERSION`.split("\n").first
+
+        gnulibcxx_version = gcc_version
+        llvmlibcxx_version = llvm_version
+
+        gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{gcc_version}", 'prebuilt', hosttag)
         ccs = ['gcc', 'g++']
-        gnulibcxx_version = version
-        llvmlibcxx_version = '3.6'
     when :clang
-        llvmgccversion = '4.9'
-        gnulibcxx_version = llvmgccversion
-        llvmlibcxx_version = version
-        gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{llvmgccversion}", 'prebuilt', hosttag)
-        llvmtcpath = File.join(OPTIONS[:ndk], 'toolchains', "llvm-#{version}", 'prebuilt', hosttag)
+        llvm_version = version
+        gcc_version = `source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_GCC_VERSION`.split("\n").first
+
+        gnulibcxx_version = gcc_version
+        llvmlibcxx_version = llvm_version
+
+        gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{gcc_version}", 'prebuilt', hosttag)
+        llvmtcpath = File.join(OPTIONS[:ndk], 'toolchains', "llvm-#{llvm_version}", 'prebuilt', hosttag)
         ccs = ['clang', 'clang++']
+
         flags << "-fno-integrated-as"
     else
         raise "Unknown toolchain type: #{type.inspect}"
