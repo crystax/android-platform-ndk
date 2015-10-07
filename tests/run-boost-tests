@@ -70,6 +70,7 @@ end
 OPTIONS = {}
 OPTIONS[:testdir] = File.join(ENV['HOME'], '.crystax', 'boost')
 OPTIONS[:ndk] = File.expand_path('../..', __FILE__)
+OPTIONS[:stdlib] = 'gnu'
 
 optparser = OptionParser.new do |o|
     o.banner = <<-EOF
@@ -191,6 +192,10 @@ By default, this will try with the current NDK directory, unless you use the --n
         OPTIONS[:std] = s
     end
 
+    o.on("--stdlib=STDLIB", "Use specified C++ Standard Library to build tests [#{OPTIONS[:stdlib]}]") do |s|
+        OPTIONS[:stdlib] = s
+    end
+
     o.on("--emulator-tag=TAG", "Run tests only on emulators matching specified tag") do |t|
         OPTIONS[:emulator_tag] = t
     end
@@ -242,6 +247,14 @@ when 'master', 'develop'
     # OK
 else
     $stderr.puts "ERROR: Wrong tag value: '#{OPTIONS[:tag]}'"
+    exit 1
+end
+
+case OPTIONS[:stdlib]
+when 'gnu', 'llvm'
+    # OK
+else
+    $stderr.puts "ERROR: Wrong 'stdlib': '#{OPTIONS[:stdlib]}'"
     exit 1
 end
 
@@ -490,20 +503,25 @@ def generate_toolchain(abi, type, version, dir)
         gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{version}", 'prebuilt', hosttag)
         ccs = ['gcc', 'g++']
         gnulibcxx_version = version
+        llvmlibcxx_version = '3.6'
     when :clang
         llvmgccversion = '4.9'
         gnulibcxx_version = llvmgccversion
+        llvmlibcxx_version = version
         gcctcpath = File.join(OPTIONS[:ndk], 'toolchains', "#{tcname}-#{llvmgccversion}", 'prebuilt', hosttag)
         llvmtcpath = File.join(OPTIONS[:ndk], 'toolchains', "llvm-#{version}", 'prebuilt', hosttag)
         ccs = ['clang', 'clang++']
+        flags << "-fno-integrated-as"
     else
         raise "Unknown toolchain type: #{type.inspect}"
     end
 
-    sysroot    = File.join(OPTIONS[:ndk], 'platforms', "android-#{apilevel}", "arch-#{arch}")
-    libcrystax = File.join(OPTIONS[:ndk], 'sources', 'crystax')
-    gnulibcxx  = File.join(OPTIONS[:ndk], 'sources', 'cxx-stl', 'gnu-libstdc++', gnulibcxx_version)
-    compilerrt = File.join(OPTIONS[:ndk], 'sources', 'android', 'compiler-rt')
+    sysroot       = File.join(OPTIONS[:ndk], 'platforms', "android-#{apilevel}", "arch-#{arch}")
+    libcrystax    = File.join(OPTIONS[:ndk], 'sources', 'crystax')
+    gnulibcxx     = File.join(OPTIONS[:ndk], 'sources', 'cxx-stl', 'gnu-libstdc++', gnulibcxx_version)
+    llvmlibcxx    = File.join(OPTIONS[:ndk], 'sources', 'cxx-stl', 'llvm-libc++', llvmlibcxx_version)
+    llvmlibcxxabi = File.join(OPTIONS[:ndk], 'sources', 'cxx-stl', 'llvm-libc++abi')
+    compilerrt    = File.join(OPTIONS[:ndk], 'sources', 'android', 'compiler-rt')
 
     flags << "--sysroot=#{sysroot}"
     flags << "-fPIC"
@@ -514,7 +532,25 @@ def generate_toolchain(abi, type, version, dir)
 
     flags << '-g'
 
-    ldlibs = ['gnustl_shared']
+    ldlibs = []
+    case OPTIONS[:stdlib]
+    when 'gnu'
+        libcxx_incdirs = [
+            File.join(gnulibcxx, 'include'),
+            File.join(gnulibcxx, 'include', 'backward'),
+            File.join(gnulibcxx, 'libs', abi, 'include'),
+        ]
+        libcxx_libdir = File.join(gnulibcxx, 'libs', abi)
+        ldlibs << 'gnustl_shared'
+    when 'llvm'
+        libcxx_incdirs = [
+            File.join(llvmlibcxx, 'libcxx', 'include'),
+            File.join(llvmlibcxxabi, 'libcxxabi', 'include'),
+        ]
+        libcxx_libdir = File.join(llvmlibcxx, 'libs', abi)
+        ldlibs << 'c++_shared'
+    end
+
     ldlibs << 'compiler_rt_static' if type == :clang
 
     ccs.each do |cc|
@@ -557,17 +593,12 @@ if LINKER
     FileUtils.rm_f('%s.ldlp' % $target) unless $target.nil?
 
     add_libpath '#{File.join(libcrystax, 'libs', abi)}'
-    add_libpath '#{File.join(gnulibcxx,  'libs', abi)}'
+    add_libpath '#{libcxx_libdir}'
 
     $flags << '-L#{File.join(compilerrt, 'libs', abi)}'
 else
-    $flags += [
-        '-I#{File.join(gnulibcxx, 'include')}',
-        '-I#{File.join(gnulibcxx, 'include', 'backward')}',
-        '-I#{File.join(gnulibcxx, 'libs', abi, 'include')}',
-        '-I#{File.join(libcrystax, 'include')}',
-        '-Wno-long-long',
-    ]
+    $flags += [#{libcxx_incdirs.map { |e| "'#{e}'" }.join(',')}].map { |e| '-I%s' % e }
+    $flags << '-Wno-long-long'
 end
 
 $args = $flags + $args
@@ -844,9 +875,6 @@ def test_for_abi(abi, testdir)
 
         # clang toolchains don't support armeabi good
         next if ttype == :clang && abi == 'armeabi'
-
-        # gcc-4.8 don't support 64-bit targets
-        next if ttype == :gcc && tversion == '4.8' && ['arm64-v8a', 'x86_64', 'mips64'].include?(abi)
 
         toolset = "#{ttype}-#{tversion}"
 
