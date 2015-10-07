@@ -327,11 +327,19 @@ build_boost_for_abi ()
                 echo "using clang : $ARCH : clang++ ;"
                 echo "project : default-build <toolset>clang ;"
                 ;;
+            *)
+                echo "ERROR: Wrong C++ stdlib: '$LIBSTDCXX'" 1>&2
+                exit 1
         esac
         echo "libraries = ;"
         echo "option.set keep-going : false ;"
     } | cat >project-config.jam
     fail_panic "Could not create project-config.jam"
+
+    {
+        echo "using mpi ;"
+    } | cat >user-config.jam
+    fail_panic "Could not create user-config.jam"
 
     local TMPTARGETTCDIR=$BUILDDIR/target-bin
     run mkdir $TMPTARGETTCDIR
@@ -352,7 +360,6 @@ build_boost_for_abi ()
 
     local CXX CXXNAME
     local LIBSTDCXX_CFLAGS LIBSTDCXX_LDFLAGS LIBSTDCXX_LDLIBS
-    local TOOLSET
     case $LIBSTDCXX in
         gnu-*)
             CXX=$GCC_DIR/bin/$TCPREFIX-g++
@@ -361,7 +368,6 @@ build_boost_for_abi ()
             LIBSTDCXX_CFLAGS="-I$GNULIBCXX/include -I$GNULIBCXX/libs/$ABI/include"
             LIBSTDCXX_LDFLAGS="-L$GNULIBCXX/libs/$ABI"
             LIBSTDCXX_LDLIBS="-lgnustl_shared"
-            TOOLSET=gcc-$ARCH
             ;;
         llvm-*)
             CXX="$LLVM_DIR/bin/clang++ -target $LLVMTRIPLE -gcc-toolchain $GCC_DIR"
@@ -371,7 +377,6 @@ build_boost_for_abi ()
             LIBSTDCXX_CFLAGS="-I$LLVMLIBCXX/libcxx/include -I$LLVMLIBCXXABI/libcxxabi/include"
             LIBSTDCXX_LDFLAGS="-L$LLVMLIBCXX/libs/$ABI"
             LIBSTDCXX_LDLIBS="-lc++_shared"
-            TOOLSET=clang-$ARCH
             FLAGS="$FLAGS -fno-integrated-as"
             ;;
         *)
@@ -379,7 +384,6 @@ build_boost_for_abi ()
             exit 1
     esac
 
-    FLAGS="$FLAGS -v"
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
 
@@ -456,31 +460,25 @@ run()
 
 run $CXX \$PARAMS
 EOF
-    fail_panic "Could not create target $CXXNAME wrapper"
+    fail_panic "Could not create target '$CXXNAME' wrapper"
 
     for TOOL in as ar ranlib strip; do
         {
             echo "#!/bin/sh"
             echo "exec $GCC_DIR/bin/$TCPREFIX-$TOOL \"\$@\""
         } | mktool $TMPTARGETTCDIR/$TOOL
-        fail_panic "Could not create target tool $TOOL"
+        fail_panic "Could not create target '$TOOL' wrapper"
     done
 
     PATH=$TMPTARGETTCDIR:$SAVED_PATH
     export PATH
 
-    local BJAMARCH=""
-    local BJAMABI=""
+    local BJAMARCH
+    local BJAMABI
     case $ARCH in
-        arm)
+        arm|arm64)
             BJAMARCH=arm
             BJAMABI=aapcs
-            ;;
-        arm64)
-            if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 58 ]; then
-                BJAMARCH=arm
-                BJAMABI=aapcs
-            fi
             ;;
         x86|x86_64)
             BJAMARCH=x86
@@ -490,6 +488,13 @@ EOF
             BJAMARCH=mips1
             BJAMABI=o32
             ;;
+        mips64)
+            BJAMARCH=mips1
+            BJAMABI=o64
+            ;;
+        *)
+            echo "ERROR: Unsupported CPU architecture: '$ARCH'" 1>&2
+            exit 1
     esac
 
     local BJAMADDRMODEL
@@ -499,24 +504,23 @@ EOF
         BJAMADDRMODEL=32
     fi
 
-    local EXTRA_OPTIONS="binary-format=elf address-model=$BJAMADDRMODEL"
-    if [ -n "$BJAMARCH" ]; then
-        EXTRA_OPTIONS="$EXTRA_OPTIONS architecture=$BJAMARCH"
-    fi
-    if [ -n "$BJAMABI" ]; then
-        EXTRA_OPTIONS="$EXTRA_OPTIONS abi=$BJAMABI"
+    local WITHOUT=""
+
+    # Boost.Python is not supported since we don't have Python libraries built for Android yet
+    WITHOUT="$WITHOUT --without-python"
+
+    # Boost.Context in 1.57.0 and earlier don't support arm64
+    # Boost.Context in 1.59.0 and earlier don't support mips64
+    if [ \( "$ARCH" = "arm64"  -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 57 \) -o \
+         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+        WITHOUT="$WITHOUT --without-context"
     fi
 
-    local WITHOUT="\
-        --without-python \
-        --without-mpi \
-        "
-    if [ -z "$BJAMARCH" -o -z "$BJAMABI" ]; then
-        WITHOUT="$WITHOUT \
-            --without-context \
-            --without-coroutine \
-            "
-        if [ $BOOST_MAJOR_VERSION -gt 1 -o $BOOST_MINOR_VERSION -ge 59 ]; then
+    # Boost.Coroutine depends on Boost.Context
+    if echo "$WITHOUT" | grep -q -e "--without-context"; then
+        WITHOUT="$WITHOUT --without-coroutine"
+        # Starting from 1.59.0, there is Boost.Coroutine2 library, which depends on Boost.Context too
+        if [ $BOOST_MAJOR_VERSION -gt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -ge 59 \) ]; then
             WITHOUT="$WITHOUT --without-coroutine2"
         fi
     fi
@@ -528,10 +532,12 @@ EOF
         link=static,shared \
         runtime-link=shared \
         threading=multi \
-        threadapi=pthread \
         target-os=android \
-        toolset=$TOOLSET \
-        $EXTRA_OPTIONS \
+        binary-format=elf \
+        address-model=$BJAMADDRMODEL \
+        architecture=$BJAMARCH \
+        abi=$BJAMABI \
+        --user-config=user-config.jam \
         --layout=system \
         --prefix=$PREFIX \
         --build-dir=$BUILDDIR/build \
@@ -642,7 +648,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     echo '$(error $(strip \'
     echo '    We do not support APP_STL '"'"'$(APP_STL)'"'"' for Boost libraries! \'
     echo '    Please use either "gnustl_shared", "gnustl_static", "c++_shared" or "c++_static". \'
-    echo ')'
+    echo '))'
     echo 'endif'
     echo ''
     echo '__boost_libstdcxx_subdir := $(strip \'
@@ -655,12 +661,18 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     echo '    ))\'
     echo ')'
 
-    for SUFFIX in a so; do
-        if [ "$SUFFIX" = "a" ]; then
-            LIBTYPE=static
-        else
-            LIBTYPE=shared
-        fi
+    for LIBTYPE in static shared; do
+        case $LIBTYPE in
+            static)
+                SUFFIX=a
+                ;;
+            shared)
+                SUFFIX=so
+                ;;
+            *)
+                echo "ERROR: Wrong LIBTYPE: '$LIBTYPE' (must be either 'static' or 'shared')" 1>&2
+                exit 1
+        esac
         BOOST_ABIS=$(ls -1 $BOOST_DSTDIR/libs)
         for BOOST_ABI in $BOOST_ABIS; do
             case $BOOST_ABI in
@@ -715,11 +727,6 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                                     fi
                                     ;;
                             esac
-                            ;;
-                        boost_locale)
-                            if [ "$BOOST_ABI" = "armeabi" -a "$LIBTYPE" = "static" ]; then
-                                SKIP=yes
-                            fi
                             ;;
                     esac
 
