@@ -85,6 +85,7 @@ begin
     check_version paths[:src_dir], release.version
     if options.target_os == 'windows'
       Logger.msg "= coping windows prebuilts"
+      FileUtils.rm_rf File.join(paths[:build_base_dir], PKG_NAME)
       dstdir = "#{paths[:install_dir]}/bin"
       FileUtils.mkdir_p(dstdir)
       pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
@@ -116,9 +117,11 @@ begin
     # add properties file
     Common.write_properties paths[:install_dir], release
 
-    platform_sym = options.target_platform_as_sym
-    release.shasum = { platform_sym => Cache.add(archive, paths[:build_base_dir]) }
-    Common.update_release_shasum formula.path, release, platform_sym
+    if options.update_sha256_sums?
+      platform_sym = options.target_platform_as_sym
+      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base_dir]) }
+      Common.update_release_shasum formula.path, release, platform_sym
+    end
   end
 
   if options.same_platform?

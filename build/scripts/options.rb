@@ -35,7 +35,7 @@
 class Options
 
   attr_accessor :host_os, :host_cpu, :target_os, :target_cpu, :num_jobs, :log_file, :out_dir
-  attr_writer :no_clean, :no_check, :force, :verbose, :rename_log
+  attr_writer :no_clean, :no_check, :force, :verbose, :rename_log, :update_sha256_sums
 
   def initialize
     os, cpu = Options.get_host_platform
@@ -52,6 +52,7 @@ class Options
     @force = false
     @verbose = false
     @rename_log = true
+    @update_sha256_sums = true
   end
 
   def no_clean?
@@ -72,6 +73,10 @@ class Options
 
   def rename_log?
     @rename_log
+  end
+
+  def update_sha256_sums?
+    @update_sha256_sums
   end
 
   def host_platform

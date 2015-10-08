@@ -72,7 +72,9 @@ class Common
       when '--no-check'
         options.no_check = true
       when '--force'
-        options.force=true
+        options.force = true
+      when '--dont-update-sha256-sums'
+        options.update_sha256_sums = false
       when /^--log-file=(\S+)/
         options.log_file = $1
         # explicit log-file options implies log-rename disabling
@@ -212,6 +214,8 @@ class Common
          "  --no-clean        do not remove temporary files\n"                              \
          "  --no-check        do not run make check or make test\n"                         \
          "  --force           do not check cache, force build\n"                            \
+         "  --dont-update-sha256-sums\n"                                                    \
+         "                    do not update sha256 sum in the utility's formula\n"          \
          "  --log-file=NAME   set log filename\n"                                           \
          "                    default #{default_build_logfile_name(options, pkgname)}\n"    \
          "  --verbose         output more info to console\n"                                \
