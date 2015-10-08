@@ -162,6 +162,11 @@ class Common
     File.open(File.join(dir, Formula::PROPERTIES_FILE), 'w') { |f| f.puts props.to_json }
   end
 
+  def self.write_active_file(out_dir, platform, util_name, release)
+    path = File.join(out_dir, 'prebuilt', platform, 'crew', util_name, Utility::ACTIVE_FILE)
+    File.open(path, 'w') { |f| f.puts release.to_s }
+  end
+
   def self.update_release_shasum(formula_file, release, platform)
     ver = release.version
     cxver = release.crystax_version

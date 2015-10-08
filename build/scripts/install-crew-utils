@@ -70,7 +70,7 @@ begin
       raise "bad SHA256 sum of the #{archive} for #{name} release #{release}"
     end
     Cache.unpack archive, options.out_dir
-    formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.target_platform)
+    Common.write_active_file(options.out_dir, options.target_platform, name, release)
   end
 
 rescue SystemExit => e

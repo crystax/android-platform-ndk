@@ -110,7 +110,7 @@ begin
 
   if options.same_platform?
     Cache.unpack(archive, Common::NDK_DIR)
-    formula.link(release, File.join(Common::NDK_DIR, 'prebuilt', options.host_platform))
+    Common.write_active_file(Common::NDK_DIR, options.host_platform, PKG_NAME, release)
   end
 
 rescue SystemExit => e
