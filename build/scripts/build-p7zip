@@ -85,7 +85,6 @@ begin
     check_version paths[:src_dir], release.version
     if options.target_os == 'windows'
       Logger.msg "= coping windows prebuilts"
-      FileUtils.rm_rf File.join(paths[:build_base_dir], PKG_NAME)
       dstdir = "#{paths[:install_dir]}/bin"
       FileUtils.mkdir_p(dstdir)
       pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"

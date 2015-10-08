@@ -133,6 +133,7 @@ class Common
   def self.make_build_data(pkgname, options)
     release, formula = formula_data(pkgname)
     paths = make_paths(pkgname, release, options)
+    FileUtils.rm_rf paths[:build_base_dir]
     archive = make_archive_name(pkgname, release, options.target_platform)
     [release, paths, archive, formula]
   end
