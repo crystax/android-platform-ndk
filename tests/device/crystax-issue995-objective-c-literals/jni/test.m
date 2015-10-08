@@ -98,7 +98,7 @@ int main()
     assert(fabs([piOverTwo doubleValue] - M_PI / 2) < 0.000001);
 #endif // !__ARM_PCS_VFP
 
-    typedef enum { Red, Green, Blue } Color;
+    enum { Red, Green, Blue };
     NSNumber *favoriteColor = @(Green);
     assert([favoriteColor intValue] == (int)Green);
 
