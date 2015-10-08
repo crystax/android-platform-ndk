@@ -56,19 +56,18 @@ begin
     args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
     Logger.msg "Install #{options.target_platform} #{name}"
     release, _, archive, formula = Common.make_build_data(name, options)
+    archive_path = Cache.full_path(archive)
     if Cache.exists? archive
       Logger.log_msg "= using cached file: #{archive}"
     else
       url = "#{formula.download_base}/#{name}/#{archive}"
       Logger.log_msg "= cached file not found"
       Logger.log_msg "= try to download archive: #{url}"
-      file = Cache.full_path(archive)
-      Utils.download(url, file)
-      Logger.log_msg "= checking sha256 of the downloaded file: #{file}"
-      if Digest::SHA256.hexdigest(File.read(file, mode: "rb")) != release.shasum
-        raise "bad SHA256 sum of the file #{file} for #{name} release #{release}"
-      end
-      Logger.log_msg "= unpack downloaded file: #{archive}"
+      Utils.download(url, archive_path)
+    end
+    Logger.log_msg "= checking sha256 of the archive: #{archive_path}"
+    if Digest::SHA256.hexdigest(File.read(archive_path, mode: "rb")) != release.shasum(options.target_platform_as_sym)
+      raise "bad SHA256 sum of the #{archive} for #{name} release #{release}"
     end
     Cache.unpack archive, options.out_dir
     formula.link release, File.join(Pathname.new(options.out_dir).realpath.to_s, 'prebuilt', options.target_platform)
