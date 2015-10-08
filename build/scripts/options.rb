@@ -82,6 +82,10 @@ class Options
     (target_os == 'windows' and target_cpu == 'x86') ? 'windows' : "#{target_os}-#{target_cpu}"
   end
 
+  def target_platform_as_sym
+    target_platform.gsub(/-/, '_').to_sym
+  end
+
   def same_platform?
     host_platform == target_platform
   end

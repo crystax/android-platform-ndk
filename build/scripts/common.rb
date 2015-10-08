@@ -159,16 +159,39 @@ class Common
     File.open(File.join(dir, Formula::PROPERTIES_FILE), 'w') { |f| f.puts props.to_json }
   end
 
-  def self.update_release_shasum(formula_file, release)
+  def self.update_release_shasum(formula_file, release, platform)
     ver = release.version
     cxver = release.crystax_version
-    regexp = /^[[:space:]]*release[[:space:]]+version:[[:space:]]+'#{ver}',[[:space:]]+crystax_version:[[:space:]]+#{cxver}/
+    sum = release.shasum(platform)
+    release_regexp = /^[[:space:]]*release[[:space:]]+version:[[:space:]]+'#{ver}',[[:space:]]+crystax_version:[[:space:]]+#{cxver}/
+    platform_regexp = /#{platform}:/
     lines = []
+    state = :copy
     File.foreach(formula_file) do |l|
-      if l !~ regexp
+      case state
+      when :updated
         lines << l
+      when :copy
+        if  l !~ release_regexp
+          lines << l
+        else
+          if l !~ platform_regexp
+            state = :updating
+            lines << l
+          else
+            state = :updated
+            lines << l.gsub(/'[[:xdigit:]]+'/, "'#{sum}'")
+          end
+        end
+      when :updating
+        if l !~ platform_regexp
+          lines << l
+        else
+          state = :updated
+          lines << l.gsub(/'[[:xdigit:]]+'/, "'#{sum}'")
+        end
       else
-        lines << "  release version: '#{ver}', crystax_version: #{cxver}, sha256: '#{release.shasum}'"
+        raise "in formula #{File.basename(formula_file)} bad state #{state} on line: #{l}"
       end
     end
 

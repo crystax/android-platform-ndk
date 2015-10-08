@@ -116,8 +116,9 @@ begin
     # add properties file
     Common.write_properties paths[:install_dir], release
 
-    release.shasum = Cache.add archive, paths[:build_base_dir]
-    Common.update_release_shasum formula.path, release
+    platform_sym = options.target_platform_as_sym
+    release.shasum = { platform_sym => Cache.add(archive, paths[:build_base_dir]) }
+    Common.update_release_shasum formula.path, release, platform_sym
   end
 
   if options.same_platform?

@@ -48,7 +48,8 @@ class Builder
     case options.target_os
     when 'darwin'
       # todo: builds ruby with not working psych library (gem isntall fails)
-      File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang")
+      # File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang")
+      'clang'
     when 'linux'
       File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin/x86_64-linux-gcc")
     when 'windows'
