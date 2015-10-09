@@ -162,8 +162,8 @@ class Common
     File.open(File.join(dir, Formula::PROPERTIES_FILE), 'w') { |f| f.puts props.to_json }
   end
 
-  def self.write_active_file(out_dir, platform, util_name, release)
-    path = File.join(out_dir, 'prebuilt', platform, 'crew', util_name, Utility::ACTIVE_FILE)
+  def self.write_active_file(out_dir, platform, uname, release)
+    path = File.join(out_dir, 'prebuilt', platform, 'crew', uname, Global::ACTIVE_UTIL_FILE)
     File.open(path, 'w') { |f| f.puts release.to_s }
   end
 
