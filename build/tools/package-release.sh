@@ -331,47 +331,26 @@ pack_release ()
     local archive="$1"
     local srcdir="$2"
     local reldir="$3"
-    local ext="${archive##*.}"
-
-    local win7z=$NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe
-
-    local flags="a -t7z  -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
 
     if [ "`basename $archive`" = "$archive" ] ; then
         archive="`pwd`/$archive"
     fi
 
-    local pack_cmd
-    if [ "$ext" = "exe" ] ; then
-        if [ -f $win7z ]; then
-            pack_cmd="wine $win7z $flags -sfx"
-        else
-            pack_cmd="7z $flags"
-            archive=${archive%%.$ext}.7z
-        fi
-    else
-        pack_cmd="7z $flags -sfx"
-    fi
-
-    mkdir -p `dirname $archive`
-    (
-        cd $srcdir || exit 1
-        $pack_cmd "$archive" "$reldir" | {
-            cnt=0
-            total=0
-            while read line; do
-                let cnt+=1
-                test $cnt -ge 5000 || continue
-                let total+=$cnt
-                cnt=0
-                echo "Packed $total files"
-            done
+    mkdir -p $(dirname $archive)
+    XZ_OPT=-9e tar cJvf "$archive" -C $srcdir "$reldir" | {
+        cnt=0
+        total=0
+        while read line; do
+            let cnt+=1
+            test $cnt -ge 5000 || continue
             let total+=$cnt
-            test $cnt -eq 0 || echo "Packed $total files"
-        }
-        test ${PIPESTATUS[0]} -eq 0 || exit 1
-        chmod a+x $archive || exit 1
-    )
+            cnt=0
+            echo "Packed $total files"
+        done
+        let total+=$cnt
+        test $cnt -eq 0 || echo "Packed $total files"
+    }
+    test ${PIPESTATUS[0]} -eq 0
     fail_panic "Can't pack $archive"
 }
 
@@ -815,16 +794,14 @@ for SYSTEM in $SYSTEMS; do
     fi
      case "$SYSTEM" in
         windows)
-            ARCHIVE64="${ARCHIVE}_64.exe"
-            ARCHIVE="${ARCHIVE}.exe"
             SHORT_SYSTEM="windows"
             ;;
         *)
-            ARCHIVE64="${ARCHIVE}_64.bin"
-            ARCHIVE="${ARCHIVE}.bin"
             SHORT_SYSTEM=$SYSTEM
             ;;
     esac
+    ARCHIVE64="${ARCHIVE}_64.tar.xz"
+    ARCHIVE="${ARCHIVE}.tar.xz"
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi
