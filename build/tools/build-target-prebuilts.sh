@@ -189,6 +189,12 @@ dump "Building $ABIS sqlite3 binaries..."
 run $BUILDTOOLS/build-sqlite3.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/sqlite3
 fail_panic "Could not build sqlite3"
 
+for PYTHON_VERSION in $PYTHON_VERSIONS; do
+    dump "Building $ABIS python-${PYTHON_VERSION} binaries..."
+    run $BUILDTOOLS/build-target-python.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/python/python-$PYTHON_VERSION
+    fail_panic "Could not build python-${PYTHON_VERSION}"
+done
+
 for LIBPNG_VERSION in $LIBPNG_VERSIONS; do
     dump "Building $ABIS libpng-$LIBPNG_VERSION binaries..."
     run $BUILDTOOLS/build-libpng.sh $FLAGS --abis="$ABIS" --version=$LIBPNG_VERSION $VENDOR_SRC_DIR/libpng

@@ -355,10 +355,66 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI $ABI libraries"
 }
 
+if [ -n "$PACKAGE_DIR" ]; then
+    PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-headers.tar.bz2"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+    if [ $? -eq 0 ]; then
+        PYTHON_HEADERS_NEED_PACKAGE=no
+    else
+        PYTHON_HEADERS_NEED_PACKAGE=yes
+    fi
+fi
+
 BUILT_ABIS=""
 for ABI in $ABIS; do
-    build_python_for_abi $ABI "$BUILD_DIR/$ABI"
+    DO_BUILD_PACKAGE="yes"
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-libs-${ABI}.tar.bz2"
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+        if [ $? -eq 0 ]; then
+            if [ "$PYTHON_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+            else
+                DO_BUILD_PACKAGE="no"
+            fi
+        else
+            BUILT_ABIS="$BUILT_ABIS $ABI"
+        fi
+    fi
+    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+        build_python_for_abi $ABI "$BUILD_DIR/$ABI"
+    fi
 done
 
-log "Done!"
+if [ -n "$PACKAGE_DIR" ]; then
+    if [ "$PYTHON_HEADERS_NEED_PACKAGE" = "yes" ]; then
+        FILES="$PYTHON_SUBDIR/$PYTHON_ABI/include"
+        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-headers.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package python headers"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    fi
 
+    for ABI in $BUILT_ABIS; do
+        FILES="$PYTHON_SUBDIR/$PYTHON_ABI/libs/$ABI"
+        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-libs-${ABI}.tar.bz2"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package python $ABI libs"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    done
+fi
+
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $BUILD_DIR
+else
+    log "Don't forget to cleanup: $BUILD_DIR"
+fi
+
+log "Done!"
