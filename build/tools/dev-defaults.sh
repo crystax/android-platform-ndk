@@ -59,6 +59,10 @@ ICU_VERSIONS="55.1"
 # Location of the sqlite3 libraries, relative to the NDK root directory
 SQLITE3_SUBDIR=sources/sqlite/3
 
+# Location of the python libraries, relative to the NDK root directory
+PYTHON_SUBDIR=sources/python
+PYTHON_VERSIONS="3.4"
+
 # Location of the libpng libraries, relative to the NDK root directory
 LIBPNG_SUBDIR=sources/libpng
 LIBPNG_VERSIONS="1.6.17"
