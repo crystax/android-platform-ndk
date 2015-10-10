@@ -59,6 +59,8 @@ register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary bui
 ABIS=$PREBUILT_ABIS
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
+register_jobs_option
+
 extract_parameters "$@"
 
 PYTHON_SRCDIR=$(echo $PARAMETERS | sed 1q)
@@ -328,7 +330,7 @@ build_python_for_abi ()
     } >$BUILDDIR/jni/Android.mk
     fail_panic "Can't generate Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR APP_ABI=$ABI V=1
+    run $NDK_DIR/ndk-build -C $BUILDDIR -j$NUM_JOBS APP_ABI=$ABI V=1
     fail_panic "Can't build python$PYTHON_ABI for $ABI"
 
     if [ "$PYTHON_HEADERS_INSTALLED" != "yes" ]; then
