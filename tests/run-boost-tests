@@ -501,7 +501,7 @@ def generate_toolchain(abi, type, version, dir)
     case type
     when :gcc
         gcc_version = version
-        llvm_version = `source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_LLVM_VERSION`.split("\n").first
+        llvm_version = `/bin/bash -c 'source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_LLVM_VERSION'`.split("\n").first
 
         gnulibcxx_version = gcc_version
         llvmlibcxx_version = llvm_version
@@ -510,7 +510,7 @@ def generate_toolchain(abi, type, version, dir)
         ccs = ['gcc', 'g++']
     when :clang
         llvm_version = version
-        gcc_version = `source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_GCC_VERSION`.split("\n").first
+        gcc_version = `/bin/bash -c 'source #{OPTIONS[:ndk]}/build/tools/dev-defaults.sh && echo $DEFAULT_GCC_VERSION'`.split("\n").first
 
         gnulibcxx_version = gcc_version
         llvmlibcxx_version = llvm_version
