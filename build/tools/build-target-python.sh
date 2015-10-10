@@ -336,14 +336,14 @@ build_python_for_abi ()
     if [ "$PYTHON_HEADERS_INSTALLED" != "yes" ]; then
         log "Install python$PYTHON_ABI headers into $PYTHON_DSTDIR"
         run rm -Rf $PYTHON_DSTDIR/include
-        run mkdir -p $PYTHON_DSTDIR/include && \
-        run cp -p $PYTHON_BUILD_UTILS_DIR/pyconfig.h $PYTHON_SRCDIR/Include/*.h $PYTHON_DSTDIR/include
+        run mkdir -p $PYTHON_DSTDIR/include/python && \
+        run cp -p $PYTHON_BUILD_UTILS_DIR/pyconfig.h $PYTHON_SRCDIR/Include/*.h $PYTHON_DSTDIR/include/python
         fail_panic "Can't install python$PYTHON_ABI headers"
         PYTHON_HEADERS_INSTALLED=yes
         export PYTHON_HEADERS_INSTALLED
     fi
     log "Install $(basename $PYCONFIG_FOR_ABI) into $PYTHON_DSTDIR"
-    run cp -p $PYCONFIG_FOR_ABI $PYTHON_DSTDIR/include
+    run cp -p $PYCONFIG_FOR_ABI $PYTHON_DSTDIR/include/python
     fail_panic "Can't install $PYCONFIG_FOR_ABI"
 
     log "Install python$PYTHON_ABI $ABI libraries into $PYTHON_DSTDIR"
