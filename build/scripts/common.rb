@@ -244,7 +244,9 @@ class Common
   end
 
   def self.formula_data(name)
-    formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    # formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    path = "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    formula = Formulary.klass(path).new(path, :no_active_file)
     release = formula.releases.last
     [release, formula]
   end
