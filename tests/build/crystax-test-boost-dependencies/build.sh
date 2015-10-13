@@ -49,7 +49,7 @@ for TV in $TOOLCHAIN_VERSIONS; do
                     echo 'LOCAL_STATIC_LIBRARIES := boost_regex_'$LIBTYPE
                     echo 'include $(BUILD_EXECUTABLE)'
                     echo ''
-                    echo '$(call import-module,boost+icu/'$VERSION')'
+                    echo '$(call import-module,boost/'$VERSION')'
                 } | cat >jni/Android.mk || exit 1
 
                 run $NDK/ndk-build -B "$@" APP_ABI=all APP_STL=${LIBCXX}_${LIBTYPE} NDK_TOOLCHAIN_VERSION=$TV V=1
