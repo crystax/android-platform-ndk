@@ -588,7 +588,7 @@ if [ -n "$ICU_VERSION" ]; then
 fi
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.bz2"
+    PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -597,7 +597,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         BOOST_BUILD_FILES_NEED_PACKAGE=yes
     fi
 
-    PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.bz2"
+    PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -612,7 +612,7 @@ for ABI in $ABIS; do
     for STDLIB in $STDLIBS; do
         DO_BUILD_PACKAGE="yes"
         if [ -n "$PACKAGE_DIR" ]; then
-            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.bz2"
+            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
             echo "Look for: $PACKAGE_NAME"
             try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
             if [ $? -eq 0 ]; then
@@ -775,7 +775,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         for F in Android.mk LICENSE_1_0.txt; do
             FILES="$FILES $BOOST_SUBDIR/$BOOST_VERSION/$F"
         done
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-build-files.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -785,7 +785,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.bz2"
+        PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -796,7 +796,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
         for STDLIB in $STDLIBS; do
             FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
-            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.bz2"
+            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
             PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
             dump "Packaging: $PACKAGE"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

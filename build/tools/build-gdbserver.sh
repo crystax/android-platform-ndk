@@ -135,7 +135,7 @@ check_toolchain_install $NDK_DIR $TOOLCHAIN
 #
 # Try cached package
 #
-ARCHIVE=$ARCH-gdbserver.tar.bz2
+ARCHIVE=$ARCH-gdbserver.tar.xz
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"

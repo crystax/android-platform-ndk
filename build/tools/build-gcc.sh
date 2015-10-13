@@ -155,12 +155,12 @@ parse_toolchain_name $TOOLCHAIN
 # We need previous two lines because ARCH is set in parse_toolchain_name
 #
 set_cache_host_tag
-ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.bz2"
+ARCHIVE="$TOOLCHAIN-$CACHE_HOST_TAG.tar.xz"
 if [ "$PACKAGE_DIR" ]; then
     # try for libgccunwind packages
     ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
     for ABI in $ABIS; do
-        PACKAGE_NAME="libgccunwind-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="libgccunwind-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     done
@@ -725,7 +725,7 @@ if [ "$PACKAGE_DIR" ]; then
         ABIS=$(commas_to_spaces $(convert_archs_to_abis $ARCH))
         for ABI in $ABIS; do
             FILES="$GCCUNWIND_SUBDIR/libs/$ABI/libgccunwind.a"
-            PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.bz2"
+            PACKAGE_FILE_NAME="libgccunwind-libs-$ABI.tar.xz"
             PACKAGE="$PACKAGE_DIR/$PACKAGE_FILE_NAME"
             pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
             fail_panic "Could not package $ABI libgccunwind binaries!"

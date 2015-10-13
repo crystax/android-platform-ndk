@@ -56,7 +56,7 @@ for f in $(ls -1 $CACHE_DIR/* 2>/dev/null | sort); do
         *.7z)
             7z x $f >/dev/null
             ;;
-        *.tar.bz2)
+        *.tar.bz2|*.tar.xz)
             tar xf $f
             ;;
         *)

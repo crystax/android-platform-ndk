@@ -100,7 +100,7 @@ PROGRAM_DESCRIPTION=\
 
 You will need to have generated one or more prebuilt binary tarballs
 with the build/tools/rebuild-all-prebuilts.sh script. These files should
-be named like <toolname>-<system>.tar.bz2, where <toolname> is an arbitrary
+be named like <toolname>-<system>.tar.xz, where <toolname> is an arbitrary
 tool name, and <system> is one of: $SYSTEMS
 
 Use the --prebuilt-dir=<path> option to build release packages from the
@@ -293,8 +293,8 @@ unpack_prebuilt ()
         PREBUILT64=$(name64 $NAME)
     fi
 
-    PREBUILT=${PREBUILT}.tar.bz2
-    PREBUILT64=${PREBUILT64}.tar.bz2
+    PREBUILT=${PREBUILT}.tar.xz
+    PREBUILT64=${PREBUILT64}.tar.xz
 
     echo "Unpacking $PREBUILT"
     unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
@@ -413,9 +413,9 @@ fail_panic "Could not copy libpwq tests sources"
 # Copy platform and sample files
 if [ "$PREBUILT_DIR" ]; then
     echo "Unpacking platform files" &&
-    unpack_archive "$PREBUILT_DIR/platforms.tar.bz2" "$REFERENCE" &&
+    unpack_archive "$PREBUILT_DIR/platforms.tar.xz" "$REFERENCE" &&
     echo "Unpacking samples files" &&
-    unpack_archive "$PREBUILT_DIR/samples.tar.bz2" "$REFERENCE"
+    unpack_archive "$PREBUILT_DIR/samples.tar.xz" "$REFERENCE"
     fail_panic "Could not unpack platform and sample files"
 elif [ "$PREBUILT_NDK" ]; then
     echo "ERROR: NOT IMPLEMENTED!"
@@ -754,7 +754,7 @@ for SYSTEM in $SYSTEMS; do
     unpack_prebuilt renderscript "$DSTDIR" "$DSTDIR64"
 
     # Unpack misc stuff
-    if [ -f "$PREBUILT_DIR/misc.tar.bz2" ]; then
+    if [ -f "$PREBUILT_DIR/misc.tar.xz" ]; then
         unpack_prebuilt misc "$DSTDIR" "$DSTDIR64"
     fi
 

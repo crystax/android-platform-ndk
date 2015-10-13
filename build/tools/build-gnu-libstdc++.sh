@@ -424,7 +424,7 @@ get_libstdcpp_package_name_for_abi ()
     if [ "$WITH_DEBUG_INFO" ]; then
         package_name="${package_name}-g"
     fi
-    package_name="${package_name}.tar.bz2"
+    package_name="${package_name}.tar.xz"
 
     echo "$package_name"
 }
@@ -432,7 +432,7 @@ get_libstdcpp_package_name_for_abi ()
 BUILT_GCC_VERSION_LIST=""
 BUILT_ABIS=""
 for VERSION in $GCC_VERSION_LIST; do
-    PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.bz2"
+    PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
 done
@@ -468,7 +468,7 @@ done
 if [ -n "$PACKAGE_DIR" ] ; then
     for VERSION in $BUILT_GCC_VERSION_LIST; do
         # First, the headers as a single package for a given gcc version
-        PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.bz2"
+        PACKAGE_NAME="gnu-libstdc++-headers-$VERSION.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$GNUSTL_SUBDIR/$VERSION/include"

@@ -307,7 +307,7 @@ build_libjpeg_for_abi()
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-headers.tar.bz2"
+    PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-headers.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -321,7 +321,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE=yes
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
@@ -343,7 +343,7 @@ done
 if [ -n "$PACKAGE_DIR" ]; then
     if [ "$LIBJPEG_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$LIBJPEG_SUBDIR/$LIBJPEG_VERSION/include"
-        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-headers.tar.bz2"
+        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-headers.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -353,7 +353,7 @@ if [ -n "$PACKAGE_DIR" ]; then
 
     for ABI in $BUILT_ABIS; do
         FILES="$LIBJPEG_SUBDIR/$LIBJPEG_VERSION/libs/$ABI"
-        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="libjpeg-$LIBJPEG_VERSION-libs-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

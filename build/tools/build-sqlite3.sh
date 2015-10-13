@@ -154,7 +154,7 @@ build_sqlite3_for_abi ()
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="sqlite3-build-files.tar.bz2"
+    PACKAGE_NAME="sqlite3-build-files.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -163,7 +163,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         SQLITE3_BUILD_FILES_NEED_PACKAGE=yes
     fi
 
-    PACKAGE_NAME="sqlite3-headers.tar.bz2"
+    PACKAGE_NAME="sqlite3-headers.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -177,7 +177,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="sqlite3-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="sqlite3-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
@@ -228,7 +228,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         for F in Android.mk; do
             FILES="$FILES $SQLITE3_SUBDIR/$F"
         done
-        PACKAGE_NAME="sqlite3-build-files.tar.bz2"
+        PACKAGE_NAME="sqlite3-build-files.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -238,7 +238,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     if [ "$SQLITE3_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$SQLITE3_SUBDIR/include"
-        PACKAGE_NAME="sqlite3-headers.tar.bz2"
+        PACKAGE_NAME="sqlite3-headers.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -248,7 +248,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     for ABI in $BUILT_ABIS; do
         FILES="$SQLITE3_SUBDIR/libs/$ABI"
-        PACKAGE_NAME="sqlite3-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="sqlite3-libs-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

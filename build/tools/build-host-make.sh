@@ -54,7 +54,7 @@ fi
 # Try cached package
 #
 set_cache_host_tag
-ARCHIVE=ndk-make-$CACHE_HOST_TAG.tar.bz2
+ARCHIVE=ndk-make-$CACHE_HOST_TAG.tar.xz
 if [ "$PACKAGE_DIR" ]; then
     # will exit if cached package found
     try_cached_package "$PACKAGE_DIR" "$ARCHIVE"

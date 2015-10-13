@@ -113,7 +113,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="cocotron-$ABI.tar.bz2"
+        PACKAGE_NAME="cocotron-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? = 0 ]; then
@@ -131,7 +131,7 @@ done
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
         FILES="$COCOTRON_SUBDIR/frameworks/$ABI"
-        PACKAGE_NAME="cocotron-$ABI.tar.bz2"
+        PACKAGE_NAME="cocotron-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

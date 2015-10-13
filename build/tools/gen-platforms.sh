@@ -856,12 +856,12 @@ fi
 if [ "$PACKAGE_DIR" ]; then
     mkdir -p "$PACKAGE_DIR"
     fail_panic "Could not create package directory: $PACKAGE_DIR"
-    ARCHIVE=platforms.tar.bz2
+    ARCHIVE=platforms.tar.xz
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "platforms"
     fail_panic "Could not package platforms"
     if [ "$OPTION_SAMPLES" ]; then
-        ARCHIVE=samples.tar.bz2
+        ARCHIVE=samples.tar.xz
         dump "Packaging $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "samples"
         fail_panic "Could not package samples"

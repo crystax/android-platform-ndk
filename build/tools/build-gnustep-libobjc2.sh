@@ -306,7 +306,7 @@ build_libobjc2_for_abi ()
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="gnustep-objc2-headers.tar.bz2"
+    PACKAGE_NAME="gnustep-objc2-headers.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_NAME" "$PACKAGE_DIR" no_exit
     if [ $? -eq 0 ]; then
@@ -322,7 +322,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="gnustep-objc2-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="gnustep-objc2-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? = 0 ]; then
@@ -344,7 +344,7 @@ done
 if [ -n "$PACKAGE_DIR" ] ; then
     if [ "$OBJC2_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES=$GNUSTEP_OBJC2_SUBDIR/include
-        PACKAGE_NAME="gnustep-objc2-headers.tar.bz2"
+        PACKAGE_NAME="gnustep-objc2-headers.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -357,7 +357,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         for LIB in libobjc.a libobjc.so libobjcxx.so; do
             FILES="$FILES $GNUSTEP_OBJC2_SUBDIR/libs/$ABI/$LIB"
         done
-        PACKAGE_NAME="gnustep-objc2-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="gnustep-objc2-libs-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

@@ -66,7 +66,7 @@ if [ "$TRY64" = "yes" ]; then
 else
     CACHE_HOST_TAG=windows
 fi
-ARCHIVE=toolbox-$CACHE_HOST_TAG.tar.bz2
+ARCHIVE=toolbox-$CACHE_HOST_TAG.tar.xz
 if [ "$PACKAGE_DIR" ]; then
     # will exit if cached package found
     try_cached_package "$PACKAGE_DIR" "$ARCHIVE"

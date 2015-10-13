@@ -282,7 +282,7 @@ need_install_host_gdb ()
 package_host_gdb ()
 {
     local SRCDIR="$(gdb_ndk_install_dir $1 $2 $3)"
-    local PACKAGENAME=$(gdb_ndk_package_name $1 $2 $3).tar.bz2
+    local PACKAGENAME=$(gdb_ndk_package_name $1 $2 $3).tar.xz
     local PACKAGE="$PACKAGE_DIR/$PACKAGENAME"
 
     need_install_host_gdb $1 $2 $3

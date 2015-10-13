@@ -495,7 +495,7 @@ package_host_python ()
     local SRCDIR="$(python_ndk_install_dir $1 $2)"
     # This is similar to BLDDIR=${BLDDIR%%$SRCDIR} (and requires we use windows and not windows-x86)
     BLDDIR=$(echo "$BLDDIR" | sed "s/$(echo "$SRCDIR" | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g')//g")
-    local PACKAGENAME=ndk-python-$(install_dir_from_host_tag $1).tar.bz2
+    local PACKAGENAME=ndk-python-$(install_dir_from_host_tag $1).tar.xz
     local PACKAGE="$PACKAGE_DIR/$PACKAGENAME"
 
     need_install_host_python $1 $2
@@ -518,7 +518,7 @@ ARCHS=$(commas_to_spaces $ARCHS)
 NOT_CACHED_SYSTEMS=
 for SYSTEM in $BH_HOST_SYSTEMS; do
     for VERSION in $PYTHON_VERSION; do
-        PACKAGENAME=ndk-python-$(install_dir_from_host_tag $SYSTEM).tar.bz2
+        PACKAGENAME=ndk-python-$(install_dir_from_host_tag $SYSTEM).tar.xz
         echo "Look for: $PACKAGENAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGENAME" no_exit
         if [ $? != 0 ]; then

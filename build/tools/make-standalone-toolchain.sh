@@ -796,7 +796,7 @@ if [ -n "$INSTALL_DIR" ] ; then
         copy_directory "$TMPDIR" "$INSTALL_DIR"
     fi
 else
-    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.bz2"
+    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.xz"
     dump "Creating package file: $PACKAGE_FILE"
     pack_archive "$PACKAGE_FILE" "`dirname $TMPDIR`" "$TOOLCHAIN_NAME"
     fail_panic "Could not create tarball from $TMPDIR"

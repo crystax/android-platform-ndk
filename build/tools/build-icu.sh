@@ -396,7 +396,7 @@ EOF
 SAVED_PATH=$PATH
 
 if [ -n "$PACKAGE_DIR" ]; then
-    PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.bz2"
+    PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -405,7 +405,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         ICU_BUILD_FILES_NEED_PACKAGE=yes
     fi
 
-    PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.bz2"
+    PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.xz"
     echo "Look for: $PACKAGE_NAME"
     try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
     if [ $? -eq 0 ]; then
@@ -419,7 +419,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
@@ -487,7 +487,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         for F in Android.mk license.html; do
             FILES="$FILES $ICU_SUBDIR/$ICU_VERSION/$F"
         done
-        PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-build-files.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -497,7 +497,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     if [ "$ICU_HEADERS_NEED_PACKAGE" = "yes" ]; then
         FILES="$ICU_SUBDIR/$ICU_VERSION/include"
-        PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-headers.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
@@ -507,7 +507,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     for ABI in $BUILT_ABIS; do
         FILES="$ICU_SUBDIR/$ICU_VERSION/libs/$ABI"
-        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="icu-$ICU_VERSION-libs-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

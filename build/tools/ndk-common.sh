@@ -750,6 +750,9 @@ unpack_archive ()
             # remove ._* files by MacOSX to preserve resource forks we don't need
             find $DIR -name "\._*" -exec rm {} \;
             ;;
+        *.tar.xz)
+            run tar J$TARFLAGS "$ARCHIVE" -C $DIR
+            ;;
         *)
             panic "Cannot unpack archive with unknown extension: $ARCHIVE"
             ;;
@@ -799,6 +802,9 @@ pack_archive ()
             else
                 (cd $SRCDIR && run tar j$TARFLAGS "$ARCHIVE" $SRCFILES)
             fi
+            ;;
+        *.tar.xz)
+            (cd $SRCDIR && run tar J$TARFLAGS "$ARCHIVE" $SRCFILES)
             ;;
         *)
             panic "Unsupported archive format: $ARCHIVE"

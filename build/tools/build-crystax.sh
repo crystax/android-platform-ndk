@@ -111,7 +111,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="crystax-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="crystax-libs-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? = 0 ]; then
@@ -141,7 +141,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
                 FILES="$FILES $CRYSTAX_SUBDIR/$LIBPATH/$LIB"
             done
         done
-        PACKAGE_NAME="crystax-libs-$ABI.tar.bz2"
+        PACKAGE_NAME="crystax-libs-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

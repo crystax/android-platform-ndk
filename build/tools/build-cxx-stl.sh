@@ -538,7 +538,7 @@ get_libstdcxx_package_name_for_abi ()
     if [ "$WITH_DEBUG_INFO" ]; then
         package_name="${package_name}-g"
     fi
-    package_name="${package_name}.tar.bz2"
+    package_name="${package_name}.tar.xz"
 
     echo "$package_name"
 }
