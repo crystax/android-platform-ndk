@@ -112,6 +112,9 @@ ABIS=$(commas_to_spaces $ABIS)
 
 STDLIBS=$(commas_to_spaces $STDLIBS)
 
+PYTHON_VERSION=$(echo "$PYTHON_VERSIONS" | tr ' ' '\n' | tail -n 1)
+PYTHON_DIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION
+
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-boost
 else
@@ -318,6 +321,8 @@ build_boost_for_abi ()
     {
         echo "import option ;"
         echo "import feature ;"
+        echo "import python ;"
+        echo "using python : $PYTHON_VERSION : $PYTHON_DIR : $PYTHON_DIR/include/python : $PYTHON_DIR/libs/$ABI ;"
         case $LIBSTDCXX in
             gnu-*)
                 echo "using gcc : $ARCH : g++ ;"
@@ -425,6 +430,9 @@ if [ "x\$LINKER" = "xyes" ]; then
                 -single_module)
                     p=""
                     ;;
+                -lpthread|-lutil)
+                    p=""
+                    ;;
             esac
         fi
         NPARAMS="\$NPARAMS \$p"
@@ -505,9 +513,6 @@ EOF
     fi
 
     local WITHOUT=""
-
-    # Boost.Python is not supported since we don't have Python libraries built for Android yet
-    WITHOUT="$WITHOUT --without-python"
 
     # Boost.Context in 1.57.0 and earlier don't support arm64
     # Boost.Context in 1.59.0 and earlier don't support mips64
