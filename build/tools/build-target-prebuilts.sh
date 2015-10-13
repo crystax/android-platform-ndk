@@ -239,11 +239,11 @@ for VERSION in $BOOST_VERSIONS; do
         fail_panic "Could not build Boost-$VERSION!"
     done
 
-    for CXXSTDLIB in $CXXSTDLIBS; do
-        dump "Building $ABIS boost+icu-$VERSION (with $CXXSTDLIB C++ Standard Library) binaries..."
-        run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --stdlibs=$CXXSTDLIB --with-icu=$ICU_VERSION $VENDOR_SRC_DIR/boost
-        fail_panic "Could not build Boost+ICU-$VERSION!"
-    done
+    #for CXXSTDLIB in $CXXSTDLIBS; do
+    #    dump "Building $ABIS boost+icu-$VERSION (with $CXXSTDLIB C++ Standard Library) binaries..."
+    #    run $BUILDTOOLS/build-boost.sh $FLAGS --version=$VERSION --abis="$ABIS" --stdlibs=$CXXSTDLIB --with-icu=$ICU_VERSION $VENDOR_SRC_DIR/boost
+    #    fail_panic "Could not build Boost+ICU-$VERSION!"
+    #done
 done
 
 dump "Cleanup sysroot folders..."
