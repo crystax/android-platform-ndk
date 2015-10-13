@@ -36,12 +36,6 @@ static void test_F_GETFD_and_F_SETFD(int fd)
 
 static void test_F_DUPFD(int fd)
 {
-#if __ANDROID__ && __i386__
-    /* For some reason, this test fails on Android x86 devices.
-     * Temporarily disable it, until https://tracker.crystax.net/issues/1037 will be fixed.
-     */
-    (void)fd;
-#else
     int rc = fcntl(fd, F_DUPFD, fd + 1);
     assert(rc >= fd + 1);
 
@@ -52,7 +46,6 @@ static void test_F_DUPFD(int fd)
     assert((fcntl(fd, F_GETFD) & FD_CLOEXEC) == 0);
 
     close(rc);
-#endif
 }
 
 static void test_F_DUPFD_CLOEXEC(int fd)

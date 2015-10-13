@@ -101,7 +101,6 @@ int fcntl(int fd, int command, ...)
             rc = crystax_fcntl(fd, command, args);
             va_end(args);
             return rc;
-        case F_DUPFD:
         case F_GETFD:
         case F_GETFL:
         case F_GETLEASE:
@@ -110,6 +109,7 @@ int fcntl(int fd, int command, ...)
         case F_GETSIG:
             return __fcntl64(fd, command);
         case F_NOTIFY:
+        case F_DUPFD:
         case F_SETFD:
         case F_SETFL:
         case F_SETLEASE:
