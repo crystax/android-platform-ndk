@@ -427,6 +427,9 @@ if [ "x\$LINKER" = "xyes" ]; then
                 -dynamiclib)
                     p="-shared"
                     ;;
+                -undefined)
+                    p="-u"
+                    ;;
                 -single_module)
                     p=""
                     ;;
