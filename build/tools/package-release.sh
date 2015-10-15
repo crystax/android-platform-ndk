@@ -480,9 +480,7 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
     for VERSION in $BOOST_VERSIONS; do
         unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
-        unpack_prebuilt boost+icu-$VERSION-build-files "$REFERENCE"
         unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
-        unpack_prebuilt boost+icu-$VERSION-headers "$REFERENCE"
     done
     for ABI in $ABIS; do
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
@@ -518,7 +516,6 @@ if [ -z "$PREBUILT_NDK" ]; then
         for VERSION in $BOOST_VERSIONS; do
             for STDLIB in $BOOST_CXX_STDLIBS; do
                 unpack_prebuilt boost-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
-                unpack_prebuilt boost+icu-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
             done
         done
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
