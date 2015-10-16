@@ -43,8 +43,8 @@ SRCDIR=$ANDROID_NDK_ROOT/../../platform/prebuilts/rs
 if [ -z "$PACKAGE_DIR" ]; then
     fail_panic "PACKAGE_DIR parameter is required"
 else
-    cp "$SRCDIR/renderscript.tar.bz2" "$PACKAGE_DIR/"
-    fail_panic "Failed to copy $SRCDIR/renderscript.tar.bz2 to $PACKAGE_DIR/"
+    cp "$SRCDIR/renderscript.tar.xz" "$PACKAGE_DIR/"
+    fail_panic "Failed to copy $SRCDIR/renderscript.tar.xz to $PACKAGE_DIR/"
     for SYSTEM in $SYSTEMS; do
         SYSNAME=$SYSTEM
         if [ "$TRY64" = "yes" ]; then
@@ -57,8 +57,8 @@ else
                     ;;
             esac
         fi
-        cp "$SRCDIR/renderscript-$SYSNAME.tar.bz2" "$PACKAGE_DIR/"
-        fail_panic "Failed to copy $SRCDIR/renderscript-$SYSNAME.tar.bz2 to $PACKAGE_DIR/"
+        cp "$SRCDIR/renderscript-$SYSNAME.tar.xz" "$PACKAGE_DIR/"
+        fail_panic "Failed to copy $SRCDIR/renderscript-$SYSNAME.tar.xz to $PACKAGE_DIR/"
     done
 fi
 
