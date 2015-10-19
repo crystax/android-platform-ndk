@@ -110,7 +110,7 @@ run copy_directory "$SCAN_VIEW_SRC_DIR" "$NDK_DIR/$SCAN_VIEW_SUBDIR"
 cp -p "$LICENSE_FILE" "$NDK_DIR/$SCAN_VIEW_SUBDIR"
 
 if [ "$PACKAGE_DIR" ]; then
-    ARCHIVE="scan-build-view.tar.bz2"
+    ARCHIVE="scan-build-view.tar.xz"
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$NDK_DIR" "$SCAN_BUILD_SUBDIR" "$SCAN_VIEW_SUBDIR"
 fi
