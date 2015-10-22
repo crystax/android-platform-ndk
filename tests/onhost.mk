@@ -410,11 +410,18 @@ override SKIP := $(or \
             $(call is-gcc,$(CC)),\
             $(call is-version-less,$(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC)),4.6)\
         ),\
-        host gcc is too old ($(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC))) \
+        '$(CC)' is too old ($(call gcc-major-version,$(CC)).$(call gcc-minor-version,$(CC))) \
     )),\
     $(strip $(if \
-        $(and $(call is-host-os-darwin),$(call has-objective-c-sources),$(call is-not-apple-clang,$(CC))),\
-        '$(CC)' is not Apple clang \
+        $(and \
+            $(call is-host-os-darwin),\
+            $(call has-objective-c-sources)\
+            $(or \
+                $(call is-not-apple-clang,$(CC)),\
+                $(call is-version-less,$(call clang-major-version,$(CC)).$(call clang-minor-version,$(CC)),5.0)\
+            )\
+        ),\
+        '$(CC)' do not support modern Objective-C \
     ))\
 )
 
