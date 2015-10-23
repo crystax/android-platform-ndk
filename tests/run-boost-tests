@@ -871,7 +871,7 @@ def test_for_abi(abi, testdir)
         a.split('.').map(&:to_i) <=> b.split('.').map(&:to_i)
     end.last
     File.open(configjam, "a") do |f|
-        dir = File.join(OPTIONS[:ndk], 'sources/crystax', python_version)
+        dir = File.join(OPTIONS[:ndk], 'sources/python', python_version)
         f.puts "import python ;"
         f.puts "using python : #{python_version} : #{dir} : #{dir}/include/python : #{dir}/libs/#{abi} ;"
     end unless python_version.nil?
