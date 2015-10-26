@@ -109,6 +109,12 @@ if [ ! -f "$PY_C_CONFIG_FILE" ]; then
     exit 1
 fi
 
+PY_C_INTERPRETER_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter.c.$PYTHON_ABI"
+if [ ! -f "$PY_C_INTERPRETER_FILE" ]; then
+    echo "ERROR: Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_FILE"
+    exit 1
+fi
+
 PY_ANDROID_MK_TEMPLATE_FILE="$PYTHON_BUILD_UTILS_DIR/android.mk.$PYTHON_ABI"
 if [ ! -f "$PY_ANDROID_MK_TEMPLATE_FILE" ]; then
     echo "ERROR: Build of python $PYTHON_ABI is not supported, no such file: $PY_ANDROID_MK_TEMPLATE_FILE"
@@ -135,6 +141,24 @@ build_python_for_abi ()
     local BUILDDIR="$2"
 
     dump "Building python$PYTHON_ABI for $ABI"
+
+	local BUILDDIR_CONFIG="$BUILDDIR/config"
+	local BUILDDIR_CORE="$BUILDDIR/core"
+	local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
+
+    run mkdir -p $BUILDDIR_CONFIG
+    fail_panic "Could not create directory: $BUILDDIR_CONFIG"
+    run mkdir -p $BUILDDIR_CORE
+    fail_panic "Could not create directory: $BUILDDIR_CORE"
+    run mkdir -p $BUILDDIR_INTERPRETER
+    fail_panic "Could not create directory: $BUILDDIR_INTERPRETER"
+
+    local OBJDIR_CORE=$BUILDDIR_CORE/obj/local/$ABI
+    local OBJDIR_INTERPRETER=$BUILDDIR_INTERPRETER/obj/local/$ABI
+
+	local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
+
+# Step 1: configure
 
 	local BUILD_ON_PLATFORM=$($PYTHON_SRCDIR/config.guess)
 	if [ -z "$BUILD_ON_PLATFORM" ]; then
@@ -259,10 +283,7 @@ build_python_for_abi ()
     local PYTHON_FOR_BUILD=$NDK_DIR/prebuilt/$HOST_TAG/bin/python
     local CONFIG_SITE=$PYTHON_TOOLS_DIR/config.site
 
-    run mkdir -p $BUILDDIR/config
-    fail_panic "Can't create $BUILDDIR/config"
-
-    local CONFIG_SITE=$BUILDDIR/config/config.site
+    local CONFIG_SITE=$BUILDDIR_CONFIG/config.site
     {
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
@@ -270,7 +291,7 @@ build_python_for_abi ()
     } >$CONFIG_SITE
     fail_panic "Can't create config.site wrapper"
 
-    local CONFIGURE_WRAPPER=$BUILDDIR/config/configure.sh
+    local CONFIGURE_WRAPPER=$BUILDDIR_CONFIG/configure.sh
     {
         echo "#!/bin/bash -e"
         echo ''
@@ -304,16 +325,18 @@ build_python_for_abi ()
     run $CONFIGURE_WRAPPER
     fail_panic "Can't configure python$PYTHON_ABI for $ABI"
 
-    run mkdir -p $BUILDDIR/jni
-    fail_panic "Could not create directory: $BUILDDIR/jni"
+# Step 2: build python-core
 
-    run cp -p -T $PY_C_CONFIG_FILE $BUILDDIR/jni/config.c && \
-        cp -p -t $BUILDDIR/jni $PYTHON_BUILD_UTILS_DIR/pyconfig.h
-    fail_panic "Could not copy config.c pyconfig.h to $BUILDDIR/jni"
+    run mkdir -p $BUILDDIR_CORE/jni
+    fail_panic "Could not create directory: $BUILDDIR_CORE/jni"
 
-    local PYCONFIG_FOR_ABI="$BUILDDIR/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
-    run cp -p -T $BUILDDIR/config/pyconfig.h $PYCONFIG_FOR_ABI
-    fail_panic "Could not copy $BUILDDIR/config/pyconfig.h to $PYCONFIG_FOR_ABI"
+    run cp -p -T $PY_C_CONFIG_FILE $BUILDDIR_CORE/jni/config.c && \
+        cp -p -t $BUILDDIR_CORE/jni $PYTHON_BUILD_UTILS_DIR/pyconfig.h
+    fail_panic "Could not copy config.c pyconfig.h to $BUILDDIR_CORE/jni"
+
+    local PYCONFIG_FOR_ABI="$BUILDDIR_CORE/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
+    run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI
+    fail_panic "Could not copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI"
 
     local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
     local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
@@ -323,15 +346,15 @@ build_python_for_abi ()
          echo "LOCAL_MODULE := $PYTHON_CORE_MODULE_NAME"
 		 echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
          echo 'LOCAL_C_INCLUDES := $(MY_PYTHON_SRC_ROOT)/Include'
-         echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED"
+         echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
          echo 'LOCAL_LDLIBS := -lz'
          cat $PY_ANDROID_MK_TEMPLATE_FILE
          echo 'include $(BUILD_SHARED_LIBRARY)'
-    } >$BUILDDIR/jni/Android.mk
-    fail_panic "Can't generate Android.mk"
+    } >$BUILDDIR_CORE/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_CORE/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR -j$NUM_JOBS APP_ABI=$ABI V=1
-    fail_panic "Can't build python$PYTHON_ABI for $ABI"
+    run $NDK_DIR/ndk-build -C $BUILDDIR_CORE -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI core"
 
     if [ "$PYTHON_HEADERS_INSTALLED" != "yes" ]; then
         log "Install python$PYTHON_ABI headers into $PYTHON_DSTDIR"
@@ -346,13 +369,36 @@ build_python_for_abi ()
     run cp -p $PYCONFIG_FOR_ABI $PYTHON_DSTDIR/include/python
     fail_panic "Can't install $PYCONFIG_FOR_ABI"
 
-    log "Install python$PYTHON_ABI $ABI libraries into $PYTHON_DSTDIR"
-    run mkdir -p $PYTHON_DSTDIR/libs/$ABI
-    fail_panic "Can't create $PYTHON_DSTDIR/libs/$ABI"
+    run mkdir -p $PYBIN_INSTALLDIR
+    fail_panic "Can't create $PYBIN_INSTALLDIR"
 
-    local OBJDIR=$BUILDDIR/obj/local/$ABI
-    run cp -fpH $OBJDIR/lib$PYTHON_CORE_MODULE_NAME.so $PYTHON_DSTDIR/libs/$ABI
-    fail_panic "Can't install python$PYTHON_ABI $ABI libraries"
+    log "Install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
+    run cp -fpH $OBJDIR_CORE/lib$PYTHON_CORE_MODULE_NAME.so $PYBIN_INSTALLDIR
+    fail_panic "Can't install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
+
+# Step 3: build python-interpreter
+
+    run mkdir -p $BUILDDIR_INTERPRETER/jni
+    fail_panic "Could not create directory: $BUILDDIR_INTERPRETER/jni"
+
+    run cp -p -T $PY_C_INTERPRETER_FILE $BUILDDIR_INTERPRETER/jni/interpreter.c
+    fail_panic "Could not copy $PY_C_INTERPRETER_FILE to $BUILDDIR_INTERPRETER/jni"
+
+    {
+         echo 'LOCAL_PATH := $(call my-dir)'
+         echo 'include $(CLEAR_VARS)'
+         echo 'LOCAL_MODULE := python'
+         echo 'LOCAL_SRC_FILES := interpreter.c'
+         echo 'include $(BUILD_EXECUTABLE)'
+    } >$BUILDDIR_INTERPRETER/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_INTERPRETER/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI interpreter"
+
+    log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
+    run cp -fpH $OBJDIR_INTERPRETER/python $PYBIN_INSTALLDIR
+    fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
