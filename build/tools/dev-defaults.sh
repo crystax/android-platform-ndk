@@ -61,7 +61,7 @@ SQLITE3_SUBDIR=sources/sqlite/3
 
 # Location of the python libraries, relative to the NDK root directory
 PYTHON_SUBDIR=sources/python
-PYTHON_VERSIONS="3.4"
+PYTHON_VERSIONS="3.5"
 
 # Location of the libpng libraries, relative to the NDK root directory
 LIBPNG_SUBDIR=sources/libpng
