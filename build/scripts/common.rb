@@ -39,7 +39,7 @@ require_relative 'options.rb'
 
 class Common
 
-  CREW_UTILS = ['curl', 'p7zip', 'ruby']
+  CREW_UTILS = ['curl', 'xz', 'libarchive', 'ruby']
 
   NDK_ROOT_DIR = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.dirname.dirname.to_s
 
@@ -133,7 +133,7 @@ class Common
   def self.make_build_data(pkgname, options)
     release, formula = formula_data(pkgname)
     paths = make_paths(pkgname, release, options)
-    FileUtils.rm_rf paths[:build_base_dir]
+    FileUtils.rm_rf paths[:build_base]
     archive = make_archive_name(pkgname, release, options.target_platform)
     [release, paths, archive, formula]
   end
@@ -143,7 +143,7 @@ class Common
   end
 
   def self.make_archive_name(pkgname, release, platform)
-    "#{make_archive_base(pkgname, release)}-#{platform}.7z"
+    "#{make_archive_base(pkgname, release)}-#{platform}.tar.xz"
   end
 
   def self.host_ssl_cert_file(os)
@@ -206,6 +206,13 @@ class Common
     File.open(formula_file, 'w') { |f| f.puts lines }
   end
 
+  def self.formula_data(name)
+    path = "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    formula = Formulary.klass(path).new(path, :no_active_file)
+    release = formula.releases.last
+    [release, formula]
+  end
+
   private
 
   def self.show_build_help(options, pkgname)
@@ -243,23 +250,15 @@ class Common
          "  --help               show this message and exit\n"
   end
 
-  def self.formula_data(name)
-    # formula = Formulary.factory "#{CREW_DIR}/formula/utilities/#{name}.rb"
-    path = "#{CREW_DIR}/formula/utilities/#{name}.rb"
-    formula = Formulary.klass(path).new(path, :no_active_file)
-    release = formula.releases.last
-    [release, formula]
-  end
-
   def self.make_paths(pkgname, release, options)
     pkgver = Formula.package_version(release)
     prebuilt = "prebuilt/#{options.target_platform}"
 
-    { src_dir:        "#{VENDOR_DIR}/#{pkgname}",
-      build_base_dir: "#{BUILD_BASE_DIR}/#{pkgname}",
-      build_dir:      "#{BUILD_BASE_DIR}/#{pkgname}/#{pkgname}",
-      prebuilt_dir:   "#{NDK_DIR}/#{prebuilt}",
-      install_dir:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
+    { src:        "#{VENDOR_DIR}/#{pkgname}",
+      build_base: "#{BUILD_BASE_DIR}/#{pkgname}",
+      build:      "#{BUILD_BASE_DIR}/#{pkgname}/#{pkgname}",
+      prebuilt:   "#{NDK_DIR}/#{prebuilt}",
+      install:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
     }
   end
 

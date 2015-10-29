@@ -82,10 +82,10 @@ begin
     Logger.log_msg "= using cached file: #{archive}"
   else
     Logger.log_msg "= building #{archive}; args: #{ARGV}"
-    check_version paths[:src_dir], release.version
+    check_version paths[:src], release.version
     if options.target_os == 'windows'
       Logger.msg "= coping windows prebuilts"
-      dstdir = "#{paths[:install_dir]}/bin"
+      dstdir = "#{paths[:install]}/bin"
       FileUtils.mkdir_p(dstdir)
       pdir = "#{Common::NDK_ROOT_DIR}/platform/prebuilts/7zip/windows"
       if options.target_cpu == 'x86'
@@ -97,9 +97,9 @@ begin
         end
       end
     else
-      Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
+      Builder.copy_sources paths[:src], paths[:build_base]
       makefile = makefile_name options.target_os, options.target_cpu
-      FileUtils.cd(paths[:build_dir]) do
+      FileUtils.cd(paths[:build]) do
         FileUtils.cp makefile, 'makefile.machine'
         args = ["CRYSTAX_CC=#{Builder.cc(options)}",
                 "CRYSTAX_CXX=#{Builder.cxx(options)}",
@@ -107,18 +107,18 @@ begin
                ]
         Commander::run "make -j #{options.num_jobs} #{args.join(' ')}"
         Commander::run "make test #{args.join(' ')}" unless options.no_check?
-        bindir = "#{paths[:install_dir]}/bin"
+        bindir = "#{paths[:install]}/bin"
         FileUtils.mkdir_p bindir
         FileUtils.cp 'bin/7za', bindir
       end
     end
 
     # add properties file
-    Common.write_properties paths[:install_dir], release
+    Common.write_properties paths[:install], release
 
     if options.update_sha256_sums?
       platform_sym = options.target_platform_as_sym
-      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base_dir]) }
+      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
       Common.update_release_shasum formula.path, release, platform_sym
     end
   end
@@ -134,5 +134,5 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.rm_rf paths[:build_base_dir] unless options.no_clean?
+  FileUtils.rm_rf paths[:build_base] unless options.no_clean?
 end

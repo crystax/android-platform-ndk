@@ -57,13 +57,13 @@ module Cache
   end
 
   def self.unpack(archive, dstdir)
-    Commander::run "7z x -y -o#{dstdir} #{File.join(PATH, archive)}"
+    Commander::run "tar -C #{dstdir} -xf #{File.join(PATH, archive)}"
   end
 
   def self.add(archive, buildbase)
     file = File.join(PATH, archive)
     FileUtils.rm_rf file
-    FileUtils.cd(buildbase) { Commander::run "7z a #{file} #{ARCH_DIR}" }
+    FileUtils.cd(buildbase) { Commander::run "tar -Jcf #{file} #{ARCH_DIR}" }
     Digest::SHA256.hexdigest(File.read(file, mode: "rb"))
   end
 end

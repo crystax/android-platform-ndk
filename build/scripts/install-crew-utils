@@ -53,7 +53,6 @@ begin
   path = File.dirname($0)
 
   Common::CREW_UTILS.each do |name|
-    args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
     Logger.msg "Install #{options.target_platform} #{name}"
     release, _, archive, formula = Common.make_build_data(name, options)
     archive_path = Cache.full_path(archive)

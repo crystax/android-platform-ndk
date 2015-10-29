@@ -67,16 +67,16 @@ begin
   if Cache.try?(archive) and !options.force?
     Logger.log_msg "= using cached file: #{archive}"
   else
-    paths[:zlib_dir]    = Builder.build_zlib    options, paths
-    paths[:openssl_dir] = Builder.build_openssl options, paths
-    paths[:libssh2_dir] = Builder.build_libssh2 options, paths
+    paths[:zlib]    = Builder.build_zlib    options, paths
+    paths[:openssl] = Builder.build_openssl options, paths
+    paths[:libssh2] = Builder.build_libssh2 options, paths
 
     Logger.log_msg "= building #{archive}; args: #{ARGV}"
-    check_version paths[:src_dir], release.version
-    Builder.copy_sources paths[:src_dir], paths[:build_base_dir]
-    FileUtils.mkdir_p(paths[:install_dir])
-    prefix = Pathname.new(paths[:install_dir]).realpath
-    FileUtils.cd(paths[:build_dir]) do
+    check_version paths[:src], release.version
+    Builder.copy_sources paths[:src], paths[:build_base]
+    FileUtils.mkdir_p(paths[:install])
+    prefix = Pathname.new(paths[:install]).realpath
+    FileUtils.cd(paths[:build]) do
       Commander.run "./buildconf"
       env = { 'CC' => Builder.cc(options),
               'CFLAGS' => "#{Builder.cflags(options)} -DCURL_STATICLIB",
@@ -87,9 +87,9 @@ begin
               "--host=#{Builder.configure_host(options)}",
               "--disable-shared",
               "--disable-ldap",
-              "--with-ssl=#{paths[:openssl_dir]}",
-              "--with-zlib=#{paths[:zlib_dir]}",
-              "--with-libssh2=#{paths[:libssh2_dir]}"
+              "--with-ssl=#{paths[:openssl]}",
+              "--with-zlib=#{paths[:zlib]}",
+              "--with-libssh2=#{paths[:libssh2]}"
              ]
       Commander.run env, "./configure #{args.join(' ')}"
       Commander.run env, "make -j #{options.num_jobs}"
@@ -103,7 +103,7 @@ begin
 
     if options.update_sha256_sums?
       platform_sym = options.target_platform_as_sym
-      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base_dir]) }
+      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
       Common.update_release_shasum formula.path, release, platform_sym
     end
   end
@@ -119,5 +119,5 @@ rescue Exception => e
   Logger.log_exception(e)
   exit 1
 else
-  FileUtils.rm_rf paths[:build_base_dir] unless options.no_clean?
+  FileUtils.rm_rf paths[:build_base] unless options.no_clean?
 end

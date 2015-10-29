@@ -47,7 +47,7 @@ class Builder
   def self.cc(options)
     case options.target_os
     when 'darwin'
-      # todo: builds ruby with not working psych library (gem isntall fails)
+      # todo: builds ruby with not working psych library (gem install fails)
       # File.join(Common::NDK_ROOT_DIR, "platform/prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-3.7.0/bin/clang")
       'clang'
     when 'linux'
@@ -151,9 +151,9 @@ class Builder
   def self.build_zlib(options, paths)
     # todo: check for cached package
     Logger.log_msg "= building zlib for #{options.target_platform}"
-    prepare_sources 'zlib', paths[:build_base_dir]
-    build_dir = File.join(paths[:build_base_dir], 'zlib.build')
-    install_dir = File.join(paths[:build_base_dir], 'zlib')
+    prepare_sources 'zlib', paths[:build_base]
+    build_dir = File.join(paths[:build_base], 'zlib.build')
+    install_dir = File.join(paths[:build_base], 'zlib')
     FileUtils.cd(build_dir) do
       if options.target_os == 'windows'
         fname = 'win32/Makefile.gcc'
@@ -192,11 +192,11 @@ class Builder
     #   exit 0
     # end
     Logger.log_msg "= building openssl for #{options.target_platform}"
-    prepare_sources 'openssl', paths[:build_base_dir]
-    build_dir   = File.join(paths[:build_base_dir], 'openssl.build')
-    install_dir = File.join(paths[:build_base_dir], 'openssl')
+    prepare_sources 'openssl', paths[:build_base]
+    build_dir   = File.join(paths[:build_base], 'openssl.build')
+    install_dir = File.join(paths[:build_base], 'openssl')
     FileUtils.cd(build_dir) do
-      zlib_dir = paths[:zlib_dir]
+      zlib_dir = paths[:zlib]
       env = { 'CC' => cc(options) }
       args = ["--prefix=#{install_dir}",
               "no-idea",
@@ -230,7 +230,7 @@ class Builder
     #   exit 0
     # end
     Logger.log_msg "= building libssh2 for #{options.target_platform}"
-    build_base_dir = paths[:build_base_dir]
+    build_base_dir = paths[:build_base]
     prepare_sources 'libssh2', build_base_dir
     #
     build_dir = File.join(build_base_dir, 'libssh2.build')
@@ -238,8 +238,8 @@ class Builder
     #
     FileUtils.cd(build_dir) do
       Commander.run "./buildconf"
-      zlib_dir    = paths[:zlib_dir]
-      openssl_dir = paths[:openssl_dir]
+      zlib_dir    = paths[:zlib]
+      openssl_dir = paths[:openssl]
       env = { 'CC'      => cc(options),
               'CFLAGS'  => "#{cflags(options)} -I#{openssl_dir}/include -I#{zlib_dir}/include",
               'LDFLAGS' => "-L#{openssl_dir}/lib -L#{zlib_dir}/lib -lz",
@@ -277,16 +277,16 @@ class Builder
     #   exit 0
     # end
     Logger.log_msg "= building libgit2 for #{options.target_platform}"
-    build_base_dir = paths[:build_base_dir]
+    build_base_dir = paths[:build_base]
     prepare_sources 'libgit2', build_base_dir
     #
     build_dir = File.join(build_base_dir, 'libgit2.build')
     install_dir = File.join(build_base_dir, 'libgit2')
     #
     FileUtils.cd(build_dir) do
-      zlib_dir    = paths[:zlib_dir]
-      openssl_dir = paths[:openssl_dir]
-      libssh2_dir = paths[:libssh2_dir]
+      zlib_dir    = paths[:zlib]
+      openssl_dir = paths[:openssl]
+      libssh2_dir = paths[:libssh2]
       env = { 'CC' => cc(options),
               'EXTRA_CFLAGS' => "#{cflags(options)}",
               'EXTRA_DEFINES' => "-DGIT_SSL -DOPENSSL_SHA1 -DGIT_SSH",

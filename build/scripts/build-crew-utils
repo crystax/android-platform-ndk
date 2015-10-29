@@ -49,7 +49,10 @@ begin
   path = File.dirname($0)
 
   Common::CREW_UTILS.each do |name|
-    args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
+    args = ARGV
+    if (name == 'curl' or name == 'ruby' or (name == 'libarchive' and options.target_os == 'darwin'))
+      args << '--no-check'
+    end
     Logger.msg "Building #{options.target_platform} #{name}"
     Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
