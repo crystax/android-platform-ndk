@@ -131,7 +131,7 @@ fi
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
-fail_panic "Could not create build directory: $BUILD_DIR"
+fail_panic "Can't create build directory: $BUILD_DIR"
 
 # $1: ABI
 # $2: build directory
@@ -142,26 +142,31 @@ build_python_for_abi ()
 
     dump "Building python$PYTHON_ABI for $ABI"
 
-	local BUILDDIR_CONFIG="$BUILDDIR/config"
-	local BUILDDIR_CORE="$BUILDDIR/core"
-	local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
+    local BUILDDIR_CONFIG="$BUILDDIR/config"
+    local BUILDDIR_CORE="$BUILDDIR/core"
+    local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
+    local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
 
     run mkdir -p $BUILDDIR_CONFIG
-    fail_panic "Could not create directory: $BUILDDIR_CONFIG"
+    fail_panic "Can't create directory: $BUILDDIR_CONFIG"
     run mkdir -p $BUILDDIR_CORE
-    fail_panic "Could not create directory: $BUILDDIR_CORE"
+    fail_panic "Can't create directory: $BUILDDIR_CORE"
     run mkdir -p $BUILDDIR_INTERPRETER
-    fail_panic "Could not create directory: $BUILDDIR_INTERPRETER"
+    fail_panic "Can't create directory: $BUILDDIR_INTERPRETER"
+    run mkdir -p $BUILDDIR_CTYPES
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES"
 
     local OBJDIR_CORE=$BUILDDIR_CORE/obj/local/$ABI
     local OBJDIR_INTERPRETER=$BUILDDIR_INTERPRETER/obj/local/$ABI
+    local OBJDIR_CTYPES=$BUILDDIR_CTYPES/obj/local/$ABI
 
-	local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
+    local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
+    local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
 
 # Step 1: configure
 
-	local BUILD_ON_PLATFORM=$($PYTHON_SRCDIR/config.guess)
-	if [ -z "$BUILD_ON_PLATFORM" ]; then
+    local BUILD_ON_PLATFORM=$($PYTHON_SRCDIR/config.guess)
+    if [ -z "$BUILD_ON_PLATFORM" ]; then
         echo "ERROR: Can't resolve platform being built python on." 1>&2
         exit 1
     fi
@@ -310,7 +315,7 @@ build_python_for_abi ()
         echo "exec $PYTHON_SRCDIR/configure \\"
         echo "    --host=$HOST \\"
         echo "    --build=$BUILD_ON_PLATFORM \\"
-        echo "    --prefix=$BUILDDIR/install \\"
+        echo "    --prefix=$BUILDDIR_CONFIG/install \\"
         echo "    --enable-shared \\"
         echo "    --with-threads \\"
         echo "    --enable-ipv6 \\"
@@ -328,28 +333,28 @@ build_python_for_abi ()
 # Step 2: build python-core
 
     run mkdir -p $BUILDDIR_CORE/jni
-    fail_panic "Could not create directory: $BUILDDIR_CORE/jni"
+    fail_panic "Can't create directory: $BUILDDIR_CORE/jni"
 
     run cp -p -T $PY_C_CONFIG_FILE $BUILDDIR_CORE/jni/config.c && \
         cp -p -t $BUILDDIR_CORE/jni $PYTHON_BUILD_UTILS_DIR/pyconfig.h
-    fail_panic "Could not copy config.c pyconfig.h to $BUILDDIR_CORE/jni"
+    fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_CORE/jni"
 
     local PYCONFIG_FOR_ABI="$BUILDDIR_CORE/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
     run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI
-    fail_panic "Could not copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI"
+    fail_panic "Can't copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI"
 
     local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
     local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
     {
-         echo 'LOCAL_PATH := $(call my-dir)'
-         echo 'include $(CLEAR_VARS)'
-         echo "LOCAL_MODULE := $PYTHON_CORE_MODULE_NAME"
-		 echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
-         echo 'LOCAL_C_INCLUDES := $(MY_PYTHON_SRC_ROOT)/Include'
-         echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
-         echo 'LOCAL_LDLIBS := -lz'
-         cat $PY_ANDROID_MK_TEMPLATE_FILE
-         echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := $PYTHON_CORE_MODULE_NAME"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_C_INCLUDES := $(MY_PYTHON_SRC_ROOT)/Include'
+        echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        echo 'LOCAL_LDLIBS := -lz'
+        cat $PY_ANDROID_MK_TEMPLATE_FILE
+        echo 'include $(BUILD_SHARED_LIBRARY)'
     } >$BUILDDIR_CORE/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_CORE/jni/Android.mk"
 
@@ -371,6 +376,8 @@ build_python_for_abi ()
 
     run mkdir -p $PYBIN_INSTALLDIR
     fail_panic "Can't create $PYBIN_INSTALLDIR"
+    run mkdir -p $PYBIN_INSTALLDIR_MODULES
+    fail_panic "Can't create directory: $PYBIN_INSTALLDIR_MODULES"
 
     log "Install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
     run cp -fpH $OBJDIR_CORE/lib$PYTHON_CORE_MODULE_NAME.so $PYBIN_INSTALLDIR
@@ -379,10 +386,10 @@ build_python_for_abi ()
 # Step 3: build python-interpreter
 
     run mkdir -p $BUILDDIR_INTERPRETER/jni
-    fail_panic "Could not create directory: $BUILDDIR_INTERPRETER/jni"
+    fail_panic "Can't create directory: $BUILDDIR_INTERPRETER/jni"
 
     run cp -p -T $PY_C_INTERPRETER_FILE $BUILDDIR_INTERPRETER/jni/interpreter.c
-    fail_panic "Could not copy $PY_C_INTERPRETER_FILE to $BUILDDIR_INTERPRETER/jni"
+    fail_panic "Can't copy $PY_C_INTERPRETER_FILE to $BUILDDIR_INTERPRETER/jni"
 
     {
          echo 'LOCAL_PATH := $(call my-dir)'
@@ -399,6 +406,104 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
     run cp -fpH $OBJDIR_INTERPRETER/python $PYBIN_INSTALLDIR
     fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
+
+# Step 4: build python stdlib
+   # TBD
+
+# Step 5: build '_ctypes' python module
+    local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
+    run mkdir -p $BUILDDIR_CTYPES_CONFIG
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
+
+    local LIBFFI_CONFIGURE_WRAPPER=$BUILDDIR_CTYPES_CONFIG/configure.sh
+    {
+        echo "#!/bin/bash -e"
+        echo ''
+        echo "export CC=\"$CC\""
+        echo "export CFLAGS=\"$CFLAGS\""
+        echo "export LDFLAGS=\"$LDFLAGS\""
+        echo "export CPP=\"$CPP\""
+        echo "export AR=\"$AR\""
+        echo "export RANLIB=\"$RANLIB\""
+        echo ''
+        echo 'cd $(dirname $0)'
+        echo ''
+        echo "exec $PYTHON_SRCDIR/Modules/_ctypes/libffi/configure \\"
+        echo "    --host=$HOST \\"
+        echo "    --build=$BUILD_ON_PLATFORM \\"
+        echo "    --prefix=$BUILDDIR_CTYPES_CONFIG/install \\"
+    } >$LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't create configure wrapper for libffi"
+
+    chmod +x $LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't chmod +x configure wrapper for libffi"
+
+    run $LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't configure libffi for $ABI"
+
+    run mkdir -p "$BUILDDIR_CTYPES/jni"
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES/jni"
+
+    run mkdir -p "$BUILDDIR_CTYPES/jni/include"
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES/jni/include"
+
+    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES/jni/include
+    fail_panic "Can't copy configured libffi headers"
+
+    local FFI_SRC_LIST
+    case $ABI in
+        x86)
+            FFI_SRC_LIST="src/x86/ffi.c src/x86/sysv.S src/x86/win32.S"
+            ;;
+        x86_64)
+            FFI_SRC_LIST="src/x86/ffi64.c src/x86/unix64.S"
+            ;;
+        armeabi*)
+            FFI_SRC_LIST="src/arm/ffi.c src/arm/sysv.S"
+            ;;
+        arm64-v8a)
+            FFI_SRC_LIST="src/aarch64/ffi.c src/aarch64/sysv.S"
+            ;;
+        mips)
+            FFI_SRC_LIST="src/mips/ffi.c src/mips/o32.S"
+            ;;
+        mips64)
+            FFI_SRC_LIST="src/mips/ffi.c src/mips/o32.S src/mips/n32.S"
+            ;;
+        *)
+            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
+            exit 1
+    esac
+    FFI_SRC_LIST="$FFI_SRC_LIST src/prep_cif.c"
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := _ctypes"
+        echo "LOCAL_C_INCLUDES := \\"
+        echo "  $PYTHON_DSTDIR/include/python \\"
+        echo "  \$(LOCAL_PATH)/include"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo "LOCAL_SRC_FILES := \\"
+        for ffi_src in $FFI_SRC_LIST; do
+            echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/libffi/$ffi_src \\"
+        done
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callbacks.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callproc.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/cfield.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/malloc_closure.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/stgdict.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/_ctypes.c"
+        echo "LOCAL_LDLIBS := -l$PYTHON_CORE_MODULE_NAME -L$PYBIN_INSTALLDIR"
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+    } >$BUILDDIR_CTYPES/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_CTYPES/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_CTYPES -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module '_ctypes'"
+
+    log "Install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_CTYPES/lib_ctypes.so $PYBIN_INSTALLDIR_MODULES/_ctypes.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
