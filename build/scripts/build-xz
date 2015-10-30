@@ -94,11 +94,18 @@ begin
       env = { 'CC'     => Builder.cc(options),
               'CFLAGS' => Builder.cflags(options),
               'LANG'   => 'C',
-              'PATH'   => options.target_os == 'darwin' ? "#{gettetx_path}:#{ENV['PATH']}" : ENV['PATH']
             }
+      case options.target_os
+      when 'darwin'
+        env['PATH'] = "#{gettetx_path}:#{ENV['PATH']}"
+      when 'windows'
+        env['PATH'] = Builder.toolchain_path_and_path(options)
+        env['RC'] = "x86_64-w64-mingw32-windres -F pe-i386" if options.target_cpu == 'x86'
+      end
       Commander.run env, "./autogen.sh"
       args = ["--prefix=#{prefix}",
               "--host=#{Builder.configure_host(options)}",
+              "--disable-nls",
               "--disable-xzdec",
               "--disable-lzmadec",
               "--disable-lzmainfo",

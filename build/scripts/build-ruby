@@ -117,10 +117,10 @@ def fix_winres_params
   lines = []
   replaced = false
   File.foreach(file) do |l|
-    if not l.start_with?('WINDRES = windres --preprocessor="$(CPP) -xc" -DRC_INVOKED')
+    if not l.start_with?('WINDRES = ')
       lines << l
     else
-      lines << 'WINDRES = windres -F pe-i386 --preprocessor="$(CPP) -xc" -DRC_INVOKED'
+      lines << l.gsub('windres ', 'windres -F pe-i386 ')
       replaced = true
     end
   end

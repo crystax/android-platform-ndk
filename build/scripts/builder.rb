@@ -102,8 +102,9 @@ class Builder
   def self.toolchain_path_and_path(options)
     case options.target_os
     when 'windows'
+      #"platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin"
       "#{Common::NDK_ROOT_DIR}/" \
-      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/x86_64-w64-mingw32/bin" \
+      "platform/prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin" \
       ":#{ENV['PATH']}"
     when 'linux', 'darwin'
       '/bin:/usr/bin:/sbin:/usr/sbin'
@@ -123,9 +124,11 @@ class Builder
     when 'linux-x86'
       'i686-linux'
     when 'windows-x86_64'
-      'x86_64-mingw64'
+      #'x86_64-mingw64'
+      'x86_64-w64-mingw32'
     when 'windows'
-      'mingw32'
+      #'mingw32'
+      'x86_64-w64-mingw32'
     else
       raise UnknownTargetPlatform, options.target_platform, caller
     end
