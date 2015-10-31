@@ -36,7 +36,7 @@
 module Crystax
 
   BUILD_UTILS = ['zlib', 'openssl', 'libssh2', 'libgit2', 'ruby', 'curl', 'p7zip']
-  INSTALL_UTILS = BUILD_UTILS.slice(3, BUILD_UTILS.size)
+  INSTALL_UTILS = ['ruby', 'curl', 'p7zip']
 
   VERSIONS = {
     'zlib'    => '1.2.8',

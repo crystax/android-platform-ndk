@@ -1,5 +1,6 @@
+#!/usr/bin/env ruby
 #
-# Build OpenSSL libraries to use it to build Crystax NDK utilities
+# Build Crew utils and all required libs
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -33,37 +34,31 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
-require 'digest'
 require_relative 'common.rb'
-require_relative 'logger.rb'
 require_relative 'commander.rb'
 
 
-module Cache
-  PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
-  ARCH_DIR = 'prebuilt'
+PKG_NAME = 'crew-utils'
 
-  def self.full_path(archive)
-    File.join(PATH, archive)
-  end
 
-  def self.try?(archive)
-    exists?(archive) ? true : false
-  end
+begin
+  options = Common.parse_build_options PKG_NAME
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_build_msg PKG_NAME, options.target_platform
 
-  def self.exists?(archive)
-    File.exists? File.join(PATH, archive)
-  end
+  path = File.dirname($0)
 
-  def self.unpack(archive, dstdir)
-    Commander::run "tar -C #{dstdir} -xf #{File.join(PATH, archive)}"
+  Common::CREW_UTILS.each do |name|
+    args = ARGV
+    if (name == 'curl' or name == 'ruby' or (name == 'libarchive' and options.target_os == 'darwin'))
+      args << '--no-check'
+    end
+    Logger.msg "Building #{options.target_platform} #{name}"
+    Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
-
-  def self.add(archive, buildbase)
-    file = File.join(PATH, archive)
-    FileUtils.rm_rf file
-    FileUtils.cd(buildbase) { Commander::run "tar -Jcf #{file} #{ARCH_DIR}" }
-    Digest::SHA256.hexdigest(File.read(file, mode: "rb"))
-  end
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
 end

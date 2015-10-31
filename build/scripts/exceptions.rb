@@ -68,3 +68,10 @@ class UnknownTargetOS < RuntimeError
     "unknown target OS #{@os}"
   end
 end
+
+
+class BadVersion < RuntimeError
+  def initialize(pkgname, srcver, expver)
+    super "bad #{pkgname} version: repository: #{srcver}; expected: #{expver}"
+  end
+end

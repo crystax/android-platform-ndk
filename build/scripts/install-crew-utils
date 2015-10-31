@@ -1,5 +1,6 @@
+#!/usr/bin/env ruby
 #
-# Build OpenSSL libraries to use it to build Crystax NDK utilities
+# Install Crew Utilities
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -33,37 +34,47 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require 'fileutils'
 require 'digest'
 require_relative 'common.rb'
+require_relative 'cache.rb'
 require_relative 'logger.rb'
-require_relative 'commander.rb'
+require "#{Common::CREW_DIR}/library/utility.rb"
 
 
-module Cache
-  PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
-  ARCH_DIR = 'prebuilt'
+begin
+  options = Common.parse_install_options
 
-  def self.full_path(archive)
-    File.join(PATH, archive)
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_install_msg options.target_platform
+  Logger.log_msg "= will install CREW utilities into directory: #{options.out_dir}"
+  Logger.log_msg "= using DOWLOAD_BASE: #{Global::DOWNLOAD_BASE}"
+  Logger.log_msg "= using target platform: #{options.target_platform}"
+
+  path = File.dirname($0)
+
+  Common::CREW_UTILS.each do |name|
+    Logger.msg "Install #{options.target_platform} #{name}"
+    release, _, archive, formula = Common.make_build_data(name, options)
+    archive_path = Cache.full_path(archive)
+    if Cache.exists? archive
+      Logger.log_msg "= using cached file: #{archive}"
+    else
+      url = "#{formula.download_base}/#{name}/#{archive}"
+      Logger.log_msg "= cached file not found"
+      Logger.log_msg "= try to download archive: #{url}"
+      Utils.download(url, archive_path)
+    end
+    Logger.log_msg "= checking sha256 of the archive: #{archive_path}"
+    if Digest::SHA256.hexdigest(File.read(archive_path, mode: "rb")) != release.shasum(options.target_platform_as_sym)
+      raise "bad SHA256 sum of the #{archive} for #{name} release #{release}"
+    end
+    Cache.unpack archive, options.out_dir
+    Common.write_active_file(options.out_dir, options.target_platform, name, release)
   end
 
-  def self.try?(archive)
-    exists?(archive) ? true : false
-  end
-
-  def self.exists?(archive)
-    File.exists? File.join(PATH, archive)
-  end
-
-  def self.unpack(archive, dstdir)
-    Commander::run "tar -C #{dstdir} -xf #{File.join(PATH, archive)}"
-  end
-
-  def self.add(archive, buildbase)
-    file = File.join(PATH, archive)
-    FileUtils.rm_rf file
-    FileUtils.cd(buildbase) { Commander::run "tar -Jcf #{file} #{ARCH_DIR}" }
-    Digest::SHA256.hexdigest(File.read(file, mode: "rb"))
-  end
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
 end
