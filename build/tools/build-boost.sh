@@ -124,6 +124,10 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
+if [ "$HOST_ARCH" = "x86_64" ]; then
+    TRY64=yes
+fi
+
 prepare_target_build
 fail_panic "Could not setup target build"
 
