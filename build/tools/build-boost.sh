@@ -634,6 +634,26 @@ for ABI in $ABIS; do
         fi
         if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
             build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$STDLIB" "$STDLIB"
+
+            if [ -n "$PACKAGE_DIR" ]; then
+                if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
+                    FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
+                    PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
+                    PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+                    dump "Packaging: $PACKAGE"
+                    pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+                    fail_panic "Could not package Boost $BOOST_VERSION headers!"
+                    cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+                fi
+
+                FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
+                PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
+                PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+                dump "Packaging: $PACKAGE"
+                pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+                fail_panic "Could not package $ABI Boost $BOOST_VERSION (C++ stdlib: $STDLIB) binaries!"
+                cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+            fi
         fi
     done
 done
@@ -789,28 +809,6 @@ if [ -n "$PACKAGE_DIR" ] ; then
         fail_panic "Could not package Boost $BOOST_VERSION build files!"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     fi
-
-    if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
-        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-        dump "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package Boost $BOOST_VERSION headers!"
-        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
-    fi
-
-    for ABI in $BUILT_ABIS; do
-        for STDLIB in $STDLIBS; do
-            FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
-            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
-            PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-            dump "Packaging: $PACKAGE"
-            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI Boost $BOOST_VERSION (C++ stdlib: $STDLIB) binaries!"
-            cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
-        done
-    done
 fi
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
