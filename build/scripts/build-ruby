@@ -212,11 +212,9 @@ begin
 
     install_gems options, paths[:install], 'rspec', 'minitest'
 
-    if options.update_sha256_sums?
-      platform_sym = options.target_platform_as_sym
-      release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
-      Common.update_release_shasum formula.path, release, platform_sym
-    end
+    platform_sym = options.target_platform_as_sym
+    release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
+    Common.update_release_shasum formula.path, release, platform_sym if options.update_sha256_sums?
   end
 
   if options.same_platform?

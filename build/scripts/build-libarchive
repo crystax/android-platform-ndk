@@ -111,7 +111,6 @@ begin
       Common.write_properties prefix, release
     end
 
-    
     platform_sym = options.target_platform_as_sym
     release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
     Common.update_release_shasum formula.path, release, platform_sym if options.update_sha256_sums?
