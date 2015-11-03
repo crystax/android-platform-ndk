@@ -792,16 +792,16 @@ for SYSTEM in $SYSTEMS; do
     rm -rf $DSTDIR/tools/crew
     rm -rf $DSTDIR64/prebuilt/*/crew
     rm -rf $DSTDIR64/tools/crew
-    #   second, install 32 and 64 bit versions of the crew utilties
+    #   2nd, install 32 and 64 bit versions of the crew utilties
     #   NB: the code below will work correctly only wneh both 32 and 64 bit releases are build
     #       I hope we'll change the whole build proccess really soon
-    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
-    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR"
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
     fail_panic "Could not install 32-bit crew utils"
-    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64"
-    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64"
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
     fail_panic "Could not install 64-bit crew utils"
-    #   third, install crew
+    #   3rd, install crew
     echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
     $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
     fail_panic "Could not install CREW"
