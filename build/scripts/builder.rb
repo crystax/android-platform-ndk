@@ -147,7 +147,7 @@ class Builder
   def self.copy_sources(srcdir, dstdir)
     pkgname = File.basename(srcdir)
     FileUtils.rm_rf File.join(dstdir, pkgname)
-    FileUtils.mkdir dstdir unless Dir.exists?(dstdir)
+    FileUtils.mkdir_p dstdir unless Dir.exists?(dstdir)
     FileUtils.cp_r srcdir, dstdir
   end
 
