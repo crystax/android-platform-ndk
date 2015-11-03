@@ -62,7 +62,7 @@ begin
       url = "#{formula.download_base}/#{name}/#{archive}"
       Logger.log_msg "= cached file not found"
       Logger.log_msg "= try to download archive: #{url}"
-      Utils.download(url, archive_path)
+      Commander.run "curl #{url} -o #{archive_path} --silent --fail -L"
     end
     Logger.log_msg "= checking sha256 of the archive: #{archive_path}"
     if Digest::SHA256.hexdigest(File.read(archive_path, mode: "rb")) != release.shasum(options.target_platform_as_sym)
