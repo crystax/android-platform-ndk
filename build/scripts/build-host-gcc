@@ -39,8 +39,6 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-#require_relative 'versions.rb'
-
 module Crystax
 
   PKG_NAME = 'gcc'

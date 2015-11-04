@@ -34,7 +34,6 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-require_relative 'versions.rb'
 
 require 'fileutils'
 require_relative 'logger.rb'
@@ -43,14 +42,15 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+PKG_NAME = 'ruby'
+
+
 # line: #define RUBY_VERSION "2.2.2"
 def check_version(srcdir, version)
   v = File.read("#{srcdir}/version.h").split("\n").select { |s| s =~ /#define RUBY_VERSION/ }
   raise "can't find '#define RUBY_VERSION' string" if !v or v.size == 0
   srcver = v[0].split(' ')[2].split('"')[1]
-  if srcver != version
-    raise "bad ruby version: repository: #{srcver}; expected: #{version}"
-  end
+  raise BadVersion.new(PKG_NAME, srcver, version) unless srcver == version
 end
 
 def copy_rugged(dstdir)
@@ -129,9 +129,6 @@ def fix_winres_params
 
   File.open(file, 'w') { |f| f.puts lines }
 end
-
-
-PKG_NAME = 'ruby'
 
 
 begin

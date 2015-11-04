@@ -42,6 +42,9 @@ require_relative 'builder.rb'
 require_relative 'cache.rb'
 
 
+PKG_NAME = 'xz'
+
+
 #
 def check_version(srcdir, version)
   major, minor, patch = nil
@@ -55,13 +58,13 @@ def check_version(srcdir, version)
       patch = line.split(' ')[2]
     end
   end
+
   raise "failed to parse version.h: major was not set" if !major
   raise "failed to parse version.h: minor was not set" if !minor
   raise "failed to parse version.h: patch was not set" if !patch
+
   srcver = "#{major}.#{minor}.#{patch}"
-  if srcver != version
-    raise "bad xz version: repository: #{srcver}; expected: #{version}"
-  end
+  raise BadVersion.new(PKG_NAME, srcver, version) unless srcver == version
 end
 
 
@@ -70,9 +73,6 @@ def gettetx_path
   raise "failed to find gettext version: #{v}" unless v.size == 2 and v[0] == 'gettext'
   "/usr/local/Cellar/gettext/#{v[1]}/bin"
 end
-
-
-PKG_NAME = 'xz'
 
 
 begin
