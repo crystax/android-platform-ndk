@@ -146,6 +146,7 @@ build_python_for_abi ()
     local BUILDDIR_CORE="$BUILDDIR/core"
     local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
     local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
+    local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
 
     run mkdir -p $BUILDDIR_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CONFIG"
@@ -155,10 +156,13 @@ build_python_for_abi ()
     fail_panic "Can't create directory: $BUILDDIR_INTERPRETER"
     run mkdir -p $BUILDDIR_CTYPES
     fail_panic "Can't create directory: $BUILDDIR_CTYPES"
+    run mkdir -p $BUILDDIR_SQLITE3
+    fail_panic "Can't create directory: $BUILDDIR_SQLITE3"
 
-    local OBJDIR_CORE=$BUILDDIR_CORE/obj/local/$ABI
-    local OBJDIR_INTERPRETER=$BUILDDIR_INTERPRETER/obj/local/$ABI
-    local OBJDIR_CTYPES=$BUILDDIR_CTYPES/obj/local/$ABI
+    local OBJDIR_CORE="$BUILDDIR_CORE/obj/local/$ABI"
+    local OBJDIR_INTERPRETER="$BUILDDIR_INTERPRETER/obj/local/$ABI"
+    local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
+    local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
 
     local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
@@ -479,12 +483,10 @@ build_python_for_abi ()
     {
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
-        echo "LOCAL_MODULE := _ctypes"
-        echo "LOCAL_C_INCLUDES := \\"
-        echo "  $PYTHON_DSTDIR/include/python \\"
-        echo "  \$(LOCAL_PATH)/include"
+        echo 'LOCAL_MODULE := _ctypes'
+        echo 'LOCAL_C_INCLUDES := $(LOCAL_PATH)/include'
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
-        echo "LOCAL_SRC_FILES := \\"
+        echo 'LOCAL_SRC_FILES := \'
         for ffi_src in $FFI_SRC_LIST; do
             echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/libffi/$ffi_src \\"
         done
@@ -506,6 +508,40 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_CTYPES/lib_ctypes.so $PYBIN_INSTALLDIR_MODULES/_ctypes.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
+
+# _sqlite3
+    run mkdir -p "$BUILDDIR_SQLITE3/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SQLITE3/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := _sqlite3'
+        echo "LOCAL_CFLAGS := -DMODULE_NAME=\\\"sqlite3\\\""
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cache.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/connection.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cursor.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/microprotocols.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/module.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/prepare_protocol.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \\"
+        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c"
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_shared'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+        echo '$(call import-module,sqlite/3)'
+    } >$BUILDDIR_SQLITE3/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SQLITE3/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SQLITE3 -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module '_sqlite3'"
+
+    log "Install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_SQLITE3/lib_sqlite3.so $PYBIN_INSTALLDIR_MODULES/_sqlite3.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
