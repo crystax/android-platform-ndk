@@ -410,7 +410,8 @@ build_python_for_abi ()
 # Step 4: build python stdlib
    # TBD
 
-# Step 5: build '_ctypes' python module
+# Step 5: build python modules
+# _ctypes
     local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
     run mkdir -p $BUILDDIR_CTYPES_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
@@ -493,8 +494,9 @@ build_python_for_abi ()
         echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/malloc_closure.c \\"
         echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/stgdict.c \\"
         echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/_ctypes.c"
-        echo "LOCAL_LDLIBS := -l$PYTHON_CORE_MODULE_NAME -L$PYBIN_INSTALLDIR"
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
         echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
     } >$BUILDDIR_CTYPES/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_CTYPES/jni/Android.mk"
 
