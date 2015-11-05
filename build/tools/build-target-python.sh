@@ -526,6 +526,33 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_MULTIPROCESSING/lib_multiprocessing.so $PYBIN_INSTALLDIR_MODULES/_multiprocessing.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_multiprocessing' in $PYBIN_INSTALLDIR_MODULES"
 
+# _socket
+    local BUILDDIR_SOCKET="$BUILDDIR/socket"
+    local OBJDIR_SOCKET="$BUILDDIR_SOCKET/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_SOCKET/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SOCKET/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := _socket'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/socketmodule.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+    } >$BUILDDIR_SOCKET/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SOCKET/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SOCKET -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module '_socket'"
+
+    log "Install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_SOCKET/lib_socket.so $PYBIN_INSTALLDIR_MODULES/_socket.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
+
 # _sqlite3
     local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
     local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
