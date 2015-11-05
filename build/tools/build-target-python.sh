@@ -562,6 +562,38 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_SQLITE3/lib_sqlite3.so $PYBIN_INSTALLDIR_MODULES/_sqlite3.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
+
+#pyexpat
+    local BUILDDIR_PYEXPAT="$BUILDDIR/pyexpat"
+    local OBJDIR_PYEXPAT="$BUILDDIR_PYEXPAT/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_PYEXPAT/jni"
+    fail_panic "Can't create directory: $BUILDDIR_PYEXPAT/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := pyexpat'
+        echo 'LOCAL_CFLAGS := -DHAVE_EXPAT_CONFIG_H -DXML_STATIC'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo "LOCAL_C_INCLUDES := \$(MY_PYTHON_SRC_ROOT)/Modules/expat"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmlparse.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmlrole.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmltok.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/pyexpat.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+    } >$BUILDDIR_PYEXPAT/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_PYEXPAT/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_PYEXPAT -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module 'pyexpat'"
+
+    log "Install python$PYTHON_ABI-$ABI module 'pyexpat' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_PYEXPAT/libpyexpat.so $PYBIN_INSTALLDIR_MODULES/pyexpat.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module 'pyexpat' in $PYBIN_INSTALLDIR_MODULES"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
