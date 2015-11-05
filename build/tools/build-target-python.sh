@@ -399,9 +399,19 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
 
 # Step 4: build python stdlib
-   # TBD
+    local PYSTDLIB_ZIPFILE="$PYBIN_INSTALLDIR/stdlib.zip"
+    log "Install python$PYTHON_ABI-$ABI stdlib as $PYSTDLIB_ZIPFILE"
+    run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+    fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
 
-# Step 5: build python modules
+# Step 5: site-packages
+    local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
+    local SITE_README_DSTDIR="$PYBIN_INSTALLDIR/site-packages"
+    log "Install python$PYTHON_ABI-$ABI site-packages"
+    run mkdir -p $SITE_README_DSTDIR && cp -fpH $SITE_README_SRCDIR/README $SITE_README_DSTDIR
+    fail_panic "Can't install python$PYTHON_ABI-$ABI site-packages"
+
+# Step 6: build python modules
 # _ctypes
     local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
     local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
