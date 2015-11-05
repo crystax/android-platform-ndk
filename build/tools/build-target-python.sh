@@ -137,39 +137,22 @@ fail_panic "Can't create build directory: $BUILD_DIR"
 # $2: build directory
 build_python_for_abi ()
 {
-    local ABI="$1"
-    local BUILDDIR="$2"
-
     dump "Building python$PYTHON_ABI for $ABI"
 
+    local ABI="$1"
+    local BUILDDIR="$2"
+    local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
+    local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
+
+# Step 1: configure
     local BUILDDIR_CONFIG="$BUILDDIR/config"
     local BUILDDIR_CORE="$BUILDDIR/core"
-    local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
-    local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
-    local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
-    local BUILDDIR_MULTIPROCESSING="$BUILDDIR/multiprocessing"
+    local OBJDIR_CORE="$BUILDDIR_CORE/obj/local/$ABI"
 
     run mkdir -p $BUILDDIR_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CONFIG"
     run mkdir -p $BUILDDIR_CORE
     fail_panic "Can't create directory: $BUILDDIR_CORE"
-    run mkdir -p $BUILDDIR_INTERPRETER
-    fail_panic "Can't create directory: $BUILDDIR_INTERPRETER"
-    run mkdir -p $BUILDDIR_CTYPES
-    fail_panic "Can't create directory: $BUILDDIR_CTYPES"
-    run mkdir -p $BUILDDIR_SQLITE3
-    fail_panic "Can't create directory: $BUILDDIR_SQLITE3"
-
-    local OBJDIR_CORE="$BUILDDIR_CORE/obj/local/$ABI"
-    local OBJDIR_INTERPRETER="$BUILDDIR_INTERPRETER/obj/local/$ABI"
-    local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
-    local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
-    local OBJDIR_MULTIPROCESSING="$BUILDDIR_MULTIPROCESSING/obj/local/$ABI"
-
-    local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
-    local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
-
-# Step 1: configure
 
     local BUILD_ON_PLATFORM=$($PYTHON_SRCDIR/config.guess)
     if [ -z "$BUILD_ON_PLATFORM" ]; then
@@ -390,6 +373,8 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
 
 # Step 3: build python-interpreter
+    local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
+    local OBJDIR_INTERPRETER="$BUILDDIR_INTERPRETER/obj/local/$ABI"
 
     run mkdir -p $BUILDDIR_INTERPRETER/jni
     fail_panic "Can't create directory: $BUILDDIR_INTERPRETER/jni"
@@ -418,6 +403,8 @@ build_python_for_abi ()
 
 # Step 5: build python modules
 # _ctypes
+    local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
+    local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
     local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
     run mkdir -p $BUILDDIR_CTYPES_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
@@ -512,6 +499,9 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
 
 # _multiprocessing
+    local BUILDDIR_MULTIPROCESSING="$BUILDDIR/multiprocessing"
+    local OBJDIR_MULTIPROCESSING="$BUILDDIR_MULTIPROCESSING/obj/local/$ABI"
+
     run mkdir -p "$BUILDDIR_MULTIPROCESSING/jni"
     fail_panic "Can't create directory: $BUILDDIR_MULTIPROCESSING/jni"
 
@@ -537,6 +527,9 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_multiprocessing' in $PYBIN_INSTALLDIR_MODULES"
 
 # _sqlite3
+    local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
+    local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
+
     run mkdir -p "$BUILDDIR_SQLITE3/jni"
     fail_panic "Can't create directory: $BUILDDIR_SQLITE3/jni"
 
