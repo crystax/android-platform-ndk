@@ -595,6 +595,33 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_PYEXPAT/libpyexpat.so $PYBIN_INSTALLDIR_MODULES/pyexpat.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module 'pyexpat' in $PYBIN_INSTALLDIR_MODULES"
 
+# select
+    local BUILDDIR_SELECT="$BUILDDIR/select"
+    local OBJDIR_SELECT="$BUILDDIR_SELECT/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_SELECT/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SELECT/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := select'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/selectmodule.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+    } >$BUILDDIR_SELECT/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SELECT/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SELECT -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module 'select'"
+
+    log "Install python$PYTHON_ABI-$ABI module 'select' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_SELECT/libselect.so $PYBIN_INSTALLDIR_MODULES/select.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module 'select' in $PYBIN_INSTALLDIR_MODULES"
+
 # unicodedata
     local BUILDDIR_UNICODEDATA="$BUILDDIR/unicodedata"
     local OBJDIR_UNICODEDATA="$BUILDDIR_UNICODEDATA/obj/local/$ABI"
