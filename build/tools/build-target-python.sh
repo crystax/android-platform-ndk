@@ -147,6 +147,7 @@ build_python_for_abi ()
     local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
     local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
     local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
+    local BUILDDIR_MULTIPROCESSING="$BUILDDIR/multiprocessing"
 
     run mkdir -p $BUILDDIR_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CONFIG"
@@ -163,6 +164,7 @@ build_python_for_abi ()
     local OBJDIR_INTERPRETER="$BUILDDIR_INTERPRETER/obj/local/$ABI"
     local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
     local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
+    local OBJDIR_MULTIPROCESSING="$BUILDDIR_MULTIPROCESSING/obj/local/$ABI"
 
     local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
@@ -490,12 +492,12 @@ build_python_for_abi ()
         for ffi_src in $FFI_SRC_LIST; do
             echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/libffi/$ffi_src \\"
         done
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callbacks.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callproc.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/cfield.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/malloc_closure.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/stgdict.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/_ctypes.c"
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callbacks.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callproc.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/cfield.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/malloc_closure.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/stgdict.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/_ctypes.c'
         echo 'LOCAL_STATIC_LIBRARIES := python_shared'
         echo 'include $(BUILD_SHARED_LIBRARY)'
         echo "\$(call import-module,python/$PYTHON_ABI)"
@@ -509,6 +511,31 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_CTYPES/lib_ctypes.so $PYBIN_INSTALLDIR_MODULES/_ctypes.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
 
+# _multiprocessing
+    run mkdir -p "$BUILDDIR_MULTIPROCESSING/jni"
+    fail_panic "Can't create directory: $BUILDDIR_MULTIPROCESSING/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := _multiprocessing'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/multiprocessing.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/semaphore.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+    } >$BUILDDIR_MULTIPROCESSING/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_MULTIPROCESSING/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_MULTIPROCESSING -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module '_multiprocessing'"
+
+    log "Install python$PYTHON_ABI-$ABI module '_multiprocessing' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_MULTIPROCESSING/lib_multiprocessing.so $PYBIN_INSTALLDIR_MODULES/_multiprocessing.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module '_multiprocessing' in $PYBIN_INSTALLDIR_MODULES"
+
 # _sqlite3
     run mkdir -p "$BUILDDIR_SQLITE3/jni"
     fail_panic "Can't create directory: $BUILDDIR_SQLITE3/jni"
@@ -517,18 +544,18 @@ build_python_for_abi ()
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
         echo 'LOCAL_MODULE := _sqlite3'
-        echo "LOCAL_CFLAGS := -DMODULE_NAME=\\\"sqlite3\\\""
+        echo 'LOCAL_CFLAGS := -DMODULE_NAME=\"sqlite3\"'
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_SRC_FILES := \'
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cache.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/connection.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cursor.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/microprotocols.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/module.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/prepare_protocol.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \\"
-        echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c"
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cache.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/connection.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cursor.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/microprotocols.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/module.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/prepare_protocol.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c'
         echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_shared'
         echo 'include $(BUILD_SHARED_LIBRARY)'
         echo "\$(call import-module,python/$PYTHON_ABI)"
