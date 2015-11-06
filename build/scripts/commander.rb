@@ -49,12 +49,11 @@ module Commander
     end
 
     exitstatus = nil
-    err = ''
 
-    Open3.popen2e(*cmd) do |_, stdouterr, waitthr|
+    Open3.popen2e(*cmd) do |_, output, waitthr|
       ot = Thread.start do
         str = ''
-        while c = stdouterr.getc
+        while c = output.getc
           if "#{c}" != "\n"
             str += "#{c}"
           else
