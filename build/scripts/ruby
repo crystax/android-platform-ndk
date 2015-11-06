@@ -1,0 +1,10 @@
+#!/bin/bash
+
+unset GEM_HOME
+unset GEM_PATH
+
+tools_dir=$(dirname $0)/..
+ruby_ver=`cat $tools_dir/crew/ruby/active_version.txt`
+ruby_dir="$tools_dir/crew/ruby/$ruby_ver/bin"
+
+exec $ruby_dir/ruby "$@"
