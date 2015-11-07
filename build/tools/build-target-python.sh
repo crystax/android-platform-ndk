@@ -282,6 +282,7 @@ build_python_for_abi ()
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
         echo 'ac_cv_func_faccessat=no'
+	echo 'ac_cv_func_gethostbyname_r=no'
     } >$CONFIG_SITE
     fail_panic "Can't create config.site wrapper"
 
