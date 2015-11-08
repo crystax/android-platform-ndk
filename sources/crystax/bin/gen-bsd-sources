@@ -1069,7 +1069,7 @@ g.add "lib/msun/src/e_jn.c"
 g.add "lib/msun/src/e_lgamma.c"
 g.add "lib/msun/src/e_lgamma_r.c",         warnings: "maybe-uninitialized"
 g.add "lib/msun/src/e_lgammaf.c"
-g.add "lib/msun/src/e_lgammaf_r.c",        warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_lgammaf_r.c",        warnings: ["maybe-uninitialized", "unused-variable"]
 g.add "lib/msun/src/e_log.c"
 g.add "lib/msun/src/e_log10.c"
 g.add "lib/msun/src/e_log10f.c"
