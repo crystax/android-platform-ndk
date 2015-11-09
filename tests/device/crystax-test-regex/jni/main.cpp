@@ -1,3 +1,12 @@
+#if defined(__GNUC__) && !defined(__clang__)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+#define HAVE_STD_REGEX 1
+#else
+#define HAVE_STD_REGEX 0
+#endif
+#endif
+
+#if HAVE_STD_REGEX
 #include <string>
 #include <regex>
 #include <iostream>
@@ -41,3 +50,6 @@ int main(){
     std::cout << "OK" << std::endl;
     return 0;
 }
+#else /* !HAVE_STD_REGEX */
+int main() { return 0; }
+#endif /* !HAVE_STD_REGEX */
