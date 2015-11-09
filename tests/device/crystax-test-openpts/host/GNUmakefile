@@ -2,7 +2,8 @@ MYDIR := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
 
 include $(MYDIR)/../common.mk
 
-CFLAGS += -O2 -D_POSIX_C_SOURCE=200112L
+CFLAGS += -O2
+CFLAGS += -D_POSIX_C_SOURCE=200112L
 
 PREVIOUS_TARGETS :=
 
