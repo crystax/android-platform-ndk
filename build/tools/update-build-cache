@@ -42,7 +42,11 @@ end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
 
+TARGETS = OPTIONS[:targets]
+$stdout.puts "=== Updating cache for: #{TARGETS.join(',')}"
+
 if OPTIONS[:build_number].nil?
+    $stdout.puts "=== Detecting latest NDK build number..."
     url = "https://dl.crystax.net/ndk/#{HOST_OS}/latest"
     o,e,s = Open3.capture3("curl -fSL #{url}")
     if !s.success?
@@ -50,13 +54,29 @@ if OPTIONS[:build_number].nil?
         exit 1
     end
 
-    OPTIONS[:build_number] = o.chomp.split("\n").first.to_i
+    bnum = o.chomp.split("\n").first.to_i
+    (1..10).each do
+        begin
+            TARGETS.each do |target|
+                _,_,s = Open3.capture3("curl -fSL https://dl.crystax.net/cache/#{bnum}/#{target}/checksum.sha256")
+                raise "NO CHECKSUM" unless s.success?
+            end
+        rescue
+            $stdout.puts "=== Build ##{bnum}: incomplete, trying previous one..."
+            bnum -= 1
+            next
+        end
+        $stdout.puts "=== Build ##{bnum}: OK"
+        OPTIONS[:build_number] = bnum
+        break
+    end
+    if OPTIONS[:build_number].nil?
+        $stderr.puts "ERROR: Can't detect latest NDK build number"
+        exit 1
+    end
 end
 BNUM = OPTIONS[:build_number]
 $stdout.puts "=== Using build number: #{BNUM}"
-
-TARGETS = OPTIONS[:targets]
-$stdout.puts "=== Updating cache for: #{TARGETS.join(',')}"
 
 CACHEDIR = OPTIONS[:cachedir]
 
@@ -64,7 +84,8 @@ def files(target, bnum)
     baseurl = "https://dl.crystax.net/cache/#{bnum}/#{target}"
     o,e,s = Open3.capture3("curl -fSL #{baseurl}/checksum.sha256")
     if !s.success?
-        $stderr.puts "ERROR: Can't get checksums for #{target}/##{bnum} cache files:\n\n#{e}"
+        $stderr.puts e
+        $stderr.puts "ERROR: Can't get checksums for #{target}/##{bnum} cache files"
         exit 1
     end
 
