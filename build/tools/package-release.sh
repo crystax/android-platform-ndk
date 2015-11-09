@@ -831,8 +831,8 @@ for SYSTEM in $SYSTEMS; do
     # copy ruby script to system's prebuilt directories (32 and 64 bit) 
     if [ "${SYSTEM%%-*}" = "windows" ]; then
         RUBY_FILE="ruby.cmd"
-        RUBY_32_PLATFORM="window"
-        RUBY_64_PLATFORM="window-x86_64"
+        RUBY_32_PLATFORM="windows"
+        RUBY_64_PLATFORM="windows-x86_64"
     else
         RUBY_FILE="ruby"
         RUBY_32_PLATFORM="${SYSTEM%%-*}-x86"
