@@ -827,23 +827,6 @@ for SYSTEM in $SYSTEMS; do
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi
-
-    # copy ruby script to system's prebuilt directories (32 and 64 bit) 
-    if [ "${SYSTEM%%-*}" = "windows" ]; then
-        RUBY_FILE="ruby.cmd"
-        RUBY_32_PLATFORM="windows"
-        RUBY_64_PLATFORM="windows-x86_64"
-    else
-        RUBY_FILE="ruby"
-        RUBY_32_PLATFORM="${SYSTEM%%-*}-x86"
-        RUBY_64_PLATFORM="${SYSTEM%%-*}-x86_64"
-    fi
-    echo "cp $SCRIPTS_DIR/$RUBY_FILE $DSTDIR/prebuilt/$RUBY_32_PLATFORM/bin/"
-    cp $SCRIPTS_DIR/$RUBY_FILE "$DSTDIR/prebuilt/$RUBY_32_PLATFORM/bin/"
-    fail_panic "Could not copy ruby script to 32 bit destination"
-    echo "cp $SCRIPTS_DIR/$RUBY_FILE $DSTDIR64/prebuilt/$RUBY_64_PLATFORM/bin/"
-    cp $SCRIPTS_DIR/$RUBY_FILE "$DSTDIR64/prebuilt/$RUBY_64_PLATFORM/bin/"
-    fail_panic "Could not copy ruby script to 64 bit destination"
     
     # make all file universally readable, and all executable (including directory)
     # universally executable, punt intended

@@ -72,6 +72,10 @@ begin
     Common.write_active_file(options.out_dir, options.target_platform, name, release)
   end
 
+  # copy ruby wrapper script to platform bin directory
+  script = options.target_os == 'windows' ? 'ruby.cmd' : 'ruby'
+  FileUtils.cp "#{path}/#{script}", "#{options.out_dir}/prebuilt/#{options.target_platform}/bin/"
+
 rescue SystemExit => e
   exit e.status
 rescue Exception => e

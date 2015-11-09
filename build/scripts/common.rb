@@ -99,6 +99,7 @@ class Common
   def self.parse_install_options
     # set default values for build options
     options = Options.new
+    options.out_dir = NDK_DIR
 
     # parse command line args
     ARGV.each do |opt|
@@ -245,7 +246,8 @@ class Common
          "  --log-file=NAME      set log filename\n"                                       \
          "                       default #{default_install_logfile_name(options)}\n"       \
          "  --out-dir=NAME       set output directory; crew utilities will be installed\n" \
-         "                       into that directory; required\n"                          \
+         "                       into that directory;\n"                                   \
+         "                       default #{options.out_dir}\n"                             \
          "  --verbose            output more info to console\n"                            \
          "  --help               show this message and exit\n"
   end
