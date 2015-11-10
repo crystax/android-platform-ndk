@@ -1,6 +1,3 @@
 [submodule "crew"]
 	path = crew
 	url = ../crew.git
-[submodule "tools/crew"]
-	path = tools/crew
-	url = ../crew.git
