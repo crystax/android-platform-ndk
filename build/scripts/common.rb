@@ -45,7 +45,7 @@ class Common
 
   NDK_DIR        = "#{NDK_ROOT_DIR}/platform/ndk"
   VENDOR_DIR     = "#{NDK_ROOT_DIR}/vendor"
-  CREW_DIR       = "#{NDK_DIR}/tools/crew"
+  CREW_DIR       = "#{NDK_ROOT_DIR}/crew"
   BUILD_BASE_DIR = "/tmp/ndk-#{ENV['USER']}/crew"
 
   FileUtils.mkdir_p "#{NDK_DIR}/prebuilt/#{Options.host_platform}/crew"
