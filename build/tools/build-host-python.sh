@@ -271,7 +271,7 @@ build_host_python ()
 
     ARGS=$ARGS" --build=$BUILDCONFIG"
     ARGS=$ARGS" --host=$HOSTCONFIG"
-    ARGS=$ARGS" --with-build-sysroot"
+    #ARGS=$ARGS" --with-build-sysroot"
     ARGS=$ARGS" $PYDEBUG"
     ARGS=$ARGS" --disable-ipv6"
 
