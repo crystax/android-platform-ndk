@@ -1,6 +1,18 @@
-#if __gnu_linux__ && __clang__
-int main() {return 0;}
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9))
+#define HAVE_STD_ATOMIC 1
 #else
+#define HAVE_STD_ATOMIC 0
+#endif
+
+#if __gnu_linux__ && __clang__
+/* There is bug in clang on GNU/Linux, when it uses gcc's stdatomic.h instead of own one
+ * and this cause compiler error.
+ */
+#undef HAVE_STD_ATOMIC
+#define HAVE_STD_ATOMIC 0
+#endif
+
+#if HAVE_STD_ATOMIC
 
 #include <stdatomic.h>
 #include <assert.h>
@@ -60,10 +72,12 @@ void test()
     assert(v == MAX_THREADS * MAX_THREAD_COUNTER);
 }
 
+#endif /* HAVE_STD_ATOMIC */
+
 int main()
 {
+#if HAVE_STD_ATOMIC
     test();
+#endif
     return 0;
 }
-
-#endif
