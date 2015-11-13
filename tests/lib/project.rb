@@ -181,6 +181,13 @@ class Project
     end
     private :log_notice
 
+    def preprocess(cc, str)
+        o,e,s = Open3.capture3("#{cc} -x c -E -", stdin_data: str)
+        raise "Can't preprocess '#{str}' with #{cc}: #{e}" unless s.success?
+        o.split("\n").reject { |line| line =~ /^#/ }.join("\n")
+    end
+    private :preprocess
+
     def run_cmd(cmd, options = {}, &block)
         log_info "## COMMAND: #{cmd}"
         log_info "## CWD: #{Dir.pwd}"
@@ -280,16 +287,17 @@ class Project
             end
             next unless found
 
-            v = `#{cc} --version 2>/dev/null`.split("\n").map(&:chomp)
-            if v.select { |l| l =~ /(llvm|clang)/i }.size > 0
+            if preprocess(cc, "__clang__") != "__clang__"
                 type = :clang
-            elsif v.select { |l| l =~ /(gcc|g\+\+|Free Software Foundation)/i }.size > 0
+                version = preprocess(cc, "__clang_version__")
+            elsif preprocess(cc, "__GNUC__") != "__GNUC__"
                 type = :gcc
+                version = preprocess(cc, "__VERSION__")
             else
                 raise "Can't detect type of #{cc}"
             end
 
-            ccs << {exe: cc, type: type}
+            ccs << {exe: cc, type: type, version: version} if ccs.select { |x| x[:type] == type && x[:version] == version }.empty?
         end
 
         if @options[:toolchain_version]
