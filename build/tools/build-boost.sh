@@ -522,9 +522,9 @@ EOF
     local WITHOUT=""
 
     # Boost.Context in 1.57.0 and earlier don't support arm64
-    # Boost.Context in 1.59.0 and earlier don't support mips64
+    # Boost.Context in 1.60.0 and earlier don't support mips64
     if [ \( "$ARCH" = "arm64"  -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 57 \) -o \
-         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 60 \) ]; then
         WITHOUT="$WITHOUT --without-context"
     fi
 
@@ -754,7 +754,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                                     fi
                                     ;;
                                 mips64)
-                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 60 \) ]; then
                                         SKIP=yes
                                     fi
                                     ;;
