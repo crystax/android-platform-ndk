@@ -10,7 +10,7 @@ include $(BUILD_STATIC_LIBRARY)
 # create an intermediate one, called 'bar' that includes 'foo' as a whole
 # static library.
 include $(CLEAR_VARS)
-LOCAL_MODULE := bar
+LOCAL_MODULE := bar20E739C8DF824EB4B2216F6F07E6C597
 LOCAL_WHOLE_STATIC_LIBRARIES := foo
 include $(BUILD_SHARED_LIBRARY)
 
