@@ -75,7 +75,7 @@ class Project
         @emutag = options[:emutag]
         @abis   = options[:abis]
 
-        @stimeout = options[:stimeout]
+        @stimeout = @properties['single-run-timeout'] || options[:stimeout]
 
         @last_notice = Time.now
     end
