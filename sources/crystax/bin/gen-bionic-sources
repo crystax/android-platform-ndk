@@ -181,8 +181,15 @@ g.add "libc/arch-mips64/include/machine/asm.h"
 g.add "libc/arch-x86/include/machine/asm.h"
 g.add "libc/arch-x86_64/include/machine/asm.h"
 
-# getpwnam/getpwuid
-g.add "libc/bionic/stubs.cpp"
+# eventfd
+g.add "libc/arch-arm/syscalls/eventfd.S"
+g.add "libc/arch-arm64/syscalls/eventfd.S"
+g.add "libc/arch-mips/syscalls/eventfd.S"
+g.add "libc/arch-mips64/syscalls/eventfd.S"
+g.add "libc/arch-x86/syscalls/eventfd.S"
+g.add "libc/arch-x86_64/syscalls/eventfd.S"
+g.add "libc/bionic/eventfd_read.cpp"
+g.add "libc/bionic/eventfd_write.cpp"
 
 # fadvise
 g.add "libc/arch-arm/syscalls/__arm_fadvise64_64.S"
@@ -208,22 +215,24 @@ g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/arch-x86/syscalls/__fcntl64.S"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
-# eventfd
-g.add "libc/arch-arm/syscalls/eventfd.S"
-g.add "libc/arch-arm64/syscalls/eventfd.S"
-g.add "libc/arch-mips/syscalls/eventfd.S"
-g.add "libc/arch-mips64/syscalls/eventfd.S"
-g.add "libc/arch-x86/syscalls/eventfd.S"
-g.add "libc/arch-x86_64/syscalls/eventfd.S"
-g.add "libc/bionic/eventfd_read.cpp"
-g.add "libc/bionic/eventfd_write.cpp"
+# getpwnam/getpwuid
+g.add "libc/bionic/stubs.cpp"
 
-# sysconf
-g.add "libc/bionic/sysconf.cpp"
-g.add "libc/bionic/sysinfo.cpp"
+# mlockall
+g.add "libc/arch-arm/syscalls/mlockall.S"
+g.add "libc/arch-arm64/syscalls/mlockall.S"
+g.add "libc/arch-mips/syscalls/mlockall.S"
+g.add "libc/arch-mips64/syscalls/mlockall.S"
+g.add "libc/arch-x86/syscalls/mlockall.S"
+g.add "libc/arch-x86_64/syscalls/mlockall.S"
 
-# termios
-g.add "libc/bionic/termios.cpp"
+# munlockall
+g.add "libc/arch-arm/syscalls/munlockall.S"
+g.add "libc/arch-arm64/syscalls/munlockall.S"
+g.add "libc/arch-mips/syscalls/munlockall.S"
+g.add "libc/arch-mips64/syscalls/munlockall.S"
+g.add "libc/arch-x86/syscalls/munlockall.S"
+g.add "libc/arch-x86_64/syscalls/munlockall.S"
 
 # pipe2
 g.add "libc/arch-arm/syscalls/pipe2.S"
@@ -232,5 +241,12 @@ g.add "libc/arch-mips/syscalls/pipe2.S"
 g.add "libc/arch-mips64/syscalls/pipe2.S"
 g.add "libc/arch-x86/syscalls/pipe2.S"
 g.add "libc/arch-x86_64/syscalls/pipe2.S"
+
+# sysconf
+g.add "libc/bionic/sysconf.cpp"
+g.add "libc/bionic/sysinfo.cpp"
+
+# termios
+g.add "libc/bionic/termios.cpp"
 
 g.generate
