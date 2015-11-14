@@ -389,6 +389,13 @@ for VERSION in $LLVM_VERSION_LIST; do
     fail_panic "Could not copy LLVM-$VERSION libc++ test files. Aborting."
 done
 
+echo "Copying Bionic tests"
+BIONIC_TESTS_SUBDIR="sources/crystax/tests/bionic"
+BIONIC_TESTS_SRCDIR="$NDK_ROOT_DIR/$BIONIC_TESTS_SUBDIR"
+BIONIC_TESTS_DSTDIR="$REFERENCE/$BIONIC_TESTS_SUBDIR"
+rm -Rf "$BIONIC_TESTS_DSTDIR" && mkdir -p "$BIONIC_TESTS_DSTDIR" && rsync -aL "$BIONIC_TESTS_SRCDIR/" "$BIONIC_TESTS_DSTDIR/"
+fail_panic "Could not copy Bionic tests"
+
 echo "Copying OpenPTS sources"
 OPENPTS_SUBDIR="sources/crystax/tests/openpts"
 OPENPTS_SRCDIR="$NDK_ROOT_DIR/$OPENPTS_SUBDIR"
