@@ -336,21 +336,37 @@ pack_release ()
         archive="`pwd`/$archive"
     fi
 
+    local packcmd
+    case $archive in
+        *.7z)
+            packcmd="7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
+            ;;
+        *.tar.xz)
+            packcmd="tar cJvf"
+            ;;
+        *)
+            panic "Don't know how to package $archive"
+    esac
+
     mkdir -p $(dirname $archive)
-    XZ_OPT=-9e tar cJvf "$archive" -C $srcdir "$reldir" | {
-        cnt=0
-        total=0
-        while read line; do
-            let cnt+=1
-            test $cnt -ge 5000 || continue
-            let total+=$cnt
+    (
+        cd $srcdir || exit 1
+        export XZ_OPT=-9e
+        $packcmd "$archive" "$reldir" | {
             cnt=0
-            echo "Packed $total files"
-        done
-        let total+=$cnt
-        test $cnt -eq 0 || echo "Packed $total files"
-    }
-    test ${PIPESTATUS[0]} -eq 0
+            total=0
+            while read line; do
+                let cnt+=1
+                test $cnt -ge 5000 || continue
+                let total+=$cnt
+                cnt=0
+                echo "Packed $total files"
+            done
+            let total+=$cnt
+            test $cnt -eq 0 || echo "Packed $total files"
+        }
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+    )
     fail_panic "Can't pack $archive"
 }
 
@@ -829,12 +845,21 @@ for SYSTEM in $SYSTEMS; do
             SHORT_SYSTEM=$SYSTEM
             ;;
     esac
-    ARCHIVE64="${ARCHIVE}_64.tar.xz"
-    ARCHIVE="${ARCHIVE}.tar.xz"
+
+    case "$SYSTEM" in
+        windows*)
+            EXT=7z
+            ;;
+        *)
+            EXT=tar.xz
+    esac
+
+    ARCHIVE64="${ARCHIVE}_64.${EXT}"
+    ARCHIVE="${ARCHIVE}.${EXT}"
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi
-    
+
     # make all file universally readable, and all executable (including directory)
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
