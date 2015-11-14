@@ -715,7 +715,7 @@ end
 def sha256(file)
     d = Digest::SHA256.new
     File.open(file, 'rb') do |f|
-        while buf = f.read(4*1024*1024)
+        while buf = f.read(16*1024*1024)
             d.update buf
         end
     end
