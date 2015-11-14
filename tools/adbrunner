@@ -16,8 +16,6 @@ WINDOWS = RUBY_PLATFORM =~ /(cygwin|mingw|win32)/ ? true : false
 
 USE_SELECT_BASED_IO = true
 
-STARTED_AT = Time.now
-
 MYPID = Process.pid
 CHILDREN = []
 
@@ -771,7 +769,7 @@ def do_run_test(attempt, devid, tag, exe, args)
         tmpf = strip(e)
         begin
             cs = sha256(tmpf)
-            needpush = !islib || adb_shell(devid, "cat #{dbe}.sha256 2>/dev/null | grep -q -x #{cs}", nothrow: true) != 0
+            needpush = !islib || adb_shell(devid, "grep -q -x #{cs} #{dbe}.sha256 2>/dev/null", nothrow: true) != 0
             adb_push  devid, tmpf, dbe if needpush
             if islib
                 adb_shell devid, "echo #{cs} >#{dbe}.sha256" if needpush
@@ -895,6 +893,8 @@ end
 def run_test(attempt, devid, exe, args)
     ENV['ANDROID_SERIAL'] = devid
 
+    tms = Time.now
+
     FileUtils.mkdir_p LOCKDIR
     File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
         begin
@@ -910,7 +910,7 @@ def run_test(attempt, devid, exe, args)
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         rc = do_run_test(attempt, devid, tag, exe, args)
 
-        log "EXIT: #{rc} (took #{time_range(Time.now - STARTED_AT)})"
+        log "EXIT: #{rc} (took #{time_range(Time.now - tms)})"
         rc
     end
 end
@@ -922,21 +922,9 @@ def time_range(v)
     "%d:%02d:%02d" % [hours, minutes, seconds]
 end
 
+started_at = Time.now
+
 begin
-    tmh = Thread.start do
-        now = Time.now
-        sleep [TIMEOUT - (now - STARTED_AT), 0].max
-
-        MRO.dump event: "timeout", timeout: TIMEOUT
-
-        message = "TIMEOUT (#{time_range(TIMEOUT)} from start)"
-        log message
-        $stderr.puts message
-
-        killall
-        exit 1
-    end if TIMEOUT
-
     fails = 0
 
     # Get list of devices
@@ -946,79 +934,79 @@ begin
     CMDS.each do |cmd|
         cmdnum += 1
 
-        if cmd.size > 1 && cmd.last =~ /^ADBRUNNER-OPTIONS:/
-            cmdoptions = JSON.parse(cmd.pop.sub(/^ADBRUNNER-OPTIONS:/, '')) rescue {}
-        else
-            cmdoptions = {}
-        end
+        cmdoptions = {}
+        cmdoptions = JSON.parse(cmd.pop.sub(/^ADBRUNNER-OPTIONS:/, '')) rescue {} if cmd.size > 1 && cmd.last =~ /^ADBRUNNER-OPTIONS:/
 
         cmdminapilevel = cmdoptions['min-api-level'].to_i rescue 0
 
-        log "EXEC: #{cmd.join(' ')}"
+        started_at = Time.now
+        Timeout.timeout(TIMEOUT) do
+            log "EXEC: #{cmd.join(' ')}"
 
-        exe = cmd.shift
-        args = cmd
+            exe = cmd.shift
+            args = cmd
 
-        mrofields = {number: cmdnum, total: CMDS.size, exe: exe, args: args}
+            mrofields = {number: cmdnum, total: CMDS.size, exe: exe, args: args}
 
-        paused = false
+            paused = false
 
-        attempt = 0
-        while true
-            attempt += 1
+            attempt = 0
+            while true
+                attempt += 1
 
-            rc = nil
-            devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
-                next if cmdminapilevel != 0 && d[:apilevel] < cmdminapilevel
-                begin
-                    rc = nil
-                    paused = false if paused
+                rc = nil
+                devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
+                    next if cmdminapilevel != 0 && d[:apilevel] < cmdminapilevel
+                    begin
+                        rc = nil
+                        paused = false if paused
 
-                    id = d[:id]
-                    devmodel = d[:model]
-                    apilevel = d[:apilevel]
+                        id = d[:id]
+                        devmodel = d[:model]
+                        apilevel = d[:apilevel]
 
-                    MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
+                        MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
 
-                    rc = run_test(attempt, id, exe, args)
-                    if rc != 0
-                        MRO.dump mrofields.merge({event: "fail", exitcode: rc})
-                        fails += 1
-                        exit rc unless KEEPGOING
+                        rc = run_test(attempt, id, exe, args)
+                        if rc != 0
+                            MRO.dump mrofields.merge({event: "fail", exitcode: rc})
+                            fails += 1
+                            exit rc unless KEEPGOING
+                        end
+
+                        # Here we have result of execution on device (either positive or negative)
+                        # so we stop trying other compatible devices unless --run-on-all-devices option was specified
+                        # and promote this result as result of whole run
+                        break if !RUN_ON_ALL_DEVICES
+                    rescue Timeout::Error
+                        # Ignore. Just switch to next device
+                    rescue AdbError => e
+                        log e.message
+                        # Refresh list of devices
+                        devices = adb_devices
                     end
-
-                    # Here we have result of execution on device (either positive or negative)
-                    # so we stop trying other compatible devices unless --run-on-all-devices option was specified
-                    # and promote this result as result of whole run
-                    break if !RUN_ON_ALL_DEVICES
-                rescue Timeout::Error
-                    # Ignore. Just switch to next device
-                rescue AdbError => e
-                    log e.message
-                    # Refresh list of devices
-                    devices = adb_devices
                 end
+
+                # Switch to next CMD if current one was executed and exited with any exit code
+                break if !rc.nil?
+
+                if EMUTAG.nil?
+                    MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
+                    log "EXIT: no suitable device/emulator"
+                    break
+                end
+
+                if !paused
+                    MRO.dump mrofields.merge({event: "pause"})
+                    paused = true
+                end
+
+                log "WAIT: no suitable device/emulator (#{time_range(Time.now - started_at)} elapsed); will try bit later"
+                sleep 10
+
+                # Refresh list of devices
+                devices = adb_devices
             end
-
-            # Switch to next CMD if current one was executed and exited with any exit code
-            break if !rc.nil?
-
-            if EMUTAG.nil?
-                MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
-                log "EXIT: no suitable device/emulator"
-                break
-            end
-
-            if !paused
-                MRO.dump mrofields.merge({event: "pause"})
-                paused = true
-            end
-
-            log "WAIT: no suitable device/emulator (#{time_range(Time.now - STARTED_AT)} elapsed); will try bit later"
-            sleep 10
-
-            # Refresh list of devices
-            devices = adb_devices
         end
     end
 
@@ -1026,10 +1014,16 @@ begin
 rescue Interrupt
     $stderr.puts "\n\nINTERRUPTED"
     exit 1
+rescue Timeout::Error
+    tmout = (Time.now - started_at).to_i
+    MRO.dump event: "timeout", timeout: tmout
+
+    log "TIMEOUT (#{time_range(tmout)} from start)"
+    exit 1
 rescue RuntimeError => e
     $stderr.puts "FATAL: #{e.message}"
     $stderr.puts e.backtrace.join("\n")
     exit 1
 ensure
-    tmh.kill rescue nil
+    killall
 end
