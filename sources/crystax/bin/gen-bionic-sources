@@ -181,6 +181,15 @@ g.add "libc/arch-mips64/include/machine/asm.h"
 g.add "libc/arch-x86/include/machine/asm.h"
 g.add "libc/arch-x86_64/include/machine/asm.h"
 
+# clock_nanosleep
+g.add "libc/arch-arm/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-arm64/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-mips/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-mips64/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-x86/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-x86_64/syscalls/___clock_nanosleep.S"
+g.add "libc/bionic/clock_nanosleep.cpp"
+
 # eventfd
 g.add "libc/arch-arm/syscalls/eventfd.S"
 g.add "libc/arch-arm64/syscalls/eventfd.S"
