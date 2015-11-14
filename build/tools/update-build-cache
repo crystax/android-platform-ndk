@@ -17,6 +17,9 @@ else
     exit 1
 end
 
+$stdout.sync = true
+$stderr.sync = true
+
 OPTIONS = {}
 OPTIONS[:targets] = [HOST_OS, 'android']
 OPTIONS[:cachedir] = "/var/tmp/ndk-cache-#{ENV['USER']}"
@@ -37,6 +40,10 @@ optparser = OptionParser.new do |o|
 
     o.on("--cache-dir=PATH", "Path to build cache directory [#{OPTIONS[:cachedir]}]") do |c|
         OPTIONS[:cachedir] = c
+    end
+
+    o.on("--check", "Run in CHECK mode - i.e. only check if cache is up-to-date and exit") do |c|
+        OPTIONS[:check] = c
     end
 end
 ENV['POSIXLY_CORRECT'] = '1'
@@ -79,6 +86,7 @@ BNUM = OPTIONS[:build_number]
 $stdout.puts "=== Using build number: #{BNUM}"
 
 CACHEDIR = OPTIONS[:cachedir]
+CHECK = OPTIONS[:check]
 
 def files(target, bnum)
     baseurl = "https://dl.crystax.net/cache/#{bnum}/#{target}"
@@ -121,18 +129,20 @@ def update
         next unless fls.index { |f| f[:file] == File.basename(cf) }.nil?
         $stdout.puts "=== [DEL] #{cf}"
         FileUtils.rm_f cf
-    end
+    end unless CHECK
 
     fls.sort { |a,b| a[:file] <=> b[:file] }.each do |f|
         dst = File.join(CACHEDIR, f[:file])
+
         $stdout.write "=== [CHK] #{dst} ... "
-        $stdout.flush
         if checksum(dst) == f[:sha256]
             $stdout.puts "OK"
             next
         end
 
         $stdout.puts "OUTDATED"
+
+        return false if CHECK
 
         attempt = 0
         begin
@@ -149,7 +159,6 @@ def update
                         next if c.nil?
 
                         $stderr.write c
-                        $stderr.flush
                     end
                 end
 
@@ -173,10 +182,14 @@ def update
             end
         end
     end
+
+    true
 end
 
 begin
-    update
+    r = update
+    $stdout.puts "=== #{r ? "UP-TO-DATE" : "OUT-OF-DATE"}" if CHECK
+    exit 1 unless r
 rescue Interrupt
     $stderr.puts "INTERRUPTED"
     exit 1
