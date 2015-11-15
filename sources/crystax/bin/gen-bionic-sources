@@ -273,6 +273,14 @@ g.add "libc/bionic/sysinfo.cpp"
 # termios
 g.add "libc/bionic/termios.cpp"
 
+# tgkill
+g.add "libc/arch-arm/syscalls/tgkill.S"
+g.add "libc/arch-arm64/syscalls/tgkill.S"
+g.add "libc/arch-mips/syscalls/tgkill.S"
+g.add "libc/arch-mips64/syscalls/tgkill.S"
+g.add "libc/arch-x86/syscalls/tgkill.S"
+g.add "libc/arch-x86_64/syscalls/tgkill.S"
+
 # timerfd_create
 g.add "libc/arch-arm/syscalls/timerfd_create.S"
 g.add "libc/arch-arm64/syscalls/timerfd_create.S"
