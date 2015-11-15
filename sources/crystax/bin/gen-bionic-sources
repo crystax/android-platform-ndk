@@ -162,6 +162,7 @@ g.add "libc/include/sys/glibc-syscalls.h", public: true
 g.add "libc/include/sys/syscall.h",        public: true
 g.add "libc/include/sys/sysconf.h",        public: true
 g.add "libc/include/sys/sysinfo.h",        public: true
+g.add "libc/include/sys/timerfd.h",        public: true
 
 # common headers
 g.add "libc/include/machine/posix_limits.h"
@@ -271,5 +272,29 @@ g.add "libc/bionic/sysinfo.cpp"
 
 # termios
 g.add "libc/bionic/termios.cpp"
+
+# timerfd_create
+g.add "libc/arch-arm/syscalls/timerfd_create.S"
+g.add "libc/arch-arm64/syscalls/timerfd_create.S"
+g.add "libc/arch-mips/syscalls/timerfd_create.S"
+g.add "libc/arch-mips64/syscalls/timerfd_create.S"
+g.add "libc/arch-x86/syscalls/timerfd_create.S"
+g.add "libc/arch-x86_64/syscalls/timerfd_create.S"
+
+# timerfd_gettime
+g.add "libc/arch-arm/syscalls/timerfd_gettime.S"
+g.add "libc/arch-arm64/syscalls/timerfd_gettime.S"
+g.add "libc/arch-mips/syscalls/timerfd_gettime.S"
+g.add "libc/arch-mips64/syscalls/timerfd_gettime.S"
+g.add "libc/arch-x86/syscalls/timerfd_gettime.S"
+g.add "libc/arch-x86_64/syscalls/timerfd_gettime.S"
+
+# timerfd_settime
+g.add "libc/arch-arm/syscalls/timerfd_settime.S"
+g.add "libc/arch-arm64/syscalls/timerfd_settime.S"
+g.add "libc/arch-mips/syscalls/timerfd_settime.S"
+g.add "libc/arch-mips64/syscalls/timerfd_settime.S"
+g.add "libc/arch-x86/syscalls/timerfd_settime.S"
+g.add "libc/arch-x86_64/syscalls/timerfd_settime.S"
 
 g.generate

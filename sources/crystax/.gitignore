@@ -53,6 +53,7 @@ include/sys/stdint.h
 include/sys/syscall.h
 include/sys/sysconf.h
 include/sys/sysinfo.h
+include/sys/timerfd.h
 include/sysexits.h
 include/tar.h
 include/tgmath.h
