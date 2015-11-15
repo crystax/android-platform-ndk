@@ -102,6 +102,9 @@
 
 #define _POSIX_CLOCK_SELECTION      200809L
 
+#define _POSIX_CPUTIME              200809L
+#define _POSIX_THREAD_CPUTIME       200809L
+
 #define _POSIX_IPV6                 200809L
 
 #define _POSIX_FSYNC                200809L

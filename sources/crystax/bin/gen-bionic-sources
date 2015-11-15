@@ -181,6 +181,17 @@ g.add "libc/arch-mips64/include/machine/asm.h"
 g.add "libc/arch-x86/include/machine/asm.h"
 g.add "libc/arch-x86_64/include/machine/asm.h"
 
+# clock_getcpuclockid
+g.add "libc/bionic/clock_getcpuclockid.cpp"
+
+# clock_getres
+g.add "libc/arch-arm/syscalls/clock_getres.S"
+g.add "libc/arch-arm64/syscalls/clock_getres.S"
+g.add "libc/arch-mips/syscalls/clock_getres.S"
+g.add "libc/arch-mips64/syscalls/clock_getres.S"
+g.add "libc/arch-x86/syscalls/clock_getres.S"
+g.add "libc/arch-x86_64/syscalls/clock_getres.S"
+
 # clock_nanosleep
 g.add "libc/arch-arm/syscalls/___clock_nanosleep.S"
 g.add "libc/arch-arm64/syscalls/___clock_nanosleep.S"
