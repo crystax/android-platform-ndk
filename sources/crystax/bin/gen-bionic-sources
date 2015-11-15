@@ -181,8 +181,35 @@ g.add "libc/arch-mips64/include/machine/asm.h"
 g.add "libc/arch-x86/include/machine/asm.h"
 g.add "libc/arch-x86_64/include/machine/asm.h"
 
-# getpwnam/getpwuid
-g.add "libc/bionic/stubs.cpp"
+# clock_getcpuclockid
+g.add "libc/bionic/clock_getcpuclockid.cpp"
+
+# clock_getres
+g.add "libc/arch-arm/syscalls/clock_getres.S"
+g.add "libc/arch-arm64/syscalls/clock_getres.S"
+g.add "libc/arch-mips/syscalls/clock_getres.S"
+g.add "libc/arch-mips64/syscalls/clock_getres.S"
+g.add "libc/arch-x86/syscalls/clock_getres.S"
+g.add "libc/arch-x86_64/syscalls/clock_getres.S"
+
+# clock_nanosleep
+g.add "libc/arch-arm/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-arm64/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-mips/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-mips64/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-x86/syscalls/___clock_nanosleep.S"
+g.add "libc/arch-x86_64/syscalls/___clock_nanosleep.S"
+g.add "libc/bionic/clock_nanosleep.cpp"
+
+# eventfd
+g.add "libc/arch-arm/syscalls/eventfd.S"
+g.add "libc/arch-arm64/syscalls/eventfd.S"
+g.add "libc/arch-mips/syscalls/eventfd.S"
+g.add "libc/arch-mips64/syscalls/eventfd.S"
+g.add "libc/arch-x86/syscalls/eventfd.S"
+g.add "libc/arch-x86_64/syscalls/eventfd.S"
+g.add "libc/bionic/eventfd_read.cpp"
+g.add "libc/bionic/eventfd_write.cpp"
 
 # fadvise
 g.add "libc/arch-arm/syscalls/__arm_fadvise64_64.S"
@@ -208,22 +235,24 @@ g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/arch-x86/syscalls/__fcntl64.S"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
-# eventfd
-g.add "libc/arch-arm/syscalls/eventfd.S"
-g.add "libc/arch-arm64/syscalls/eventfd.S"
-g.add "libc/arch-mips/syscalls/eventfd.S"
-g.add "libc/arch-mips64/syscalls/eventfd.S"
-g.add "libc/arch-x86/syscalls/eventfd.S"
-g.add "libc/arch-x86_64/syscalls/eventfd.S"
-g.add "libc/bionic/eventfd_read.cpp"
-g.add "libc/bionic/eventfd_write.cpp"
+# getpwnam/getpwuid
+g.add "libc/bionic/stubs.cpp"
 
-# sysconf
-g.add "libc/bionic/sysconf.cpp"
-g.add "libc/bionic/sysinfo.cpp"
+# mlockall
+g.add "libc/arch-arm/syscalls/mlockall.S"
+g.add "libc/arch-arm64/syscalls/mlockall.S"
+g.add "libc/arch-mips/syscalls/mlockall.S"
+g.add "libc/arch-mips64/syscalls/mlockall.S"
+g.add "libc/arch-x86/syscalls/mlockall.S"
+g.add "libc/arch-x86_64/syscalls/mlockall.S"
 
-# termios
-g.add "libc/bionic/termios.cpp"
+# munlockall
+g.add "libc/arch-arm/syscalls/munlockall.S"
+g.add "libc/arch-arm64/syscalls/munlockall.S"
+g.add "libc/arch-mips/syscalls/munlockall.S"
+g.add "libc/arch-mips64/syscalls/munlockall.S"
+g.add "libc/arch-x86/syscalls/munlockall.S"
+g.add "libc/arch-x86_64/syscalls/munlockall.S"
 
 # pipe2
 g.add "libc/arch-arm/syscalls/pipe2.S"
@@ -232,5 +261,15 @@ g.add "libc/arch-mips/syscalls/pipe2.S"
 g.add "libc/arch-mips64/syscalls/pipe2.S"
 g.add "libc/arch-x86/syscalls/pipe2.S"
 g.add "libc/arch-x86_64/syscalls/pipe2.S"
+
+# posix_madvise
+g.add "libc/bionic/posix_madvise.cpp"
+
+# sysconf
+g.add "libc/bionic/sysconf.cpp"
+g.add "libc/bionic/sysinfo.cpp"
+
+# termios
+g.add "libc/bionic/termios.cpp"
 
 g.generate

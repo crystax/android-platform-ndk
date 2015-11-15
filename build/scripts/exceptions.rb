@@ -37,34 +37,27 @@
 
 class CommandFailed < RuntimeError
   def initialize(cmd, exitstatus)
-    @cmd = cmd
-    @exitstatus = exitstatus
-  end
-
-  def to_s
-    "command failed:  #{@cmd}\n"
-    "   exit status:  #{@exitstatus}\n"
+    super "command failed:  #{@cmd}\n   exit status:  #{@exitstatus}\n"
   end
 end
 
 
 class UnknownTargetPlatform < RuntimeError
   def initialize(platform)
-    @platform = platform
-  end
-
-  def to_s
-    "unknown target platform #{@platform}"
+    super "unknown target platform #{@platform}"
   end
 end
 
 
 class UnknownTargetOS < RuntimeError
   def initialize(os)
-    @os = os
+    super "unknown target OS #{@os}"
   end
+end
 
-  def to_s
-    "unknown target OS #{@os}"
+
+class BadVersion < RuntimeError
+  def initialize(pkgname, srcver, expver)
+    super "bad #{pkgname} version: repository: #{srcver}; expected: #{expver}"
   end
 end

@@ -38,12 +38,15 @@
 CHECK(mode_t);
 CHECK(off_t);
 CHECK(size_t);
+
+#if _POSIX_TYPED_MEMORY_OBJECTS > 0
 CHECK(struct posix_typed_mem_info);
 
 void sys_mman_check_posix_typed_mem_info_fields(struct posix_typed_mem_info *s)
 {
     s->posix_tmi_length = (size_t)0;
 }
+#endif /* _POSIX_TYPED_MEMORY_OBJECTS > 0 */
 
 void sys_mman_check_functions()
 {

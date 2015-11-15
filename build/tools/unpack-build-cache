@@ -56,8 +56,13 @@ for f in $(ls -1 $CACHE_DIR/* 2>/dev/null | sort); do
         *.7z)
             7z x $f >/dev/null
             ;;
-        *.tar.bz2|*.tar.xz)
-            tar xf $f
+        *.tar.bz2)
+            bzcat $f | tar xf -
+            test $? -eq 0 -a ${PIPESTATUS[0]} -eq 0
+            ;;
+        *.tar.xz)
+            xzcat $f | tar xf -
+            test $? -eq 0 -a ${PIPESTATUS[0]} -eq 0
             ;;
         *)
             echo "ERROR: Don't know how to unpack $f" 1>&2

@@ -1,4 +1,4 @@
-Android.mk
-license.html
 include/
 libs/
+Android.mk
+license.html

@@ -17,6 +17,9 @@ else
     exit 1
 end
 
+$stdout.sync = true
+$stderr.sync = true
+
 OPTIONS = {}
 OPTIONS[:targets] = [HOST_OS, 'android']
 OPTIONS[:cachedir] = "/var/tmp/ndk-cache-#{ENV['USER']}"
@@ -38,11 +41,19 @@ optparser = OptionParser.new do |o|
     o.on("--cache-dir=PATH", "Path to build cache directory [#{OPTIONS[:cachedir]}]") do |c|
         OPTIONS[:cachedir] = c
     end
+
+    o.on("--check", "Run in CHECK mode - i.e. only check if cache is up-to-date and exit") do |c|
+        OPTIONS[:check] = c
+    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
 
+TARGETS = OPTIONS[:targets]
+$stdout.puts "=== Updating cache for: #{TARGETS.join(',')}"
+
 if OPTIONS[:build_number].nil?
+    $stdout.puts "=== Detecting latest NDK build number..."
     url = "https://dl.crystax.net/ndk/#{HOST_OS}/latest"
     o,e,s = Open3.capture3("curl -fSL #{url}")
     if !s.success?
@@ -50,21 +61,39 @@ if OPTIONS[:build_number].nil?
         exit 1
     end
 
-    OPTIONS[:build_number] = o.chomp.split("\n").first.to_i
+    bnum = o.chomp.split("\n").first.to_i
+    (1..10).each do
+        begin
+            TARGETS.each do |target|
+                _,_,s = Open3.capture3("curl -fSL https://dl.crystax.net/cache/#{bnum}/#{target}/checksum.sha256")
+                raise "NO CHECKSUM" unless s.success?
+            end
+        rescue
+            $stdout.puts "=== Build ##{bnum}: incomplete, trying previous one..."
+            bnum -= 1
+            next
+        end
+        $stdout.puts "=== Build ##{bnum}: OK"
+        OPTIONS[:build_number] = bnum
+        break
+    end
+    if OPTIONS[:build_number].nil?
+        $stderr.puts "ERROR: Can't detect latest NDK build number"
+        exit 1
+    end
 end
 BNUM = OPTIONS[:build_number]
 $stdout.puts "=== Using build number: #{BNUM}"
 
-TARGETS = OPTIONS[:targets]
-$stdout.puts "=== Updating cache for: #{TARGETS.join(',')}"
-
 CACHEDIR = OPTIONS[:cachedir]
+CHECK = OPTIONS[:check]
 
 def files(target, bnum)
     baseurl = "https://dl.crystax.net/cache/#{bnum}/#{target}"
     o,e,s = Open3.capture3("curl -fSL #{baseurl}/checksum.sha256")
     if !s.success?
-        $stderr.puts "ERROR: Can't get checksums for #{target}/##{bnum} cache files:\n\n#{e}"
+        $stderr.puts e
+        $stderr.puts "ERROR: Can't get checksums for #{target}/##{bnum} cache files"
         exit 1
     end
 
@@ -100,18 +129,20 @@ def update
         next unless fls.index { |f| f[:file] == File.basename(cf) }.nil?
         $stdout.puts "=== [DEL] #{cf}"
         FileUtils.rm_f cf
-    end
+    end unless CHECK
 
     fls.sort { |a,b| a[:file] <=> b[:file] }.each do |f|
         dst = File.join(CACHEDIR, f[:file])
+
         $stdout.write "=== [CHK] #{dst} ... "
-        $stdout.flush
         if checksum(dst) == f[:sha256]
             $stdout.puts "OK"
             next
         end
 
         $stdout.puts "OUTDATED"
+
+        return false if CHECK
 
         attempt = 0
         begin
@@ -128,7 +159,6 @@ def update
                         next if c.nil?
 
                         $stderr.write c
-                        $stderr.flush
                     end
                 end
 
@@ -152,10 +182,14 @@ def update
             end
         end
     end
+
+    true
 end
 
 begin
-    update
+    r = update
+    $stdout.puts "=== #{r ? "UP-TO-DATE" : "OUT-OF-DATE"}" if CHECK
+    exit 1 unless r
 rescue Interrupt
     $stderr.puts "INTERRUPTED"
     exit 1

@@ -415,7 +415,7 @@ override SKIP := $(or \
     $(strip $(if \
         $(and \
             $(call is-host-os-darwin),\
-            $(call has-objective-c-sources)\
+            $(call has-objective-c-sources),\
             $(or \
                 $(call is-not-apple-clang,$(CC)),\
                 $(call is-version-less,$(call clang-major-version,$(CC)).$(call clang-minor-version,$(CC)),5.0)\

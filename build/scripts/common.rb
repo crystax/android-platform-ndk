@@ -33,105 +33,122 @@
 
 
 require 'pathname'
-require_relative 'versions.rb'
+require 'fileutils'
+require_relative 'options.rb'
+
 
 class Common
 
+  CREW_UTILS = ['curl', 'xz', 'libarchive', 'ruby']
+
   NDK_ROOT_DIR = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.dirname.dirname.to_s
 
-  NDK_DIR = "#{NDK_ROOT_DIR}/platform/ndk"
-  NDK_BUILD_DIR = "/tmp/ndk-#{ENV['USER']}/vendor"
-  VENDOR_DIR = "#{NDK_ROOT_DIR}/vendor"
+  NDK_DIR        = "#{NDK_ROOT_DIR}/platform/ndk"
+  VENDOR_DIR     = "#{NDK_ROOT_DIR}/vendor"
+  CREW_DIR       = "#{NDK_ROOT_DIR}/crew"
+  BUILD_BASE_DIR = "/tmp/ndk-#{ENV['USER']}/crew"
 
-  BUILD_BASE = "#{NDK_BUILD_DIR}/#{Crystax::PKG_NAME}"
-  BUILD_DIR = "#{BUILD_BASE}/build"
-  SRC_DIR = "#{Common::VENDOR_DIR}/#{Crystax::PKG_NAME}"
-  DST_DIR = "#{NDK_DIR}"
+  FileUtils.mkdir_p "#{NDK_DIR}/prebuilt/#{Options.host_platform}/crew"
 
-  MACOSX_VERSION_MIN = '10.6'
+  require "#{Common::CREW_DIR}/library/formula.rb"
+  require "#{Common::CREW_DIR}/library/formulary.rb"
+  require "#{Common::CREW_DIR}/library/utility.rb"
 
+  def self.parse_build_options(pkgname)
+    # set default values for build options
+    options = Options.new
 
-  def self.log_file
-    if not @@log_file
-      @@log_file = "#{NDK_BUILD_DIR}/build-#{Crystax::PKG_NAME}-#{target_platform}.log"
+    # parse command line args
+    ARGV.each do |opt|
+      case opt
+      when /^--target-os=(\w+)/
+       options.target_os = $1
+      when /^--target-cpu=(\w+)/
+        options.target_cpu = $1
+      when /^--num-jobs=(\d+)/
+        options.num_jobs = $1
+      when '--no-clean'
+        options.no_clean = true
+      when '--no-check'
+        options.no_check = true
+      when '--force'
+        options.force = true
+      when '--dont-update-sha256-sums'
+        options.update_sha256_sums = false
+      when /^--log-file=(\S+)/
+        options.log_file = $1
+        # explicit log-file options implies log-rename disabling
+        options.rename_log = false
+      when '--verbose'
+        options.verbose = true
+      when '--help'
+        show_build_help options, pkgname
+        exit 1
+      else
+        raise "unknown option: #{opt}"
+      end
     end
-    @@log_file
+
+    options.log_file = default_build_logfile_name(options, pkgname) unless options.log_file
+    # enforce no-check for cross builds
+    options.no_check = options.target_os != options.host_os unless options.no_check?
+
+    options
   end
 
-  def self.target_os
-    @@target_os
+  def self.parse_install_options
+    # set default values for build options
+    options = Options.new
+    options.out_dir = NDK_DIR
+
+    # parse command line args
+    ARGV.each do |opt|
+      case opt
+      when /^--target-os=(\w+)/
+       options.target_os = $1
+      when /^--target-cpu=(\w+)/
+        options.target_cpu = $1
+      when /^--log-file=(\S+)/
+        options.log_file = $1
+        # explicit log-file options implies log-rename disabling
+        options.rename_log = false
+      when /^--out-dir=(\S+)/
+       options.out_dir = $1
+      when '--verbose'
+        options.verbose = true
+      when '--help'
+        show_install_help options
+        exit 1
+      else
+        raise "unknown option: #{opt}"
+      end
+    end
+
+    raise "out-dir must be specified" unless options.out_dir
+
+    options.log_file = default_install_logfile_name(options) unless options.log_file
+
+    options
   end
 
-  def self.target_cpu
-    @@target_cpu
+  def self.make_build_data(pkgname, options)
+    release, formula = formula_data(pkgname)
+    paths = make_paths(pkgname, release, options)
+    FileUtils.rm_rf paths[:build_base]
+    archive = make_archive_name(pkgname, release, options.target_platform)
+    [release, paths, archive, formula]
   end
 
-  def self.target_platform
-    "#{target_os}-#{target_cpu}"
+  def self.make_archive_base(pkgname, release)
+    "crew-#{pkgname}-#{Formula.package_version(release)}"
   end
 
-  def self.host_os
-    @@host_os
+  def self.make_archive_name(pkgname, release, platform)
+    "#{make_archive_base(pkgname, release)}-#{platform}.tar.xz"
   end
 
-  def self.host_cpu
-    @@host_cpu
-  end
-
-  def self.host_platform
-    "#{host_os}-#{host_cpu}"
-  end
-
-  def self.different_os?
-    target_os != host_os
-  end
-
-  def self.different_platform?
-    target_platform != host_platform
-  end
-
-  def self.prebuilt_dir
-    "prebuilt/#{(target_os == 'windows' and target_cpu == 'x86') ? 'windows' : target_platform}"
-  end
-
-  def self.install_dir
-    "#{BUILD_BASE}/#{prebuilt_dir}"
-  end
-
-  def self.num_jobs
-    @@num_jobs
-  end
-
-  def self.no_clean?
-    @@no_clean
-  end
-
-  def self.no_check?
-    @@no_check
-  end
-
-  def self.force?
-    @@force
-  end
-
-  def self.verbose?
-    @@verbose
-  end
-
-  def self.verbose=(v)
-    @@verbose = v
-  end
-
-  def self.make_archive_base(pkgname = Crystax::PKG_NAME)
-    "vendor-#{pkgname}-#{Crystax.version(pkgname)}"
-  end
-
-  def self.make_archive_name(pkgname = Crystax::PKG_NAME)
-    "#{make_archive_base(pkgname)}-#{target_platform}.7z"
-  end
-
-  def self.ssl_cert_file
-    case host_os
+  def self.host_ssl_cert_file(os)
+    case os
     when 'darwin'
       '/usr/local/etc/openssl/osx_cert.pem'
     when 'linux'
@@ -141,77 +158,117 @@ class Common
     end
   end
 
-  def self.parse_options
-    ARGV.each do |opt|
-      case opt
-      when /^--target-os=(\w+)/
-        @@target_os = $1
-      when /^--target-cpu=(\w+)/
-        @@target_cpu = $1
-      when /^--num-jobs=(\d+)/
-        @@num_jobs = $1
-      when '--no-clean'
-        @@no_clean = true
-      when '--no-check'
-        @@no_check = true
-      when '--force'
-        @@force = true
-      when /^--log-file=(\S+)/
-        @@log_file = $1
-        Logger.rename = false
-      when '--verbose'
-        @@verbose = true
-      when '--help'
-        show_help
-        exit 1
+  def self.write_properties(dir, release)
+    props = {crystax_version: release.crystax_version}
+    File.open(File.join(dir, Formula::PROPERTIES_FILE), 'w') { |f| f.puts props.to_json }
+  end
+
+  def self.write_active_file(out_dir, platform, uname, release)
+    path = File.join(out_dir, 'prebuilt', platform, 'crew', uname, Global::ACTIVE_UTIL_FILE)
+    File.open(path, 'w') { |f| f.puts release.to_s }
+  end
+
+  def self.update_release_shasum(formula_file, release, platform)
+    ver = release.version
+    cxver = release.crystax_version
+    sum = release.shasum(platform)
+    release_regexp = /^[[:space:]]*release[[:space:]]+version:[[:space:]]+'#{ver}',[[:space:]]+crystax_version:[[:space:]]+#{cxver}/
+    platform_regexp = /#{platform}:/
+    lines = []
+    state = :copy
+    File.foreach(formula_file) do |l|
+      case state
+      when :updated
+        lines << l
+      when :copy
+        if  l !~ release_regexp
+          lines << l
+        else
+          if l !~ platform_regexp
+            state = :updating
+            lines << l
+          else
+            state = :updated
+            lines << l.gsub(/'[[:xdigit:]]+'/, "'#{sum}'")
+          end
+        end
+      when :updating
+        if l !~ platform_regexp
+          lines << l
+        else
+          state = :updated
+          lines << l.gsub(/'[[:xdigit:]]+'/, "'#{sum}'")
+        end
       else
-        raise "unknown option: #{opt}"
+        raise "in formula #{File.basename(formula_file)} bad state #{state} on line: #{l}"
       end
     end
+
+    File.open(formula_file, 'w') { |f| f.puts lines }
+  end
+
+  def self.formula_data(name)
+    path = "#{CREW_DIR}/formula/utilities/#{name}.rb"
+    formula = Formulary.klass(path).new(path, :no_active_file)
+    release = formula.releases.last
+    [release, formula]
   end
 
   private
 
-  def self.set_host_platform
-    h = RUBY_PLATFORM.split('-')
-    cpu = h[0]
-    case h[1]
-    when /linux/
-      os = 'linux'
-    when /darwin/
-      os = 'darwin'
-    else
-      raise "unsupported host OS: #{h[1]}"
-    end
-    [os, cpu]
-  end
-
-  def self.show_help
+  def self.show_build_help(options, pkgname)
     puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                              \
          "where OPTIONS are:\n"                                                             \
          "  --target-os=STR   set target OS; one of linux, darwin, windows;\n"              \
-         "                    default #{host_os}\n"                                         \
+         "                    default #{options.host_os}\n"                                 \
          "  --target-cpu=STR  set target CPU; one of x86_64, x86;\n"                        \
-         "                    default #{host_cpu}\n"                                        \
+         "                    default #{options.host_cpu}\n"                                \
          "  --num-jobs=N      specifies the number of make's jobs to run simultaneously;\n" \
-         "                    default #{num_jobs}\n"                                        \
+         "                    default #{options.num_jobs}\n"                                \
          "  --no-clean        do not remove temporary files\n"                              \
          "  --no-check        do not run make check or make test\n"                         \
          "  --force           do not check cache, force build\n"                            \
+         "  --dont-update-sha256-sums\n"                                                    \
+         "                    do not update sha256 sum in the utility's formula\n"          \
          "  --log-file=NAME   set log filename\n"                                           \
-         "                    default #{log_file}\n"                                        \
+         "                    default #{default_build_logfile_name(options, pkgname)}\n"    \
          "  --verbose         output more info to console\n"                                \
          "  --help            show this message and exit\n"
   end
 
-  @@host_os, @@host_cpu = set_host_platform
-  @@target_os = @@host_os
-  @@target_cpu = @@host_cpu
-  # todo: calculates as NUM_CPU * 2
-  @@num_jobs = 16
-  @@no_clean = false
-  @@no_check = false
-  @@force = false
-  @@log_file = nil
-  @@verbose = false
+  def self.show_install_help(options)
+    puts "Usage: #{$PROGRAM_NAME} [OPTIONS]\n"                                             \
+         "where OPTIONS are:\n"                                                            \
+         "  --target-os=STR      set target OS; one of linux, darwin, windows;\n"          \
+         "                       default #{options.host_os}\n"                             \
+         "  --target-cpu=STR     set target CPU; one of x86_64, x86;\n"                    \
+         "                       default #{options.host_cpu}\n"                            \
+         "  --log-file=NAME      set log filename\n"                                       \
+         "                       default #{default_install_logfile_name(options)}\n"       \
+         "  --out-dir=NAME       set output directory; crew utilities will be installed\n" \
+         "                       into that directory;\n"                                   \
+         "                       default #{options.out_dir}\n"                             \
+         "  --verbose            output more info to console\n"                            \
+         "  --help               show this message and exit\n"
+  end
+
+  def self.make_paths(pkgname, release, options)
+    pkgver = Formula.package_version(release)
+    prebuilt = "prebuilt/#{options.target_platform}"
+
+    { src:        "#{VENDOR_DIR}/#{pkgname}",
+      build_base: "#{BUILD_BASE_DIR}/#{pkgname}",
+      build:      "#{BUILD_BASE_DIR}/#{pkgname}/#{pkgname}",
+      prebuilt:   "#{NDK_DIR}/#{prebuilt}",
+      install:    "#{BUILD_BASE_DIR}/#{pkgname}/#{prebuilt}/crew/#{pkgname}/#{pkgver}"
+    }
+  end
+
+  def self.default_build_logfile_name(options, pkgname)
+    "#{BUILD_BASE_DIR}/build-#{pkgname}-#{options.target_platform}.log"
+  end
+
+  def self.default_install_logfile_name(options)
+    "#{BUILD_BASE_DIR}/install-crew-utils-#{options.target_platform}.log"
+  end
 end

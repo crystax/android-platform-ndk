@@ -1,3 +1,8 @@
 #!/bin/bash
 
-exec `dirname $0`/tools/crew/crew "$@"
+cmd=`dirname $0`/tools/crew/crew
+if [ ! -f $cmd ]; then
+    cmd=`dirname $0`/../../crew/crew
+fi
+
+exec $cmd "$@"

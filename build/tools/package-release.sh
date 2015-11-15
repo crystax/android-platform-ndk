@@ -336,21 +336,37 @@ pack_release ()
         archive="`pwd`/$archive"
     fi
 
+    local packcmd
+    case $archive in
+        *.7z)
+            packcmd="7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
+            ;;
+        *.tar.xz)
+            packcmd="tar cJvf"
+            ;;
+        *)
+            panic "Don't know how to package $archive"
+    esac
+
     mkdir -p $(dirname $archive)
-    XZ_OPT=-9e tar cJvf "$archive" -C $srcdir "$reldir" | {
-        cnt=0
-        total=0
-        while read line; do
-            let cnt+=1
-            test $cnt -ge 5000 || continue
-            let total+=$cnt
+    (
+        cd $srcdir || exit 1
+        export XZ_OPT=-9e
+        $packcmd "$archive" "$reldir" | {
             cnt=0
-            echo "Packed $total files"
-        done
-        let total+=$cnt
-        test $cnt -eq 0 || echo "Packed $total files"
-    }
-    test ${PIPESTATUS[0]} -eq 0
+            total=0
+            while read line; do
+                let cnt+=1
+                test $cnt -ge 5000 || continue
+                let total+=$cnt
+                cnt=0
+                echo "Packed $total files"
+            done
+            let total+=$cnt
+            test $cnt -eq 0 || echo "Packed $total files"
+        }
+        test ${PIPESTATUS[0]} -eq 0 || exit 1
+    )
     fail_panic "Can't pack $archive"
 }
 
@@ -388,6 +404,13 @@ for VERSION in $LLVM_VERSION_LIST; do
     cp -r "$NDK_ROOT_DIR/$THIS_LLVM_LIBCXX_SUBDIR/test" "$REFERENCE/$THIS_LLVM_LIBCXX_SUBDIR/"
     fail_panic "Could not copy LLVM-$VERSION libc++ test files. Aborting."
 done
+
+echo "Copying Bionic tests"
+BIONIC_TESTS_SUBDIR="sources/crystax/tests/bionic"
+BIONIC_TESTS_SRCDIR="$NDK_ROOT_DIR/$BIONIC_TESTS_SUBDIR"
+BIONIC_TESTS_DSTDIR="$REFERENCE/$BIONIC_TESTS_SUBDIR"
+rm -Rf "$BIONIC_TESTS_DSTDIR" && mkdir -p "$BIONIC_TESTS_DSTDIR" && rsync -aL "$BIONIC_TESTS_SRCDIR/" "$BIONIC_TESTS_DSTDIR/"
+fail_panic "Could not copy Bionic tests"
 
 echo "Copying OpenPTS sources"
 OPENPTS_SUBDIR="sources/crystax/tests/openpts"
@@ -786,10 +809,22 @@ for SYSTEM in $SYSTEMS; do
     find $DSTDIR -name ".git*" -exec rm -rf {} \;
     find $DSTDIR64 -name ".git*" -exec rm -rf {} \;
 
-    # unpack vendor utils
-    echo "$SCRIPTS_DIR/install-vendor-utils --system=$SYSTEM --out32-dir=$DSTDIR --out64-dir=$DSTDIR64"
-    $SCRIPTS_DIR/install-vendor-utils --system="$SYSTEM" --out32-dir="$DSTDIR" --out64-dir="$DSTDIR64"
-    fail_panic "Could not install vendor utils"
+    # install crew utils and crew
+    #   first, remove crew related files that were copied from source dir
+    rm -rf $DSTDIR/prebuilt/*/crew
+    rm -rf $DSTDIR/tools/crew
+    rm -rf $DSTDIR64/prebuilt/*/crew
+    rm -rf $DSTDIR64/tools/crew
+    #   2nd, install 32 and 64 bit versions of the crew utilties
+    #   NB: the code below will work correctly only wneh both 32 and 64 bit releases are build
+    #       I hope we'll change the whole build proccess really soon
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
+    fail_panic "Could not install 32-bit crew utils"
+    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
+    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
+    fail_panic "Could not install 64-bit crew utils"
+    #   3rd, install crew
     echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
     $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
     fail_panic "Could not install CREW"
@@ -802,7 +837,7 @@ for SYSTEM in $SYSTEMS; do
     elif [ "$SYSTEM" = "windows" ]; then
         ARCHIVE=$ARCHIVE-x86
     fi
-     case "$SYSTEM" in
+    case "$SYSTEM" in
         windows)
             SHORT_SYSTEM="windows"
             ;;
@@ -810,8 +845,17 @@ for SYSTEM in $SYSTEMS; do
             SHORT_SYSTEM=$SYSTEM
             ;;
     esac
-    ARCHIVE64="${ARCHIVE}_64.tar.xz"
-    ARCHIVE="${ARCHIVE}.tar.xz"
+
+    case "$SYSTEM" in
+        windows*)
+            EXT=7z
+            ;;
+        *)
+            EXT=tar.xz
+    esac
+
+    ARCHIVE64="${ARCHIVE}_64.${EXT}"
+    ARCHIVE="${ARCHIVE}.${EXT}"
     if [ "$TRY64" = "yes" ]; then
         ARCHIVE=$ARCHIVE64
     fi

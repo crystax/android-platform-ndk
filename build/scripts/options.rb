@@ -1,6 +1,4 @@
 #
-# List of vendor's utils and their versions
-#
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
 #
@@ -33,35 +31,88 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-module Crystax
 
-  BUILD_UTILS = ['zlib', 'openssl', 'libssh2', 'libgit2', 'ruby', 'curl', 'p7zip']
-  INSTALL_UTILS = BUILD_UTILS.slice(3, BUILD_UTILS.size)
+class Options
 
-  VERSIONS = {
-    'zlib'    => '1.2.8',
-    'libffi'  => '3.2.1',
-    'openssl' => '1.0.2a',
-    'libssh2' => '1.5.0',
-    'libgit2' => '0.22.2',
-    'ruby'    => '2.2.2',
-    'curl'    => '7.42.0',
-    'p7zip'   => '9.20.1'
-  }
+  attr_accessor :host_os, :host_cpu, :target_os, :target_cpu, :num_jobs, :log_file, :out_dir
+  attr_writer :no_clean, :no_check, :force, :verbose, :rename_log, :update_sha256_sums
 
-  def self.version(name)
-    ver = VERSIONS[name]
-    raise "no version for #{name}" unless ver
-    ver
+  def initialize
+    os, cpu = Options.get_host_platform
+    @host_os = os
+    @host_cpu = cpu
+    @target_os = os
+    @target_cpu = cpu
+    @num_jobs = '16'
+    @log_file = nil
+    @out_dir = nil
+    #
+    @no_clean = false
+    @no_check = false
+    @force = false
+    @verbose = false
+    @rename_log = true
+    @update_sha256_sums = true
   end
 
-  def self.package_version
-    version(PKG_NAME)
+  def no_clean?
+    @no_clean
   end
 
-  def self.check_version(ver)
-    if ver != package_version
-      raise "bad #{PKG_NAME} version: repository: #{ver}; expected: #{package_version}"
+  def no_check?
+    @no_check
+  end
+
+  def force?
+    @force
+  end
+
+  def verbose?
+    @verbose
+  end
+
+  def rename_log?
+    @rename_log
+  end
+
+  def update_sha256_sums?
+    @update_sha256_sums
+  end
+
+  def host_platform
+    "#{host_os}-#{host_cpu}"
+  end
+
+  def target_platform
+    (target_os == 'windows' and target_cpu == 'x86') ? 'windows' : "#{target_os}-#{target_cpu}"
+  end
+
+  def target_platform_as_sym
+    target_platform.gsub(/-/, '_').to_sym
+  end
+
+  def same_platform?
+    host_platform == target_platform
+  end
+
+  def self.host_platform
+    os, cpu = get_host_platform
+    "#{os}-#{cpu}"
+  end
+
+  private
+
+  def self.get_host_platform
+    h = RUBY_PLATFORM.split('-')
+    cpu = h[0]
+    case h[1]
+    when /linux/
+      os = 'linux'
+    when /darwin/
+      os = 'darwin'
+    else
+      raise "unsupported host OS: #{h[1]}"
     end
+    [os, cpu]
   end
 end

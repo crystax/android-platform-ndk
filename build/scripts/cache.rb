@@ -34,6 +34,7 @@
 #
 
 require 'fileutils'
+require 'digest'
 require_relative 'common.rb'
 require_relative 'logger.rb'
 require_relative 'commander.rb'
@@ -41,27 +42,28 @@ require_relative 'commander.rb'
 
 module Cache
   PATH = "/var/tmp/ndk-cache-#{ENV['USER']}"
+  ARCH_DIR = 'prebuilt'
 
-  def self.try?(archive, action = :unpack)
-    if Common.force? or !exists?(archive)
-      false
-    else
-      Logger.msg "found cached file: #{archive}"
-      unpack(archive) if action == :unpack
-      true
-    end
+  def self.full_path(archive)
+    File.join(PATH, archive)
+  end
+
+  def self.try?(archive)
+    exists?(archive) ? true : false
   end
 
   def self.exists?(archive)
-    File.exists? "#{PATH}/#{archive}"
+    File.exists? File.join(PATH, archive)
   end
 
-  def self.unpack(archive, dstdir = Common::DST_DIR)
-    Commander::run "7z x -y -o#{dstdir} #{PATH}/#{archive}"
+  def self.unpack(archive, dstdir)
+    Commander::run "tar -C #{dstdir} -xf #{File.join(PATH, archive)}"
   end
 
-  def self.add(archive)
-    FileUtils.cd(Common::BUILD_BASE) { Commander::run "7z a #{archive} prebuilt" }
-    FileUtils.move("#{Common::BUILD_BASE}/#{archive}", PATH)
+  def self.add(archive, buildbase)
+    file = File.join(PATH, archive)
+    FileUtils.rm_rf file
+    FileUtils.cd(buildbase) { Commander::run "tar -Jcf #{file} #{ARCH_DIR}" }
+    Digest::SHA256.hexdigest(File.read(file, mode: "rb"))
   end
 end

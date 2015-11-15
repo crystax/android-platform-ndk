@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+#
+# Install Crew Utilities
+#
+# Copyright (c) 2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#    1. Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation
+# are those of the authors and should not be interpreted as representing
+# official policies, either expressed or implied, of CrystaX .NET.
+#
+
+require 'digest'
+require_relative 'common.rb'
+require_relative 'cache.rb'
+require_relative 'logger.rb'
+require "#{Common::CREW_DIR}/library/utility.rb"
+
+
+begin
+  options = Common.parse_install_options
+
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_install_msg options.target_platform
+  Logger.log_msg "= will install CREW utilities into directory: #{options.out_dir}"
+  Logger.log_msg "= using DOWLOAD_BASE: #{Global::DOWNLOAD_BASE}"
+  Logger.log_msg "= using target platform: #{options.target_platform}"
+
+  path = File.dirname($0)
+
+  Common::CREW_UTILS.each do |name|
+    Logger.msg "Install #{options.target_platform} #{name}"
+    release, _, archive, formula = Common.make_build_data(name, options)
+    archive_path = Cache.full_path(archive)
+    if Cache.exists? archive
+      Logger.log_msg "= using cached file: #{archive}"
+    else
+      url = "#{formula.download_base}/#{name}/#{archive}"
+      Logger.log_msg "= cached file not found"
+      Logger.log_msg "= try to download archive: #{url}"
+      Commander.run "curl #{url} -o #{archive_path} --silent --fail -L"
+    end
+    Logger.log_msg "= checking sha256 of the archive: #{archive_path}"
+    if Digest::SHA256.hexdigest(File.read(archive_path, mode: "rb")) != release.shasum(options.target_platform_as_sym)
+      raise "bad SHA256 sum of the #{archive} for #{name} release #{release}"
+    end
+    Cache.unpack archive, options.out_dir
+    Common.write_active_file(options.out_dir, options.target_platform, name, release)
+  end
+
+  # copy ruby wrapper script to platform's bin directory
+  script = options.target_os == 'windows' ? 'ruby.cmd' : 'ruby'
+  script_tdir = "#{options.out_dir}/prebuilt/#{options.target_platform}/bin/"
+  FileUtils.mkdir_p script_tdir
+  FileUtils.cp "#{path}/#{script}", script_tdir
+
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
+end

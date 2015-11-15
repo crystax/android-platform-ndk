@@ -1,0 +1,131 @@
+#!/usr/bin/env ruby
+#
+# Build TAR to use it with Crystax NDK
+#
+# Copyright (c) 2015 CrystaX .NET.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+#    1. Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above
+#       copyright notice, this list of conditions and the following
+#       disclaimer in the documentation and/or other materials provided
+#       with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation
+# are those of the authors and should not be interpreted as representing
+# official policies, either expressed or implied, of CrystaX .NET.
+#
+
+require 'fileutils'
+require 'json'
+require_relative 'logger.rb'
+require_relative 'commander.rb'
+require_relative 'builder.rb'
+require_relative 'cache.rb'
+
+
+PKG_NAME = 'libarchive'
+
+
+def check_version(srcdir, version)
+  v = File.read("#{srcdir}/libarchive/archive.h").split("\n").select { |s| s =~ /ARCHIVE_VERSION_STRING/ }
+  raise "error parsing archive.h: #{v}" if v.size == 0
+  srcver = v[0].split(' ')[3].delete('"')
+  raise BadVersion.new(PKG_NAME, srcver, version) unless srcver == version
+end
+
+def unpack_xz_package(path, options)
+  platform = options.target_platform
+  release, formula = Common.formula_data('xz')
+  archive = Common.make_archive_name('xz', release, platform)
+  dir = "#{path[:build_base]}/xz"
+  FileUtils.mkdir_p dir
+  Cache.unpack archive, dir
+  "#{dir}/prebuilt/#{platform}/crew/xz/#{release}"
+end
+
+
+begin
+  options = Common.parse_build_options PKG_NAME
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_build_msg PKG_NAME, options.target_platform
+
+  release, paths, archive, formula = Common.make_build_data PKG_NAME, options
+
+  if Cache.try?(archive) and !options.force?
+    Logger.log_msg "= using cached file: #{archive}"
+  else
+    Logger.log_msg "= preparing dependencies: xz"
+    paths[:xz] = unpack_xz_package(paths, options)
+    Logger.log_msg "= building #{archive}; args: #{ARGV}"
+    Builder.copy_sources paths[:src], paths[:build_base]
+    FileUtils.mkdir_p(paths[:install])
+    prefix = Pathname.new(paths[:install]).realpath
+    FileUtils.cd(paths[:build]) do
+      Commander.run "./build/autogen.sh"
+      # todo:
+      check_version '.', release.version
+      env = { 'CC'      => Builder.cc(options),
+              'CFLAGS'  => "-I#{paths[:xz]}/include #{Builder.cflags(options)}",
+              'LDFLAGS' => "-L#{paths[:xz]}/lib",
+              'LANG'    => 'C',
+              'V'       => '1'
+            }
+      #env['LDFLAGS'] = ' -ldl' if options.target_os == 'linux'
+      args = ["--prefix=#{prefix}",
+              "--host=#{Builder.configure_host(options)}",
+              "--disable-shared",
+              "--without-iconv",
+              "--without-nettle",
+              "--without-xml2",
+              "--without-expat",
+              "--with-sysroot"
+             ]
+      Commander.run env, "./configure #{args.join(' ')}"
+      Commander.run env, "make -j #{options.num_jobs}"
+      Commander.run env, "make check" unless options.no_check?
+      # install tar program
+      tarprog = options.target_os == 'windows' ? 'bsdtar.exe' : 'bsdtar'
+      bindir = "#{paths[:install]}/bin"
+      FileUtils.mkdir_p bindir
+      FileUtils.cp tarprog, bindir
+      # add properties file
+      Common.write_properties prefix, release
+    end
+
+    platform_sym = options.target_platform_as_sym
+    release.shasum = { platform_sym => Cache.add(archive, paths[:build_base]) }
+    Common.update_release_shasum formula.path, release, platform_sym if options.update_sha256_sums?
+  end
+
+  if options.same_platform?
+    Cache.unpack(archive, Common::NDK_DIR)
+    Common.write_active_file(Common::NDK_DIR, options.host_platform, PKG_NAME, release)
+  end
+
+rescue SystemExit => e
+  exit e.status
+rescue Exception => e
+  Logger.log_exception(e)
+  exit 1
+else
+  FileUtils.rm_rf paths[:build_base] unless options.no_clean?
+end

@@ -124,6 +124,10 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
+if [ "$HOST_ARCH" = "x86_64" ]; then
+    TRY64=yes
+fi
+
 prepare_target_build
 fail_panic "Could not setup target build"
 
@@ -518,9 +522,9 @@ EOF
     local WITHOUT=""
 
     # Boost.Context in 1.57.0 and earlier don't support arm64
-    # Boost.Context in 1.59.0 and earlier don't support mips64
+    # Boost.Context in 1.60.0 and earlier don't support mips64
     if [ \( "$ARCH" = "arm64"  -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 57 \) -o \
-         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 60 \) ]; then
         WITHOUT="$WITHOUT --without-context"
     fi
 
@@ -630,6 +634,26 @@ for ABI in $ABIS; do
         fi
         if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
             build_boost_for_abi $ABI "$BUILD_DIR/$ABI/$STDLIB" "$STDLIB"
+
+            if [ -n "$PACKAGE_DIR" ]; then
+                if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
+                    FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
+                    PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
+                    PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+                    dump "Packaging: $PACKAGE"
+                    pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+                    fail_panic "Could not package Boost $BOOST_VERSION headers!"
+                    cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+                fi
+
+                FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
+                PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
+                PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+                dump "Packaging: $PACKAGE"
+                pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+                fail_panic "Could not package $ABI Boost $BOOST_VERSION (C++ stdlib: $STDLIB) binaries!"
+                cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+            fi
         fi
     done
 done
@@ -730,7 +754,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                                     fi
                                     ;;
                                 mips64)
-                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 59 \) ]; then
+                                    if [ $BOOST_MAJOR_VERSION -lt 1 -o \( $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 60 \) ]; then
                                         SKIP=yes
                                     fi
                                     ;;
@@ -785,28 +809,6 @@ if [ -n "$PACKAGE_DIR" ] ; then
         fail_panic "Could not package Boost $BOOST_VERSION build files!"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     fi
-
-    if [ "$BOOST_HEADERS_NEED_PACKAGE" = "yes" ]; then
-        FILES="$BOOST_SUBDIR/$BOOST_VERSION/include"
-        PACKAGE_NAME="$PNAME-$BOOST_VERSION-headers.tar.xz"
-        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-        dump "Packaging: $PACKAGE"
-        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Could not package Boost $BOOST_VERSION headers!"
-        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
-    fi
-
-    for ABI in $BUILT_ABIS; do
-        for STDLIB in $STDLIBS; do
-            FILES="$BOOST_SUBDIR/$BOOST_VERSION/libs/$ABI/$STDLIB"
-            PACKAGE_NAME="$PNAME-$BOOST_VERSION-libs-$STDLIB-$ABI.tar.xz"
-            PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
-            dump "Packaging: $PACKAGE"
-            pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-            fail_panic "Could not package $ABI Boost $BOOST_VERSION (C++ stdlib: $STDLIB) binaries!"
-            cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
-        done
-    done
 fi
 
 if [ -z "$OPTION_BUILD_DIR" ]; then

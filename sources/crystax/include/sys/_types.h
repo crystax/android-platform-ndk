@@ -94,6 +94,18 @@ typedef __uint16_t __sa_family_t;
 typedef long __pthread_t;
 
 typedef struct {
+    __uint32_t flags;
+    void* stack_base;
+    __size_t stack_size;
+    __size_t guard_size;
+    __int32_t sched_policy;
+    __int32_t sched_priority;
+#ifdef __LP64__
+    char __reserved[16];
+#endif
+} __pthread_attr_t;
+
+typedef struct {
 #if defined(__LP64__)
     __int32_t __private[10];
 #else

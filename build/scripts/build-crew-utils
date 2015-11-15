@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Build all vendors utils used with Crystax NDK
+# Build Crew utils and all required libs
 #
 # Copyright (c) 2015 CrystaX .NET.
 # All rights reserved.
@@ -34,27 +34,26 @@
 # official policies, either expressed or implied, of CrystaX .NET.
 #
 
-module Crystax
-
-  PKG_NAME = 'build-vendor-utils'
-
-end
-
-require_relative 'versions.rb'
 require_relative 'common.rb'
 require_relative 'commander.rb'
 
 
+PKG_NAME = 'crew-utils'
+
+
 begin
-  Common.parse_options
-  Logger.open_log_file Common.log_file
-  Logger.msg "Building #{Common.target_platform} vendor utils"
+  options = Common.parse_build_options PKG_NAME
+  Logger.open_log_file options.log_file, options.rename_log?, options.verbose?
+  Logger.start_build_msg PKG_NAME, options.target_platform
 
   path = File.dirname($0)
 
-  Crystax::BUILD_UTILS.each do |name|
-    args = (name == 'curl' or name == 'ruby') ? ARGV << '--no-check' : ARGV
-    Logger.msg "Building #{Common.target_platform} #{name}"
+  Common::CREW_UTILS.each do |name|
+    args = ARGV
+    if (name == 'curl' or name == 'ruby' or (name == 'libarchive' and options.target_os == 'darwin'))
+      args << '--no-check'
+    end
+    Logger.msg "Building #{options.target_platform} #{name}"
     Commander.run "#{path}/build-#{name} #{args.join(' ')}"
   end
 rescue SystemExit => e
