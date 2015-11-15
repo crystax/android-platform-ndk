@@ -133,16 +133,26 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Can't create build directory: $BUILD_DIR"
 
+OPENSSL_HOME=''
+if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
+    if [ -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/Android.mk" ]; then
+        OPENSSL_HOME="openssl/$DEFAULT_OPENSSL_VERSION"
+    fi
+fi
+
 # $1: ABI
 # $2: build directory
 build_python_for_abi ()
 {
-    dump "Building python$PYTHON_ABI for $ABI"
-
     local ABI="$1"
     local BUILDDIR="$2"
     local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
+    if [ -n "$OPENSSL_HOME" ]; then
+        log "Building python$PYTHON_ABI for $ABI (with OpenSSL-$DEFAULT_OPENSSL_VERSION)"
+    else
+        log "Building python$PYTHON_ABI for $ABI (without OpenSSL support)"
+    fi
 
 # Step 1: configure
     local BUILDDIR_CONFIG="$BUILDDIR/config"
@@ -563,6 +573,36 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_SOCKET/lib_socket.so $PYBIN_INSTALLDIR_MODULES/_socket.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
+
+#_ssl
+    if [ -n "$OPENSSL_HOME" ]; then
+        local BUILDDIR_SSL="$BUILDDIR/ssl"
+        local OBJDIR_SSL="$BUILDDIR_SSL/obj/local/$ABI"
+
+        run mkdir -p "$BUILDDIR_SSL/jni"
+        fail_panic "Can't create directory: $BUILDDIR_SSL/jni"
+
+        {
+            echo 'LOCAL_PATH := $(call my-dir)'
+            echo 'include $(CLEAR_VARS)'
+            echo 'LOCAL_MODULE := _ssl'
+            echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+            echo 'LOCAL_SRC_FILES := \'
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
+            echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_shared opencrypto_shared'
+            echo 'include $(BUILD_SHARED_LIBRARY)'
+            echo "\$(call import-module,python/$PYTHON_ABI)"
+            echo "\$(call import-module,$OPENSSL_HOME)"
+        } >$BUILDDIR_SSL/jni/Android.mk
+        fail_panic "Can't generate $BUILDDIR_SSL/jni/Android.mk"
+
+        run $NDK_DIR/ndk-build -C $BUILDDIR_SSL -j$NUM_JOBS APP_ABI=$ABI V=1
+        fail_panic "Can't build python$PYTHON_ABI-$ABI module '_ssl'"
+
+        log "Install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+        run cp -p -T $OBJDIR_SSL/lib_ssl.so $PYBIN_INSTALLDIR_MODULES/_ssl.so
+        fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+    fi
 
 # _sqlite3
     local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
