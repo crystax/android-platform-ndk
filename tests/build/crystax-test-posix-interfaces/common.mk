@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2014 CrystaX .NET.
+# Copyright (c) 2011-2015 CrystaX .NET.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -28,6 +28,7 @@
 SRCFILES :=        \
 	aio.c          \
 	arpa_inet.c    \
+	checkm.c       \
 	complex.c      \
 	cpio.c         \
 	ctype.c        \
@@ -63,6 +64,7 @@ SRCFILES :=        \
 	pthread.c      \
 	pwd.c          \
 	regex.c        \
+	sched.c        \
 	search.c       \
 	semaphore.c    \
 	setjmp.c       \
@@ -105,7 +107,5 @@ SRCFILES :=        \
 	wordexp.c      \
 	xlocale.c      \
 	xlocale2.c     \
-
-SRCFILES += checkm.c
 
 CFLAGS := -Wall -Wextra -Werror -Wno-unused-result
