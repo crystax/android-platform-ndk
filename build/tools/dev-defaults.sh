@@ -63,6 +63,9 @@ SQLITE3_SUBDIR=sources/sqlite/3
 PYTHON_SUBDIR=sources/python
 PYTHON_VERSIONS="3.5"
 
+# Location of the OpenSSL libraries, relative to the NDK root directory
+OPENSSL_SUBDIR=sources/openssl
+
 # Location of the libpng libraries, relative to the NDK root directory
 LIBPNG_SUBDIR=sources/libpng
 LIBPNG_VERSIONS="1.6.17"
