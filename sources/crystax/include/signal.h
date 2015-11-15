@@ -33,6 +33,9 @@
 #include <crystax/id.h>
 #include <crystax/google/signal.h>
 
+#include <android/api-level.h>
+#include <asm/sigcontext.h>
+
 #ifndef _STRUCT_TIMESPEC
 #include <sys/_types.h>
 struct timespec {
@@ -46,6 +49,14 @@ __BEGIN_DECLS
 
 int pthread_kill(pthread_t tid, int sig);
 int pthread_sigmask(int how, const sigset_t *set, sigset_t *oset);
+
+#if __ANDROID_API__ < 8
+extern const char * const sys_signame[];
+
+int killpg(int pgrp, int sig);
+int sigaltstack(const stack_t *ss, stack_t *oss);
+
+#endif /* __ANDROID_API__ < 8 */
 
 __END_DECLS
 
