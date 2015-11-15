@@ -77,6 +77,7 @@ SRCFILES :=        \
 	string.c       \
 	strings.c      \
 	sys_ipc.c      \
+	sys_mman.c     \
 	sys_msg.c      \
 	sys_resource.c \
 	sys_select.c   \

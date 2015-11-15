@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX .NET.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,57 +27,23 @@
  * or implied, of CrystaX .NET.
  */
 
-#include <sys/mman.h>
+#ifndef __CRYSTAX_SYS_MMAN_H_55423d2bf8d046faa5e007937812014f
+#define __CRYSTAX_SYS_MMAN_H_55423d2bf8d046faa5e007937812014f
 
-#include "gen/sys_mman.inc"
+#include <crystax/id.h>
+#include <sys/cdefs.h>
+#include <crystax/google/sys/mman.h>
 
-#include "helper.h"
+#define POSIX_MADV_NORMAL     MADV_NORMAL
+#define POSIX_MADV_RANDOM     MADV_RANDOM
+#define POSIX_MADV_SEQUENTIAL MADV_SEQUENTIAL
+#define POSIX_MADV_WILLNEED   MADV_WILLNEED
+#define POSIX_MADV_DONTNEED   MADV_DONTNEED
 
-#define CHECK(type) type JOIN(sys_mman_check_type_, __LINE__)
+__BEGIN_DECLS
 
-CHECK(mode_t);
-CHECK(off_t);
-CHECK(size_t);
+int posix_madvise(void*, size_t, int);
 
-#if _POSIX_TYPED_MEMORY_OBJECTS > 0
-CHECK(struct posix_typed_mem_info);
+__END_DECLS
 
-void sys_mman_check_posix_typed_mem_info_fields(struct posix_typed_mem_info *s)
-{
-    s->posix_tmi_length = (size_t)0;
-}
-#endif /* _POSIX_TYPED_MEMORY_OBJECTS > 0 */
-
-void sys_mman_check_functions()
-{
-#if _POSIX_MEMLOCK_RANGE > 0
-    (void)mlock((const void *)0, (size_t)0);
-#endif
-#if _POSIX_MEMLOCK > 0
-    (void)mlockall(0);
-#endif
-    (void)mmap((void*)0, (size_t)0, 0, 0, 0, (off_t)0);
-    (void)mprotect((void*)0, (size_t)0, 0);
-#if __XSI_VISIBLE || _POSIX_SYNCHRONIZED_IO > 0
-    (void)msync((void*)0, (size_t)0, 0);
-#endif
-#if _POSIX_MEMLOCK_RANGE > 0
-    (void)munlock((const void*)0, (size_t)0);
-#endif
-#if _POSIX_MEMLOCK
-    (void)munlockall();
-#endif
-    (void)munmap((void*)0, (size_t)0);
-#if _POSIX_ADVISORY_INFO > 0
-    (void)posix_madvise((void*)0, (size_t)0, 0);
-#endif
-#if _POSIX_TYPED_MEMORY_OBJECTS > 0
-    (void)posix_mem_offset((const void*)0, (size_t)0, (off_t*)0, (size_t*)0, (int*)0);
-    (void)posix_typed_mem_get_info(0, (struct posix_typed_mem_info *)0);
-    (void)posix_typed_mem_open((const char *)0, 0, 0);
-#endif
-#if _POSIX_SHARED_MEMORY_OBJECTS > 0
-    (void)shm_open((const char *)0, 0, (mode_t)0);
-    (void)shm_unlink((const char *)0);
-#endif
-}
+#endif /* __CRYSTAX_SYS_MMAN_H_55423d2bf8d046faa5e007937812014f */

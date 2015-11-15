@@ -251,6 +251,9 @@ g.add "libc/arch-mips64/syscalls/pipe2.S"
 g.add "libc/arch-x86/syscalls/pipe2.S"
 g.add "libc/arch-x86_64/syscalls/pipe2.S"
 
+# posix_madvise
+g.add "libc/bionic/posix_madvise.cpp"
+
 # sysconf
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
