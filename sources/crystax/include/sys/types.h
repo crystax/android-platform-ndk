@@ -142,6 +142,11 @@ typedef __pthread_t pthread_t;
 #define _PTHREAD_T_DECLARED
 #endif
 
+#ifndef _PTHREAD_ATTR_T_DECLARED
+typedef __pthread_attr_t pthread_attr_t;
+#define _PTHREAD_ATTR_T_DECLARED
+#endif
+
 #ifndef _PTHREAD_MUTEX_T_DECLARED
 typedef __pthread_mutex_t pthread_mutex_t;
 #define _PTHREAD_MUTEX_T_DECLARED

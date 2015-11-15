@@ -66,6 +66,7 @@ SRCFILES :=        \
 	search.c       \
 	semaphore.c    \
 	setjmp.c       \
+	signal.c       \
 	spawn.c        \
 	stdarg.c       \
 	stdbool.c      \

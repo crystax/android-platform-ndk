@@ -36,6 +36,26 @@
 
 #include "helper.h"
 
+extern void *memset(void *s, int c, size_t n);
+
+#if __ANDROID__
+
+/* https://tracker.crystax.net/issues/1158 */
+
+void psiginfo(const siginfo_t *pinfo, const char *message)
+{
+    (void)pinfo;
+    (void)message;
+}
+
+void psignal(int signum, const char *message)
+{
+    (void)signum;
+    (void)message;
+}
+
+#endif /* !__ANDROID__ */
+
 #define CHECK(type) type JOIN(signal_check_type_, __LINE__)
 
 CHECK(pthread_t);
@@ -81,19 +101,21 @@ CHECK(struct sigaction)
     typedef void (*sa_sigaction_t)(int, siginfo_t *, void *);
 
     s->sa_handler   = (sa_handler_t)0;
-    s->sa_mask      = (sigset_t)0;
     s->sa_flags     = 0;
     s->sa_sigaction = (sa_sigaction_t)0;
+
+    memset(&s->sa_mask, 0, sizeof(s->sa_mask));
 }
 
 CHECK(ucontext_t)
 {
     s->uc_link = (ucontext_t*)0;
-    s->uc_sigmask = (sigset_t)0;
-    s->uc_mcontext = (mcontext_t)0;
 
     stack_t *p = &s->uc_stack;
     (void)p;
+
+    memset(&s->uc_sigmask, 0, sizeof(s->uc_sigmask));
+    memset(&s->uc_mcontext, 0, sizeof(s->uc_mcontext));
 }
 
 CHECK(stack_t)
@@ -119,7 +141,11 @@ CHECK(siginfo_t)
     (void)p;
 }
 
-void signal_check_functions(pthread_t tid, sigset_t *ss, union sigval sv)
+void signal_check_functions(pthread_t tid, sigset_t *ss
+#if _POSIX_REALTIME_SIGNALS > 0
+        , union sigval sv
+#endif
+        )
 {
     typedef void (*signal_cb_t)(int );
 
@@ -153,7 +179,7 @@ void signal_check_functions(pthread_t tid, sigset_t *ss, union sigval sv)
 #if _POSIX_REALTIME_SIGNALS > 0
     (void)sigtimedwait((const sigset_t*)0, (siginfo_t*)0, (const struct timespec*)0);
 #endif
-    (void)sigwait(ss, (int*)0);
+    (void)sigwait(ss, (int*)1234);
 #if _POSIX_REALTIME_SIGNALS > 0
     (void)sigwaitinfo(ss, (siginfo_t*)0);
 #endif
