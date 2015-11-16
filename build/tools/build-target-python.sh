@@ -135,7 +135,8 @@ fail_panic "Can't create build directory: $BUILD_DIR"
 
 OPENSSL_HOME=''
 if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
-    if [ -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/Android.mk" ]; then
+    if [ -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/Android.mk" \
+         -a -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/include/openssl/opensslconf.h" ]; then
         OPENSSL_HOME="openssl/$DEFAULT_OPENSSL_VERSION"
     fi
 fi
