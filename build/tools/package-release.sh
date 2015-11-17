@@ -574,10 +574,6 @@ find $REFERENCE/platforms -name 'libcrystax.*' -delete
 rm -f $REFERENCE/CleanSpec.mk
 rm -Rf $REFERENCE/sources/crystax/vendor
 
-# remove crew files
-# later appropriate version of the crew will be cloned
-rm -rf $REFERENCE/tools/crew
-
 # now, for each system, create a package
 #
 DSTDIR=$TMPDIR/$RELEASE_VERSION
@@ -823,16 +819,16 @@ for SYSTEM in $SYSTEMS; do
     #   2nd, install 32 and 64 bit versions of the crew utilties
     #   NB: the code below will work correctly only wneh both 32 and 64 bit releases are build
     #       I hope we'll change the whole build proccess really soon
-    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
-    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
-    fail_panic "Could not install 32-bit crew utils"
-    echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
-    $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
-    fail_panic "Could not install 64-bit crew utils"
-    #   3rd, install crew
-    echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
-    $SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
-    fail_panic "Could not install CREW"
+    #-#echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
+    #-#$SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu=x86 --out-dir="$DSTDIR" --log-file=$NDK_LOGFILE
+    #-#fail_panic "Could not install 32-bit crew utils"
+    #-#echo $SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
+    #-#$SCRIPTS_DIR/install-crew-utils --target-os="${SYSTEM%%-*}" --target-cpu="x86_64" --out-dir="$DSTDIR64" --log-file=$NDK_LOGFILE
+    #-#fail_panic "Could not install 64-bit crew utils"
+    #-##   3rd, install crew
+    #-#echo "$SCRIPTS_DIR/install-crew --out-dir=$DSTDIR/tools"
+    #-#$SCRIPTS_DIR/install-crew --out-dir="$DSTDIR/tools"
+    #-#fail_panic "Could not install CREW"
 
     # Create an archive for the final package. Extension depends on the
     # host system.
