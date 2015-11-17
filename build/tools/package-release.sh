@@ -339,7 +339,12 @@ pack_release ()
     local packcmd
     case $archive in
         *.7z)
-            packcmd="7z a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
+            if [ -f $NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe ]; then
+                packcmd="wine $NDK_ROOT_DIR/../prebuilts/7zip/windows/64/7z.exe"
+            else
+                packcmd="7z"
+            fi
+            packcmd="$packcmd a -t7z -m0=lzma -mx=9 -mfb=64 -md=32m -ms=on"
             ;;
         *.tar.xz)
             packcmd="tar cJvf"
