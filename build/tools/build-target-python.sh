@@ -590,7 +590,7 @@ build_python_for_abi ()
             echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
             echo 'LOCAL_SRC_FILES := \'
             echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
-            echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_shared opencrypto_shared'
+            echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_static opencrypto_static'
             echo 'include $(BUILD_SHARED_LIBRARY)'
             echo "\$(call import-module,python/$PYTHON_ABI)"
             echo "\$(call import-module,$OPENSSL_HOME)"
@@ -628,7 +628,7 @@ build_python_for_abi ()
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c'
-        echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_shared'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_static'
         echo 'include $(BUILD_SHARED_LIBRARY)'
         echo "\$(call import-module,python/$PYTHON_ABI)"
         echo '$(call import-module,sqlite/3)'
