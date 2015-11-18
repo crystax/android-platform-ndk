@@ -610,7 +610,7 @@ STLPORT_DIR=$NDK_DIR/$STLPORT_SUBDIR
 STLPORT_LIBS=$STLPORT_DIR/libs
 
 LIBCXX_DIR=$NDK_DIR/$LIBCXX_SUBDIR
-LIBCXX_LIBS=$LIBCXX_DIR/libs
+LIBCXX_LIBS=$LIBCXX_DIR/$LLVM_VERSION/libs
 case $ARCH in
     x86|x86_64|mips|mips64)
         LIBCXX_SUPPORT_LIB=gabi++
@@ -652,7 +652,7 @@ copy_stl_common_headers () {
             copy_directory "$GNUSTL_DIR/include" "$ABI_STL_INCLUDE"
             ;;
         libcxx|libc++)
-            copy_directory "$LIBCXX_DIR/libcxx/include" "$ABI_STL_INCLUDE"
+            copy_directory "$LIBCXX_DIR/$LLVM_VERSION/libcxx/include" "$ABI_STL_INCLUDE"
             #copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
             if [ "$LIBCXX_SUPPORT_LIB" = "gabi++" ]; then
                 copy_directory "$STLPORT_DIR/../gabi++/include" "$ABI_STL_INCLUDE/../../gabi++/include"
