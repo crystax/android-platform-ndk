@@ -137,7 +137,8 @@ case $ABI in
         macro_check __THUMB_INTERWORK__ 1  "ARM thumb-interwork"
         macro_check __PIC__ 1              "Position independent code (-fpic)"
         macro_check __WCHAR_TYPE__         "unsigned"
-        macro_check __WCHAR_MAX__          "4294967295U"
+        # all toolchains define __WCHAR_MAX__ as '4294967295U', and GCC 5 as '0xffffffffU'
+        macro_multi_check __WCHAR_MAX__    "4294967295U" "0xffffffffU"
         # Clang doesn't define __WCHAR_MIN__ so don't check it"
 
         case $ABI in
