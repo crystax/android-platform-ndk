@@ -1,29 +1,25 @@
+#if !defined(__clang__)
+
+int main()
+{
+    return 0;
+}
+
+#else
+
 #import <stdio.h>
 
 #ifdef __APPLE__
 #import <Foundation/Foundation.h>
+typedef NSObject Object;
 #else
 #import <objc/Object.h>
-#import <objc/NXConstStr.h>
 #endif
-
-#ifdef __APPLE__
-typedef NSObject Object;
-#endif
-
-#if defined(__APPLE__) || defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
 
 @interface BaseObject : Object
 + (id) alloc;
 - (void) free;
 @end
-
-#else
-
-typedef Object BaseObject;
-
-#endif
-
 
 #ifdef __APPLE__
 
@@ -41,7 +37,7 @@ typedef Object BaseObject;
 
 @end /* BaseObject */
 
-#elif defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)
+#else
 
 #import <objc/runtime.h>
 
@@ -110,3 +106,5 @@ int main()
 
     return 0;
 }
+
+#endif

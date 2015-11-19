@@ -480,6 +480,48 @@ for ABI in $(tr ',' ' ' <<< $ABIS); do
   copy_crystax_libs_for_abi "$ABI"
 done
 
+dump "Copying Objective C/C++ runtime (gnustep-libobjc2 headers and libraries)..."
+
+LIBOBJC2_DIR=$NDK_DIR/$GNUSTEP_OBJC2_SUBDIR
+LIBOBJC2_LIBS=$LIBOBJC2_DIR/libs
+
+# $1: ABI
+copy_libobjc2_libs_for_abi()
+{
+    local ABI=$1
+
+    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
+        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
+        exit 1
+    fi
+
+    local LABI
+    local LIB
+
+    for LIB in libobjc.a libobjc.so libobjcxx.so; do
+        case $ABI in
+            armeabi*)
+                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
+                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
+                #
+                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
+                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
+                #
+                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
+                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            *)
+                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
+        esac
+    done
+}
+
+copy_directory "$LIBOBJC2_DIR/include" "$TMPDIR/sysroot/usr/include"
+for ABI in $(tr ',' ' ' <<< $ABIS); do
+    copy_libobjc2_libs_for_abi "$ABI"
+done
+
+
 dump "Copying libpng headers and libraries..."
 
 LIBPNG_DIR=$NDK_DIR/$LIBPNG_SUBDIR/$(echo $LIBPNG_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
@@ -516,7 +558,7 @@ copy_libpng_libs_for_abi()
     done
 }
 
-copy_directory "$LIBPNG_DIR/include" "$ABI_TARGET/include"
+copy_directory "$LIBPNG_DIR/include" "$TMPDIR/sysroot/usr/include"
 for ABI in $(tr ',' ' ' <<< $ABIS); do
     copy_libpng_libs_for_abi "$ABI"
 done
@@ -557,7 +599,7 @@ copy_libjpeg_libs_for_abi()
     done
 }
 
-copy_directory "$LIBJPEG_DIR/include" "$ABI_TARGET/include"
+copy_directory "$LIBJPEG_DIR/include" "$TMPDIR/sysroot/usr/include"
 for ABI in $(tr ',' ' ' <<< $ABIS); do
     copy_libjpeg_libs_for_abi "$ABI"
 done
@@ -598,7 +640,7 @@ copy_libtiff_libs_for_abi()
     done
 }
 
-copy_directory "$LIBTIFF_DIR/include" "$ABI_TARGET/include"
+copy_directory "$LIBTIFF_DIR/include" "$TMPDIR/sysroot/usr/include"
 for ABI in $(tr ',' ' ' <<< $ABIS); do
     copy_libtiff_libs_for_abi "$ABI"
 done
