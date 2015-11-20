@@ -113,7 +113,8 @@ set_parameters ()
         exit 1
     fi
 
-    if [ ! -d "$SRC_DIR/gcc" ] ; then
+    GCC_SRC_DIR="$SRC_DIR/gcc"
+    if [ ! -d  "$GCC_SRC_DIR" ] ; then
         echo "ERROR: Source directory does not contain gcc sources: $SRC_DIR"
         exit 1
     fi
@@ -149,6 +150,8 @@ set_parameters $PARAMETERS
 
 prepare_target_build
 parse_toolchain_name $TOOLCHAIN
+
+GCC_BASE_VERSION=`cat $GCC_SRC_DIR/gcc-$GCC_VERSION/gcc/BASE-VER`
 
 #
 # Try cached package
@@ -409,14 +412,6 @@ if [ "$MINGW" = "yes" -o "$DARWIN" = "yes" ]; then
    MAY_FAIL_DUE_TO_RACE_CONDITION=yes
 fi
 
-# hack to use different set of sources
-CONFIGURE_GCC_VERSION=$GCC_VERSION
-case "$TOOLCHAIN" in
-  *4.9l)
-    CONFIGURE_GCC_VERSION=4.9l
-    ;;
-esac
-
 # Build GNU sed so the configure script works for MIPS/MIPS64 on Darwin.
 # http://b/22099482
 cd $BUILD_OUT && run $SRC_DIR/sed/configure
@@ -445,10 +440,10 @@ $BUILD_SRCDIR/configure --target=$ABI_CONFIGURE_TARGET \
                         --with-mpfr-version=$MPFR_VERSION \
                         --with-mpc-version=$MPC_VERSION \
                         --with-gmp-version=$GMP_VERSION \
-                        --with-gcc-version=$CONFIGURE_GCC_VERSION \
+                        --with-gcc-version=$GCC_VERSION \
                         --with-gdb-version=$GDB_VERSION \
                         $WITH_PYTHON \
-                        --with-gxx-include-dir=$TOOLCHAIN_BUILD_PREFIX/include/c++/$GCC_VERSION \
+                        --with-gxx-include-dir=$TOOLCHAIN_BUILD_PREFIX/include/c++/$GCC_BASE_VERSION \
                         --with-bugurl=$DEFAULT_ISSUE_TRACKER_URL \
                         --enable-languages=$ENABLE_LANGUAGES \
                         $EXTRA_CONFIG_FLAGS \
@@ -513,34 +508,34 @@ unwind_library_for_abi ()
 
     case $ABI in
     armeabi)
-    BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
+    BASE_DIR="$BUILD_OUT/gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
     OBJS="unwind-arm.o \
           libunwind.o \
           pr-support.o \
           unwind-c.o"
     ;;
     armeabi-v7a)
-    BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/armv7-a/libgcc/"
+    BASE_DIR="$BUILD_OUT/gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/armv7-a/libgcc/"
     OBJS="unwind-arm.o \
           libunwind.o \
           pr-support.o \
           unwind-c.o"
     ;;
     armeabi-v7a-hard)
-    BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/armv7-a/hard/libgcc/"
+    BASE_DIR="$BUILD_OUT/gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/armv7-a/hard/libgcc/"
     OBJS="unwind-arm.o \
           libunwind.o \
           pr-support.o \
           unwind-c.o"
     ;;
     x86|mips|mips32r6)
-    BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
+    BASE_DIR="$BUILD_OUT/gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
     OBJS="unwind-c.o \
           unwind-dw2-fde-dip.o \
           unwind-dw2.o"
     ;;
     arm64-v8a|x86_64|mips64)
-    BASE_DIR="$BUILD_OUT/gcc-$CONFIGURE_GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
+    BASE_DIR="$BUILD_OUT/gcc-$GCC_VERSION/$ABI_CONFIGURE_TARGET/libgcc/"
     OBJS="unwind-c.o \
        unwind-dw2-fde-dip.o \
        unwind-dw2.o"
