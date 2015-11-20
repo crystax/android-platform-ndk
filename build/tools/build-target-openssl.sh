@@ -328,7 +328,6 @@ build_openssl_for_abi ()
         echo "perl ./Configure --openssldir=/system/etc/security --prefix=/pkg --cross-compile-prefix=\"${HOST}-\" $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "perl -p -i -e 's/^(#\\s*define\\s+ENGINESDIR\\s+).*$/\$1NULL/g' crypto/opensslconf.h"
         echo "perl -p -i -e 's/^(#\\s*define\\s+X509_CERT_DIR\\s+OPENSSLDIR\\s+).*$/\$1\"\\/cacerts\"/g' crypto/cryptlib.h"
-        echo "perl -p -i -e 's/^(#\\s*define\\s+X509_CERT_FILE\\s+)OPENSSLDIR\\s+.*$/\$1\"\"/g' crypto/cryptlib.h"
         echo 'make'
         echo "make INSTALL_PREFIX=$BUILDDIR/install install"
     } >$BUILD_WRAPPER
