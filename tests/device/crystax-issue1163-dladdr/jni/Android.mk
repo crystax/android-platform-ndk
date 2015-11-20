@@ -1,0 +1,12 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := foo1696311d025b40ef9b7e50f339ae857d
+LOCAL_SRC_FILES := foo.c
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := test
+LOCAL_SRC_FILES := main.c
+LOCAL_CFLAGS := -UNDEBUG
+include $(BUILD_EXECUTABLE)
