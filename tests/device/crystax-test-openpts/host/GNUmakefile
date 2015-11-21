@@ -1,6 +1,14 @@
-MYDIR := $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
+MYDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
 include $(MYDIR)/../common.mk
+include $(or $(NDK),$(MYDIR)/../../../..)/tests/onhost-functions.mk
+
+ifneq (,$(and $(call is-gcc,$(CC)),$(call is-version-less,$(call gcc-version,$(CC)),4.8)))
+.PHONY: test
+test:
+	@echo "SKIP: gcc is too old ($(call gcc-version,$(CC)))"
+
+else
 
 CFLAGS += -O2
 CFLAGS += -D_POSIX_C_SOURCE=200112L
@@ -28,3 +36,5 @@ endef
 $(foreach __t,$(CTESTS),\
     $(eval $(call add-test-rule,$(__t)))\
 )
+
+endif
