@@ -292,8 +292,10 @@ build_python_for_abi ()
     {
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
-        echo 'ac_cv_func_faccessat=no'
-	echo 'ac_cv_func_gethostbyname_r=no'
+        if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
+            echo 'ac_cv_func_faccessat=no'
+            echo 'ac_cv_func_gethostbyname_r=no'
+        fi
     } >$CONFIG_SITE
     fail_panic "Can't create config.site wrapper"
 
@@ -313,15 +315,27 @@ build_python_for_abi ()
         echo ''
         echo 'cd $(dirname $0)'
         echo ''
-        echo "exec $PYTHON_SRCDIR/configure \\"
-        echo "    --host=$HOST \\"
-        echo "    --build=$BUILD_ON_PLATFORM \\"
-        echo "    --prefix=$BUILDDIR_CONFIG/install \\"
-        echo "    --enable-shared \\"
-        echo "    --with-threads \\"
-        echo "    --enable-ipv6 \\"
-        echo "    --with-computed-gotos \\"
-        echo "    --without-ensurepip"
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo "exec $PYTHON_SRCDIR/configure \\"
+            echo "    --host=$HOST \\"
+            echo "    --build=$BUILD_ON_PLATFORM \\"
+            echo "    --prefix=$BUILDDIR_CONFIG/install \\"
+            echo "    --enable-shared \\"
+            echo "    --with-threads \\"
+            echo "    --enable-ipv6 \\"
+            echo "    --enable-unicode=ucs4 \\"
+            echo "    --without-ensurepip"
+        else
+            echo "exec $PYTHON_SRCDIR/configure \\"
+            echo "    --host=$HOST \\"
+            echo "    --build=$BUILD_ON_PLATFORM \\"
+            echo "    --prefix=$BUILDDIR_CONFIG/install \\"
+            echo "    --enable-shared \\"
+            echo "    --with-threads \\"
+            echo "    --enable-ipv6 \\"
+            echo "    --with-computed-gotos \\"
+            echo "    --without-ensurepip"
+        fi
     } >$CONFIGURE_WRAPPER
     fail_panic "Can't create configure wrapper"
 
@@ -332,27 +346,40 @@ build_python_for_abi ()
     fail_panic "Can't configure python$PYTHON_ABI for $ABI"
 
 # Step 2: build python-core
-
     run mkdir -p $BUILDDIR_CORE/jni
     fail_panic "Can't create directory: $BUILDDIR_CORE/jni"
 
-    run cp -p -T $PY_C_CONFIG_FILE $BUILDDIR_CORE/jni/config.c && \
-        cp -p -t $BUILDDIR_CORE/jni $PYTHON_BUILD_UTILS_DIR/pyconfig.h
+    run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/jni/config.c" && \
+        cp -p -t "$BUILDDIR_CORE/jni" "$PYTHON_BUILD_UTILS_DIR/pyconfig.h"
     fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_CORE/jni"
+
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.$PYTHON_ABI"
+        run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/jni/getpath.c"
+        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE/jni"
+    fi
 
     local PYCONFIG_FOR_ABI="$BUILDDIR_CORE/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
     run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI
     fail_panic "Can't copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI"
 
-    local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
-    local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"
+    else
+        local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
+        local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
+    fi
     {
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
         echo "LOCAL_MODULE := $PYTHON_CORE_MODULE_NAME"
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_C_INCLUDES := $(MY_PYTHON_SRC_ROOT)/Include'
-        echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo "LOCAL_CFLAGS := -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        else
+            echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        fi
         echo 'LOCAL_LDLIBS := -lz'
         cat $PY_ANDROID_MK_TEMPLATE_FILE
         echo 'include $(BUILD_SHARED_LIBRARY)'
