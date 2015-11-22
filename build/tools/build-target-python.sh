@@ -292,9 +292,9 @@ build_python_for_abi ()
     {
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
+        echo 'ac_cv_func_gethostbyname_r=no'
         if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
             echo 'ac_cv_func_faccessat=no'
-            echo 'ac_cv_func_gethostbyname_r=no'
         fi
     } >$CONFIG_SITE
     fail_panic "Can't create config.site wrapper"
@@ -565,6 +565,9 @@ build_python_for_abi ()
         echo 'LOCAL_MODULE := _multiprocessing'
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_SRC_FILES := \'
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/socket_connection.c \'
+        fi
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/multiprocessing.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/semaphore.c'
         echo 'LOCAL_STATIC_LIBRARIES := python_shared'
