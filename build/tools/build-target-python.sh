@@ -133,16 +133,27 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Can't create build directory: $BUILD_DIR"
 
+OPENSSL_HOME=''
+if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
+    if [ -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/Android.mk" \
+         -a -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/include/openssl/opensslconf.h" ]; then
+        OPENSSL_HOME="openssl/$DEFAULT_OPENSSL_VERSION"
+    fi
+fi
+
 # $1: ABI
 # $2: build directory
 build_python_for_abi ()
 {
-    dump "Building python$PYTHON_ABI for $ABI"
-
     local ABI="$1"
     local BUILDDIR="$2"
     local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
+    if [ -n "$OPENSSL_HOME" ]; then
+        log "Building python$PYTHON_ABI for $ABI (with OpenSSL-$DEFAULT_OPENSSL_VERSION)"
+    else
+        log "Building python$PYTHON_ABI for $ABI (without OpenSSL support)"
+    fi
 
 # Step 1: configure
     local BUILDDIR_CONFIG="$BUILDDIR/config"
@@ -281,8 +292,10 @@ build_python_for_abi ()
     {
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
-        echo 'ac_cv_func_faccessat=no'
-	echo 'ac_cv_func_gethostbyname_r=no'
+        echo 'ac_cv_func_gethostbyname_r=no'
+        if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
+            echo 'ac_cv_func_faccessat=no'
+        fi
     } >$CONFIG_SITE
     fail_panic "Can't create config.site wrapper"
 
@@ -302,15 +315,27 @@ build_python_for_abi ()
         echo ''
         echo 'cd $(dirname $0)'
         echo ''
-        echo "exec $PYTHON_SRCDIR/configure \\"
-        echo "    --host=$HOST \\"
-        echo "    --build=$BUILD_ON_PLATFORM \\"
-        echo "    --prefix=$BUILDDIR_CONFIG/install \\"
-        echo "    --enable-shared \\"
-        echo "    --with-threads \\"
-        echo "    --enable-ipv6 \\"
-        echo "    --with-computed-gotos \\"
-        echo "    --without-ensurepip"
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo "exec $PYTHON_SRCDIR/configure \\"
+            echo "    --host=$HOST \\"
+            echo "    --build=$BUILD_ON_PLATFORM \\"
+            echo "    --prefix=$BUILDDIR_CONFIG/install \\"
+            echo "    --enable-shared \\"
+            echo "    --with-threads \\"
+            echo "    --enable-ipv6 \\"
+            echo "    --enable-unicode=ucs4 \\"
+            echo "    --without-ensurepip"
+        else
+            echo "exec $PYTHON_SRCDIR/configure \\"
+            echo "    --host=$HOST \\"
+            echo "    --build=$BUILD_ON_PLATFORM \\"
+            echo "    --prefix=$BUILDDIR_CONFIG/install \\"
+            echo "    --enable-shared \\"
+            echo "    --with-threads \\"
+            echo "    --enable-ipv6 \\"
+            echo "    --with-computed-gotos \\"
+            echo "    --without-ensurepip"
+        fi
     } >$CONFIGURE_WRAPPER
     fail_panic "Can't create configure wrapper"
 
@@ -321,27 +346,40 @@ build_python_for_abi ()
     fail_panic "Can't configure python$PYTHON_ABI for $ABI"
 
 # Step 2: build python-core
-
     run mkdir -p $BUILDDIR_CORE/jni
     fail_panic "Can't create directory: $BUILDDIR_CORE/jni"
 
-    run cp -p -T $PY_C_CONFIG_FILE $BUILDDIR_CORE/jni/config.c && \
-        cp -p -t $BUILDDIR_CORE/jni $PYTHON_BUILD_UTILS_DIR/pyconfig.h
+    run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/jni/config.c" && \
+        cp -p -t "$BUILDDIR_CORE/jni" "$PYTHON_BUILD_UTILS_DIR/pyconfig.h"
     fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_CORE/jni"
+
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.$PYTHON_ABI"
+        run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/jni/getpath.c"
+        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE/jni"
+    fi
 
     local PYCONFIG_FOR_ABI="$BUILDDIR_CORE/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
     run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI
     fail_panic "Can't copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI"
 
-    local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
-    local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"
+    else
+        local PYTHON_CORE_MODULE_NAME='python'"$PYTHON_ABI"'m'
+        local PYTHON_SOABI='cpython-'"$PYTHON_ABI"'m'
+    fi
     {
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
         echo "LOCAL_MODULE := $PYTHON_CORE_MODULE_NAME"
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_C_INCLUDES := $(MY_PYTHON_SRC_ROOT)/Include'
-        echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo "LOCAL_CFLAGS := -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        else
+            echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
+        fi
         echo 'LOCAL_LDLIBS := -lz'
         cat $PY_ANDROID_MK_TEMPLATE_FILE
         echo 'include $(BUILD_SHARED_LIBRARY)'
@@ -402,8 +440,13 @@ build_python_for_abi ()
 # Step 4: build python stdlib
     local PYSTDLIB_ZIPFILE="$PYBIN_INSTALLDIR/stdlib.zip"
     log "Install python$PYTHON_ABI-$ABI stdlib as $PYSTDLIB_ZIPFILE"
-    run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
-    fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    else
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    fi
 
 # Step 5: site-packages
     local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
@@ -522,6 +565,9 @@ build_python_for_abi ()
         echo 'LOCAL_MODULE := _multiprocessing'
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_SRC_FILES := \'
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/socket_connection.c \'
+        fi
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/multiprocessing.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/semaphore.c'
         echo 'LOCAL_STATIC_LIBRARIES := python_shared'
@@ -564,6 +610,36 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_SOCKET/lib_socket.so $PYBIN_INSTALLDIR_MODULES/_socket.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
 
+#_ssl
+    if [ -n "$OPENSSL_HOME" ]; then
+        local BUILDDIR_SSL="$BUILDDIR/ssl"
+        local OBJDIR_SSL="$BUILDDIR_SSL/obj/local/$ABI"
+
+        run mkdir -p "$BUILDDIR_SSL/jni"
+        fail_panic "Can't create directory: $BUILDDIR_SSL/jni"
+
+        {
+            echo 'LOCAL_PATH := $(call my-dir)'
+            echo 'include $(CLEAR_VARS)'
+            echo 'LOCAL_MODULE := _ssl'
+            echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+            echo 'LOCAL_SRC_FILES := \'
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
+            echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_static opencrypto_static'
+            echo 'include $(BUILD_SHARED_LIBRARY)'
+            echo "\$(call import-module,python/$PYTHON_ABI)"
+            echo "\$(call import-module,$OPENSSL_HOME)"
+        } >$BUILDDIR_SSL/jni/Android.mk
+        fail_panic "Can't generate $BUILDDIR_SSL/jni/Android.mk"
+
+        run $NDK_DIR/ndk-build -C $BUILDDIR_SSL -j$NUM_JOBS APP_ABI=$ABI V=1
+        fail_panic "Can't build python$PYTHON_ABI-$ABI module '_ssl'"
+
+        log "Install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+        run cp -p -T $OBJDIR_SSL/lib_ssl.so $PYBIN_INSTALLDIR_MODULES/_ssl.so
+        fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+    fi
+
 # _sqlite3
     local BUILDDIR_SQLITE3="$BUILDDIR/sqlite3"
     local OBJDIR_SQLITE3="$BUILDDIR_SQLITE3/obj/local/$ABI"
@@ -587,7 +663,7 @@ build_python_for_abi ()
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \'
         echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c'
-        echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_shared'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared sqlite3_static'
         echo 'include $(BUILD_SHARED_LIBRARY)'
         echo "\$(call import-module,python/$PYTHON_ABI)"
         echo '$(call import-module,sqlite/3)'

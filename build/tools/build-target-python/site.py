@@ -1,6 +1,10 @@
+from __future__ import print_function
 import sys
 import os
-import builtins
+if sys.version_info < (3, 0):
+    import __builtin__ as builtins
+else:
+    import builtins
 import _sitebuiltins
 
 
@@ -111,17 +115,9 @@ def setcopyright():
     builtins.credits = _sitebuiltins._Printer("credits", """\
     Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands
     for supporting Python development.  See www.python.org for more information.""")
-    files, dirs = [], []
-    # Not all modules are required to have a __file__ attribute.  See
-    # PEP 420 for more details.
-    if hasattr(os, '__file__'):
-        here = os.path.dirname(os.__file__)
-        files.extend(["LICENSE.txt", "LICENSE"])
-        dirs.extend([os.path.join(here, os.pardir), here, os.curdir])
     builtins.license = _sitebuiltins._Printer(
         "license",
-        "See https://www.python.org/psf/license/",
-        files, dirs)
+        "See https://www.python.org/psf/license/")
 
 
 def sethelper():
