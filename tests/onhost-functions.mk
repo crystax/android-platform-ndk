@@ -366,3 +366,5 @@ endef
 define is-not-apple-clang
 $(if $(call is-apple-clang,$(1)),,yes)
 endef
+
+ONHOST_FUNCTIONS_INCLUDED_65010bdaed29436187034ed331bd56e9 := yes

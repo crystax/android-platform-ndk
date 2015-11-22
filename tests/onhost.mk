@@ -1,4 +1,6 @@
+ifeq (,$(strip $(ONHOST_FUNCTIONS_INCLUDED_65010bdaed29436187034ed331bd56e9)))
 include $(dir $(lastword $(MAKEFILE_LIST)))/onhost-functions.mk
+endif
 
 #=======================================================================================================================
 
