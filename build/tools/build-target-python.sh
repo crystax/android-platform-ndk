@@ -440,8 +440,13 @@ build_python_for_abi ()
 # Step 4: build python stdlib
     local PYSTDLIB_ZIPFILE="$PYBIN_INSTALLDIR/stdlib.zip"
     log "Install python$PYTHON_ABI-$ABI stdlib as $PYSTDLIB_ZIPFILE"
-    run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
-    fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    else
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
+    fi
 
 # Step 5: site-packages
     local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
