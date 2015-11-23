@@ -766,13 +766,15 @@ def do_run_test(attempt, devid, tag, exe, args)
         islib = be =~ /^lib.*\.so(\..*)?$/
         dbe = "#{islib ? dstlibpath : dstbinpath}/#{be}"
 
+        cs = islib ? sha256(e) : nil
+        needpush = !islib || adb_shell(devid, "grep -q -x #{cs} #{dbe}.sha256 2>/dev/null", nothrow: true) != 0
+        next unless needpush
+
         tmpf = strip(e)
         begin
-            cs = sha256(tmpf)
-            needpush = !islib || adb_shell(devid, "grep -q -x #{cs} #{dbe}.sha256 2>/dev/null", nothrow: true) != 0
-            adb_push  devid, tmpf, dbe if needpush
+            adb_push devid, tmpf, dbe
             if islib
-                adb_shell devid, "echo #{cs} >#{dbe}.sha256" if needpush
+                adb_shell devid, "echo #{cs} >#{dbe}.sha256"
             else
                 adb_shell devid, "chmod 0755 #{dbe}"
             end

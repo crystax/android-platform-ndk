@@ -16,6 +16,10 @@ IGNORE_DIR = (
     'turtledemo',
     'venv',
     'ensurepip',
+
+# 2.7 specific
+    'bsddb',
+    'lib-tk'
 )
 
 IGNORE_FILE = (
@@ -28,6 +32,11 @@ IGNORE_FILE = (
    '__phello__.foo.py',
    '_osx_support.py',
    'asyncio/test_utils.py',
+
+# 2.7 specific
+   'anydbm.py',
+   'user.py',
+   'whichdb.py',
 )
 
 
@@ -47,7 +56,7 @@ def file_in_interest(fs_path, arch_path):
 def in_interest(fs_path, arch_path, is_dir, pathbits):
     name = pathbits[-1]
     if is_dir:
-        if (name == '__pycache__' or name == 'test'):
+        if (name == '__pycache__' or name == 'test' or name == 'tests'):
             return False
         if arch_path.startswith('plat-'):
             return False
@@ -98,6 +107,7 @@ def build_stdlib():
     parser = argparse.ArgumentParser()
     parser.add_argument('--pysrc-root', required=True)
     parser.add_argument('--output-zip', required=True)
+    parser.add_argument('--py2', action='store_true')
     args = parser.parse_args()
 
     dirhere = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
@@ -112,6 +122,8 @@ def build_stdlib():
         (os.path.join(dirhere, 'sysconfig.py'), 'sysconfig.py'),
         (os.path.join(dirhere, '_sysconfigdata.py'), '_sysconfigdata.py'),
     ]
+    if args.py2:
+        catalog += [(os.path.join(dirhere, '_sitebuiltins.py'), '_sitebuiltins.py')]
 
     print("::: compiling python-stdlib zip package '{0}' ...".format(zipfilename))
     with zipfile.ZipFile(zipfilename, "w", zipfile.ZIP_DEFLATED) as fzip:
