@@ -20,8 +20,8 @@
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
 $(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_OBJC)
 
-LLVM_VERSION_LIST := 2.6 2.7 2.8 2.9 3.0 3.1 3.2 3.3 3.4 3.5 3.6 3.7
-NDK_64BIT_TOOLCHAIN_LIST := clang3.6 clang3.7 clang3.5 clang3.4 5 4.9
+LLVM_VERSION_LIST := 3.6 3.7
+NDK_64BIT_TOOLCHAIN_LIST := clang3.7 clang3.6 5 4.9
 
 DEFAULT_LLVM_VERSION := $(patsubst clang%,%,$(firstword $(filter clang%,$(NDK_64BIT_TOOLCHAIN_LIST))))
 DEFAULT_GCC_VERSION := $(lastword $(filter-out clang%,$(NDK_64BIT_TOOLCHAIN_LIST)))
