@@ -81,12 +81,17 @@ clean:
 
 override SKIP := $(or \
     $(strip $(if \
-        $(and \
-            $(call is-host-os-linux),\
-            $(call is-gcc,$(CC)),\
-            $(call is-version-less,$(call gcc-version,$(CC)),4.6)\
+        $(or \
+            $(and \
+                $(call is-gcc,$(CC)),\
+                $(call is-version-less,$(call gcc-version,$(CC)),4.6)\
+            ),\
+            $(and \
+                $(call is-clang,$(CC)),\
+                $(call is-version-less,$(call clang-version,$(CC)),$(if $(call is-apple-clang,$(CC)),4.0,3.3))\
+            )\
         ),\
-        '$(CC)' is too old ($(call gcc-version,$(CC))) \
+        '$(CC)' is too old ($(call cc-type,$(CC))-$(call cc-version,$(CC))) \
     )),\
     $(strip $(if \
         $(and \
@@ -101,7 +106,7 @@ override SKIP := $(or \
     ))\
 )
 
-ifneq (,$(SKIP))
+ifneq (,$(strip $(SKIP)))
 
 .PHONY: do-test
 do-test:
