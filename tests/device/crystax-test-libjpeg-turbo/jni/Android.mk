@@ -12,4 +12,4 @@ LOCAL_SRC_FILES        := test.c
 LOCAL_STATIC_LIBRARIES := libjpeg_shared
 include $(BUILD_EXECUTABLE)
 
-$(call import-module,libjpeg-turbo/1.4.1)
+$(call import-module,libjpeg-turbo/1.4.2)
