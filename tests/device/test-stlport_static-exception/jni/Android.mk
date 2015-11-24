@@ -1053,16 +1053,11 @@ LOCAL_SRC_FILES := p755.cpp
 LOCAL_CPPFLAGS := -frtti -fexceptions -std=gnu++98
 include $(BUILD_EXECUTABLE)
  
-# For unknown reason, this test fails when compiled with clang-3.7
-# Temporary disable it
-# See https://tracker.crystax.net/issues/1042 for details
-ifeq (,$(filter clang3.7,$(NDK_TOOLCHAIN_VERSION)))
 include $(CLEAR_VARS)
 LOCAL_MODULE := p755a
-LOCAL_SRC_FILES := p755a.cpp
+LOCAL_SRC_FILES := p755a.cpp p755af.cpp
 LOCAL_CPPFLAGS := -frtti -fexceptions -std=gnu++98
 include $(BUILD_EXECUTABLE)
-endif
  
 include $(CLEAR_VARS)
 LOCAL_MODULE := p7912
