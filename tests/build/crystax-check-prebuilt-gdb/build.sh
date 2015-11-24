@@ -46,7 +46,7 @@ run()
     "$@"
 }
 
-for toolchain in $(ls $NDK_DIR/toolchains | grep -v clang); do
+for toolchain in $(ls $NDK_DIR/toolchains | grep -v 'clang\|llvm'); do
     echo "===> Checking GDB for toolchain $toolchain"
     for hostos in $(ls $NDK_DIR/toolchains/$toolchain/prebuilt); do
         gdb=$(ls $NDK_DIR/toolchains/$toolchain/prebuilt/$hostos/bin/*-gdb)
