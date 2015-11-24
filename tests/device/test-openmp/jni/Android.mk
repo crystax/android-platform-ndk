@@ -1,23 +1,15 @@
 LOCAL_PATH := $(call my-dir)
+include $(LOCAL_PATH)/../common.mk
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := openmp
-LOCAL_SRC_FILES := openmp.c
-LOCAL_CFLAGS += -fopenmp
-LOCAL_LDFLAGS += -fopenmp
-include $(BUILD_EXECUTABLE)
+define add-test-rule
+include $$(CLEAR_VARS)
+LOCAL_MODULE := $(1)
+LOCAL_SRC_FILES := $(1).c
+LOCAL_CFLAGS := $$(CFLAGS)
+LOCAL_LDFLAGS := $$(LDFLAGS)
+include $$(BUILD_EXECUTABLE)
+endef
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := openmp2
-LOCAL_SRC_FILES := openmp2.c
-LOCAL_CFLAGS += -fopenmp
-LOCAL_LDFLAGS += -fopenmp
-include $(BUILD_EXECUTABLE)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := fib
-LOCAL_SRC_FILES := fib.c
-LOCAL_CFLAGS += -fopenmp
-LOCAL_LDFLAGS += -fopenmp
-include $(BUILD_EXECUTABLE)
-
+$(foreach __t,$(CTESTS),\
+    $(eval $(call add-test-rule,$(__t)))\
+)
