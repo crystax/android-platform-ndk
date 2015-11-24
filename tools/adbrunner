@@ -892,7 +892,7 @@ ensure
     adb_rm devid, dstpath
 end
 
-def run_test(attempt, devid, exe, args)
+def run_test(attempt, devid, devmodel, exe, args)
     ENV['ANDROID_SERIAL'] = devid
 
     tms = Time.now
@@ -912,7 +912,7 @@ def run_test(attempt, devid, exe, args)
         tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
         rc = do_run_test(attempt, devid, tag, exe, args)
 
-        log "EXIT: #{rc} (took #{time_range(Time.now - tms)})"
+        log "EXIT: #{rc} (took #{time_range(Time.now - tms)} on '#{devmodel}')"
         rc
     end
 end
@@ -969,7 +969,7 @@ begin
 
                         MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
 
-                        rc = run_test(attempt, id, exe, args)
+                        rc = run_test(attempt, id, devmodel, exe, args)
                         if rc != 0
                             MRO.dump mrofields.merge({event: "fail", exitcode: rc})
                             fails += 1
