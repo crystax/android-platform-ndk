@@ -68,8 +68,6 @@ register_var_option "--version=<ver>" LIBPNG_VERSION "Specify libpng version to 
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 LIBPNG_SRCDIR=$(echo $PARAMETERS | sed 1q)
