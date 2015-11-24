@@ -221,22 +221,22 @@ $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
 ))
 endef
 
-define compiler-type
+define cc-type
 $(strip $(if $(strip $(1)),\
     $(if $(filter-out __GNUC__,$(call preprocess,$(1),__GNUC__)),\
         $(if $(filter __clang__,$(call preprocess,$(1),__clang__)),gcc,clang),\
         $(error Cannot detect type of compiler '$(1)')\
     ),\
-    $(error Usage: call compiler-type,compiler)\
+    $(error Usage: call cc-type,compiler)\
 ))
 endef
 
 define is-gcc
-$(if $(and $(strip $(1)),$(filter gcc,$(call compiler-type,$(1)))),yes)
+$(if $(and $(strip $(1)),$(filter gcc,$(call cc-type,$(1)))),yes)
 endef
 
 define is-clang
-$(if $(and $(strip $(1)),$(filter clang,$(call compiler-type,$(1)))),yes)
+$(if $(and $(strip $(1)),$(filter clang,$(call cc-type,$(1)))),yes)
 endef
 
 define gcc-major-version
@@ -274,6 +274,17 @@ define clang-version
 $(strip $(if $(strip $(1)),\
     $(call clang-major-version,$(1)).$(call clang-minor-version,$(1)),\
     $(error Usage: call clang-version,cc)\
+))
+endef
+
+define cc-version
+$(strip $(if $(strip $(1)),\
+    $(or \
+        $(if $(call is-gcc,$(1)),$(call gcc-version,$(1))),\
+        $(if $(call is-clang,$(1)),$(call clang-version,$(1))),\
+        $(error Unknown compiler: '$(1)')\
+    ),\
+    $(error Usage: call cc-version,cc)\
 ))
 endef
 
