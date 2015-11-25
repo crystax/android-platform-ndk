@@ -67,8 +67,6 @@ register_var_option "--version=<ver>" ICU_VERSION "ICU version"
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 ICU_SRCDIR=$(echo $PARAMETERS | sed 1q)
@@ -79,6 +77,13 @@ fi
 
 if [ ! -d "$ICU_SRCDIR" ]; then
     echo "ERROR: Not a directory: '$ICU_SRCDIR'"
+    exit 1
+fi
+
+ICU_TAG=release-$(echo $ICU_VERSION | tr '.' '-')
+GITHASH=$(git -C $ICU_SRCDIR rev-parse --verify $ICU_TAG 2>/dev/null)
+if [ -z "$GITHASH" ]; then
+    echo "ERROR: Can't find tag $ICU_TAG in $ICU_SRCDIR" 1>&2
     exit 1
 fi
 
@@ -96,6 +101,10 @@ fi
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
+
+TMP_SRCDIR="$BUILD_DIR/src"
+run git clone -b $ICU_TAG $ICU_SRCDIR $TMP_SRCDIR
+fail_panic "Can't copy icu-$ICU_VERSION sources to temporary directory"
 
 prepare_target_build
 fail_panic "Could not setup target build"
@@ -157,7 +166,7 @@ build_icu_for_host()
             exit 1
     esac
 
-    run $ICU_SRCDIR/source/runConfigureICU $ICU_HOST_OS
+    run $TMP_SRCDIR/source/runConfigureICU $ICU_HOST_OS
     fail_panic "Couldn't configure host build of ICU $ICU_VERSION"
 
     run make -j$NUM_JOBS
@@ -352,7 +361,7 @@ EOF
 
     local PREFIX=$BUILDDIR/install
 
-    run $ICU_SRCDIR/source/configure        \
+    run $TMP_SRCDIR/source/configure        \
         --prefix=$PREFIX                    \
         --host=$TCPREFIX                    \
         --with-cross-build=$ICUHOSTBUILDDIR \
@@ -447,7 +456,7 @@ export PATH
 
 # Copy license
 log "Copying ICU $ICU_VERSION license"
-run cp -f $ICU_SRCDIR/license.html $ICU_DSTDIR/
+run cp -f $TMP_SRCDIR/license.html $ICU_DSTDIR/
 fail_panic "Couldn't copy ICU $ICU_VERSION license"
 
 # Generate Android.mk

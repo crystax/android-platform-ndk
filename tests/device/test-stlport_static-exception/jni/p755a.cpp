@@ -4,12 +4,14 @@
 
 extern "C" void _exit(int);
 
+void foo(int *);
+
 void operator delete(void *p) throw() {
   _exit(0);
 }
 
 int main () {
   int* i = new int;
-  delete i;
+  foo(i);
   return 1;
 }

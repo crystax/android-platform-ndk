@@ -77,6 +77,7 @@ class Generator
         def public?
             @public = lambda do
                 return false unless header?
+                return true if path == "contrib/bzip2/bzlib.h"
                 return true if path == "lib/msun/src/math.h"
                 return true if path == "lib/msun/src/fenv-softfloat.h"
                 return true if path =~ /^(include|sys)\b/
@@ -87,12 +88,9 @@ class Generator
 
         def dstpath
             @dstpath = lambda do
-                if header? && path == "lib/msun/src/math.h"
-                    return "math.h"
-                end
-                if header? && path == "lib/msun/src/fenv-softfloat.h"
-                    return File.join("crystax/freebsd", path)
-                end
+                return "bzlib.h" if header? && path == "contrib/bzip2/bzlib.h"
+                return "math.h"  if header? && path == "lib/msun/src/math.h"
+                return File.join("crystax/freebsd", path) if header? && path == "lib/msun/src/fenv-softfloat.h"
                 if header? && !sarch.nil? && path.split('/')[0..2] == ['sys', sarch, 'include']
                     return (['machine'] + path.split('/')[3..-1]).join('/')
                 end
@@ -607,6 +605,17 @@ g.add "lib/libc/include/libc_private.h",   empty: true
 g.add "lib/libc/include/namespace.h",      empty: true
 g.add "lib/libc/include/spinlock.h",       empty: true
 g.add "lib/libc/include/un-namespace.h",   empty: true
+
+# bzip2
+g.add "contrib/bzip2/blocksort.c"
+g.add "contrib/bzip2/bzlib.c",             warnings: "unused-parameter"
+g.add "contrib/bzip2/bzlib.h"
+g.add "contrib/bzip2/bzlib_private.h"
+g.add "contrib/bzip2/compress.c",          warnings: "unused-but-set-variable"
+g.add "contrib/bzip2/crctable.c"
+g.add "contrib/bzip2/decompress.c"
+g.add "contrib/bzip2/huffman.c"
+g.add "contrib/bzip2/randtable.c"
 
 # gdtoa
 g.add "contrib/gdtoa/dmisc.c",             warnings: "sign-compare"

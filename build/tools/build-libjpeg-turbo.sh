@@ -68,8 +68,6 @@ register_var_option "--version=<ver>" LIBJPEGTURBO_VERSION "Specify libjpeg-turb
 
 register_jobs_option
 
-register_try64_option
-
 extract_parameters "$@"
 
 LIBJPEGTURBO_SRCDIR=$(echo $PARAMETERS | sed 1q)
