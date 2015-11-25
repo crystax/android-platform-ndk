@@ -54,7 +54,7 @@ BOOST_VERSIONS="1.59.0"
 
 # Location of the ICU sources, relative to the NDK root directory
 ICU_SUBDIR=sources/icu
-ICU_VERSIONS="55.1"
+ICU_VERSIONS="56.1"
 
 # Location of the sqlite3 libraries, relative to the NDK root directory
 SQLITE3_SUBDIR=sources/sqlite/3
