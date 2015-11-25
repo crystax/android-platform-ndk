@@ -54,7 +54,7 @@ else
     options[:adb] = 'adb'
 end
 options[:types] = ['awk', 'samples', 'build', 'device', 'standalone']
-options[:stimeout] = 60
+options[:stimeout] = 180
 
 optparser = OptionParser.new do |o|
     o.separator "Parameters:"
