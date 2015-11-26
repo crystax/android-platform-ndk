@@ -4,7 +4,7 @@
 # platforms and architectures.
 #
 #
-# Copyright (c) 2014 CrystaX .NET.
+# Copyright (c) 2014, 2015 CrystaX .NET.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -96,15 +96,6 @@ class Ndk_data
     r = []
     apis.each { |api| if Integer(api) >= min_api_level(abi) then r << api end }
     r
-  end
-
-  def allowed_gcc_versions(abi, gcc_versions)
-    case abi
-    when /64/
-      gcc_versions.include?("4.9") ? ["4.9"] : []
-    else
-      gcc_versions
-    end
   end
 
   def standalone_path(api_level, arch, gcc_version, stl_type)
@@ -303,7 +294,7 @@ end.parse!
 puts "using tools for tag: #{$ndk_data.tag}"
 abis.each do |abi|
   puts "#{abi}"
-  $ndk_data.allowed_gcc_versions(abi, gcc_versions).each do |gccver|
+  gcc_versions.each do |gccver|
     puts "  #{gccver}"
     stl_types.each do |stl|
       print "    #{stl}, API levels: "
