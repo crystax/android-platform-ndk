@@ -218,7 +218,7 @@ case $ABI in
         macro_check __SSE2_MATH__ 1  "Use SSE2 for math operations"
         #macro_check __SSSE3__ 1     "SSSE3 instruction set"
         macro_check __WCHAR_TYPE__   "int"
-        macro_check __WCHAR_MAX__    "2147483647"
+        macro_multi_check __WCHAR_MAX__  "2147483647" "0x7fffffff"
         ;;
 
     mips64)
