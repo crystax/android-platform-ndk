@@ -33,17 +33,19 @@ echo "===> Checking prebuilt GDB <==="
 echo "================================================================="
 echo ""
 
+EXE=
 HOSTOS=$(uname | tr '[:upper:]' '[:lower:]')
 if [[ $HOSTOS == cygwin*  || $HOSTOS == mingw* ]]; then
     HOSTOS=windows
+    EXE=".exe"
 fi
 
 FILE_DIR=$(dirname $0)
 NDK_DIR=$(cd $FILE_DIR/../../.. && pwd)
 NDK_BUILDTOOLS_PATH="$NDK_DIR/build/tools"
 
-. $NDK_DIR/build/tools/dev-defaults.sh
-. $NDK_DIR/build/tools/prebuilt-common.sh
+#. $NDK_DIR/build/tools/dev-defaults.sh
+#. $NDK_DIR/build/tools/prebuilt-common.sh
 
 run()
 {
@@ -51,7 +53,7 @@ run()
     "$@"
 }
 
-for toolchain in $(ls $NDK_DIR/toolchains | grep -v 'clang\|llvm'); do
+for toolchain in $(ls $NDK_DIR/toolchains | grep -v 'clang\|llvm\|renderscript'); do
     echo "===> Checking GDB for toolchain $toolchain"
     for hostos in $(ls $NDK_DIR/toolchains/$toolchain/prebuilt); do
         # skip GDB built for OS different from host OS
@@ -59,7 +61,7 @@ for toolchain in $(ls $NDK_DIR/toolchains | grep -v 'clang\|llvm'); do
             echo "Skipping GDB built for $hostos"
             continue
         fi
-        gdb=$(ls $NDK_DIR/toolchains/$toolchain/prebuilt/$hostos/bin/*-gdb*)
+        gdb=$(ls $NDK_DIR/toolchains/$toolchain/prebuilt/$hostos/bin/*-gdb$EXE)
         run $gdb --version
         if [ $? -ne 0 ]; then
             echo "ERROR: GDB for toolchain $toolchain and host OS $hostos failed to start" 1>&2
