@@ -228,7 +228,7 @@ case $ABI in
         macro_check __MIPSEL__ 1          "Mips little-endian"
         macro_check __PIC__ 1             "Position independent code (-fpic)"
         macro_check __WCHAR_TYPE__        "int"
-        macro_check __WCHAR_MAX__         "2147483647"
+        macro_multi_check __WCHAR_MAX__   "2147483647" "0x7fffffff"
         ;;
     *)
         echo "Unknown ABI: $ABI"
