@@ -194,7 +194,7 @@ case $ABI in
         macro_check __PIC__ 1           "Position independent code (-fpic)"
         # GCC defines it as "signed int", and Clang as "int"
         macro_multi_check __WCHAR_TYPE__   "signed int" "int"
-        macro_check __WCHAR_MAX__       "2147483647"
+        macro_multi_check __WCHAR_MAX__    "2147483647" "0x7fffffff"
         ;;
     arm64-v8a)
         macro_check __aarch64__ 1          "ARM CPU architecture"
