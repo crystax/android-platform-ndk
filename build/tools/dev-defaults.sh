@@ -70,7 +70,7 @@ DEFAULT_OPENSSL_VERSION=$(echo $OPENSSL_VERSIONS | tr ' ' '\n' | head -n 1)
 
 # Location of the libpng libraries, relative to the NDK root directory
 LIBPNG_SUBDIR=sources/libpng
-LIBPNG_VERSIONS="1.6.17"
+LIBPNG_VERSIONS="1.6.19"
 
 # Location of the libjpeg libraries, relative to the NDK root directory
 LIBJPEG_SUBDIR=sources/libjpeg
@@ -78,7 +78,7 @@ LIBJPEG_VERSIONS="9a"
 
 # Location of the libjpeg-turbo libraries, relative to the NDK root directory
 LIBJPEGTURBO_SUBDIR=sources/libjpeg-turbo
-LIBJPEGTURBO_VERSIONS="1.4.1"
+LIBJPEGTURBO_VERSIONS="1.4.2"
 
 # Location of the libtiff libraries, relative to the NDK root directory
 LIBTIFF_SUBDIR=sources/libtiff
