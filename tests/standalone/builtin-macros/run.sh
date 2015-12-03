@@ -202,7 +202,7 @@ case $ABI in
         macro_check __AARCH64EL__ 1        "ARM AARCH64 little-endian runtime"
         macro_check __PIC__ 1              "Position independent code (-fpic)"
         macro_check __WCHAR_TYPE__         "unsigned"
-        macro_check __WCHAR_MAX__          "4294967295U"
+        macro_multi_check __WCHAR_MAX__    "4294967295U" "0xffffffffU"
         # Clang doesn't define __WCHAR_MIN__ so don't check it"
         ;;
 
