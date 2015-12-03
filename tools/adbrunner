@@ -816,10 +816,11 @@ rescue AdbShellCommandFailed => err
 
     logerr.call ""
     logerr.call ""
-    logerr.call "=== BEGIN OF LAUNCHER PARAMETERS ==="
-    logerr.call "ARGV: #{exe} #{args.join(' ')}"
+    logerr.call "=== BEGIN OF ENVIRONMENT ==="
+    logerr.call "CMD: #{exe} #{args.join(' ')}"
     logerr.call "PWD: #{dstbinpath}"
-    logerr.call "=== END OF LAUNCHER PARAMETERS ==="
+    logerr.call "NDK: #{File.read(File.join(NDK, 'RELEASE.TXT'))}" if File.exists?(File.join(NDK, 'RELEASE.TXT'))
+    logerr.call "=== END OF ENVIRONMENT ==="
 
     lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
     at_exit { FileUtils.rm_f lf }
