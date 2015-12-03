@@ -40,6 +40,9 @@ require 'optparse'
 require 'fileutils'
 
 
+
+MIN_SUPPORTED_API_LEVEL = 9
+
 class Ndk_data
 
   attr_reader :default_stl_types, :llvm_versions, :tag, :compiler_types
@@ -77,7 +80,8 @@ class Ndk_data
   end
 
   def default_api_levels
-    get_info_from_shell("echo $API_LEVELS").split
+    v = get_info_from_shell("echo $API_LEVELS").split
+    v.delete_if {|l| l.to_i < MIN_SUPPORTED_API_LEVEL }
   end
 
   def prebuilt_abis
@@ -125,7 +129,7 @@ class Ndk_data
     when /64/   then 21
     when /x86/  then 10
     when /mips/ then 15
-    else             3
+    else             MIN_SUPPORTED_API_LEVEL
     end
   end
 
@@ -216,12 +220,13 @@ class Toolchain
         if @gccver == "4.6"
           -1
         else
-          cmd = "./tests/standalone/run.sh " +
-                " --no-sysroot"              +
-                " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang"
-          if /armeabi/ =~ @abi
-            cmd += " --abi=#{@abi}"
-          end
+          cmd = "./tests/standalone/run.sh"                            +
+                " --no-sysroot"                                        +
+                " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang" +
+                " --abi=#{@abi}"
+          # if /armeabi/ =~ @abi
+          #   cmd += " --abi=#{@abi}"
+          # end
           run_test_cmd(cmd)
         end
     end
