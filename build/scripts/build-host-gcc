@@ -59,7 +59,7 @@ MPC_VER   = '1.0.3'
 ISL_VER   = '0.12.2'
 CLOOG_VER = '0.18.3'
 
-# restrict PATH to standard bon dirs
+# restrict PATH to standard bin dirs
 ENV['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin'
 BASE_DIR = File.join('/tmp', "ndk-#{ENV['USER']}", 'host', 'gcc')
 
