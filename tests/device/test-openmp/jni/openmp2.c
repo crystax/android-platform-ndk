@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include <omp.h>
 #include <unistd.h>
-#if !__APPLE__
-#include <sys/sysconf.h>
-#endif
 
 int main ()
 {
