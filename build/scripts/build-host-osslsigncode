@@ -59,6 +59,9 @@ begin
   Logger.open_log_file "#{BASE_DIR}/build-host-#{PKG_NAME}.log", true, true
   Logger.msg "Building host #{PKG_NAME} tool; OS: #{options.host_os}"
 
+  FileUtils.rm_rf BASE_DIR
+  FileUtils.mkdir_p BASE_DIR
+
   Logger.msg "= coping source code"
   FileUtils.cp_r "#{Common::VENDOR_DIR}/#{PKG_NAME}", BASE_DIR
   builddir = "#{BASE_DIR}/#{PKG_NAME}"
