@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX .NET.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -59,8 +59,11 @@
 #define __CRYSTAX_ERRNO_H_850afb1fd0684f5184320801869617ad
 
 #include <crystax/id.h>
+#include <sys/cdefs.h>
 
+#define __errno __crystax_google___errno
 #include <crystax/google/errno.h>
+#undef __errno
 
 #if !defined(__LP64__)
 
@@ -75,5 +78,11 @@
 #ifndef EFTYPE
 #define EFTYPE EINVAL
 #endif
+
+__BEGIN_DECLS
+
+int *__errno(void);
+
+__END_DECLS
 
 #endif /* __CRYSTAX_ERRNO_H_850afb1fd0684f5184320801869617ad */
