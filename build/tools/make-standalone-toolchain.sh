@@ -469,6 +469,45 @@ copy_crystax_libs_for_abi () {
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.so"
             ;;
+        mips64)
+            copy_file_list "$CRYSTAX_LIBS/mips64" "$ABI_TARGET/lib64" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64" "$ABI_TARGET/lib64" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32" "$ABI_TARGET/lib" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32" "$ABI_TARGET/lib" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r2" "$ABI_TARGET/libr2" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r2" "$ABI_TARGET/libr2" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r6" "$ABI_TARGET/libr6" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r6" "$ABI_TARGET/libr6" "libcrystax.so"
+            ;;
+        mips)
+            copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips/r2" "$ABI_TARGET/libr2" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips/r2" "$ABI_TARGET/libr2" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/mips/r6" "$ABI_TARGET/libr6" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/mips/r6" "$ABI_TARGET/libr6" "libcrystax.so"
+            ;;
+        x86_64)
+            copy_file_list "$CRYSTAX_LIBS/x86_64" "$ABI_TARGET/lib64" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/x86_64" "$ABI_TARGET/lib64" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/x86_64/32" "$ABI_TARGET/lib" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/x86_64/32" "$ABI_TARGET/lib" "libcrystax.so"
+            #
+            copy_file_list "$CRYSTAX_LIBS/x86_64/x32" "$ABI_TARGET/libx32" "libcrystax.a"
+            copy_file_list "$CRYSTAX_LIBS/x86_64/x32" "$ABI_TARGET/libx32" "libcrystax.so"
+            ;;
         *)
             copy_file_list "$CRYSTAX_LIBS/$ABI" "$ABI_TARGET/lib" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/$ABI" "$ABI_TARGET/lib" "libcrystax.so"
@@ -509,6 +548,12 @@ copy_libobjc2_libs_for_abi()
                 #
                 copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
                 copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            mips64)
+                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
+            x86_64)
+                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
                 ;;
             *)
                 copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
@@ -552,6 +597,12 @@ copy_libpng_libs_for_abi()
                 copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
                 copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
                 ;;
+            mips64)
+                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
+            x86_64)
+                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
             *)
                 copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
         esac
@@ -593,6 +644,12 @@ copy_libjpeg_libs_for_abi()
                 copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
                 copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
                 ;;
+            mips64)
+                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
+            x86_64)
+                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
             *)
                 copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
         esac
@@ -633,6 +690,12 @@ copy_libtiff_libs_for_abi()
                 #
                 copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
                 copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
+                ;;
+            mips64)
+                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
+                ;;
+            x86_64)
+                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
                 ;;
             *)
                 copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"

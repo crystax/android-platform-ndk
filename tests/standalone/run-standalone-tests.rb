@@ -176,6 +176,8 @@ class Toolchain
 
     @results = Hash.new(0)
 
+    log =
+
     $ndk_data.llvm_versions.each do |llvm_ver|
       cmd = "./build/tools/make-standalone-toolchain.sh"      +
             " --platform=android-#{apilev}"                   +
@@ -184,6 +186,13 @@ class Toolchain
             " --stl=#{stl}"                                   +
             " --toolchain=#{@name}"                           +
             " --system=#{$ndk_data.tag}"
+      File.open($ndk_data.log_file, "a") do |log|
+        log.puts "############################################"
+        log.puts
+        log.puts " Creating toolchain with command: #{cmd}"
+        log.puts
+        log.puts "############################################"
+      end
       `#{cmd}`
       if $? != 0
         abort("failed to make standalone toolchain with command: #{cmd}")
