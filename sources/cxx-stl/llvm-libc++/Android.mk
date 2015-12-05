@@ -18,6 +18,15 @@ __libcxx_version := $(strip \
     )\
 )
 
+# Temporary workaround - if using gcc, use libc++-3.6.
+# This happens because using libc++-3.7 with gcc cause throwing of std::bad_cast,
+# most likely due to incompatibility of used libc++abi with libc++-3.7.
+# TODO: switch to use proper libc++abi, depending on libc++ versions.
+# Here is ticket: https://tracker.crystax.net/issues/1177
+ifeq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
+__libcxx_version := 3.6
+endif
+
 ifeq (,$(strip $(__libcxx_version)))
 $(error INTERNAL ERROR: Can not detect LLVM libc++ version!)
 endif
