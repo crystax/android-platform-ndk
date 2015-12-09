@@ -1,5 +1,13 @@
 MYDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
+ifneq (__clang__,$(shell echo __clang__ | $(CC) -x c -E - | tail -n 1))
+
+.PHONY: test
+test:
+	@echo "SKIP: clang doesn't support OpenMP"
+
+else
+
 include $(MYDIR)/../common.mk
 
 CFLAGS += -I../jni
@@ -23,3 +31,5 @@ endef
 $(foreach __t,$(CTESTS),\
     $(eval $(call add-test-rule,$(__t)))\
 )
+
+endif
