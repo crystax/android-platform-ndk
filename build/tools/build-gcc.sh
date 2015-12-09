@@ -151,7 +151,7 @@ set_parameters $PARAMETERS
 prepare_target_build
 parse_toolchain_name $TOOLCHAIN
 
-GCC_BASE_VERSION=`cat $GCC_SRC_DIR/gcc-$GCC_VERSION/gcc/BASE-VER`
+GCC_BASE_VERSION=$(cat $GCC_SRC_DIR/gcc-$GCC_VERSION/gcc/BASE-VER)
 
 #
 # Try cached package
@@ -383,12 +383,6 @@ esac
 EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" "$ENABLE_GOLD_FLAGS
 
 if [ "$MINGW" != "yes" ] ; then
-    EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
-fi
-
-# We're not using gold for mips yet, and there is no support for threaded
-# linking on Windows (no pthreads).
-if [ "$TOOLCHAIN" != mips* -a "$MINGW" != "yes" ]; then
     EXTRA_CONFIG_FLAGS=$EXTRA_CONFIG_FLAGS" --enable-threads"
 fi
 
@@ -708,11 +702,14 @@ do_relink_bin () {
 
 do_relink_bin c++ g++
 do_relink_bin gcc-$GCC_VERSION gcc
+if [ "$GCC_VERSION" != "$GCC_BASE_VERSION" ]; then
+    do_relink_bin gcc-$GCC_BASE_VERSION gcc
+fi
 # symlink ld to either ld.gold or ld.bfd
 case "$TOOLCHAIN" in
     aarch64*)
     # Don't make ld.gold as default for now because it's new
-    do_relink_bin ld ld.bfd ld.gold 
+    do_relink_bin ld ld.bfd ld.gold
     ;;
     *)
     do_relink_bin ld ld.gold ld.bfd
