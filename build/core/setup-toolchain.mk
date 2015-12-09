@@ -21,7 +21,7 @@ $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
 $(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_OBJC)
 
 LLVM_VERSION_LIST := 3.6 3.7
-NDK_64BIT_TOOLCHAIN_LIST := clang3.7 clang3.6 5 4.9
+NDK_64BIT_TOOLCHAIN_LIST := clang3.7 clang3.6 4.9 5
 
 DEFAULT_LLVM_VERSION := $(patsubst clang%,%,$(firstword $(filter clang%,$(NDK_64BIT_TOOLCHAIN_LIST))))
 DEFAULT_GCC_VERSION := $(lastword $(filter-out clang%,$(NDK_64BIT_TOOLCHAIN_LIST)))
@@ -46,34 +46,15 @@ ifndef NDK_TOOLCHAIN
         $(eval TARGET_TOOLCHAIN_LIST := \
             $(filter-out %-clang$(_ver),$(TARGET_TOOLCHAIN_LIST))))
 
-    ifeq (,$(findstring 64,$(TARGET_ARCH_ABI)))
-      # Filter out 4.6, 4.7 and 4.8 which are newer than the default at this moment
-      __filtered_toolchain_list := $(filter-out %4.6 %4.7 %4.8 %4.8l,$(TARGET_TOOLCHAIN_LIST))
-      ifdef __filtered_toolchain_list
-          TARGET_TOOLCHAIN_LIST := $(__filtered_toolchain_list)
-      endif
-    else
-      # Filter out 4.6, 4.7 and 4.8 which don't have good 64-bit support in all supported arch
-      TARGET_TOOLCHAIN_LIST := $(filter-out %4.6 %4.7 %4.8 %4.8l,$(TARGET_TOOLCHAIN_LIST))
-    endif
-
     ifndef TARGET_TOOLCHAIN_LIST
         $(call __ndk_info,There is no toolchain that supports the $(TARGET_ARCH_ABI) ABI.)
         $(call __ndk_info,Please modify the APP_ABI definition in $(NDK_APP_APPLICATION_MK) to use)
         $(call __ndk_info,a set of the following values: $(NDK_ALL_ABIS))
         $(call __ndk_error,Aborting)
     endif
-    # Select the last toolchain from the sorted list.
-    # For now, this is enough to select by default gcc4.8 for 32-bit, and 4.9 for 64-bit, the the
-    # latest llvm if no gcc
-    ifneq (,$(filter-out llvm-%,$(TARGET_TOOLCHAIN_LIST)))
-        TARGET_TOOLCHAIN := $(firstword $(TARGET_TOOLCHAIN_LIST))
-    else
-        TARGET_TOOLCHAIN := $(lastword $(TARGET_TOOLCHAIN_LIST))
-    endif
-    # If NDK_TOOLCHAIN_VERSION is defined, we replace the toolchain version
-    # suffix with it.
-    #
+
+    TARGET_TOOLCHAIN := $(filter %-$(DEFAULT_GCC_VERSION),$(TARGET_TOOLCHAIN_LIST))
+
     ifdef NDK_TOOLCHAIN_VERSION
         # Replace "clang" with the most recent verion
         ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
