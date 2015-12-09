@@ -4,9 +4,9 @@
  * This library contains code from libc library of FreeBSD project which by-turn contains
  * code from other projects. To see specific authors and/or licenses, look into appropriate
  * source file. Here is license for those parts which are not derived from any other projects
- * but written by CrystaX .NET.
+ * but written by CrystaX.
  *
- * Copyright (c) 2011-2014 CrystaX .NET.
+ * Copyright (c) 2011-2015 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -19,9 +19,9 @@
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY CrystaX .NET ''AS IS'' AND ANY EXPRESS OR IMPLIED
+ * THIS SOFTWARE IS PROVIDED BY CrystaX ''AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX .NET OR
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CrystaX OR
  * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
@@ -31,7 +31,7 @@
  *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
- * or implied, of CrystaX .NET.
+ * or implied, of CrystaX.
  */
 
 #ifndef __CRYSTAX_SRC_INCLUDE_ARM_GD_QNAN_H_5348e2b1b488b3641f950a4606b3ad79829d60f0f40e5ca76b358819fadbbd65
