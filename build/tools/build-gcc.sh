@@ -656,6 +656,8 @@ fi
 run $STRIP $TOOLCHAIN_PATH/$ABI_CONFIGURE_TARGET/bin/*
 run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1$HOST_EXE
 run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1plus$HOST_EXE
+run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1obj$HOST_EXE
+run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/cc1objplus$HOST_EXE
 run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/collect2$HOST_EXE
 run $STRIP $TOOLCHAIN_PATH/libexec/gcc/*/*/lto*$HOST_EXE
 
