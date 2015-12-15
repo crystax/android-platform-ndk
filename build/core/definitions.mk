@@ -395,6 +395,7 @@ modules-LOCALS := \
     OBJCPP_EXTENSION \
     C_INCLUDES \
     CFLAGS \
+    OBJCFLAGS \
     CONLYFLAGS \
     CXXFLAGS \
     CPPFLAGS \
