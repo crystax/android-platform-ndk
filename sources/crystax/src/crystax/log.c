@@ -120,6 +120,7 @@ int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
     rc = __crystax_vlogcat(prio, tag, fmt, ap);
 #elif CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
     rc = vfprintf(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr, newfmt, ap);
+    fflush(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr);
 #else
 #error Unknown log sink
 #endif
