@@ -468,6 +468,12 @@ install_host_python ()
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-4.9.*"
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-4.9-*"
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-[lm]*"
+        # remove python modules which require OpenSSL
+        # we don't need SSL in prebuilt host python
+        # and we don't want distribute something SSL-enabled
+        # without explicit need in that
+        run find "$DSTDIR" -name _hashlib.so -delete
+        run find "$DSTDIR" -name _ssl.so -delete
     fi
 }
 
