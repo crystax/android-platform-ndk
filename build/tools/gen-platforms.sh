@@ -860,11 +860,13 @@ if [ "$PACKAGE_DIR" ]; then
     dump "Packaging $ARCHIVE"
     pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "platforms"
     fail_panic "Could not package platforms"
+    cache_package "$PACKAGE_DIR" "$ARCHIVE"
     if [ "$OPTION_SAMPLES" ]; then
         ARCHIVE=samples.tar.xz
         dump "Packaging $ARCHIVE"
         pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "samples"
         fail_panic "Could not package samples"
+        cache_package "$PACKAGE_DIR" "$ARCHIVE"
     fi
 fi
 
