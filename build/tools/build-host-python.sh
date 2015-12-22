@@ -414,6 +414,13 @@ build_host_python ()
     # .. for STLPort
     run cp -rf $NDK_DIR/sources/host-tools/gdb-pretty-printers/stlport/gppfs-0.2 $PYPPDIR/stlport
 
+    # remove python modules which require OpenSSL
+    # we don't need SSL in prebuilt host python
+    # and we don't want to distribute something SSL-enabled
+    # without explicit need in that
+    run find "$INSTALLDIR/lib" -name _hashlib.so -delete
+    run find "$INSTALLDIR/lib" -name _ssl.so -delete
+
     # Generate proper python-config wrapper
     local PYCONFIG
     for PYCONFIG in $INSTALLDIR/bin/python*-config; do
@@ -468,12 +475,6 @@ install_host_python ()
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-4.9.*"
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-4.9-*"
         run rm -rf "$DSTDIR/share/pretty-printers/libstdcxx/gcc-[lm]*"
-        # remove python modules which require OpenSSL
-        # we don't need SSL in prebuilt host python
-        # and we don't want distribute something SSL-enabled
-        # without explicit need in that
-        run find "$DSTDIR" -name _hashlib.so -delete
-        run find "$DSTDIR" -name _ssl.so -delete
     fi
 }
 
