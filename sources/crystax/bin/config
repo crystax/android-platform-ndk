@@ -349,6 +349,8 @@ common_cflags_for_abi()
         echo "-DNDEBUG"
     fi
 
+    echo "-D__USE_GNU"
+
     echo "-DCRYSTAX_LOG_DEFINE_SHORT_MACROS=1"
 
     echo "-D_POSIX_SOURCE"

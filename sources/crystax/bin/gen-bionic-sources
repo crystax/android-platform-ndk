@@ -88,7 +88,8 @@ class Generator
             mdst = File.join(options[:public] ? File.join(PUBLICDIR, 'crystax', 'bionic') : PRIVATEDIR, File.dirname(f), "mangled-#{File.basename(f)}")
 
             if options[:public]
-                f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == ['libc', 'include']
+                f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == %w{libc include}
+                f = f.split('/')[3..-1].join('/') if f.split('/')[0..3] == %w{libc kernel uapi linux}
                 dst = File.join(PUBLICDIR, f)
             else
                 dst = File.join(PRIVATEDIR, f)
@@ -156,13 +157,16 @@ g.fixup :redefine_fcntl do |f|
 end
 
 # public headers
+g.add "libc/include/machine/timespec.h",   public: true
 g.add "libc/include/pwd.h",                public: true
+g.add "libc/include/sched.h",              public: true
 g.add "libc/include/sys/auxv.h",           public: true
 g.add "libc/include/sys/glibc-syscalls.h", public: true
 g.add "libc/include/sys/syscall.h",        public: true
 g.add "libc/include/sys/sysconf.h",        public: true
 g.add "libc/include/sys/sysinfo.h",        public: true
 g.add "libc/include/sys/timerfd.h",        public: true
+g.add "libc/kernel/uapi/linux/sched.h",    public: true
 
 # common headers
 g.add "libc/include/machine/posix_limits.h"
@@ -265,6 +269,38 @@ g.add "libc/arch-x86_64/syscalls/pipe2.S"
 
 # posix_madvise
 g.add "libc/bionic/posix_madvise.cpp"
+
+# sched_getaffinity
+g.add "libc/arch-arm/syscalls/__sched_getaffinity.S"
+g.add "libc/arch-arm64/syscalls/__sched_getaffinity.S"
+g.add "libc/arch-mips/syscalls/__sched_getaffinity.S"
+g.add "libc/arch-mips64/syscalls/__sched_getaffinity.S"
+g.add "libc/arch-x86/syscalls/__sched_getaffinity.S"
+g.add "libc/arch-x86_64/syscalls/__sched_getaffinity.S"
+g.add "libc/bionic/sched_getaffinity.cpp"
+
+# sched_getcpu
+g.add "libc/bionic/sched_getcpu.cpp"
+g.add "libc/arch-arm/syscalls/__getcpu.S"
+g.add "libc/arch-arm64/syscalls/__getcpu.S"
+g.add "libc/arch-mips/syscalls/__getcpu.S"
+g.add "libc/arch-mips64/syscalls/__getcpu.S"
+g.add "libc/arch-x86/syscalls/__getcpu.S"
+g.add "libc/arch-x86_64/syscalls/__getcpu.S"
+
+# sched_cpualloc
+g.add "libc/bionic/sched_cpualloc.c"
+
+# sched_cpucount
+g.add "libc/bionic/sched_cpucount.c"
+
+# sched_setaffinity
+g.add "libc/arch-arm/syscalls/sched_setaffinity.S"
+g.add "libc/arch-arm64/syscalls/sched_setaffinity.S"
+g.add "libc/arch-mips/syscalls/sched_setaffinity.S"
+g.add "libc/arch-mips64/syscalls/sched_setaffinity.S"
+g.add "libc/arch-x86/syscalls/sched_setaffinity.S"
+g.add "libc/arch-x86_64/syscalls/sched_setaffinity.S"
 
 # sysconf
 g.add "libc/bionic/sysconf.cpp"

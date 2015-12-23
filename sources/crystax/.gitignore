@@ -22,6 +22,7 @@ include/iconv.h
 include/inttypes.h
 include/langinfo.h
 include/limits.h
+include/linux/sched.h
 include/locale.h
 include/machine/_inttypes.h
 include/machine/_limits.h
@@ -30,6 +31,7 @@ include/machine/armreg.h
 include/machine/endian.h
 include/machine/ieeefp.h
 include/machine/sysarch.h
+include/machine/timespec.h
 include/math.h
 include/monetary.h
 include/nl_types.h
@@ -37,6 +39,7 @@ include/printf.h
 include/pthread_workqueue.h
 include/pwd.h
 include/runetype.h
+include/sched.h
 include/search.h
 include/stdio.h
 include/stdlib.h
