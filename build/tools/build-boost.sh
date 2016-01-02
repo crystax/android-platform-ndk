@@ -688,8 +688,8 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     echo '        llvm,\'
     echo '        gnu\'
     echo '    ))-$(strip $(if $(filter c++_%,$(APP_STL)),\'
-    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_LLVM_VERSION'),\'
-    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),'$DEFAULT_GCC_VERSION',$(NDK_TOOLCHAIN_VERSION))\'
+    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),$(DEFAULT_LLVM_VERSION)),\'
+    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(DEFAULT_GCC_VERSION),$(or $(NDK_TOOLCHAIN_VERSION),$(DEFAULT_GCC_VERSION)))\'
     echo '    ))\'
     echo ')'
 
