@@ -27,21 +27,41 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
-#define _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+#include <crystax.h>
+#include <crystax/jutils.hpp>
+#include <crystax/log.h>
+#include <crystax/memory.hpp>
 
-#include <crystax/id.h>
+#include <errno.h>
 
-#ifndef __cplusplus
-#error "This is C++ header file, you shouldn't include it to non-C++ sources"
-#endif
+namespace crystax
+{
+namespace jni
+{
 
-#include <crystax/jutils/jni.hpp>
-#include <crystax/jutils/jholder.hpp>
-#include <crystax/jutils/jcast.hpp>
-#include <crystax/jutils/exceptions.hpp>
-#include <crystax/jutils/class.hpp>
-#include <crystax/jutils/field.hpp>
-#include <crystax/jutils/method.hpp>
+bool jexcheck(JNIEnv *env)
+{
+    jhthrowable jex(env->ExceptionOccurred());
+    if (!jex)
+        return true;
 
-#endif // _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+    env->ExceptionClear();
+
+    jhclass cls(env->GetObjectClass(jex.get()));
+    if (!cls) CRYSTAX_PANIC("Can't get object class for Java throwable object");
+
+    jmethodID mid = env->GetMethodID(cls.get(), "getMessage", "()Ljava/lang/String;");
+    if (!mid) CRYSTAX_PANIC("Can't get 'getMessage' method id for Java throwable object");
+
+    jstring msg = (jstring)env->CallObjectMethod(jex.get(), mid);
+    if (!msg) CRYSTAX_PANIC("Can't call 'getMessage' for Java throwable object");
+
+    scope_c_ptr_t<const char> s(jcast<const char *>(msg));
+    CRYSTAX_ERR("Java exception: %s", s.get());
+
+    errno = EFAULT;
+    return false;
+}
+
+} // namespace jni
+} // namespace crystax

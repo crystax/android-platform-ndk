@@ -157,7 +157,7 @@ public:
 template <typename T>
 T jcast(path_t const &p)
 {
-    return ::crystax::jni::details::jcast_helper<T, const char *>::cast(p.c_str());
+    return jcast<T>(p.c_str());
 }
 
 class abspath_t : public details::path_t
@@ -176,7 +176,7 @@ public:
 template <typename T>
 T jcast(abspath_t const &p)
 {
-    return ::crystax::jni::details::jcast_helper<T, const char *>::cast(p.c_str());
+    return jcast<T>(p.c_str());
 }
 
 } // namespace fileio

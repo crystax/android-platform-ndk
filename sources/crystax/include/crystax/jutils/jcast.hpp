@@ -27,8 +27,8 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
-#define _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+#ifndef _CRYSTAX_JUTILS_JCAST_HPP_05F3A127641F4DE98542AF1149D0B284
+#define _CRYSTAX_JUTILS_JCAST_HPP_05F3A127641F4DE98542AF1149D0B284
 
 #include <crystax/id.h>
 
@@ -38,10 +38,43 @@
 
 #include <crystax/jutils/jni.hpp>
 #include <crystax/jutils/jholder.hpp>
-#include <crystax/jutils/jcast.hpp>
-#include <crystax/jutils/exceptions.hpp>
-#include <crystax/jutils/class.hpp>
-#include <crystax/jutils/field.hpp>
-#include <crystax/jutils/method.hpp>
 
-#endif // _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+namespace crystax
+{
+namespace jni
+{
+
+template <typename T, typename U>
+struct jcaster;
+
+template <>
+struct jcaster<const char *, jstring>
+{
+    const char *operator()(jstring v);
+};
+
+template <>
+struct jcaster<jhstring, const char *>
+{
+    jhstring operator()(const char *s);
+};
+
+template <>
+struct jcaster<const char *, jhstring>
+{
+    const char *operator()(jhstring const &v)
+    {
+        return jcaster<const char *, jstring>()(v.get());
+    }
+};
+
+template <typename T, typename U>
+T jcast(U const &v)
+{
+    return jcaster<T, U>()(v);
+}
+
+} // namespace jni
+} // namespace crystax
+
+#endif /* _CRYSTAX_JUTILS_JCAST_HPP_05F3A127641F4DE98542AF1149D0B284 */

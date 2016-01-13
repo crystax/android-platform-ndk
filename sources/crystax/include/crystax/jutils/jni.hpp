@@ -27,8 +27,8 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
-#define _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+#ifndef _CRYSTAX_JUTILS_JNI_HPP_36427583198F41B9B5765835F72A540B
+#define _CRYSTAX_JUTILS_JNI_HPP_36427583198F41B9B5765835F72A540B
 
 #include <crystax/id.h>
 
@@ -36,12 +36,19 @@
 #error "This is C++ header file, you shouldn't include it to non-C++ sources"
 #endif
 
-#include <crystax/jutils/jni.hpp>
-#include <crystax/jutils/jholder.hpp>
-#include <crystax/jutils/jcast.hpp>
-#include <crystax/jutils/exceptions.hpp>
-#include <crystax/jutils/class.hpp>
-#include <crystax/jutils/field.hpp>
-#include <crystax/jutils/method.hpp>
+#include <jni.h>
 
-#endif // _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+namespace crystax
+{
+namespace jni
+{
+
+JavaVM *jvm();
+JNIEnv *jnienv();
+
+inline JNIEnv *env() { return jnienv(); }
+
+} // namespace jni
+} // namespace crystax
+
+#endif /* _CRYSTAX_JUTILS_JNI_HPP_36427583198F41B9B5765835F72A540B */

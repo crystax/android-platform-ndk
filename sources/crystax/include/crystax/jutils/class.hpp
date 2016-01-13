@@ -27,8 +27,8 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
-#define _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+#ifndef _CRYSTAX_JUTILS_CLASS_HPP_7C2D7E9AE34B45A19E57CA4D43E91F7D
+#define _CRYSTAX_JUTILS_CLASS_HPP_7C2D7E9AE34B45A19E57CA4D43E91F7D
 
 #include <crystax/id.h>
 
@@ -38,10 +38,44 @@
 
 #include <crystax/jutils/jni.hpp>
 #include <crystax/jutils/jholder.hpp>
-#include <crystax/jutils/jcast.hpp>
 #include <crystax/jutils/exceptions.hpp>
-#include <crystax/jutils/class.hpp>
-#include <crystax/jutils/field.hpp>
-#include <crystax/jutils/method.hpp>
 
-#endif // _CRYSTAX_JUTILS_HPP_e6ec1ce9928d459eae2faf1df240509a
+namespace crystax
+{
+namespace jni
+{
+
+inline
+jhclass find_class(JNIEnv *env, const char *clsname)
+{
+    jhclass ret((jclass)env->FindClass(clsname));
+    auto ex = jexception(env);
+    if (ex) rethrow(ex);
+    return ret;
+}
+
+inline
+jhclass find_class(const char *clsname)
+{
+    return find_class(jnienv(), clsname);
+}
+
+template <typename T, typename Refcounter>
+jhclass get_class(JNIEnv *env, jholder<T, Refcounter> const &obj)
+{
+    jhclass ret(env->GetObjectClass(obj.get()));
+    auto ex = jexception(env);
+    if (ex) rethrow(ex);
+    return ret;
+}
+
+template <typename T, typename Refcounter>
+jhclass get_class(jholder<T, Refcounter> const &obj)
+{
+    return get_class(jnienv(), obj);
+}
+
+} // namespace jni
+} // namespace crystax
+
+#endif /* _CRYSTAX_JUTILS_CLASS_HPP_7C2D7E9AE34B45A19E57CA4D43E91F7D */
