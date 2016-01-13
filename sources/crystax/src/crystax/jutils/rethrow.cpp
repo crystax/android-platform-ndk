@@ -41,6 +41,8 @@ void rethrow(JNIEnv *env, jthrowable ex)
 {
     if (!ex) return;
 
+    env->ExceptionClear();
+
     jhclass cls(env->GetObjectClass(ex));
     if (!cls) CRYSTAX_PANIC("Can't get object class for Java throwable object");
 
@@ -52,9 +54,6 @@ void rethrow(JNIEnv *env, jthrowable ex)
 
     scope_c_ptr_t<const char> s(jcast<const char *>(msg));
     CRYSTAX_ERR("Java exception: %s", s.get());
-
-    env->ExceptionDescribe();
-    env->ExceptionClear();
 
     ::abort();
 }
