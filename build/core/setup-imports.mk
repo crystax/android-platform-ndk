@@ -32,6 +32,9 @@ $(call import-init)
 $(foreach __path,$(subst $(HOST_DIRSEP),$(space),$(NDK_MODULE_PATH)),\
   $(call import-add-path,$(__path))\
 )
+ifneq (,$(strip $(NDK_PACKAGES_ROOT)))
+$(call import-add-path-optional,$(strip $(NDK_PACKAGES_ROOT)))
+endif
 $(call import-add-path-optional,$(NDK_ROOT)/sources)
 $(call import-add-path-optional,$(NDK_ROOT)/packages)
 $(call import-add-path-optional,$(NDK_ROOT)/../development/ndk/sources)
