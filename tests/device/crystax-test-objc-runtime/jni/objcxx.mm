@@ -10,13 +10,13 @@
 
 #define MAGIC_STRING "AHBJAYEBDMAJ*EUDIQKJNSADJY^G#JAHBELAKJHBS"
 
-const char *s = NULL;
+static const char *s = NULL;
 
-@interface TestClass
+@interface TestClass2
 - (void)testMethod;
 @end
 
-@implementation TestClass
+@implementation TestClass2
 - (void)testMethod
 {
     s = MAGIC_STRING;
@@ -24,11 +24,12 @@ const char *s = NULL;
 }
 @end
 
-int main()
+extern "C"
+void test_objcxx()
 {
-    Class cls = objc_getClass("TestClass");
+    Class cls = objc_getClass("TestClass2");
     assert(cls != NULL);
-    TestClass *obj = class_createInstance(cls, 0);
+    TestClass2 *obj = class_createInstance(cls, 0);
     assert(obj != NULL);
 
     SEL sel = sel_registerName("testMethod");
@@ -38,6 +39,4 @@ int main()
     assert(s != NULL && strcmp(s, MAGIC_STRING) == 0);
 
     printf("OK\n");
-
-    return 0;
 }

@@ -9,9 +9,6 @@ void foo()
 
 int main()
 {
-    // This test is temporarily disabled, until bug #1055 resolved.
-    // See https://tracker.crystax.net/issues/1055 for details.
-#if 0
     @try {
         foo();
     }
@@ -23,5 +20,4 @@ int main()
 
     NSLog(@"FAILED: Exception was not caught");
     return 1;
-#endif
 }
