@@ -84,32 +84,32 @@
 #
 #    ANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 - the name of compiler
 #      toolchain to be used. The list of possible values depends on the NDK
-#      version. For NDK r10c the possible values are:
+#      version. For CrystaX NDK 10.3.1 the possible values are:
 #
 #        * aarch64-linux-android-4.9
-#        * aarch64-linux-android-clang3.4
-#        * aarch64-linux-android-clang3.5
-#        * arm-linux-androideabi-4.6
-#        * arm-linux-androideabi-4.8
-#        * arm-linux-androideabi-4.9 (default)
-#        * arm-linux-androideabi-clang3.4
-#        * arm-linux-androideabi-clang3.5
+#        * aarch64-linux-android-5
+#        * aarch64-linux-android-clang3.6
+#        * aarch64-linux-android-clang3.7
+#        * arm-linux-androideabi-4.9
+#        * arm-linux-androideabi-5
+#        * arm-linux-androideabi-clang3.6
+#        * arm-linux-androideabi-clang3.7
 #        * mips64el-linux-android-4.9
-#        * mips64el-linux-android-clang3.4
-#        * mips64el-linux-android-clang3.5
-#        * mipsel-linux-android-4.6
-#        * mipsel-linux-android-4.8
+#        * mips64el-linux-android-5
+#        * mips64el-linux-android-clang3.6
+#        * mips64el-linux-android-clang3.7
 #        * mipsel-linux-android-4.9
-#        * mipsel-linux-android-clang3.4
-#        * mipsel-linux-android-clang3.5
-#        * x86-4.6
-#        * x86-4.8
+#        * mipsel-linux-android-5
+#        * mipsel-linux-android-clang3.6
+#        * mipsel-linux-android-clang3.7
 #        * x86-4.9
-#        * x86-clang3.4
-#        * x86-clang3.5
+#        * x86-5
+#        * x86-clang3.6
+#        * x86-clang3.7
 #        * x86_64-4.9
-#        * x86_64-clang3.4
-#        * x86_64-clang3.5
+#        * x86_64-5
+#        * x86_64-clang3.6
+#        * x86_64-clang3.7
 #
 #    ANDROID_FORCE_ARM_BUILD=OFF - set ON to generate 32-bit ARM instructions
 #      instead of Thumb. Is not available for "armeabi-v6 with VFP"
@@ -540,7 +540,7 @@ macro( __GLOB_NDK_TOOLCHAINS __availableToolchainsVar __availableToolchainsLst _
     string( REGEX REPLACE "${__toolchainVersionRegex}" "\\1" __toolchainVersionStr "${__toolchainVersionStr}" )
     string( REGEX REPLACE "-clang3[.][0-9]$" "-${__toolchainVersionStr}" __gcc_toolchain "${__toolchain}" )
    else()
-    string( REGEX REPLACE "-clang3[.][0-9]$" "-4.6" __gcc_toolchain "${__toolchain}" )
+    string( REGEX REPLACE "-clang3[.][0-9]$" "-5" __gcc_toolchain "${__toolchain}" )
    endif()
    unset( __toolchainVersionStr )
    unset( __toolchainVersionRegex )
@@ -1024,13 +1024,7 @@ if( BUILD_WITH_ANDROID_NDK )
   set( ANDROID_EXCEPTIONS       ON )
   set( ANDROID_RTTI             ON )
   if( EXISTS "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
-   if( ARMEABI_V7A AND ANDROID_COMPILER_VERSION VERSION_EQUAL "4.7" AND ANDROID_NDK_RELEASE STREQUAL "r8d" )
-    # gnustl binary for 4.7 compiler is buggy :(
-    # TODO: look for right fix
-    set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/4.6" )
-   else()
-    set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
-   endif()
+   set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
   else()
    set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++" )
   endif()
@@ -1254,9 +1248,7 @@ if( NOT X86 AND NOT ANDROID_COMPILER_IS_CLANG )
  set( ANDROID_CXX_FLAGS "-Wno-psabi ${ANDROID_CXX_FLAGS}" )
 endif()
 
-if( NOT ANDROID_COMPILER_VERSION VERSION_LESS "4.6" )
- set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -no-canonical-prefixes" ) # see https://android-review.googlesource.com/#/c/47564/
-endif()
+set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -no-canonical-prefixes" ) # see https://android-review.googlesource.com/#/c/47564/
 
 # ABI-specific flags
 if( ARMEABI_V7A )
@@ -1373,19 +1365,6 @@ if( ANDROID_FUNCTION_LEVEL_LINKING )
  set( ANDROID_CXX_FLAGS    "${ANDROID_CXX_FLAGS} -fdata-sections -ffunction-sections" )
  set( ANDROID_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} -Wl,--gc-sections" )
 endif()
-
-if( ANDROID_COMPILER_VERSION VERSION_EQUAL "4.6" )
- if( ANDROID_GOLD_LINKER AND (CMAKE_HOST_UNIX OR ANDROID_NDK_RELEASE_NUM GREATER 8002) AND (ARMEABI OR ARMEABI_V7A OR X86) )
-  set( ANDROID_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} -fuse-ld=gold" )
- elseif( ANDROID_NDK_RELEASE_NUM GREATER 8002 ) # after r8b
-  set( ANDROID_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} -fuse-ld=bfd" )
- elseif( ANDROID_NDK_RELEASE STREQUAL "r8b" AND ARMEABI AND NOT _CMAKE_IN_TRY_COMPILE )
-  message( WARNING "The default bfd linker from arm GCC 4.6 toolchain can fail with 'unresolvable R_ARM_THM_CALL relocation' error message. See https://code.google.com/p/android/issues/detail?id=35342
-  On Linux and OS X host platform you can workaround this problem using gold linker (default).
-  Rerun cmake with -DANDROID_GOLD_LINKER=ON option in case of problems.
-" )
- endif()
-endif() # version 4.6
 
 if( ANDROID_NOEXECSTACK )
  if( ANDROID_COMPILER_IS_CLANG )
