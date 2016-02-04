@@ -27,35 +27,19 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
-#define __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50
+#include <stdlib.h>
+#include <assert.h>
 
-#include <crystax/id.h>
-/* Enable extended locale interfaces */
-#include <xlocale.h>
-
-#define __LIBCRYSTAX_STDLIB_H_XLOCALE_H_INCLUDED 1
-
-/* For WEXITSTATUS, WIFEXITED and other constants as required by IEEE Std 1003.1, 2013 Edition */
-#include <crystax/sys/wait.h>
-
-#include <malloc.h>
-#include <string.h>
-
-/* https://tracker.crystax.net/issues/1234 */
+#if __APPLE__
 #include <sys/select.h>
+#endif
 
-__BEGIN_DECLS
-
-int ptsname_r(int, char*, size_t);
-int getpt(void);
-int clearenv(void);
-
-static __inline__ int  rand() { return (int)lrand48(); }
-static __inline__ void srand(unsigned int s) { srand48(s); }
-static __inline__ long random() { return lrand48(); }
-static __inline__ void srandom(unsigned long s) { srand48(s); }
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_CRYSTAX_SYS_STDLIB_H_9B27D849A6AE48E1B4DC99764925FA50 */
+int main()
+{
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(1, &fds);
+    assert(!FD_ISSET(0, &fds));
+    assert(FD_ISSET(1, &fds));
+    return 0;
+}
