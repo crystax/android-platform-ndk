@@ -122,7 +122,7 @@ optparser = OptionParser.new do |o|
     end
 
     o.on("--ld-library-path=PATHS", Array, "Load libraries from specified path to device") do |l|
-        OPTIONS[:ld_library_path] = l
+        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
     end
 end
 ENV['POSIXLY_CORRECT'] = '1'
