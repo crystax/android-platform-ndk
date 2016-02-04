@@ -25,6 +25,8 @@ STDOUT_PREFIX = "   > "
 STDERR_PREFIX = "   * "
 
 OPTIONS = {}
+OPTIONS[:ndk] = File.dirname(File.dirname(__FILE__))
+OPTIONS[:adb] = "adb"
 OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
 OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
 OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
@@ -170,9 +172,6 @@ end
 
 CMDS = cmds
 
-OPTIONS[:adb] = "adb" unless OPTIONS[:adb]
-OPTIONS[:ndk] = File.dirname(File.dirname(__FILE__)) unless OPTIONS[:ndk]
-
 VERBOSE = OPTIONS[:verbose]
 ABI = OPTIONS[:abi]
 ADB = OPTIONS[:adb]
@@ -184,7 +183,6 @@ LOCKDIR = OPTIONS[:lockdir]
 LIBDIR  = OPTIONS[:libdir]
 DEVPATH = OPTIONS[:devpath]
 EMUTAG  = OPTIONS[:emutag]
-STRIP = OPTIONS[:strip]
 DEVICE_LOCK_TIMEOUT = OPTIONS[:device_lock_timeout]
 PRINT_TIMESTAMPS = OPTIONS[:print_timestamps]
 RUN_ON_ALL_DEVICES = OPTIONS[:run_on_all_devices]
@@ -199,6 +197,63 @@ OPTIONS[:ld_library_path] ||= []
     OPTIONS[:ld_library_path] += ENV[e].split(':') unless ENV[e].nil?
 end
 LD_LIBRARY_PATH = OPTIONS[:ld_library_path]
+
+if OPTIONS[:strip].nil?
+    case ABI
+    when /^armeabi/
+        toolchain_name = "arm-linux-androideabi"
+    when /^arm64/
+        toolchain_name = "aarch64-linux-android"
+    when "mips"
+        toolchain_name = "mipsel-linux-android"
+    when "mips64"
+        toolchain_name = "mips64el-linux-android"
+    when "x86"
+        toolchain_name = "x86"
+    when "x86_64"
+        toolchain_name = "x86_64"
+    else
+        raise "Unknown ABI: #{ABI.inspect}"
+    end
+
+    case ABI
+    when 'x86'
+        toolchain_prefix = "i686-linux-android"
+    when 'x86_64'
+        toolchain_prefix = "x86_64-linux-android"
+    else
+        toolchain_prefix = toolchain_name
+    end
+
+    toolchain_version = Dir.glob(File.join(NDK, 'toolchains', "#{toolchain_name}-*")).reject do |e|
+        e =~ /-clang\d+\.\d+$/
+    end.map do |e|
+        File.basename(e).sub(/^#{toolchain_name}-/, '').split('.').map(&:to_i)
+    end.sort do |a,b|
+        a <=> b
+    end.last.join('.')
+
+    case RUBY_PLATFORM
+    when /darwin/
+        host_tag = "darwin"
+    when /linux/
+        host_tag = "linux"
+    when /(cygwin|mingw|win32)/
+        host_tag = "windows"
+    end
+
+    case RUBY_PLATFORM
+    when /^x86_64-/
+        host_tag << "-x86_64"
+    else
+        host_tag << "-x86" unless host_tag == "windows"
+    end
+
+    strip = File.join(NDK, "toolchains", "#{toolchain_name}-#{toolchain_version}",
+                      "prebuilt", host_tag, "bin", "#{toolchain_prefix}-strip")
+    OPTIONS[:strip] = strip if File.executable?(strip)
+end
+STRIP = OPTIONS[:strip]
 
 $stdout.sync = true
 $stderr.sync = true
