@@ -30,12 +30,15 @@ OPTIONS[:adb] = "adb"
 OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
 OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
 OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
+OPTIONS[:timeout] = 900
 OPTIONS[:pie] = true
 OPTIONS[:device_lock_timeout] = 1
 OPTIONS[:print_timestamps] = true
 
 optparser = OptionParser.new do |o|
     o.banner = "Usage: #{$0} [options] executable [exe-options]"
+
+    o.separator "\nCommon options:"
 
     o.on("-h", "--help", "Show help screen and exit") do
         puts o
@@ -50,44 +53,61 @@ optparser = OptionParser.new do |o|
         OPTIONS[:log] = f
     end
 
+    o.separator "\nRequired options:"
+
+    o.on("--abi=ABI", "Target ABI") do |a|
+        OPTIONS[:abi] = a
+    end
+
+    o.separator "\nBehavior options:"
+
     o.on("-k", "--[no-]keep-going", "If specified, don't exit on first fail. ",
-         "Instead, run remaining executables and fail when all of them are finished") do |k|
+                                    "Instead, run remaining executables and fail",
+                                    "when all of them are finished") do |k|
         OPTIONS[:keepgoing] = k
+    end
+
+    o.on("--run-on-all-devices", "If specified, run on all compatible devices",
+                                 "(default: run on first compatible device)") do |r|
+        OPTIONS[:run_on_all_devices] = r
     end
 
     o.on("--[no-]print-timestamps", "Print timestamps in log [#{OPTIONS[:print_timestamps]}]") do |p|
         OPTIONS[:print_timestamps] = p
     end
 
-    o.on("--abi=ABI", "Target ABI") do |a|
-        OPTIONS[:abi] = a
+    o.separator "\nTimeout options:"
+
+    o.on("--timeout=VALUE", Integer, "Timeout (in seconds) for execution [#{OPTIONS[:timeout]}]") do |t|
+        OPTIONS[:timeout] = [t, 0].max
     end
 
-    o.on("--timeout=TIMEOUT", Integer, "Timeout (in seconds) for execution") do |t|
-        OPTIONS[:timeout] = [t, 0].max
+    o.on("--device-lock-timeout=VALUE", Numeric, "Timeout (in seconds) for device lock [#{OPTIONS[:device_lock_timeout]}]") do |t|
+        OPTIONS[:device_lock_timeout] = t
+    end
+
+    o.separator "\nPath options:"
+
+    o.on("--ndk=PATH", "Path to NDK [autodetect]") do |p|
+        OPTIONS[:ndk] = p
     end
 
     o.on("--adb=PATH", "Path to adb [autodetect]") do |a|
         OPTIONS[:adb] = a
     end
 
-    o.on("--strip=PATH", "Full path to the 'strip' utility needed for stripping binaries before uploading them to device/emulator") do |s|
+    o.on("--strip=PATH", "Full path to the 'strip' utility needed for stripping",
+                         "binaries before uploading them to device/emulator [autodetect]") do |s|
         OPTIONS[:strip] = s
     end
 
-    o.on("--ndk=PATH", "Path to NDK [autodetect]") do |p|
-        OPTIONS[:ndk] = p
-    end
-
-    o.on("--device-path=PATH", "Root path on device used for uploading binaries to [#{OPTIONS[:devpath]}]") do |d|
+    o.on("--device-path=PATH", "Root path on device used for uploading binaries",
+                               "[#{OPTIONS[:devpath]}]") do |d|
         OPTIONS[:devpath] = d
     end
 
-    o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option") do |p|
-        OPTIONS[:pie] = p
-    end
-
-    o.on("--lib-directory=PATH", "Directory to save temporary libraries before push them on device [#{OPTIONS[:libdir]}]") do |d|
+    o.on("--lib-directory=PATH", "Directory to save temporary libraries before push",
+                                 "them on device [#{OPTIONS[:libdir]}]") do |d|
         OPTIONS[:libdir] = d
     end
 
@@ -95,37 +115,36 @@ optparser = OptionParser.new do |o|
         OPTIONS[:lockdir] = d
     end
 
-    o.on("--device-lock-timeout=TIMEOUT", Numeric, "Timeout (in seconds) for device lock") do |t|
-        OPTIONS[:device_lock_timeout] = t
+    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
+        OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
+    end
+
+    o.on("--ld-library-path=PATHS", Array, "Load libraries from specified path to device") do |l|
+        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
+    end
+
+    o.separator "\nAdditional options:"
+
+    o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option [#{OPTIONS[:pie]}]") do |p|
+        OPTIONS[:pie] = p
     end
 
     o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |tag|
         OPTIONS[:emutag] = tag
     end
 
-    o.on("--run-on-all-devices", "If specified, run on all compatible devices (default: run on first compatible device)") do |r|
-        OPTIONS[:run_on_all_devices] = r
-    end
-
     o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
         OPTIONS[:mroprefix] = p
-    end
-
-    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
-        OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
     end
 
     o.on("--args-path-prefixes=LIST", Array, "Prefixes for command line arguments indicating paths") do |l|
         OPTIONS[:args_path_prefixes] = l
     end
 
-    o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on") do |l|
+    o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on [autodetect]") do |l|
         OPTIONS[:min_api_level] = l
     end
 
-    o.on("--ld-library-path=PATHS", Array, "Load libraries from specified path to device") do |l|
-        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
-    end
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -190,6 +209,17 @@ KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
 SYMDIRS = OPTIONS[:symdirs]
 ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
+
+if OPTIONS[:min_api_level].nil?
+    case ABI
+    when /^armeabi/, 'x86', 'mips'
+        OPTIONS[:min_api_level] = 9
+    when /^arm64/, 'x86_64', 'mips64'
+        OPTIONS[:min_api_level] = 21
+    else
+        raise "Unknown ABI: '#{ABI.inspect}'"
+    end
+end
 MIN_API_LEVEL = OPTIONS[:min_api_level]
 
 OPTIONS[:ld_library_path] ||= []
