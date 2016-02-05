@@ -152,9 +152,7 @@
 #        gnustl_static  -> Use the GNU STL as a static library.
 #                          Implies -frtti -fexceptions.
 #        gnustl_shared  -> Use the GNU STL as a shared library.
-#                          Implies -frtti -fno-exceptions.
-#                          Available for NDK r7b and newer.
-#                          Silently degrades to gnustl_static if not available.
+#                          Implies -frtti -fexceptions.
 #
 #    ANDROID_STL_FORCE_FEATURES=ON - turn rtti and exceptions support based on
 #      chosen runtime. If disabled, then the user is responsible for settings
@@ -941,34 +939,19 @@ if( BUILD_WITH_ANDROID_NDK )
   set( ANDROID_EXCEPTIONS       ON )
   set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/system/include" )
  elseif( ANDROID_STL MATCHES "gabi" )
-  if( ANDROID_NDK_RELEASE_NUM LESS 7000 ) # before r7
-   message( FATAL_ERROR "gabi++ is not available in your NDK. You have to upgrade to NDK r7 or newer to use gabi++.")
-  endif()
   set( ANDROID_RTTI             ON )
   set( ANDROID_EXCEPTIONS       OFF )
   set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/gabi++/include" )
   set( __libstl                 "${ANDROID_NDK}/sources/cxx-stl/gabi++/libs/${ANDROID_NDK_ABI_NAME}/libgabi++_static.a" )
  elseif( ANDROID_STL MATCHES "stlport" )
-  if( NOT ANDROID_NDK_RELEASE_NUM LESS 8004 ) # before r8d
-   set( ANDROID_EXCEPTIONS       ON )
-  else()
-   set( ANDROID_EXCEPTIONS       OFF )
-  endif()
-  if( ANDROID_NDK_RELEASE_NUM LESS 7000 ) # before r7
-   set( ANDROID_RTTI            OFF )
-  else()
-   set( ANDROID_RTTI            ON )
-  endif()
+  set( ANDROID_EXCEPTIONS       ON )
+  set( ANDROID_RTTI             ON )
   set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/stlport/stlport" )
   set( __libstl                 "${ANDROID_NDK}/sources/cxx-stl/stlport/libs/${ANDROID_NDK_ABI_NAME}/libstlport_static.a" )
  elseif( ANDROID_STL MATCHES "gnustl" )
   set( ANDROID_EXCEPTIONS       ON )
   set( ANDROID_RTTI             ON )
-  if( EXISTS "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
-   set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
-  else()
-   set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++" )
-  endif()
+  set( __libstl                "${ANDROID_NDK}/sources/cxx-stl/gnu-libstdc++/${ANDROID_COMPILER_VERSION}" )
   set( ANDROID_STL_INCLUDE_DIRS "${__libstl}/include" "${__libstl}/libs/${ANDROID_NDK_ABI_NAME}/include" "${__libstl}/include/backward" )
   if( EXISTS "${__libstl}/libs/${ANDROID_NDK_ABI_NAME}/libgnustl_static.a" )
    set( __libstl                "${__libstl}/libs/${ANDROID_NDK_ABI_NAME}/libgnustl_static.a" )
@@ -1251,7 +1234,11 @@ if( STDCXX_LIBRARY )
 endif()
 
 set( LIBCRYSTAX_DIR ${ANDROID_NDK}/sources/crystax )
-set( LIBCRYSTAX_LIBDIR ${LIBCRYSTAX_DIR}/libs/${ANDROID_ABI} )
+set( LIBCRYSTAX_INCDIR ${LIBCRYSTAX_DIR}/include )
+set( LIBCRYSTAX_LIBDIR ${LIBCRYSTAX_DIR}/libs/${ANDROID_NDK_ABI_NAME} )
+if( ANDROID_NDK_ABI_NAME MATCHES "^armeabi.*$" )
+ set( LIBCRYSTAX_LIBDIR ${LIBCRYSTAX_LIBDIR}/thumb )
+endif()
 set( LIBCRYSTAX_LIBRARY ${LIBCRYSTAX_LIBDIR}/libcrystax.so )
 set( LIBCRYSTAX_OPTIONS "-L${LIBCRYSTAX_LIBDIR} -lcrystax" )
 
@@ -1398,7 +1385,7 @@ if( DEFINED ANDROID_EXCEPTIONS AND ANDROID_STL_FORCE_FEATURES )
 endif()
 
 # global includes and link directories
-include_directories( SYSTEM "${ANDROID_NDK}/sources/crystax/include" "${ANDROID_SYSROOT}/usr/include" ${ANDROID_STL_INCLUDE_DIRS} )
+include_directories( SYSTEM ${LIBCRYSTAX_INCDIR} "${ANDROID_SYSROOT}/usr/include" ${ANDROID_STL_INCLUDE_DIRS} )
 get_filename_component(__android_install_path "${CMAKE_INSTALL_PREFIX}/libs/${ANDROID_NDK_ABI_NAME}" ABSOLUTE) # avoid CMP0015 policy warning
 link_directories( "${__android_install_path}" )
 
