@@ -197,6 +197,8 @@ if (NOT CMAKE_BUILD_TYPE)
  set( CMAKE_BUILD_TYPE Release )
 endif()
 
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
+
 # inherit settings in recursive loads
 get_property( _CMAKE_IN_TRY_COMPILE GLOBAL PROPERTY IN_TRY_COMPILE )
 if( _CMAKE_IN_TRY_COMPILE )

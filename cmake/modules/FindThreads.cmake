@@ -1,0 +1,2 @@
+set(Threads_FOUND TRUE)
+set(CMAKE_USE_PTHREADS_INIT 1)
