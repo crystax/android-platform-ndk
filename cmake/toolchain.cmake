@@ -59,6 +59,7 @@
 #            sets NEON as floating-point unit
 #        "armeabi-v7a with VFPV3" - same as armeabi-v7a, but
 #            sets VFPV3 as floating-point unit (has 32 registers instead of 16)
+#        "armeabi-v7a-hard" same as armeabi-v7a, but using -mhard-float
 #        "armeabi-v6 with VFP" - tuned for ARMv6 processors having VFP
 #        "x86" - IA-32 instruction set
 #        "mips" - MIPS32 instruction set
@@ -174,7 +175,7 @@
 #    ANDROID and BUILD_ANDROID will be set to true, you may test any of these
 #    variables to make necessary Android-specific configuration changes.
 #
-#    Also ARMEABI or ARMEABI_V7A or X86 or MIPS or ARM64_V8A or X86_64 or MIPS64
+#    Also ARMEABI or ARMEABI_V7A or ARMEABI_V7A_HARD or X86 or MIPS or ARM64_V8A or X86_64 or MIPS64
 #    will be set true, mutually exclusive. NEON option will be set true
 #    if VFP is set to NEON.
 #
@@ -237,7 +238,7 @@ if( NOT DEFINED ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH )
 endif()
 
 # known ABIs
-set( ANDROID_SUPPORTED_ABIS_arm "armeabi-v7a;armeabi;armeabi-v7a with NEON;armeabi-v7a with VFPV3;armeabi-v6 with VFP" )
+set( ANDROID_SUPPORTED_ABIS_arm "armeabi-v7a;armeabi;armeabi-v7a-hard;armeabi-v7a with NEON;armeabi-v7a with VFPV3;armeabi-v6 with VFP" )
 set( ANDROID_SUPPORTED_ABIS_arm64 "arm64-v8a" )
 set( ANDROID_SUPPORTED_ABIS_x86 "x86" )
 set( ANDROID_SUPPORTED_ABIS_x86_64 "x86_64" )
@@ -599,7 +600,7 @@ elseif( ANDROID_ABI STREQUAL "armeabi-v6 with VFP" )
  set( CMAKE_SYSTEM_PROCESSOR "armv6" )
  # need always fallback to older platform
  set( ARMEABI true )
-elseif( ANDROID_ABI STREQUAL "armeabi-v7a")
+elseif( ANDROID_ABI STREQUAL "armeabi-v7a" )
  set( ARMEABI_V7A true )
  set( ANDROID_NDK_ABI_NAME "armeabi-v7a" )
  set( ANDROID_ARCH_NAME "arm" )
@@ -623,6 +624,13 @@ elseif( ANDROID_ABI STREQUAL "armeabi-v7a with NEON" )
  set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
  set( VFPV3 true )
  set( NEON true )
+elseif( ANDROID_ABI STREQUAL "armeabi-v7a-hard" )
+ set( ARMEABI_V7A_HARD true )
+ set( ANDROID_NDK_ABI_NAME "armeabi-v7a-hard" )
+ set( ANDROID_ARCH_NAME "arm" )
+ set( ANDROID_LLVM_TRIPLE "armv7-none-linux-androideabi" )
+ set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
+ set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
 else()
  message( SEND_ERROR "Unknown ANDROID_ABI=\"${ANDROID_ABI}\" is specified." )
 endif()
@@ -858,6 +866,8 @@ if( BUILD_WITH_STANDALONE_TOOLCHAIN )
    set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_STANDALONE_TOOLCHAIN}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/include/c++/${ANDROID_COMPILER_VERSION}" )
   endif()
   if( ARMEABI_V7A AND EXISTS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/${CMAKE_SYSTEM_PROCESSOR}/bits" )
+   list( APPEND ANDROID_STL_INCLUDE_DIRS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/${CMAKE_SYSTEM_PROCESSOR}" )
+  elseif( ARMEABI_V7A_HARD AND EXISTS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/${CMAKE_SYSTEM_PROCESSOR}/bits" )
    list( APPEND ANDROID_STL_INCLUDE_DIRS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/${CMAKE_SYSTEM_PROCESSOR}" )
   elseif( ARMEABI AND NOT ANDROID_FORCE_ARM_BUILD AND EXISTS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/thumb/bits" )
    list( APPEND ANDROID_STL_INCLUDE_DIRS "${ANDROID_STL_INCLUDE_DIRS}/${ANDROID_TOOLCHAIN_MACHINE_NAME}/thumb" )
@@ -1126,11 +1136,11 @@ if (ARM64_V8A )
  if( NOT ANDROID_COMPILER_IS_CLANG )
   set( ANDROID_CXX_FLAGS_RELEASE "${ANDROID_CXX_FLAGS_RELEASE} -funswitch-loops -finline-limit=300" )
  endif()
-elseif( ARMEABI OR ARMEABI_V7A)
+elseif( ARMEABI OR ARMEABI_V7A OR ARMEABI_V7A_HARD)
  set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -funwind-tables" )
  if( NOT ANDROID_FORCE_ARM_BUILD AND NOT ARMEABI_V6 )
   set( ANDROID_CXX_FLAGS_RELEASE "-mthumb -fomit-frame-pointer -fno-strict-aliasing" )
-  set( ANDROID_CXX_FLAGS_DEBUG   "-marm -fno-omit-frame-pointer -fno-strict-aliasing" )
+  set( ANDROID_CXX_FLAGS_DEBUG   "-mthumb -fno-omit-frame-pointer -fno-strict-aliasing" )
   if( NOT ANDROID_COMPILER_IS_CLANG )
    set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -finline-limit=64" )
   endif()
@@ -1173,6 +1183,15 @@ set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -no-canonical-prefixes" ) # see htt
 # ABI-specific flags
 if( ARMEABI_V7A )
  set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -march=armv7-a -mfloat-abi=softfp" )
+ if( NEON )
+  set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -mfpu=neon" )
+ elseif( VFPV3 )
+  set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -mfpu=vfpv3" )
+ else()
+  set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -mfpu=vfpv3-d16" )
+ endif()
+elseif( ARMEABI_V7A_HARD )
+ set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -march=armv7-a -mhard-float" )
  if( NEON )
   set( ANDROID_CXX_FLAGS "${ANDROID_CXX_FLAGS} -mfpu=neon" )
  elseif( VFPV3 )
@@ -1274,10 +1293,14 @@ mark_as_advanced( ANDROID_NO_UNDEFINED ANDROID_SO_UNDEFINED ANDROID_FUNCTION_LEV
 # linker flags
 set( ANDROID_LINKER_FLAGS "" )
 
-if( ARMEABI_V7A )
+if( ARMEABI_V7A OR ARMEABI_V7A_HARD )
  # this is *required* to use the following linker flags that routes around
  # a CPU bug in some Cortex-A8 implementations:
  set( ANDROID_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} -Wl,--fix-cortex-a8" )
+endif()
+
+if( ARMEABI_V7A_HARD )
+ set( ANDROID_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} -Wl,--no-warn-mismatch" )
 endif()
 
 if( ANDROID_NO_UNDEFINED )
@@ -1564,7 +1587,7 @@ endif()
 
 
 # Variables controlling behavior or set by cmake toolchain:
-#   ANDROID_ABI : "armeabi-v7a" (default), "armeabi", "armeabi-v7a with NEON", "armeabi-v7a with VFPV3", "armeabi-v6 with VFP", "x86", "mips", "arm64-v8a", "x86_64", "mips64"
+#   ANDROID_ABI : "armeabi-v7a" (default), "armeabi", "armeabi-v7a with NEON", "armeabi-v7a with VFPV3", "armeabi-v7a-hard", "armeabi-v6 with VFP", "x86", "mips", "arm64-v8a", "x86_64", "mips64"
 #   ANDROID_NATIVE_API_LEVEL : 3,4,5,8,9,14,15,16,17,18,19,21 (depends on NDK version)
 #   ANDROID_STL : gnustl_static/gnustl_shared/stlport_static/stlport_shared/gabi++_static/gabi++_shared/system_re/system/none
 #   ANDROID_FORBID_SYGWIN : ON/OFF
@@ -1600,7 +1623,7 @@ endif()
 #   BUILD_WITH_ANDROID_NDK : TRUE if NDK is used
 #   BUILD_WITH_STANDALONE_TOOLCHAIN : TRUE if standalone toolchain is used
 #   ANDROID_NDK_HOST_SYSTEM_NAME : "windows", "linux-x86" or "darwin-x86" depending on host platform
-#   ANDROID_NDK_ABI_NAME : "armeabi", "armeabi-v7a", "x86", "mips", "arm64-v8a", "x86_64", "mips64" depending on ANDROID_ABI
+#   ANDROID_NDK_ABI_NAME : "armeabi", "armeabi-v7a", "armeabi-v7a-hard", "x86", "mips", "arm64-v8a", "x86_64", "mips64" depending on ANDROID_ABI
 #   ANDROID_NDK_RELEASE : from r5 to r10d; set only for NDK
 #   ANDROID_NDK_RELEASE_NUM : numeric ANDROID_NDK_RELEASE version (1000*major+minor)
 #   ANDROID_ARCH_NAME : "arm", "x86", "mips", "arm64", "x86_64", "mips64" depending on ANDROID_ABI
