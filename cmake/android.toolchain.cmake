@@ -841,34 +841,6 @@ unset( ANDROID_STL_INCLUDE_DIRS )
 unset( __libstl )
 unset( __libsupcxx )
 
-if( NOT _CMAKE_IN_TRY_COMPILE AND ANDROID_NDK_RELEASE STREQUAL "r7b" AND ARMEABI_V7A AND NOT VFPV3 AND ANDROID_STL MATCHES "gnustl" )
- message( WARNING  "The GNU STL armeabi-v7a binaries from NDK r7b can crash non-NEON devices. The files provided with NDK r7b were not configured properly, resulting in crashes on Tegra2-based devices and others when trying to use certain floating-point functions (e.g., cosf, sinf, expf).
-You are strongly recommended to switch to another NDK release.
-" )
-endif()
-
-if( NOT _CMAKE_IN_TRY_COMPILE AND X86 AND ANDROID_STL MATCHES "gnustl" AND ANDROID_NDK_RELEASE STREQUAL "r6" )
-  message( WARNING  "The x86 system header file from NDK r6 has incorrect definition for ptrdiff_t. You are recommended to upgrade to a newer NDK release or manually patch the header:
-See https://android.googlesource.com/platform/development.git f907f4f9d4e56ccc8093df6fee54454b8bcab6c2
-  diff --git a/ndk/platforms/android-9/arch-x86/include/machine/_types.h b/ndk/platforms/android-9/arch-x86/include/machine/_types.h
-  index 5e28c64..65892a1 100644
-  --- a/ndk/platforms/android-9/arch-x86/include/machine/_types.h
-  +++ b/ndk/platforms/android-9/arch-x86/include/machine/_types.h
-  @@ -51,7 +51,11 @@ typedef long int       ssize_t;
-   #endif
-   #ifndef _PTRDIFF_T
-   #define _PTRDIFF_T
-  -typedef long           ptrdiff_t;
-  +#  ifdef __ANDROID__
-  +     typedef int            ptrdiff_t;
-  +#  else
-  +     typedef long           ptrdiff_t;
-  +#  endif
-   #endif
-" )
-endif()
-
-
 # setup paths and STL for standalone toolchain
 if( BUILD_WITH_STANDALONE_TOOLCHAIN )
  set( ANDROID_TOOLCHAIN_ROOT "${ANDROID_STANDALONE_TOOLCHAIN}" )
