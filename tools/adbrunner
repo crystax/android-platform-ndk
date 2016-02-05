@@ -29,7 +29,7 @@ OPTIONS[:ndk] = File.dirname(File.dirname(__FILE__))
 OPTIONS[:adb] = "adb"
 OPTIONS[:devpath] = '/data/local/tmp/adbrunner'
 OPTIONS[:lockdir] = File.join(ROOTDIR, 'lock')
-OPTIONS[:libdir]  = File.join(ROOTDIR, 'lib')
+OPTIONS[:stripdir] = File.join(ROOTDIR, 'stripped')
 OPTIONS[:timeout] = 900
 OPTIONS[:pie] = true
 OPTIONS[:device_lock_timeout] = 1
@@ -106,13 +106,12 @@ optparser = OptionParser.new do |o|
         OPTIONS[:devpath] = d
     end
 
-    o.on("--lib-directory=PATH", "Directory to save temporary libraries before push",
-                                 "them on device [#{OPTIONS[:libdir]}]") do |d|
-        OPTIONS[:libdir] = d
-    end
-
     o.on("--lock-directory=PATH", "Directory used for lock files [#{OPTIONS[:lockdir]}]") do |d|
         OPTIONS[:lockdir] = d
+    end
+
+    o.on("--strip-dir=PATH", "Directory used for storing stripped binaries [#{OPTIONS[:stripdir]}]") do |d|
+        OPTIONS[:stripdir] = d
     end
 
     o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
@@ -199,7 +198,7 @@ LOG = OPTIONS[:log]
 PIE = OPTIONS[:pie]
 TIMEOUT = OPTIONS[:timeout]
 LOCKDIR = OPTIONS[:lockdir]
-LIBDIR  = OPTIONS[:libdir]
+STRIPDIR = OPTIONS[:stripdir]
 DEVPATH = OPTIONS[:devpath]
 EMUTAG  = OPTIONS[:emutag]
 DEVICE_LOCK_TIMEOUT = OPTIONS[:device_lock_timeout]
@@ -401,8 +400,17 @@ end
 def strip(src, dst = nil)
     return src if !STRIP && dst.nil?
 
-    dst = "/tmp/adbrunner-#{File.basename(src)}.stripped.#{SecureRandom.uuid}" if dst.nil?
-    at_exit { FileUtils.rm_f dst } if dst.nil?
+    if dst.nil?
+        d = Digest::SHA256.new
+        d.update src
+        dst = File.join(STRIPDIR, "#{File.basename(src)}.#{d.hexdigest}")
+    end
+
+    checksum = File.read("#{dst}.sha256") rescue nil
+
+    if File.exists?(dst) && File.mtime(dst) > File.mtime(src) && !checksum.nil? && sha256(src) == checksum
+        return dst
+    end
 
     log "COPY: #{src} -> #{dst}"
     FileUtils.rm_f dst
@@ -413,6 +421,10 @@ def strip(src, dst = nil)
         log "STRIP: #{dst}"
         run STRIP, '--strip-unneeded', dst
     end
+
+    File.open("#{dst}.sha256", "w") do |f|
+        f.write sha256(src)
+    end if File.basename(src) =~ /^lib.+\.so(\..+)?$/
 
     dst
 end
@@ -848,7 +860,7 @@ def do_run_test(attempt, devid, tag, exe, args)
 
         be = (e == exe) ? targetexe : File.basename(e)
 
-        islib = be =~ /^lib.*\.so(\..*)?$/
+        islib = be =~ /^lib.+\.so(\..+)?$/
         dbe = "#{islib ? dstlibpath : dstbinpath}/#{be}"
 
         cs = islib ? sha256(e) : nil
@@ -864,7 +876,7 @@ def do_run_test(attempt, devid, tag, exe, args)
                 adb_shell devid, "chmod 0755 #{dbe}"
             end
         ensure
-            FileUtils.rm_f tmpf if tmpf != e
+            FileUtils.rm_f tmpf if tmpf != e && !islib
         end
     end
 
