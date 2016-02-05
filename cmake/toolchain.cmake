@@ -35,13 +35,13 @@
 #
 #  Usage Linux:
 #   $ mkdir build && cd build
-#   $ cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/cmake/android.toolchain.cmake ..
+#   $ cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/cmake/toolchain.cmake ..
 #   $ make -j8
 #
 #  Usage Windows:
 #   $ mkdir build && cd build
 #   $ cmake.exe -G"MinGW Makefiles"
-#       -DCMAKE_TOOLCHAIN_FILE=%NDK%\cmake\android.toolchain.cmake
+#       -DCMAKE_TOOLCHAIN_FILE=%NDK%\cmake\toolchain.cmake
 #       -DCMAKE_MAKE_PROGRAM="C:\absolute\path\to\the\crystax-ndk\prebuilt\windows\bin\make.exe" ..
 #   $ cmake.exe --build .
 #
@@ -123,7 +123,7 @@
 #      libraries. Automatically turned for NDK r5x and r6x due to GLESv2
 #      problems.
 #
-#    ANDROID_STL=gnustl_static - specify the runtime to use.
+#    ANDROID_STL=gnustl_shared - specify the runtime to use.
 #
 #      Possible values are:
 #        none           -> Do not configure the runtime.
@@ -197,12 +197,16 @@ if (NOT CMAKE_BUILD_TYPE)
  set( CMAKE_BUILD_TYPE Release )
 endif()
 
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT CMAKE_BUILD_TYPE STREQUAL "Release" )
+ message(FATAL_ERROR "CMAKE_BUILD_TYPE must be either 'Debug' or 'Release'")
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/modules)
 
 # inherit settings in recursive loads
 get_property( _CMAKE_IN_TRY_COMPILE GLOBAL PROPERTY IN_TRY_COMPILE )
 if( _CMAKE_IN_TRY_COMPILE )
- include( "${CMAKE_CURRENT_SOURCE_DIR}/../android.toolchain.config.cmake" OPTIONAL )
+ include( "${CMAKE_CURRENT_SOURCE_DIR}/../toolchain.config.cmake" OPTIONAL )
 endif()
 
 # this one is important
@@ -805,7 +809,7 @@ endif()
 
 # runtime choice (STL, rtti, exceptions)
 if( NOT ANDROID_STL )
-  set( ANDROID_STL gnustl_static )
+  set( ANDROID_STL gnustl_shared )
 endif()
 set( ANDROID_STL "${ANDROID_STL}" CACHE STRING "C++ runtime" )
 set( ANDROID_STL_FORCE_FEATURES ON CACHE BOOL "automatically configure rtti and exceptions support based on C++ runtime" )
@@ -1107,10 +1111,6 @@ foreach( lang C CXX ASM )
  endif()
 endforeach()
 
-# flags and definitions
-remove_definitions( -DANDROID )
-add_definitions( -DANDROID )
-
 if( ANDROID_SYSROOT MATCHES "[ ;\"]" )
  if( CMAKE_HOST_WIN32 )
   # try to convert path to 8.3 form
@@ -1213,7 +1213,7 @@ else()
  set( CMAKE_CXX_LINK_EXECUTABLE       "<CMAKE_CXX_COMPILER> <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>" )
 endif()
 
-unset( STDCXX_LIBDIR )
+unset( STDCXX_LIBRARY )
 
 # STL
 if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
@@ -1221,7 +1221,7 @@ if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
   set( CMAKE_CXX_CREATE_SHARED_LIBRARY "${CMAKE_CXX_CREATE_SHARED_LIBRARY} \"${__libstl}\"" )
   set( CMAKE_CXX_CREATE_SHARED_MODULE  "${CMAKE_CXX_CREATE_SHARED_MODULE} \"${__libstl}\"" )
   set( CMAKE_CXX_LINK_EXECUTABLE       "${CMAKE_CXX_LINK_EXECUTABLE} \"${__libstl}\"" )
-  get_filename_component( STDCXX_LIBDIR ${__libstl} DIRECTORY )
+  set( STDCXX_LIBRARY ${__libstl} )
  endif()
  if( EXISTS "${__libsupcxx}" )
   set( CMAKE_CXX_CREATE_SHARED_LIBRARY "${CMAKE_CXX_CREATE_SHARED_LIBRARY} \"${__libsupcxx}\"" )
@@ -1245,12 +1245,22 @@ if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
  #endif()
 endif()
 
-set( LIBCRYSTAX_LIBDIR ${ANDROID_NDK}/sources/crystax/libs/${ANDROID_ABI} )
+unset( STDCXX_LIBDIR )
+if( STDCXX_LIBRARY )
+ get_filename_component( STDCXX_LIBDIR ${STDCXX_LIBRARY} DIRECTORY )
+endif()
+
+set( LIBCRYSTAX_DIR ${ANDROID_NDK}/sources/crystax )
+set( LIBCRYSTAX_LIBDIR ${LIBCRYSTAX_DIR}/libs/${ANDROID_ABI} )
+set( LIBCRYSTAX_LIBRARY ${LIBCRYSTAX_LIBDIR}/libcrystax.so )
 set( LIBCRYSTAX_OPTIONS "-L${LIBCRYSTAX_LIBDIR} -lcrystax" )
 
 set( CMAKE_CXX_CREATE_SHARED_LIBRARY "${CMAKE_CXX_CREATE_SHARED_LIBRARY} ${LIBCRYSTAX_OPTIONS}" )
 set( CMAKE_CXX_CREATE_SHARED_MODULE  "${CMAKE_CXX_CREATE_SHARED_MODULE} ${LIBCRYSTAX_OPTIONS}" )
 set( CMAKE_CXX_LINK_EXECUTABLE       "${CMAKE_CXX_LINK_EXECUTABLE} ${LIBCRYSTAX_OPTIONS}" )
+set( CMAKE_C_CREATE_SHARED_LIBRARY   "${CMAKE_C_CREATE_SHARED_LIBRARY} ${LIBCRYSTAX_OPTIONS}" )
+set( CMAKE_C_CREATE_SHARED_MODULE    "${CMAKE_C_CREATE_SHARED_MODULE} ${LIBCRYSTAX_OPTIONS}" )
+set( CMAKE_C_LINK_EXECUTABLE         "${CMAKE_C_LINK_EXECUTABLE} ${LIBCRYSTAX_OPTIONS}" )
 
 # variables controlling optional build flags
 if( ANDROID_NDK_RELEASE_NUM LESS 7000 ) # before r7
@@ -1326,8 +1336,8 @@ endif()
 # cache flags
 set( CMAKE_CXX_FLAGS           ""                        CACHE STRING "c++ flags" )
 set( CMAKE_C_FLAGS             ""                        CACHE STRING "c flags" )
-set( CMAKE_CXX_FLAGS_RELEASE   "-O3 -DNDEBUG"            CACHE STRING "c++ Release flags" )
-set( CMAKE_C_FLAGS_RELEASE     "-O3 -DNDEBUG"            CACHE STRING "c Release flags" )
+set( CMAKE_CXX_FLAGS_RELEASE   "-O3 -g -DNDEBUG"         CACHE STRING "c++ Release flags" )
+set( CMAKE_C_FLAGS_RELEASE     "-O3 -g -DNDEBUG"         CACHE STRING "c Release flags" )
 set( CMAKE_CXX_FLAGS_DEBUG     "-O0 -g -DDEBUG -D_DEBUG" CACHE STRING "c++ Debug flags" )
 set( CMAKE_C_FLAGS_DEBUG       "-O0 -g -DDEBUG -D_DEBUG" CACHE STRING "c Debug flags" )
 set( CMAKE_SHARED_LINKER_FLAGS ""                        CACHE STRING "shared linker flags" )
@@ -1548,7 +1558,7 @@ if( NOT _CMAKE_IN_TRY_COMPILE )
    endif()
   endif()
  endforeach()
- file( WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/android.toolchain.config.cmake" "${__toolchain_config}" )
+ file( WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/toolchain.config.cmake" "${__toolchain_config}" )
  unset( __toolchain_config )
 endif()
 
