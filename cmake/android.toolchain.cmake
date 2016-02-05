@@ -1,5 +1,6 @@
 # Copyright (c) 2010-2011, Ethan Rublee
 # Copyright (c) 2011-2014, Andrey Kamaev
+# Copyright (c) 2015-2016, Dmitry Moskalchuk
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,34 +30,23 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # ------------------------------------------------------------------------------
-#  Android CMake toolchain file, for use with the Android NDK r5-r10d
+#  Android CMake toolchain file, for use with the CrystaX NDK
 #  Requires cmake 2.6.3 or newer (2.8.9 or newer is recommended).
-#  See home page: https://github.com/taka-no-me/android-cmake
 #
 #  Usage Linux:
-#   $ export ANDROID_NDK=/absolute/path/to/the/android-ndk
 #   $ mkdir build && cd build
-#   $ cmake -DCMAKE_TOOLCHAIN_FILE=path/to/the/android.toolchain.cmake ..
+#   $ cmake -DCMAKE_TOOLCHAIN_FILE=$NDK/cmake/android.toolchain.cmake ..
 #   $ make -j8
 #
 #  Usage Windows:
-#     You need native port of make to build your project.
-#     Android NDK r7 (and newer) already has make.exe on board.
-#     For older NDK you have to install it separately.
-#     For example, this one: http://gnuwin32.sourceforge.net/packages/make.htm
-#
-#   $ SET ANDROID_NDK=C:\absolute\path\to\the\android-ndk
 #   $ mkdir build && cd build
 #   $ cmake.exe -G"MinGW Makefiles"
-#       -DCMAKE_TOOLCHAIN_FILE=path\to\the\android.toolchain.cmake
-#       -DCMAKE_MAKE_PROGRAM="%ANDROID_NDK%\prebuilt\windows\bin\make.exe" ..
+#       -DCMAKE_TOOLCHAIN_FILE=%NDK%\cmake\android.toolchain.cmake
+#       -DCMAKE_MAKE_PROGRAM="C:\absolute\path\to\the\crystax-ndk\prebuilt\windows\bin\make.exe" ..
 #   $ cmake.exe --build .
 #
 #
 #  Options (can be set as cmake parameters: -D<option_name>=<value>):
-#    ANDROID_NDK=/opt/android-ndk - path to the NDK root.
-#      Can be set as environment variable. Can be set only at first cmake run.
-#
 #    ANDROID_ABI=armeabi-v7a - specifies the target Application Binary
 #      Interface (ABI). This option nearly matches to the APP_ABI variable
 #      used by ndk-build tool from Android NDK.
@@ -73,18 +63,29 @@
 #        "x86" - IA-32 instruction set
 #        "mips" - MIPS32 instruction set
 #
-#      64-bit ABIs for NDK r10 and newer:
+#      64-bit ABIs
 #        "arm64-v8a" - ARMv8 AArch64 instruction set
 #        "x86_64" - Intel64 instruction set (r1)
 #        "mips64" - MIPS64 instruction set (r6)
 #
-#    ANDROID_NATIVE_API_LEVEL=android-8 - level of Android API compile for.
+#    ANDROID_NATIVE_API_LEVEL=android-9 - level of Android API compile for.
 #      Option is read-only when standalone toolchain is used.
-#      Note: building for "android-L" requires explicit configuration.
+#
+#    ANDROID_TOOLCHAIN_VERSION=gcc-5 - the version of the toolchain to be
+#      used. The list of possible values depends on the NDK version.
+#      For CrystaX NDK 10.3.1 the possible values are:
+#
+#        * gcc-4.9
+#        * gcc-5
+#        * clang-3.6
+#        * clang-3.7
 #
 #    ANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-4.9 - the name of compiler
-#      toolchain to be used. The list of possible values depends on the NDK
-#      version. For CrystaX NDK 10.3.1 the possible values are:
+#      toolchain to be used. This is combination of ANDROID_ABI and ANDROID_TOOLCHAIN_VERSION
+#      values. Use it only if you really need it. Usually, it's enough to specify
+#      ANDROID_ABI and ANDROID_TOOLCHAIN_VERSION - ANDROID_TOOLCHAIN_NAME is deduced from them.
+#      The list of possible values depends on the NDK version. For CrystaX NDK 10.3.1
+#      the possible values are:
 #
 #        * aarch64-linux-android-4.9
 #        * aarch64-linux-android-5
@@ -161,11 +162,8 @@
 #
 #  What?:
 #    android-cmake toolchain searches for NDK/toolchain in the following order:
-#      ANDROID_NDK - cmake parameter
-#      ANDROID_NDK - environment variable
 #      ANDROID_STANDALONE_TOOLCHAIN - cmake parameter
 #      ANDROID_STANDALONE_TOOLCHAIN - environment variable
-#      ANDROID_NDK - default locations
 #      ANDROID_STANDALONE_TOOLCHAIN - default locations
 #
 #    Make sure to do the following in your scripts:
@@ -193,6 +191,10 @@ endif()
 
 if( CMAKE_TOOLCHAIN_FILE )
  # touch toolchain variable to suppress "unused variable" warning
+endif()
+
+if (NOT CMAKE_BUILD_TYPE)
+ set( CMAKE_BUILD_TYPE Release )
 endif()
 
 # inherit settings in recursive loads
@@ -378,39 +380,7 @@ if( NOT ANDROID_NDK_HOST_X64 )
  set( ANDROID_NDK_HOST_SYSTEM_NAME ${ANDROID_NDK_HOST_SYSTEM_NAME2} )
 endif()
 
-# see if we have path to Android NDK
-if( NOT ANDROID_NDK AND NOT ANDROID_STANDALONE_TOOLCHAIN )
-  __INIT_VARIABLE( ANDROID_NDK PATH ENV_ANDROID_NDK )
-endif()
-if( NOT ANDROID_NDK )
- # see if we have path to Android standalone toolchain
- __INIT_VARIABLE( ANDROID_STANDALONE_TOOLCHAIN PATH ENV_ANDROID_STANDALONE_TOOLCHAIN )
-
- if( NOT ANDROID_STANDALONE_TOOLCHAIN )
-  #try to find Android NDK in one of the the default locations
-  set( __ndkSearchPaths )
-  foreach( __ndkSearchPath ${ANDROID_NDK_SEARCH_PATHS} )
-   foreach( suffix ${ANDROID_SUPPORTED_NDK_VERSIONS} )
-    list( APPEND __ndkSearchPaths "${__ndkSearchPath}/android-ndk${suffix}" )
-   endforeach()
-  endforeach()
-  __INIT_VARIABLE( ANDROID_NDK PATH VALUES ${__ndkSearchPaths} )
-  unset( __ndkSearchPaths )
-
-  if( ANDROID_NDK )
-   message( STATUS "Using default path for Android NDK: ${ANDROID_NDK}" )
-   message( STATUS "  If you prefer to use a different location, please define a cmake or environment variable: ANDROID_NDK" )
-  else()
-   #try to find Android standalone toolchain in one of the the default locations
-   __INIT_VARIABLE( ANDROID_STANDALONE_TOOLCHAIN PATH ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH )
-
-   if( ANDROID_STANDALONE_TOOLCHAIN )
-    message( STATUS "Using default path for standalone toolchain ${ANDROID_STANDALONE_TOOLCHAIN}" )
-    message( STATUS "  If you prefer to use a different location, please define the variable: ANDROID_STANDALONE_TOOLCHAIN" )
-   endif( ANDROID_STANDALONE_TOOLCHAIN )
-  endif( ANDROID_NDK )
- endif( NOT ANDROID_STANDALONE_TOOLCHAIN )
-endif( NOT ANDROID_NDK )
+get_filename_component(ANDROID_NDK ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
 
 # remember found paths
 if( ANDROID_NDK )
