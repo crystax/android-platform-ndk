@@ -251,7 +251,7 @@ endif()
 
 # API level defaults
 if ( ANDROID_APP_PIE )
- set( ANDROID_DEFAULT_32BIT_API_LEVEL 17)
+ set( ANDROID_DEFAULT_32BIT_API_LEVEL 16)
 else()
  set( ANDROID_DEFAULT_32BIT_API_LEVEL 9)
 endif()
