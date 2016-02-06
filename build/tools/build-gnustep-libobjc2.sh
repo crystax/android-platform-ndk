@@ -104,30 +104,34 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 build_libobjc2_for_abi ()
 {
     local ABI=$1
-    local BUILDDIR="$2"
+    local BLDDIR="$2"
+
+    local BUILDDIR="$BLDDIR/build"
+    local INSTALLDIR="$BLDDIR/install"
 
     mkdir -p "$BUILDDIR"
     fail_panic "Couldn't create GNUstep libobjc2 build directory for $ABI"
 
-    run cd $BUILDDIR || exit 1
-
     dump "=== Building GNUstep libobjc2 for $ABI"
-    run cmake \
-        -DCMAKE_TOOLCHAIN_FILE="$NDK_DIR/cmake/toolchain.cmake" \
-        -DANDROID_ABI=$ABI \
-        -DANDROID_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION \
-        $LIBOBJC2_SRCDIR
-    fail_panic "Couldn't generate GNUstep libobjc2 Makefile for $ABI"
+    run make -C $LIBOBJC2_SRCDIR/android -j$NUM_JOBS \
+        WITH_TESTS=NO \
+        BUILDDIR="$BUILDDIR" \
+        INSTALLDIR="$INSTALLDIR" \
+        NDK="$NDK_DIR" \
+        ABI=$ABI \
+        TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION \
+        VERBOSE=1
 
-    run make -j$NUM_JOBS VERBOSE=1
     fail_panic "Couldn't build GNUstep libobjc2 for $ABI"
 
     if [ -z "$OBJC2_HEADERS_INSTALLED" ]; then
         run rm -Rf $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include
         run mkdir -p $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include
         fail_panic "Can't create directory for headers"
-        run cp -r $LIBOBJC2_SRCDIR/objc $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include/
+
+        run cp -r $INSTALLDIR/include/* $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include/
         fail_panic "Can't install headers"
+
         OBJC2_HEADERS_INSTALLED=yes
         export OBJC2_HEADERS_INSTALLED
     fi
@@ -136,10 +140,8 @@ build_libobjc2_for_abi ()
     run mkdir -p $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/libs/$ABI
     fail_panic "Can't create directory for $ABI libraries"
 
-    for f in libobjc.so; do
-        run cp $BUILDDIR/$f $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/libs/$ABI
-        fail_panic "Can't install $ABI libraries"
-    done
+    run cp $INSTALLDIR/lib/* $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/libs/$ABI
+    fail_panic "Can't install $ABI libraries"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
