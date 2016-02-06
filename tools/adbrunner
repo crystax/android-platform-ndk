@@ -403,7 +403,7 @@ def strip(src, dst = nil)
     if dst.nil?
         d = Digest::SHA256.new
         d.update src
-        dst = File.join(STRIPDIR, "#{File.basename(src)}.#{d.hexdigest}")
+        dst = File.join(STRIPDIR, ABI, "#{File.basename(src)}.#{d.hexdigest}")
     end
 
     checksum = File.read("#{dst}.sha256") rescue nil
