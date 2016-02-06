@@ -100,196 +100,33 @@ mkdir -p "$BUILD_DIR"
 fail_panic "Could not create build directory: $BUILD_DIR"
 
 # $1: ABI
-llvm_tripple_for_abi()
-{
-    local ABI=$1
-    case $ABI in
-        armeabi)
-            echo "armv5te-none-linux-androideabi"
-            ;;
-        armeabi-v7a*)
-            echo "armv7-none-linux-androideabi"
-            ;;
-        arm64-v8a)
-            echo "aarch64-none-linux-android"
-            ;;
-        x86)
-            echo "i686-none-linux-android"
-            ;;
-        x86_64)
-            echo "x86_64-none-linux-android"
-            ;;
-        mips)
-            echo "mipsel-none-linux-android"
-            ;;
-        mips64)
-            echo "mips64el-none-linux-android"
-            ;;
-        *)
-            dump "Unknown ABI: '$ABI'"
-            exit 1
-    esac
-}
-
-# $1: ABI
-gcc_toolchain_prefix_for_abi()
-{
-    local ABI=$1
-    case $ABI in
-        armeabi*)
-            echo "arm-linux-androideabi"
-            ;;
-        arm64-v8a)
-            echo "aarch64-linux-android"
-            ;;
-        mips|mips64)
-            echo "${ABI}el-linux-android"
-            ;;
-        x86|x86_64)
-            echo $ABI
-            ;;
-        *)
-            dump "Unknown ABI: '$ABI'"
-            exit 1
-    esac
-}
-
-# $1: ABI
-gcc_toolchain_name_for_abi()
-{
-    local ABI=$1
-    case $ABI in
-        armeabi*)
-            echo "arm-linux-androideabi"
-            ;;
-        arm64-v8a)
-            echo "aarch64-linux-android"
-            ;;
-        mips|mips64)
-            echo "${ABI}el-linux-android"
-            ;;
-        x86)
-            echo "i686-linux-android"
-            ;;
-        x86_64)
-            echo "x86_64-linux-android"
-            ;;
-        *)
-            dump "Unknown ABI: '$ABI'"
-            exit 1
-    esac
-}
-
-# $1: ABI
 # $2: build directory
 build_libobjc2_for_abi ()
 {
     local ABI=$1
     local BUILDDIR="$2"
-    local ARCH APILEVEL SYSROOT
-    local CCFLAGS CFLAGS CXXFLAGS
-    local LLVM_DIR LLVM_TRIPPLE
-    local GCC_DIR GCC_VERSION
-    local GCC_TOOLCHAIN_PREFIX GCC_TOOLCHAIN_NAME
 
     mkdir -p "$BUILDDIR"
+    fail_panic "Couldn't create GNUstep libobjc2 build directory for $ABI"
 
-    (cd $LIBOBJC2_SRCDIR && tar cf - ./*) | (cd $BUILDDIR && tar xf -)
-    fail_panic "Couldn't copy GNUstep libobjc2 sources to temporary directory"
-
-    ARCH=$(convert_abi_to_arch $ABI)
-
-    if [ ${ABI%%64*} != ${ABI} ]; then
-        APILEVEL=21
-    else
-        APILEVEL=9
-    fi
-    SYSROOT=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH
-
-    if [ "${TOOLCHAIN_VERSION##clang}" != "${TOOLCHAIN_VERSION}" ]; then
-        GCC_VERSION=$DEFAULT_GCC_VERSION
-    else
-        GCC_VERSION=${TOOLCHAIN_VERSION##gcc}
-    fi
-
-    GCC_TOOLCHAIN_PREFIX=$(gcc_toolchain_prefix_for_abi $ABI)
-    GCC_DIR=$NDK_DIR/toolchains/$GCC_TOOLCHAIN_PREFIX-$GCC_VERSION/prebuilt/$HOST_TAG
-
-    if [ "${TOOLCHAIN_VERSION##clang}" != "${TOOLCHAIN_VERSION}" ]; then
-        LLVM_VERSION=${TOOLCHAIN_VERSION##clang}
-        if [ -z "$LLVM_VERSION" ]; then
-            LLVM_VERSION=$DEFAULT_LLVM_VERSION
-        fi
-
-        LLVM_DIR=$NDK_DIR/toolchains/llvm-$LLVM_VERSION/prebuilt/$HOST_TAG
-        CC=$LLVM_DIR/bin/clang
-        CXX=$LLVM_DIR/bin/clang++
-        AR=$LLVM_DIR/bin/llvm-ar
-
-        LLVM_TRIPPLE=$(llvm_tripple_for_abi $ABI)
-
-        CCFLAGS="-target $LLVM_TRIPPLE"
-        CCFLAGS="$CCFLAGS -gcc-toolchain $GCC_DIR"
-    else
-        GCC_TOOLCHAIN_NAME=$(gcc_toolchain_name_for_abi $ABI)
-        CC=$GCC_DIR/bin/$GCC_TOOLCHAIN_NAME-gcc
-        CXX=$GCC_DIR/bin/$GCC_TOOLCHAIN_NAME-g++
-        AR=$GCC_DIR/bin/$GCC_TOOLCHAIN_NAME-ar
-
-        CCFLAGS=""
-    fi
-
-    case $ABI in
-        armeabi)
-            CCFLAGS="$CCFLAGS -march=armv5te -mtune=xscale -msoft-float -mthumb"
-            ;;
-        armeabi-v7a)
-            CCFLAGS="$CCFLAGS -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb"
-            ;;
-        armeabi-v7a-hard)
-            CCFLAGS="$CCFLAGS -march=armv7-a -mfpu=vfpv3-d16 -mhard-float -mthumb"
-            ;;
-        mips)
-            CCFLAGS="$CCFLAGS -mabi=32 -mips32"
-            ;;
-        mips64)
-            CCFLAGS="$CCFLAGS -mabi=64 -mips64r6"
-            ;;
-    esac
-
-    CCFLAGS="$CCFLAGS --sysroot=$SYSROOT"
-
-    CFLAGS=""
-    CXXFLAGS="-I$NDK_DIR/sources/cxx-stl/llvm-libc++/$DEFAULT_LLVM_VERSION/libcxx/include"
-
-    LDFLAGS="-L$NDK_DIR/$CRYSTAX_SUBDIR/libs/$ABI"
-    if [ "${ABI##armeabi}" != "$ABI" ]; then
-        LDFLAGS="$LDFLAGS/thumb"
-    fi
-
-    LDFLAGS="$LDFLAGS --sysroot=$SYSROOT"
-
-    if [ "$ABI" = "armeabi-v7a-hard" ]; then
-        LDFLAGS="$LDFLAGS -Wl,--no-warn-mismatch"
-    fi
+    run cd $BUILDDIR || exit 1
 
     dump "=== Building GNUstep libobjc2 for $ABI"
-    run make -C $BUILDDIR -f $BUILDDIR/Makefile -j$NUM_JOBS \
-        CC="$CC $CCFLAGS" \
-        CXX="$CXX $CCFLAGS" \
-        AR="$AR" \
-        CFLAGS="$CFLAGS" \
-        CXXFLAGS="$CXXFLAGS" \
-        LDFLAGS="$LDFLAGS" \
-        SILENT="" \
+    run cmake \
+        -DCMAKE_TOOLCHAIN_FILE="$NDK_DIR/cmake/toolchain.cmake" \
+        -DANDROID_ABI=$ABI \
+        -DANDROID_TOOLCHAIN_VERSION=$TOOLCHAIN_VERSION \
+        $LIBOBJC2_SRCDIR
+    fail_panic "Couldn't generate GNUstep libobjc2 Makefile for $ABI"
 
+    run make -j$NUM_JOBS VERBOSE=1
     fail_panic "Couldn't build GNUstep libobjc2 for $ABI"
 
     if [ -z "$OBJC2_HEADERS_INSTALLED" ]; then
         run rm -Rf $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include
         run mkdir -p $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include
         fail_panic "Can't create directory for headers"
-        run cp -r $BUILDDIR/objc $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include/
+        run cp -r $LIBOBJC2_SRCDIR/objc $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/include/
         fail_panic "Can't install headers"
         OBJC2_HEADERS_INSTALLED=yes
         export OBJC2_HEADERS_INSTALLED
@@ -299,7 +136,7 @@ build_libobjc2_for_abi ()
     run mkdir -p $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/libs/$ABI
     fail_panic "Can't create directory for $ABI libraries"
 
-    for f in libobjc.a libobjc.so libobjcxx.so; do
+    for f in libobjc.so; do
         run cp $BUILDDIR/$f $NDK_DIR/$GNUSTEP_OBJC2_SUBDIR/libs/$ABI
         fail_panic "Can't install $ABI libraries"
     done
@@ -354,7 +191,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
 
     for ABI in $BUILT_ABIS; do
         FILES=""
-        for LIB in libobjc.a libobjc.so libobjcxx.so; do
+        for LIB in libobjc.so; do
             FILES="$FILES $GNUSTEP_OBJC2_SUBDIR/libs/$ABI/$LIB"
         done
         PACKAGE_NAME="gnustep-objc2-libs-$ABI.tar.xz"

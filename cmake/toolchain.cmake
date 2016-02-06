@@ -55,12 +55,12 @@
 #        "armeabi" - ARMv5TE based CPU with software floating point operations
 #        "armeabi-v7a" - ARMv7 based devices with hardware FPU instructions
 #            this ABI target is used by default
-#        "armeabi-v7a with NEON" - same as armeabi-v7a, but
+#        "armeabi-v7a+neon" - same as armeabi-v7a, but
 #            sets NEON as floating-point unit
-#        "armeabi-v7a with VFPV3" - same as armeabi-v7a, but
+#        "armeabi-v7a+vfpv3" - same as armeabi-v7a, but
 #            sets VFPV3 as floating-point unit (has 32 registers instead of 16)
 #        "armeabi-v7a-hard" same as armeabi-v7a, but using -mhard-float
-#        "armeabi-v6 with VFP" - tuned for ARMv6 processors having VFP
+#        "armeabi-v6+vfp" - tuned for ARMv6 processors having VFP
 #        "x86" - IA-32 instruction set
 #        "mips" - MIPS32 instruction set
 #
@@ -114,7 +114,7 @@
 #        * x86_64-clang3.7
 #
 #    ANDROID_FORCE_ARM_BUILD=OFF - set ON to generate 32-bit ARM instructions
-#      instead of Thumb. Is not available for "armeabi-v6 with VFP"
+#      instead of Thumb. Is not available for "armeabi-v6+vfp"
 #      (is forced to be ON) ABI.
 #
 #    ANDROID_NO_UNDEFINED=ON - set ON to show all undefined symbols as linker
@@ -238,7 +238,7 @@ if( NOT DEFINED ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH )
 endif()
 
 # known ABIs
-set( ANDROID_SUPPORTED_ABIS_arm "armeabi-v7a;armeabi;armeabi-v7a-hard;armeabi-v7a with NEON;armeabi-v7a with VFPV3;armeabi-v6 with VFP" )
+set( ANDROID_SUPPORTED_ABIS_arm "armeabi-v7a;armeabi;armeabi-v7a+neon;armeabi-v7a+vfpv3;armeabi-v7a-hard;armeabi-v7a-hard+neon;armeabi-v7a-hard+vfpv3;armeabi-v6+vfp" )
 set( ANDROID_SUPPORTED_ABIS_arm64 "arm64-v8a" )
 set( ANDROID_SUPPORTED_ABIS_x86 "x86" )
 set( ANDROID_SUPPORTED_ABIS_x86_64 "x86_64" )
@@ -250,11 +250,7 @@ if( NOT DEFINED ANDROID_APP_PIE )
 endif()
 
 # API level defaults
-if( ANDROID_APP_PIE )
- set( ANDROID_DEFAULT_32BIT_API_LEVEL 17)
-else()
- set( ANDROID_DEFAULT_32BIT_API_LEVEL 9)
-endif()
+set( ANDROID_DEFAULT_32BIT_API_LEVEL 9)
 set( ANDROID_DEFAULT_64BIT_API_LEVEL 21)
 
 set( ANDROID_DEFAULT_NDK_API_LEVEL ${ANDROID_DEFAULT_32BIT_API_LEVEL} )
@@ -556,6 +552,22 @@ macro( __GLOB_NDK_TOOLCHAINS __availableToolchainsVar __availableToolchainsLst _
  endforeach()
 endmacro()
 
+if (NOT DEFINED ANDROID_ABI OR ANDROID_ABI STREQUAL "")
+ message(SEND_ERROR "No ANDROID_ABI specified.")
+endif()
+
+if( ANDROID_ABI STREQUAL "armeabi-v7a with NEON" )
+ set( ANDROID_ABI "armeabi-v7a+neon" )
+elseif( ANDROID_ABI STREQUAL "armeabi-v7a with VFPV3" )
+ set( ANDROID_ABI "armeabi-v7a+vfpv3" )
+elseif( ANDROID_ABI STREQUAL "armeabi-v7a-hard with NEON" )
+ set( ANDROID_ABI "armeabi-v7a-hard+neon" )
+elseif( ANDROID_ABI STREQUAL "armeabi-v7a-hard with VFPV3" )
+ set( ANDROID_ABI "armeabi-v7a-hard+vfpv3" )
+elseif( ANDROID_ABI STREQUAL "armeabi-v6 with VFP" )
+ set( ANDROID_ABI "armeabi-v6+vfp" )
+endif()
+
 # set target ABI options
 if( ANDROID_ABI STREQUAL "x86" )
  set( X86 true )
@@ -602,7 +614,7 @@ elseif( ANDROID_ABI STREQUAL "armeabi" )
  set( ANDROID_LLVM_TRIPLE "armv5te-none-linux-androideabi" )
  set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
  set( CMAKE_SYSTEM_PROCESSOR "armv5te" )
-elseif( ANDROID_ABI STREQUAL "armeabi-v6 with VFP" )
+elseif( ANDROID_ABI STREQUAL "armeabi-v6+vfp" )
  set( ARMEABI_V6 true )
  set( ANDROID_NDK_ABI_NAME "armeabi" )
  set( ANDROID_ARCH_NAME "arm" )
@@ -611,37 +623,32 @@ elseif( ANDROID_ABI STREQUAL "armeabi-v6 with VFP" )
  set( CMAKE_SYSTEM_PROCESSOR "armv6" )
  # need always fallback to older platform
  set( ARMEABI true )
-elseif( ANDROID_ABI STREQUAL "armeabi-v7a" )
+elseif( ANDROID_ABI MATCHES "^armeabi-v7a(\\+.+)?$" )
  set( ARMEABI_V7A true )
  set( ANDROID_NDK_ABI_NAME "armeabi-v7a" )
  set( ANDROID_ARCH_NAME "arm" )
  set( ANDROID_LLVM_TRIPLE "armv7-none-linux-androideabi" )
  set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
  set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
-elseif( ANDROID_ABI STREQUAL "armeabi-v7a with VFPV3" )
- set( ARMEABI_V7A true )
- set( ANDROID_NDK_ABI_NAME "armeabi-v7a" )
- set( ANDROID_ARCH_NAME "arm" )
- set( ANDROID_LLVM_TRIPLE "armv7-none-linux-androideabi" )
- set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
- set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
- set( VFPV3 true )
-elseif( ANDROID_ABI STREQUAL "armeabi-v7a with NEON" )
- set( ARMEABI_V7A true )
- set( ANDROID_NDK_ABI_NAME "armeabi-v7a" )
- set( ANDROID_ARCH_NAME "arm" )
- set( ANDROID_LLVM_TRIPLE "armv7-none-linux-androideabi" )
- set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
- set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
- set( VFPV3 true )
- set( NEON true )
-elseif( ANDROID_ABI STREQUAL "armeabi-v7a-hard" )
+ if( ANDROID_ABI STREQUAL "armeabi-v7a+neon" )
+  set( VFPV3 true )
+  set( NEON true )
+ elseif( ANDROID_ABI STREQUAL "armeabi-v7a+vfpv3" )
+  set( VFPV3 true )
+ endif()
+elseif( ANDROID_ABI MATCHES "^armeabi-v7a-hard(\\+.+)?$" )
  set( ARMEABI_V7A_HARD true )
  set( ANDROID_NDK_ABI_NAME "armeabi-v7a-hard" )
  set( ANDROID_ARCH_NAME "arm" )
  set( ANDROID_LLVM_TRIPLE "armv7-none-linux-androideabi" )
  set( ANDROID_TOOLCHAIN_BUILD_NAME "arm-linux-androideabi" )
  set( CMAKE_SYSTEM_PROCESSOR "armv7-a" )
+ if( ANDROID_ABI STREQUAL "armeabi-v7a-hard+neon" )
+  set( VFPV3 true )
+  set( NEON true )
+ elseif( ANDROID_ABI STREQUAL "armeabi-v7a-hard+vfpv3" )
+  set( VFPV3 true )
+ endif()
 else()
  message( SEND_ERROR "Unknown ANDROID_ABI=\"${ANDROID_ABI}\" is specified." )
 endif()
@@ -1227,6 +1234,7 @@ else()
 endif()
 
 unset( STDCXX_LIBRARY )
+unset( STDCXX_SUPPORT_LIBRARY )
 
 # STL
 if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
@@ -1247,6 +1255,7 @@ if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
   set( CMAKE_C_CREATE_SHARED_LIBRARY "${CMAKE_C_CREATE_SHARED_LIBRARY} \"${__libsupcxx}\"" )
   set( CMAKE_C_CREATE_SHARED_MODULE  "${CMAKE_C_CREATE_SHARED_MODULE} \"${__libsupcxx}\"" )
   set( CMAKE_C_LINK_EXECUTABLE       "${CMAKE_C_LINK_EXECUTABLE} \"${__libsupcxx}\"" )
+  set( STDCXX_SUPPORT_LIBRARY ${__libsupcxx} )
  endif()
 endif()
 
@@ -1592,7 +1601,9 @@ endif()
 
 
 # Variables controlling behavior or set by cmake toolchain:
-#   ANDROID_ABI : "armeabi-v7a" (default), "armeabi", "armeabi-v7a with NEON", "armeabi-v7a with VFPV3", "armeabi-v7a-hard", "armeabi-v6 with VFP", "x86", "mips", "arm64-v8a", "x86_64", "mips64"
+#   ANDROID_ABI : "armeabi-v7a" (default), "armeabi", "armeabi-v7a+neon", "armeabi-v7a+vfpv3",
+#                 "armeabi-v7a-hard", "armeabi-v7a-hard+neon", "armeabi-v7a-hard+vfpv3",
+#                 "armeabi-v6+vfp", "x86", "mips", "arm64-v8a", "x86_64", "mips64"
 #   ANDROID_NATIVE_API_LEVEL : 3,4,5,8,9,14,15,16,17,18,19,21 (depends on NDK version)
 #   ANDROID_STL : gnustl_static/gnustl_shared/stlport_static/stlport_shared/gabi++_static/gabi++_shared/system_re/system/none
 #   ANDROID_FORBID_SYGWIN : ON/OFF
