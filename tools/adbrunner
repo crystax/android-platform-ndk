@@ -67,8 +67,8 @@ optparser = OptionParser.new do |o|
         OPTIONS[:keepgoing] = k
     end
 
-    o.on("--run-on-all-devices", "If specified, run on all compatible devices",
-                                 "(default: run on first compatible device)") do |r|
+    o.on("-a", "--run-on-all-devices", "If specified, run on all compatible devices",
+                                       "(default: run on first compatible device)") do |r|
         OPTIONS[:run_on_all_devices] = r
     end
 
@@ -110,24 +110,30 @@ optparser = OptionParser.new do |o|
         OPTIONS[:lockdir] = d
     end
 
-    o.on("--strip-dir=PATH", "Directory used for storing stripped binaries [#{OPTIONS[:stripdir]}]") do |d|
+    o.on("--strip-directory=PATH", "Directory used for storing stripped binaries [#{OPTIONS[:stripdir]}]") do |d|
         OPTIONS[:stripdir] = d
     end
 
-    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays") do |l|
+    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays.",
+                                              "This option need to specified only if adbrunner",
+                                              "takes already stripped binaries.") do |l|
         OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
     end
 
-    o.on("--ld-library-path=PATHS", Array, "Load libraries from specified path to device") do |l|
+    o.on("-L", "--libpath=PATHS", Array, "Load shared libraries from specified path to device") do |l|
         OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
     end
 
-    o.on("--libpath=PATHS", Array, "Shortcut for --ld-library-path option") do |l|
+    o.on("--ld-library-path=PATHS", Array, "The same as --libpath option (kept for compatibility)") do |l|
         OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
     end
 
     o.separator "\nAdditional options:"
 
+    # TODO: autodetect it.
+    # This is possible by running `readelf -a file` and checking "Type:" field in the output
+    # For non-PIE binaries, type is "EXEC (Executable file)"
+    # For PIE binaries, type is "DYN (Shared object file)"
     o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option [#{OPTIONS[:pie]}]") do |p|
         OPTIONS[:pie] = p
     end
