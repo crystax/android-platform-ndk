@@ -405,16 +405,6 @@ if( ANDROID_NDK )
  get_filename_component( ANDROID_NDK "${ANDROID_NDK}" ABSOLUTE )
  set( ANDROID_NDK "${ANDROID_NDK}" CACHE INTERNAL "Path of the Android NDK" FORCE )
  set( BUILD_WITH_ANDROID_NDK True )
- if( EXISTS "${ANDROID_NDK}/RELEASE.TXT" )
-  file( STRINGS "${ANDROID_NDK}/RELEASE.TXT" ANDROID_NDK_RELEASE_FULL LIMIT_COUNT 1 REGEX "r[0-9]+[a-z]?" )
-  string( REGEX MATCH "r([0-9]+)([a-z]?)" ANDROID_NDK_RELEASE "${ANDROID_NDK_RELEASE_FULL}" )
- else()
-  set( ANDROID_NDK_RELEASE "r1x" )
-  set( ANDROID_NDK_RELEASE_FULL "unreleased" )
- endif()
- string( REGEX REPLACE "r([0-9]+)([a-z]?)" "\\1*1000" ANDROID_NDK_RELEASE_NUM "${ANDROID_NDK_RELEASE}" )
- string( FIND " abcdefghijklmnopqastuvwxyz" "${CMAKE_MATCH_2}" __ndkReleaseLetterNum )
- math( EXPR ANDROID_NDK_RELEASE_NUM "${ANDROID_NDK_RELEASE_NUM}+${__ndkReleaseLetterNum}" )
 elseif( ANDROID_STANDALONE_TOOLCHAIN )
  get_filename_component( ANDROID_STANDALONE_TOOLCHAIN "${ANDROID_STANDALONE_TOOLCHAIN}" ABSOLUTE )
  # try to detect change
@@ -443,33 +433,9 @@ endif()
 
 # android NDK layout
 if( BUILD_WITH_ANDROID_NDK )
- if( NOT DEFINED ANDROID_NDK_LAYOUT )
-  # try to automatically detect the layout
-  if( EXISTS "${ANDROID_NDK}/RELEASE.TXT")
-   set( ANDROID_NDK_LAYOUT "RELEASE" )
-  elseif( EXISTS "${ANDROID_NDK}/../../linux-x86/toolchain/" )
-   set( ANDROID_NDK_LAYOUT "LINARO" )
-  elseif( EXISTS "${ANDROID_NDK}/../../gcc/" )
-   set( ANDROID_NDK_LAYOUT "ANDROID" )
-  endif()
- endif()
- set( ANDROID_NDK_LAYOUT "${ANDROID_NDK_LAYOUT}" CACHE STRING "The inner layout of NDK" )
- mark_as_advanced( ANDROID_NDK_LAYOUT )
- if( ANDROID_NDK_LAYOUT STREQUAL "LINARO" )
-  set( ANDROID_NDK_HOST_SYSTEM_NAME ${ANDROID_NDK_HOST_SYSTEM_NAME2} ) # only 32-bit at the moment
-  set( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK}/../../${ANDROID_NDK_HOST_SYSTEM_NAME}/toolchain" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH  "" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH2 "" )
- elseif( ANDROID_NDK_LAYOUT STREQUAL "ANDROID" )
-  set( ANDROID_NDK_HOST_SYSTEM_NAME ${ANDROID_NDK_HOST_SYSTEM_NAME2} ) # only 32-bit at the moment
-  set( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK}/../../gcc/${ANDROID_NDK_HOST_SYSTEM_NAME}/arm" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH  "" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH2 "" )
- else() # ANDROID_NDK_LAYOUT STREQUAL "RELEASE"
-  set( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK}/toolchains" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH  "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME}" )
-  set( ANDROID_NDK_TOOLCHAINS_SUBPATH2 "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME2}" )
- endif()
+ set( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK}/toolchains" )
+ set( ANDROID_NDK_TOOLCHAINS_SUBPATH  "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME}" )
+ set( ANDROID_NDK_TOOLCHAINS_SUBPATH2 "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME2}" )
  get_filename_component( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK_TOOLCHAINS_PATH}" ABSOLUTE )
 
  # try to detect change of NDK
@@ -1287,13 +1253,7 @@ set( CMAKE_C_CREATE_SHARED_MODULE    "${CMAKE_C_CREATE_SHARED_MODULE} ${__androi
 set( CMAKE_C_LINK_EXECUTABLE         "${CMAKE_C_LINK_EXECUTABLE} ${__androidLinkOptions}" )
 
 # variables controlling optional build flags
-if( ANDROID_NDK_RELEASE_NUM LESS 7000 ) # before r7
- # libGLESv2.so in NDK's prior to r7 refers to missing external symbols.
- # So this flag option is required for all projects using OpenGL from native.
- __INIT_VARIABLE( ANDROID_SO_UNDEFINED                      VALUES ON )
-else()
- __INIT_VARIABLE( ANDROID_SO_UNDEFINED                      VALUES OFF )
-endif()
+__INIT_VARIABLE( ANDROID_SO_UNDEFINED                       VALUES OFF )
 __INIT_VARIABLE( ANDROID_NO_UNDEFINED                       VALUES ON )
 __INIT_VARIABLE( ANDROID_FUNCTION_LEVEL_LINKING             VALUES ON )
 __INIT_VARIABLE( ANDROID_GOLD_LINKER                        VALUES ON )
@@ -1388,12 +1348,6 @@ set( CMAKE_C_FLAGS_DEBUG       "${ANDROID_CXX_FLAGS_DEBUG} ${CMAKE_C_FLAGS_DEBUG
 set( CMAKE_SHARED_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}" )
 set( CMAKE_MODULE_LINKER_FLAGS "${ANDROID_LINKER_FLAGS} ${CMAKE_MODULE_LINKER_FLAGS}" )
 set( CMAKE_EXE_LINKER_FLAGS    "${ANDROID_LINKER_FLAGS} ${CMAKE_EXE_LINKER_FLAGS}" )
-
-if( MIPS AND BUILD_WITH_ANDROID_NDK AND ANDROID_NDK_RELEASE STREQUAL "r8" )
- set( CMAKE_SHARED_LINKER_FLAGS "-Wl,-T,${ANDROID_NDK_TOOLCHAINS_PATH}/${ANDROID_GCC_TOOLCHAIN_NAME}/mipself.xsc ${CMAKE_SHARED_LINKER_FLAGS}" )
- set( CMAKE_MODULE_LINKER_FLAGS "-Wl,-T,${ANDROID_NDK_TOOLCHAINS_PATH}/${ANDROID_GCC_TOOLCHAIN_NAME}/mipself.xsc ${CMAKE_MODULE_LINKER_FLAGS}" )
- set( CMAKE_EXE_LINKER_FLAGS    "-Wl,-T,${ANDROID_NDK_TOOLCHAINS_PATH}/${ANDROID_GCC_TOOLCHAIN_NAME}/mipself.x ${CMAKE_EXE_LINKER_FLAGS}" )
-endif()
 
 if( ANDROID_COMPILER_IS_CLANG )
  set( ANDROID_APP_PIE TRUE )
@@ -1564,7 +1518,6 @@ if( NOT _CMAKE_IN_TRY_COMPILE )
  foreach( __var NDK_CCACHE  LIBRARY_OUTPUT_PATH_ROOT  ANDROID_FORBID_SYGWIN
                 ANDROID_NDK_HOST_X64
                 ANDROID_NDK
-                ANDROID_NDK_LAYOUT
                 ANDROID_STANDALONE_TOOLCHAIN
                 ANDROID_TOOLCHAIN_NAME
                 ANDROID_TOOLCHAIN_VERSION
@@ -1628,7 +1581,6 @@ endif()
 #   NDK_CCACHE : path to your ccache executable
 #   ANDROID_TOOLCHAIN_NAME : the NDK name of compiler toolchain
 #   ANDROID_NDK_HOST_X64 : try to use x86_64 toolchain (default for x64 host systems)
-#   ANDROID_NDK_LAYOUT : the inner NDK structure (RELEASE, LINARO, ANDROID)
 #   LIBRARY_OUTPUT_PATH_ROOT : <any valid path>
 #   ANDROID_STANDALONE_TOOLCHAIN
 #
@@ -1648,8 +1600,6 @@ endif()
 #   BUILD_WITH_STANDALONE_TOOLCHAIN : TRUE if standalone toolchain is used
 #   ANDROID_NDK_HOST_SYSTEM_NAME : "windows", "linux-x86" or "darwin-x86" depending on host platform
 #   ANDROID_NDK_ABI_NAME : "armeabi", "armeabi-v7a", "armeabi-v7a-hard", "x86", "mips", "arm64-v8a", "x86_64", "mips64" depending on ANDROID_ABI
-#   ANDROID_NDK_RELEASE : from r5 to r10d; set only for NDK
-#   ANDROID_NDK_RELEASE_NUM : numeric ANDROID_NDK_RELEASE version (1000*major+minor)
 #   ANDROID_ARCH_NAME : "arm", "x86", "mips", "arm64", "x86_64", "mips64" depending on ANDROID_ABI
 #   ANDROID_SYSROOT : path to the compiler sysroot
 #   TOOL_OS_SUFFIX : "" or ".exe" depending on host platform
