@@ -429,6 +429,14 @@ def strip(src, dst = nil)
     dst
 end
 
+def crystax_ndk_version
+    reltxt = File.join(NDK, 'RELEASE.TXT')
+    return "develop" unless File.exists?(reltxt)
+    File.read(reltxt).split("\n").first.chomp.sub(/^crystax-ndk-(\d+)\.(\d+)\.(\d+)/, 'v\1.\2.\3')
+rescue
+    "unknown"
+end
+
 def adb_devices
     devices = []
 
@@ -775,6 +783,7 @@ end
 
 def adb_logcat(devid, tag, file)
     tagfound = false
+    FileUtils.mkdir_p File.dirname(file)
     File.open(file, "w") do |f|
         run ADB, '-s', devid, 'logcat', '-v', 'threadtime', '-d', timeout: 30 do |i,o,e,t|
             ot = Thread.start do
@@ -916,10 +925,10 @@ rescue AdbShellCommandFailed => err
     logerr.call "=== BEGIN OF ENVIRONMENT ==="
     logerr.call "CMD: #{exe} #{args.join(' ')}"
     logerr.call "PWD: #{dstbinpath}"
-    logerr.call "NDK: #{File.read(File.join(NDK, 'RELEASE.TXT'))}" if File.exists?(File.join(NDK, 'RELEASE.TXT'))
+    logerr.call "NDK: #{NDK} - CrystaX NDK #{crystax_ndk_version}"
     logerr.call "=== END OF ENVIRONMENT ==="
 
-    lf = "/tmp/adbrunner-logcat-#{SecureRandom.uuid}.log"
+    lf = File.join(ROOTDIR, "logcat", "#{SecureRandom.uuid}.log")
     at_exit { FileUtils.rm_f lf }
 
     adb_logcat devid, tag, lf
@@ -934,9 +943,11 @@ rescue AdbShellCommandFailed => err
     end rescue nil
 
     # Prepare temporary directory where all unstripped binaries would be accumulated
-    symdirs = SYMDIRS || [File.dirname(exe)]
-    if symdirs.size > 1 || targetexe != File.basename(exe)
-        symdir = "/tmp/symbols-#{File.basename(exe)}-#{SecureRandom.uuid}"
+    symdirs = SYMDIRS || [File.dirname(exe)] + LD_LIBRARY_PATH
+    if symdirs.size == 1 && targetexe == File.basename(exe)
+        symdir = symdirs.first
+    else
+        symdir = File.join(ROOTDIR, "symbols", "#{File.basename(exe)}-#{SecureRandom.uuid}")
         at_exit { FileUtils.rm_rf symdir }
 
         FileUtils.rm_rf symdir
@@ -959,8 +970,6 @@ rescue AdbShellCommandFailed => err
                 FileUtils.cp src, dst
             end
         end
-    else
-        symdir = symdirs.first
     end
 
     run File.join(NDK, 'ndk-stack'), '-sym', symdir, '-dump', lf, timeout: 30 do |i,o,e,t|
