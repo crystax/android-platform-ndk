@@ -1464,6 +1464,12 @@ if( NOT _CMAKE_IN_TRY_COMPILE AND __libstl MATCHES "[.]so$" AND DEFINED LIBRARY_
   unset( __libstlname )
 endif()
 
+set( ADBRUNNER ${ANDROID_NDK}/tools/adbrunner --abi=${ANDROID_NDK_ABI_NAME} --run-on-all-devices )
+if ( CMAKE_POSITION_INDEPENDENT_CODE )
+  list( APPEND ADBRUNNER "--pie" )
+else()
+  list( APPEND ADBRUNNER "--no-pie" )
+endif()
 
 # set these global flags for cmake client scripts to change behavior
 set( ANDROID True )
