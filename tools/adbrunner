@@ -122,6 +122,10 @@ optparser = OptionParser.new do |o|
         OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
     end
 
+    o.on("--libpath=PATHS", Array, "Shortcut for --ld-library-path option") do |l|
+        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
+    end
+
     o.separator "\nAdditional options:"
 
     o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option [#{OPTIONS[:pie]}]") do |p|
