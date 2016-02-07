@@ -855,6 +855,12 @@ def do_run_test(attempt, devid, tag, exe, args)
 
     binaries = [exe]
 
+    %w{crystax gnustl_shared c++_shared objc}.each do |lib|
+        knownlib = "lib#{lib}.so"
+        next unless File.exists?(File.join(File.dirname(exe), knownlib))
+        binaries << knownlib unless binaries.include?(knownlib)
+    end
+
     if exe.length > 35
         targetexe = "exe#{SecureRandom.uuid.gsub('-', '')}"
     else
@@ -867,7 +873,7 @@ def do_run_test(attempt, devid, tag, exe, args)
     libdirs.each do |dir|
         ['lib*.so', 'lib*.so.*'].each do |wildcard|
             Dir.glob(File.join(dir, wildcard)).each do |lib|
-                binaries << lib
+                binaries << lib unless binaries.include?(lib)
             end
         end
     end
