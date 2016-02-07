@@ -113,7 +113,7 @@ build_libobjc2_for_abi ()
     fail_panic "Couldn't create GNUstep libobjc2 build directory for $ABI"
 
     dump "=== Building GNUstep libobjc2 for $ABI"
-    run make -C $LIBOBJC2_SRCDIR/android -j$NUM_JOBS \
+    run make -C $LIBOBJC2_SRCDIR/android -j$NUM_JOBS install \
         WITH_TESTS=NO \
         BUILDDIR="$BUILDDIR" \
         INSTALLDIR="$INSTALLDIR" \
