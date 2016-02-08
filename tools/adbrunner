@@ -856,8 +856,8 @@ def do_run_test(attempt, devid, tag, exe, args)
     binaries = [exe]
 
     %w{crystax gnustl_shared c++_shared objc}.each do |lib|
-        knownlib = "lib#{lib}.so"
-        next unless File.exists?(File.join(File.dirname(exe), knownlib))
+        knownlib = File.join(File.dirname(exe), "lib#{lib}.so")
+        next unless File.exists?(knownlib)
         binaries << knownlib unless binaries.include?(knownlib)
     end
 
