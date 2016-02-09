@@ -222,21 +222,6 @@ set( CMAKE_SYSTEM_VERSION 1 )
 set( CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "" )
 set( CMAKE_SKIP_RPATH TRUE CACHE BOOL "If set, runtime paths are not added when using shared libraries." )
 
-# NDK search paths
-set( ANDROID_SUPPORTED_NDK_VERSIONS ${ANDROID_EXTRA_NDK_VERSIONS} -r10d -r10c -r10b -r10 -r9d -r9c -r9b -r9 -r8e -r8d -r8c -r8b -r8 -r7c -r7b -r7 -r6b -r6 -r5c -r5b -r5 "" )
-if( NOT DEFINED ANDROID_NDK_SEARCH_PATHS )
- if( CMAKE_HOST_WIN32 )
-  file( TO_CMAKE_PATH "$ENV{PROGRAMFILES}" ANDROID_NDK_SEARCH_PATHS )
-  set( ANDROID_NDK_SEARCH_PATHS "${ANDROID_NDK_SEARCH_PATHS}" "$ENV{SystemDrive}/NVPACK" )
- else()
-  file( TO_CMAKE_PATH "$ENV{HOME}" ANDROID_NDK_SEARCH_PATHS )
-  set( ANDROID_NDK_SEARCH_PATHS /opt "${ANDROID_NDK_SEARCH_PATHS}/NVPACK" )
- endif()
-endif()
-if( NOT DEFINED ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH )
- set( ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH /opt/android-toolchain )
-endif()
-
 # known ABIs
 set( ANDROID_SUPPORTED_ABIS_arm "armeabi-v7a;armeabi;armeabi-v7a+neon;armeabi-v7a+vfpv3;armeabi-v7a-hard;armeabi-v7a-hard+neon;armeabi-v7a-hard+vfpv3;armeabi-v6+vfp" )
 set( ANDROID_SUPPORTED_ABIS_arm64 "arm64-v8a" )
@@ -420,15 +405,11 @@ elseif( ANDROID_STANDALONE_TOOLCHAIN )
  set( ANDROID_STANDALONE_TOOLCHAIN "${ANDROID_STANDALONE_TOOLCHAIN}" CACHE INTERNAL "Path of the Android standalone toolchain" FORCE )
  set( BUILD_WITH_STANDALONE_TOOLCHAIN True )
 else()
- list(GET ANDROID_NDK_SEARCH_PATHS 0 ANDROID_NDK_SEARCH_PATH)
  message( FATAL_ERROR "Could not find neither Android NDK nor Android standalone toolchain.
-    You should either set an environment variable:
+    You should set an environment variable:
       export ANDROID_NDK=~/my-android-ndk
     or
-      export ANDROID_STANDALONE_TOOLCHAIN=~/my-android-toolchain
-    or put the toolchain or NDK in the default path:
-      sudo ln -s ~/my-android-ndk ${ANDROID_NDK_SEARCH_PATH}/android-ndk
-      sudo ln -s ~/my-android-toolchain ${ANDROID_STANDALONE_TOOLCHAIN_SEARCH_PATH}" )
+      export ANDROID_STANDALONE_TOOLCHAIN=~/my-android-toolchain" )
 endif()
 
 # android NDK layout
@@ -1654,6 +1635,4 @@ endif()
 # Defaults:
 #   ANDROID_DEFAULT_NDK_API_LEVEL
 #   ANDROID_DEFAULT_NDK_API_LEVEL_${ARCH}
-#   ANDROID_NDK_SEARCH_PATHS
 #   ANDROID_SUPPORTED_ABIS_${ARCH}
-#   ANDROID_SUPPORTED_NDK_VERSIONS
