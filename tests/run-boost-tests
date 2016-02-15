@@ -723,7 +723,7 @@ Kernel.exec('#{File.join(OPTIONS[:ndk], 'tools', 'adbrunner')}',
     '--adb=#{OPTIONS[:adb]}',
     '--timeout=#{OPTIONS[:timeout]*60 - 5}',
     '--strip=#{strip}',
-    '--lib-directory=#{libdir}',
+    '--strip-dir=#{libdir}',
     '--#{'no-' unless OPTIONS[:pie]}pie',
     *ARGV)
         EOF
