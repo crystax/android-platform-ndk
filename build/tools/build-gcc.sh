@@ -75,7 +75,12 @@ do_cloog_version() {
 }
 
 ISL_VERSION=$DEFAULT_ISL_VERSION
-register_var_option "--isl-version=<version>" ISL_VERSION "Specify ISL version"
+EXPLICIT_ISL_VERSION=
+register_option "--isl-version=<version>" do_isl_version "Specify ISL version" "$ISL_VERSION"
+do_isl_version() {
+    ISL_VERSION=$1
+    EXPLICIT_ISL_VERSION=true
+}
 
 PPL_VERSION=$DEFAULT_PPL_VERSION
 register_var_option "--ppl-version=<version>" PPL_VERSION "Specify ppl version"
@@ -190,13 +195,24 @@ fi
 
 if [ -z "$EXPLICIT_CLOOG_VERSION" ]; then
     case $TOOLCHAIN in
-        *-5)
-            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION_FOR_GCC5
+        *-4.9)
+            CLOOG_VERSION=$DEFAULT_CLOOG_VERSION_FOR_GCC49
             ;;
         *)
             CLOOG_VERSION=$DEFAULT_CLOOG_VERSION
     esac
     dump "Auto-config: --cloog-version=$CLOOG_VERSION"
+fi
+
+if [ -z "$EXPLICIT_ISL_VERSION" ]; then
+    case $TOOLCHAIN in
+        *-6)
+            ISL_VERSION=$DEFAULT_ISL_VERSION_FOR_GCC6
+            ;;
+        *)
+            ISL_VERSION=$DEFAULT_ISL_VERSION
+    esac
+    dump "Auto-config: --isl-version=$ISL_VERSION"
 fi
 
 if [ -z "$EXPLICIT_BINUTILS_VERSION" ]; then
