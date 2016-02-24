@@ -20,11 +20,8 @@
 $(call assert-defined,TARGET_PLATFORM TARGET_ARCH TARGET_ARCH_ABI)
 $(call assert-defined,NDK_APPS NDK_APP_STL NDK_APP_OBJC)
 
-LLVM_VERSION_LIST := 3.6 3.7
-NDK_64BIT_TOOLCHAIN_LIST := clang3.7 clang3.6 4.9 5
-
-DEFAULT_LLVM_VERSION := $(patsubst clang%,%,$(firstword $(filter clang%,$(NDK_64BIT_TOOLCHAIN_LIST))))
-DEFAULT_GCC_VERSION := $(lastword $(filter-out clang%,$(NDK_64BIT_TOOLCHAIN_LIST)))
+DEFAULT_LLVM_VERSION := 3.7
+DEFAULT_GCC_VERSION := 5
 
 ifeq (,$(strip $(DEFAULT_LLVM_VERSION)))
 $(error Can not detect default LLVM version!)
@@ -42,9 +39,10 @@ ifndef NDK_TOOLCHAIN
 
     # Filter out the Clang toolchain, so that we can keep GCC as the default
     # toolchain.
-    $(foreach _ver,$(LLVM_VERSION_LIST), \
-        $(eval TARGET_TOOLCHAIN_LIST := \
-            $(filter-out %-clang$(_ver),$(TARGET_TOOLCHAIN_LIST))))
+    $(foreach __ndk_target_toolchain,$(TARGET_TOOLCHAIN_LIST),\
+        $(if $(findstring clang,$(__ndk_target_toolchain)),\
+            $(eval TARGET_TOOLCHAIN_LIST := \
+                $(filter-out $(__ndk_target_toolchain),$(TARGET_TOOLCHAIN_LIST)))))
 
     ifndef TARGET_TOOLCHAIN_LIST
         $(call __ndk_info,There is no toolchain that supports the $(TARGET_ARCH_ABI) ABI.)
@@ -56,40 +54,36 @@ ifndef NDK_TOOLCHAIN
     TARGET_TOOLCHAIN := $(filter %-$(DEFAULT_GCC_VERSION),$(TARGET_TOOLCHAIN_LIST))
 
     ifdef NDK_TOOLCHAIN_VERSION
-        # Replace "clang" with the most recent verion
+        # Replace "gcc" with default gcc version
+        ifeq ($(NDK_TOOLCHAIN_VERSION),gcc)
+            override NDK_TOOLCHAIN_VERSION := gcc$(DEFAULT_GCC_VERSION)
+        endif
+        # Replace "clang" with default clang verion
         ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
             override NDK_TOOLCHAIN_VERSION := clang$(DEFAULT_LLVM_VERSION)
         endif
-        __use_ndk_toolchain_version := true
-        ifneq (,$(findstring 64,$(TARGET_ARCH_ABI)))
-            # don't allow NDK_TOOLCHAIN_VERSION to change if it doesn't support 64-bit
-            ifeq (,$(filter $(NDK_64BIT_TOOLCHAIN_LIST),$(NDK_TOOLCHAIN_VERSION)))
-                $(call ndk_log,Specified NDK_TOOLCHAIN_VERSION $(NDK_TOOLCHAIN_VERSION) does not support 64-bit)
-                $(call ndk_log,Using default target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
-                __use_ndk_toolchain_version := false;
-            endif
+        # Replace "gcc-X" and "gccX" with just "X"
+        override NDK_TOOLCHAIN_VERSION := $(patsubst gcc-%,%,$(NDK_TOOLCHAIN_VERSION))
+        override NDK_TOOLCHAIN_VERSION := $(patsubst gcc%,%,$(NDK_TOOLCHAIN_VERSION))
+        # We assume the toolchain name uses dashes (-) as separators and doesn't
+        # contain any space. The following is a bit subtle, but essentially
+        # does the following:
+        #
+        #   1/ Use 'subst' to convert dashes into spaces, this generates a list
+        #   2/ Use 'chop' to remove the last element of the list
+        #   3/ Use 'subst' again to convert the spaces back into dashes
+        #
+        # So it TARGET_TOOLCHAIN is 'foo-bar-zoo-xxx', then
+        # TARGET_TOOLCHAIN_BASE will be 'foo-bar-zoo'
+        #
+        TARGET_TOOLCHAIN_BASE := $(subst $(space),-,$(call chop,$(subst -,$(space),$(TARGET_TOOLCHAIN))))
+        # if TARGET_TOOLCHAIN_BASE is llvm, remove clang from NDK_TOOLCHAIN_VERSION
+        VERSION := $(NDK_TOOLCHAIN_VERSION)
+        ifeq ($(TARGET_TOOLCHAIN_BASE),llvm)
+            VERSION := $(subst clang,,$(NDK_TOOLCHAIN_VERSION))
         endif
-        ifeq ($(__use_ndk_toolchain_version),true)
-            # We assume the toolchain name uses dashes (-) as separators and doesn't
-            # contain any space. The following is a bit subtle, but essentially
-            # does the following:
-            #
-            #   1/ Use 'subst' to convert dashes into spaces, this generates a list
-            #   2/ Use 'chop' to remove the last element of the list
-            #   3/ Use 'subst' again to convert the spaces back into dashes
-            #
-            # So it TARGET_TOOLCHAIN is 'foo-bar-zoo-xxx', then
-            # TARGET_TOOLCHAIN_BASE will be 'foo-bar-zoo'
-            #
-            TARGET_TOOLCHAIN_BASE := $(subst $(space),-,$(call chop,$(subst -,$(space),$(TARGET_TOOLCHAIN))))
-            # if TARGET_TOOLCHAIN_BASE is llvm, remove clang from NDK_TOOLCHAIN_VERSION
-            VERSION := $(NDK_TOOLCHAIN_VERSION)
-            ifeq ($(TARGET_TOOLCHAIN_BASE),llvm)
-                VERSION := $(subst clang,,$(NDK_TOOLCHAIN_VERSION))
-            endif
-            TARGET_TOOLCHAIN := $(TARGET_TOOLCHAIN_BASE)-$(VERSION)
-            $(call ndk_log,Using target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI (through NDK_TOOLCHAIN_VERSION))
-        endif
+        TARGET_TOOLCHAIN := $(TARGET_TOOLCHAIN_BASE)-$(VERSION)
+        $(call ndk_log,Using target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI (through NDK_TOOLCHAIN_VERSION))
     else
         $(call ndk_log,Using target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI)
     endif
