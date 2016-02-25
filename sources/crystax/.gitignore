@@ -34,6 +34,7 @@ include/machine/sysarch.h
 include/machine/timespec.h
 include/math.h
 include/monetary.h
+include/netinet/in.h
 include/nl_types.h
 include/printf.h
 include/pthread_workqueue.h

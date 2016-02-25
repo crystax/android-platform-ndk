@@ -158,6 +158,7 @@ end
 
 # public headers
 g.add "libc/include/machine/timespec.h",   public: true
+g.add "libc/include/netinet/in.h",         public: true
 g.add "libc/include/pwd.h",                public: true
 g.add "libc/include/sched.h",              public: true
 g.add "libc/include/sys/auxv.h",           public: true
