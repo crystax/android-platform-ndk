@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <stdint.h>
 #include <iostream>
+#include <vector>
 
 double to_double(uint64_t x)
 {
