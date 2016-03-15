@@ -688,8 +688,8 @@ log "Generating $BOOST_DSTDIR/Android.mk"
     echo '        llvm,\'
     echo '        gnu\'
     echo '    ))-$(strip $(if $(filter c++_%,$(APP_STL)),\'
-    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(NDK_TOOLCHAIN_VERSION)),$(DEFAULT_LLVM_VERSION)),\'
-    echo '        $(if $(filter clang%,$(NDK_TOOLCHAIN_VERSION)),$(DEFAULT_GCC_VERSION),$(or $(NDK_TOOLCHAIN_VERSION),$(DEFAULT_GCC_VERSION)))\'
+    echo '        $(if $(filter clang%,$(TOOLCHAIN_VERSION)),$(patsubst clang%,%,$(TOOLCHAIN_VERSION)),$(DEFAULT_LLVM_VERSION)),\'
+    echo '        $(if $(filter clang%,$(TOOLCHAIN_VERSION)),$(DEFAULT_GCC_VERSION),$(or $(TOOLCHAIN_VERSION),$(DEFAULT_GCC_VERSION)))\'
     echo '    ))\'
     echo ')'
 
@@ -772,7 +772,7 @@ log "Generating $BOOST_DSTDIR/Android.mk"
                     echo 'LOCAL_MODULE := '$LIB'_'$LIBTYPE
                     echo 'LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/$(__boost_libstdcxx_subdir)/lib'$LIB'.'$SUFFIX
                     echo 'LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include'
-                    echo 'ifneq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))'
+                    echo 'ifneq (,$(filter clang%,$(TOOLCHAIN_VERSION)))'
                     echo 'LOCAL_EXPORT_LDLIBS := -latomic'
                     echo 'endif'
                     for d in $DEPS; do
