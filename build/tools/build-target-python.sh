@@ -65,13 +65,11 @@ extract_parameters "$@"
 
 PYTHON_SRCDIR=$(echo $PARAMETERS | sed 1q)
 if [ -z "$PYTHON_SRCDIR" ]; then
-    echo "ERROR: Please provide the path to the python source tree. See --help"
-    exit 1
+    panic "Please provide the path to the python source tree. See --help"
 fi
 
 if [ ! -d "$PYTHON_SRCDIR" ]; then
-    echo "ERROR: No such directory: '$PYTHON_SRCDIR'"
-    exit 1
+    panic "No such directory: '$PYTHON_SRCDIR'"
 fi
 
 PYTHON_SRCDIR=$(cd $PYTHON_SRCDIR && pwd)
@@ -83,13 +81,11 @@ PYTHON_MINOR_VERSION=\
 $(cat $PYTHON_SRCDIR/Include/patchlevel.h | sed -n 's/#define[ \t]*PY_MINOR_VERSION[ \t]*\([0-9]*\).*/\1/p')
 
 if [ -z "$PYTHON_MAJOR_VERSION" ]; then
-    echo "ERROR: Can't detect python major version." 1>&2
-    exit 1
+    panic "Can't detect python major version."
 fi
 
 if [ -z "$PYTHON_MINOR_VERSION" ]; then
-    echo "ERROR: Can't detect python minor version." 1>&2
-    exit 1
+    panic "Can't detect python minor version."
 fi
 
 PYTHON_ABI="$PYTHON_MAJOR_VERSION"'.'"$PYTHON_MINOR_VERSION"
@@ -97,28 +93,24 @@ PYTHON_DSTDIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_ABI
 mkdir -p $PYTHON_DSTDIR
 fail_panic "Can't create python destination directory: $PYTHON_DSTDIR"
 
-PYTHON_BUILD_UTILS_DIR=$(cd $(dirname $0)/build-target-python && pwd)
+PYTHON_BUILD_UTILS_DIR=$(cd $(dirname $0)/build-python && pwd)
 if [ ! -d "$PYTHON_BUILD_UTILS_DIR" ]; then
-    echo "ERROR: No such directory: '$PYTHON_BUILD_UTILS_DIR'"
-    exit 1
+    panic "No such directory: '$PYTHON_BUILD_UTILS_DIR'"
 fi
 
 PY_C_CONFIG_FILE="$PYTHON_BUILD_UTILS_DIR/config.c.$PYTHON_ABI"
 if [ ! -f "$PY_C_CONFIG_FILE" ]; then
-    echo "ERROR: Build of python $PYTHON_ABI is not supported, no such file: $PY_C_CONFIG_FILE"
-    exit 1
+    panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_CONFIG_FILE"
 fi
 
 PY_C_INTERPRETER_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter.c.$PYTHON_ABI"
 if [ ! -f "$PY_C_INTERPRETER_FILE" ]; then
-    echo "ERROR: Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_FILE"
-    exit 1
+    panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_FILE"
 fi
 
 PY_ANDROID_MK_TEMPLATE_FILE="$PYTHON_BUILD_UTILS_DIR/android.mk.$PYTHON_ABI"
 if [ ! -f "$PY_ANDROID_MK_TEMPLATE_FILE" ]; then
-    echo "ERROR: Build of python $PYTHON_ABI is not supported, no such file: $PY_ANDROID_MK_TEMPLATE_FILE"
-    exit 1
+    panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_ANDROID_MK_TEMPLATE_FILE"
 fi
 
 ABIS=$(commas_to_spaces $ABIS)
