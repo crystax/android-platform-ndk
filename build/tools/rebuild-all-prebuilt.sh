@@ -108,7 +108,7 @@ if [ "$TRY64" = "yes" ]; then
     FLAGS=$FLAGS" --try-64"
 fi
 
-HOST_FLAGS=$FLAGS" --systems=$(spaces_to_commas $SYSTEMS)"
+HOST_FLAGS="$FLAGS"
 if [ "$GCC_VERSION_LIST" != "default" ]; then
     HOST_FLAGS=$HOST_FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 fi
@@ -127,14 +127,18 @@ if [ "$DARWIN_SSH" ]; then
 fi
 
 if [ "$SKIP_HOST_PREBUILTS" = "no" ]; then
-if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
-    dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR --try-64"
-    $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR" --try-64
-    fail_panic "Could not build host prebuilts in 64-bit!"
-fi
-dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh $HOST_FLAGS $SRC_DIR"
-$PROGDIR/build-host-prebuilts.sh $HOST_FLAGS "$SRC_DIR"
-fail_panic "Could not build host prebuilts!"
+    for SYSTEM in $(commas_to_spaces $SYSTEMS); do
+        if [ "$ALSO_64" = "yes" -a "$TRY64" != "yes" ] ; then
+            dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh --systems=$SYSTEM $HOST_FLAGS $SRC_DIR --try-64"
+            $PROGDIR/build-host-prebuilts.sh --systems=$SYSTEM $HOST_FLAGS "$SRC_DIR" --try-64
+            fail_panic "Could not build host $SYSTEM prebuilts in 64-bit!"
+        fi
+        if [ "${SYSTEM##windows}" != "$SYSTEM" ]; then
+            dump "## COMMAND: $PROGDIR/build-host-prebuilts.sh --systems=$SYSTEM $HOST_FLAGS $SRC_DIR"
+            $PROGDIR/build-host-prebuilts.sh --systems=$SYSTEM $HOST_FLAGS "$SRC_DIR"
+            fail_panic "Could not build host $SYSTEM prebuilts!"
+        fi
+    done
 fi # SKIP_HOST_PREBUILTS
 
 if [ -n "$LLVM_VERSION_LIST" ]; then
