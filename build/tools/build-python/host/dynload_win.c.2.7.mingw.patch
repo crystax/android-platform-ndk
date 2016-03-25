@@ -1,0 +1,18 @@
+--- dynload_win.c	2016-01-27 10:53:11.000000000 +0300
++++ dynload_win.c.2.7.mingw	2016-03-24 01:41:30.000000000 +0300
+@@ -28,6 +28,7 @@
+ /* Case insensitive string compare, to avoid any dependencies on particular
+    C RTL implementations */
+ 
++#ifndef __MINGW32__
+ static int strcasecmp (char *string1, char *string2)
+ {
+     int first, second;
+@@ -41,6 +42,7 @@
+ 
+     return (first - second);
+ }
++#endif
+ 
+ 
+ /* Function to return the name of the "python" DLL that the supplied module
