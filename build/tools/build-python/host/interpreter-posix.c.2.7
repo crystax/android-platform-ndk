@@ -12,11 +12,12 @@
 #  define MY_POSIX_MAX_PATH PROC_PIDPATHINFO_MAXSIZE
 #endif
 
-#ifndef PYTHON_STDLIB_PATH
-#error PYTHON_STDLIB_PATH must be defined in Makefile
-#endif
-
+#define PYTHON2_STDLIB_REL_PATH "stdlib.zip"
+#define PYTHON2_MODULES_REL_PATH "modules"
 #define PYTHON2_DLL_REL_PATH "libpython2.7.so"
+
+#define SYS_PATH_BUFFER_SIZE (2*(MY_POSIX_MAX_PATH + 1))
+
 static char NULL_PTR_STR[] = "NULL";
 
 #if defined(__linux__)
@@ -62,7 +63,9 @@ int main(int argc, char** argv)
   char executable[MY_POSIX_MAX_PATH + 1] = {0};
   char pthfmt[MY_POSIX_MAX_PATH + 1]     = {0};
   char corepath[MY_POSIX_MAX_PATH + 1]   = {0};
-  char syspath[MY_POSIX_MAX_PATH + 1]    = {0};
+  char stdlibpath[MY_POSIX_MAX_PATH + 1] = {0};
+  char modpath[MY_POSIX_MAX_PATH + 1]    = {0};
+  char syspath[SYS_PATH_BUFFER_SIZE + 1] = {0};
   void* core = 0;
   int retcode = 126;
 
@@ -74,14 +77,9 @@ int main(int argc, char** argv)
   GetRelativePathFormat(executable, pthfmt);
 
   snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON2_DLL_REL_PATH);
-  if (PYTHON_STDLIB_PATH[0] == '/')
-  {
-    snprintf(syspath, MY_POSIX_MAX_PATH, "%s", PYTHON_STDLIB_PATH);
-  }
-  else
-  {
-    snprintf(syspath, MY_POSIX_MAX_PATH, pthfmt, PYTHON_STDLIB_PATH);
-  }
+  snprintf(stdlibpath, MY_POSIX_MAX_PATH, pthfmt, PYTHON2_STDLIB_REL_PATH);
+  snprintf(modpath, MY_POSIX_MAX_PATH, pthfmt, PYTHON2_MODULES_REL_PATH);
+  snprintf(syspath, SYS_PATH_BUFFER_SIZE, "%s:%s", stdlibpath, modpath);
 
   core = dlopen(corepath, RTLD_LAZY);
   if (core == 0)
