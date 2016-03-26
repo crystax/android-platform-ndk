@@ -210,7 +210,7 @@ build_python_stub ()
         echo '#!/bin/bash -e'
         echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'rm -rf $DIR_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo 'cmake $DIR_HERE'
         echo 'make VERBOSE=1'
     } >$PYSTUB_CORE_BUILD_WRAPPER
@@ -256,7 +256,7 @@ build_python_stub ()
         echo '#!/bin/bash -e'
         echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'rm -rf $DIR_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo 'cmake $DIR_HERE'
         echo 'make VERBOSE=1'
     } >$PYSTUB_INTERPRETER_0_BUILD_WRAPPER
@@ -298,7 +298,7 @@ build_python_stub ()
         echo '#!/bin/bash -e'
         echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'rm -rf $DIR_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo 'cmake $DIR_HERE'
         echo 'make VERBOSE=1'
     } >$PYSTUB_INTERPRETER_1_BUILD_WRAPPER
@@ -330,7 +330,6 @@ build_host_python ()
     fail_panic "Can't create directory: $OUTPUT_DIR"
 
     local TOOLCHAIN_WRAPPER_PREFIX
-    local CMAKE_TOOLCHAIN_WRAPPER_FNAME
     local CMAKE_CROSS_SYSTEM_NAME
     case $1 in
         windows-x86_64)
@@ -384,7 +383,7 @@ build_host_python ()
         echo '#!/bin/bash -e'
         echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'rm -rf $DIR_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
         echo 'make VERBOSE=1'
     } >$CORE_BUILD_WRAPPER
@@ -513,6 +512,74 @@ build_host_python ()
     esac
     run cp -p -t "$OUTPUT_DIR" "$BUILDDIR_CORE/build/$PY_CORE_FNAME"
     fail_panic "Can't copy '$PY_CORE_FNAME' to '$OUTPUT_DIR'"
+
+# Step 4: build python interpreter for host
+    local BUILDDIR_INTERPRETER="$OBJ_DIR/interpreter"
+
+    run mkdir -p $BUILDDIR_INTERPRETER
+    fail_panic "Can't create directory: $BUILDDIR_INTERPRETER"
+    local INTERPRETER_CMAKE_DESCRIPTION="$BUILDDIR_INTERPRETER/CMakeLists.txt"
+    {
+        echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
+        echo 'set(CMAKE_BUILD_TYPE RELEASE)'
+        case $1 in
+            windows*)
+                if [ "$PYTHON_MAJOR_VERSION" = "3" ]; then
+                    echo 'set(CMAKE_EXE_LINKER_FLAGS "-municode")'
+                fi
+                ;;
+            *)
+                echo 'set(CMAKE_EXE_LINKER_FLAGS "-ldl")'
+                ;;
+        esac
+        echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
+    } >$INTERPRETER_CMAKE_DESCRIPTION
+    fail_panic "Can't generate $INTERPRETER_CMAKE_DESCRIPTION"
+    local INTERPRETER_BUILD_WRAPPER="$BUILDDIR_INTERPRETER/build.sh"
+    {
+        echo '#!/bin/bash -e'
+        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
+        echo 'DIR_BUILD="$DIR_HERE/build"'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
+        echo 'make VERBOSE=1'
+    } >$INTERPRETER_BUILD_WRAPPER
+    fail_panic "Can't create build wrapper: $INTERPRETER_BUILD_WRAPPER"
+    run chmod +x $INTERPRETER_BUILD_WRAPPER
+    fail_panic "Can't chmod +x build wrapper: '$INTERPRETER_BUILD_WRAPPER'"
+
+    local INTERPRETER_SOURCE
+    local PY_INTERPRETER_FNAME
+    case $1 in
+        windows*)
+            INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-winapi.c.${PYTHON_ABI}"
+            PY_INTERPRETER_FNAME="python.exe"
+            ;;
+        *)
+            INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.${PYTHON_ABI}"
+            PY_INTERPRETER_FNAME="python"
+            ;;
+    esac
+    run cp -p -T "$INTERPRETER_SOURCE" "$BUILDDIR_INTERPRETER/interpreter.c"
+    fail_panic "Can't copy '$INTERPRETER_SOURCE' to '$BUILDDIR_INTERPRETER'"
+
+    log "build python-$PYTHON_ABI interpreter for $1 ..."
+    run $INTERPRETER_BUILD_WRAPPER
+    fail_panic "Can't build python-$PYTHON_ABI interpreter for $1"
+
+    run cp -p -t "$OUTPUT_DIR" "$BUILDDIR_INTERPRETER/build/$PY_INTERPRETER_FNAME"
+    fail_panic "Can't copy '$PY_INTERPRETER_FNAME' to '$OUTPUT_DIR'"
+
+# Step 4: build python stdlib for host
+    log "build python-$PYTHON_ABI stdlib for $1 ..."
+    local PY_STDLIB_ZIPFILE="$OUTPUT_DIR/stdlib.zip"
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
+        fail_panic "Can't build python-$PYTHON_ABI stdlib for $1"
+    else
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
+        fail_panic "Can't build python-$PYTHON_ABI stdlib for $1"
+    fi
 }
 
 # $1: host tag
