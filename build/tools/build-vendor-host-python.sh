@@ -348,10 +348,16 @@ build_host_python ()
             TOOLCHAIN_WRAPPER_PREFIX="i686-linux-gnu"
             CMAKE_CROSS_SYSTEM_NAME="Linux"
             ;;
+        darwin-x86_64)
+            TOOLCHAIN_WRAPPER_PREFIX="x86_64-apple-darwin"
+            CMAKE_CROSS_SYSTEM_NAME="Darwin"
+            ;;
+        darwin-x86)
+            TOOLCHAIN_WRAPPER_PREFIX="i686-apple-darwin"
+            CMAKE_CROSS_SYSTEM_NAME="Darwin"
+            ;;
         *)
-            # TODO fix for darwin
             panic "Unknown platform: $1"
-            $TOOLCHAIN_WRAPPER_PREFIX
             ;;
     esac
     local CMAKE_TOOLCHAIN_WRAPPER="$OBJ_DIR/toolchain.cmake"
@@ -425,24 +431,20 @@ build_host_python ()
                 fail_panic "Can't patch getpathp.c"
             fi
             ;;
-        *)
+
+        darwin*)
+            run cp -p -t "$BUILDDIR_CORE" "$BH_BUILD_DIR/pystub/config/pyconfig.h"
+            fail_panic "Can't copy pyconfig.h to $BUILDDIR_CORE"
+            ;;
+
+        linux*)
             local BUILDDIR_CONFIG="$OBJ_DIR/config"
             run mkdir -p $BUILDDIR_CONFIG
             fail_panic "Can't create directory: $BUILDDIR_CONFIG"
             local CONFIG_SITE="$BUILDDIR_CONFIG/config.site"
             {
-                if [ $1 = 'linux-x86' -o $1 = 'linux-x86_64' ]; then
-                    echo 'ac_cv_file__dev_ptmx=yes'
-                    echo 'ac_cv_file__dev_ptc=no'
-                elif [ $1 = 'darwin-x86' -o $1 = 'darwin-x86_64' ]; then
-                    echo 'ac_cv_file__dev_ptmx=no'
-                    echo 'ac_cv_file__dev_ptc=no'
-                    if [ $1 = 'darwin-x86' ] ; then
-                        echo 'ac_osx_32bit=yes'
-                    elif [ $1 = 'darwin-x86_64' ] ; then
-                        echo 'ac_osx_32bit=no'
-                    fi
-                fi
+                echo 'ac_cv_file__dev_ptmx=yes'
+                echo 'ac_cv_file__dev_ptc=no'
             } >$CONFIG_SITE
             fail_panic "Can't create config.site wrapper: '$CONFIG_SITE'"
 
@@ -490,6 +492,9 @@ build_host_python ()
             fail_panic "Can't configure python-$PYTHON_ABI for $1"
             run cp -p -t "$BUILDDIR_CORE" "$BUILDDIR_CONFIG/pyconfig.h"
             fail_panic "Can't copy pyconfig.h to $BUILDDIR_CORE"
+            ;;
+        *)
+            panic "Unknown platform: $1"
             ;;
     esac
 
