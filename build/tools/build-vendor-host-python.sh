@@ -154,10 +154,11 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
     bh_setup_build_for_host $SYSTEM
 done
 
-# $1: host system tag
+# Build python stub for internal purposes
+# $1 output directory
 build_python_stub ()
 {
-    local BUILDDIR_PYSTUB="$BH_BUILD_DIR/pystub"
+    local BUILDDIR_PYSTUB="$1"
     local BUILDDIR_PYSTUB_CONFIG="$BUILDDIR_PYSTUB/config"
     local BUILDDIR_PYSTUB_CORE="$BUILDDIR_PYSTUB/core"
     local BUILDDIR_PYSTUB_INTERPRETER_0="$BUILDDIR_PYSTUB/interpreter-0"
@@ -314,21 +315,33 @@ build_python_stub ()
     fail_panic "Can't copy python from $BUILDDIR_PYSTUB_INTERPRETER_1/build to $BUILDDIR_PYSTUB_BIN"
 }
 
+# Build Python binaries for host
 # $1: host system tag
 build_host_python ()
 {
-# Step 1: build python stub once
-    bh_stamps_do "build-vendor-python$PYTHON_ABI-stub" build_python_stub
-    local PYTHON_FOR_BUILD="$BH_BUILD_DIR/pystub/bin/python"
-
-# Step 2: prepare cmake toolchain wrappers for host
-    local OBJ_DIR="$BH_BUILD_DIR/obj-$1"
+# Define directories to be used
+    local OBJ_DIR="$BH_BUILD_DIR/py$PYTHON_ABI-$1"
     run mkdir -p $OBJ_DIR
     fail_panic "Can't create directory: $OBJ_DIR"
+
+    local CONFIG_INCLUDE_DIR="$OBJ_DIR/include"
+    run mkdir -p $CONFIG_INCLUDE_DIR
+    fail_panic "Can't create directory: $CONFIG_INCLUDE_DIR"
+
+    local PY_HOST_LINK_LIB_DIR="$OBJ_DIR/lib"
+    run mkdir -p $PY_HOST_LINK_LIB_DIR
+    fail_panic "Can't create directory: $PY_HOST_LINK_LIB_DIR"
+
     local OUTPUT_DIR="$(python_build_install_dir $1)/opt/python$PYTHON_ABI"
     run mkdir -p $OUTPUT_DIR
     fail_panic "Can't create directory: $OUTPUT_DIR"
 
+# Step 1: build python stub once
+    local PY_STUB_DIR="$BH_BUILD_DIR/py$PYTHON_ABI-stub"
+    bh_stamps_do "build-vendor-python$PYTHON_ABI-stub" build_python_stub $PY_STUB_DIR
+    local PYTHON_FOR_BUILD="$PY_STUB_DIR/bin/python"
+
+# Step 2: prepare cmake toolchain wrappers for host
     local TOOLCHAIN_WRAPPER_PREFIX
     local CMAKE_CROSS_SYSTEM_NAME
     case $1 in
@@ -412,6 +425,8 @@ build_host_python ()
                 "$PYTHON_SRCDIR/Python/dynload_win.c" \
                 "$PYTHON_SRCDIR/Modules/posixmodule.c"
             fail_panic "Can't copy pyconfig.h errmap.h importdl.h dynload_win.c posixmodule.c to $BUILDDIR_CORE"
+            run patch "$BUILDDIR_CORE/pyconfig.h" < "$PYTHON_BUILD_UTILS_DIR_HOST/pyconfig.h.$PYTHON_ABI.mingw.patch"
+            fail_panic "Can't patch getpathp.c"
             if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
                 run cp -p -t "$BUILDDIR_CORE" "$PYTHON_SRCDIR/PC/getpathp.c"
                 fail_panic "Can't copy getpathp.c to $BUILDDIR_CORE"
@@ -433,7 +448,7 @@ build_host_python ()
             ;;
 
         darwin*)
-            run cp -p -t "$BUILDDIR_CORE" "$BH_BUILD_DIR/pystub/config/pyconfig.h"
+            run cp -p -t "$BUILDDIR_CORE" "$PY_STUB_DIR/config/pyconfig.h"
             fail_panic "Can't copy pyconfig.h to $BUILDDIR_CORE"
             ;;
 
@@ -503,20 +518,27 @@ build_host_python ()
     fail_panic "Can't build python-$PYTHON_ABI core for $1"
 
     local PY_CORE_FNAME
+    local PY_CORE_LIB_FNAME
     case $1 in
         windows*)
             PY_CORE_FNAME="python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.dll"
+            PY_CORE_LIB_FNAME="libpython${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.dll.a"
             ;;
         *)
-        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-            PY_CORE_FNAME="libpython${PYTHON_ABI}.so"
-        else
-            PY_CORE_FNAME="libpython${PYTHON_ABI}m.so"
-        fi
-        ;;
+            if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+                PY_CORE_FNAME="libpython${PYTHON_ABI}.so"
+            else
+                PY_CORE_FNAME="libpython${PYTHON_ABI}m.so"
+            fi
+            PY_CORE_LIB_FNAME="$PY_CORE_FNAME"
+            ;;
     esac
     run cp -p -t "$OUTPUT_DIR" "$BUILDDIR_CORE/build/$PY_CORE_FNAME"
     fail_panic "Can't copy '$PY_CORE_FNAME' to '$OUTPUT_DIR'"
+    run cp -p -t "$PY_HOST_LINK_LIB_DIR" "$BUILDDIR_CORE/build/$PY_CORE_LIB_FNAME"
+    fail_panic "Can't copy '$PY_CORE_LIB_FNAME' to '$PY_HOST_LINK_LIB_DIR'"
+    run cp -p -t "$CONFIG_INCLUDE_DIR" "$BUILDDIR_CORE/pyconfig.h"
+    fail_panic "Can't copy '$BUILDDIR_CORE/pyconfig.h' to 'CONFIG_INCLUDE_DIR'"
 
 # Step 4: build python interpreter for host
     local BUILDDIR_INTERPRETER="$OBJ_DIR/interpreter"
@@ -575,7 +597,7 @@ build_host_python ()
     run cp -p -t "$OUTPUT_DIR" "$BUILDDIR_INTERPRETER/build/$PY_INTERPRETER_FNAME"
     fail_panic "Can't copy '$PY_INTERPRETER_FNAME' to '$OUTPUT_DIR'"
 
-# Step 4: build python stdlib for host
+# Step 5: build python stdlib for host
     log "build python-$PYTHON_ABI stdlib for $1 ..."
     local PY_STDLIB_ZIPFILE="$OUTPUT_DIR/stdlib.zip"
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
