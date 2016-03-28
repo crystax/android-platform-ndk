@@ -155,7 +155,7 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
 done
 
 # Build python stub for internal purposes
-# $1 output directory
+# $1: output directory
 build_python_stub ()
 {
     local BUILDDIR_PYSTUB="$1"
@@ -313,6 +313,131 @@ build_python_stub ()
     fail_panic "Can't build python-$PYTHON_ABI interpreter(1) stub for $BH_BUILD_TAG"
     run cp -p -t "$BUILDDIR_PYSTUB_BIN" "$BUILDDIR_PYSTUB_INTERPRETER_1/build/python"
     fail_panic "Can't copy python from $BUILDDIR_PYSTUB_INTERPRETER_1/build to $BUILDDIR_PYSTUB_BIN"
+}
+
+# Build python module
+# $1: host system tag
+# $2: module name
+# $3: sources, comma separated list
+# $4: build dir
+# $5: cmake toolchain file
+# $6: include dirs, comma separated list
+# $7: lib dir
+# $8: output dir
+build_python_module ()
+{
+    local MOD_NAME=$2
+    local MOD_SOURCES=$(commas_to_spaces $3)
+    local MOD_BUILD_DIR=$4
+    local CMAKE_TOOLCHAIN_WRAPPER=$5
+    local INCLUDE_DIR_LIST=$(commas_to_spaces $6)
+    local LIB_DIR=$7
+    local OUTPUT_DIR=$8
+    local MODS_OUTPUT_DIR="$OUTPUT_DIR/modules"
+
+    run mkdir -p $MOD_BUILD_DIR
+    fail_panic "Can't create directory: $MOD_BUILD_DIR"
+    run mkdir -p $MODS_OUTPUT_DIR
+    fail_panic "Can't create directory: $MODS_OUTPUT_DIR"
+
+    local PYCORE_LIBNAME
+    case $1 in
+        windows*)
+            PYCORE_LIBNAME="python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}"
+            ;;
+        *)
+            if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+                PYCORE_LIBNAME="python${PYTHON_ABI}"
+            else
+                PYCORE_LIBNAME="python${PYTHON_ABI}m"
+            fi
+            ;;
+    esac
+
+    local MOD_LIBLIST="$PYCORE_LIBNAME"
+    if [ "$MOD_NAME" = "_ctypes" ]; then
+        case $1 in
+            windows*)
+                ;;
+            *)
+                MOD_LIBLIST="$MOD_LIBLIST dl"
+                ;;
+        esac
+    fi
+
+    local MOD_CMAKE_DESCRIPTION="$MOD_BUILD_DIR/CMakeLists.txt"
+    {
+        echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
+        if [ "$MOD_NAME" = "_ctypes" ]; then
+            echo "enable_language(C ASM)"
+        fi
+        echo "set(MY_PYTHON_SRC_ROOT \"$PYTHON_SRCDIR\")"
+        echo "set(CMAKE_BUILD_TYPE RELEASE)"
+        echo "set(CMAKE_SKIP_RPATH TRUE)"
+        echo ""
+        echo "if(UNIX AND NOT APPLE)"
+        echo "    set(LINUX TRUE)"
+        echo "endif()"
+        echo ""
+        echo "if(LINUX)"
+        echo "    set(CMAKE_SHARED_LINKER_FLAGS \"-Wl,--no-undefined\")"
+        echo "endif()"
+        echo ""
+        echo "set(PYMOD_TARGET_NAME \"$MOD_NAME\")"
+        echo ""
+        echo "include_directories(\${MY_PYTHON_SRC_ROOT}/Include)"
+        for incd in $INCLUDE_DIR_LIST; do
+            echo "include_directories(\"$incd\")"
+        done
+        echo "link_directories(\"$LIB_DIR\")"
+        echo ""
+        echo "set(SRC_FILES"
+        for src in $MOD_SOURCES; do
+            echo "  \${MY_PYTHON_SRC_ROOT}/$src"
+        done
+        echo ")"
+        echo ""
+        echo "add_library(\${PYMOD_TARGET_NAME} SHARED \${SRC_FILES})"
+        echo "target_link_libraries(\${PYMOD_TARGET_NAME} $MOD_LIBLIST)"
+        echo ""
+        echo "if(WIN32)"
+        echo "  set_target_properties(\${PYMOD_TARGET_NAME} PROPERTIES PREFIX \"\")"
+        echo "endif()"
+    } >$MOD_CMAKE_DESCRIPTION
+    fail_panic "Can't generate '$MOD_CMAKE_DESCRIPTION'"
+
+    local MOD_BUILD_WRAPPER="$MOD_BUILD_DIR/build.sh"
+    {
+        echo '#!/bin/bash -e'
+        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
+        echo 'DIR_BUILD="$DIR_HERE/build"'
+        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
+        echo 'make VERBOSE=1'
+    } >$MOD_BUILD_WRAPPER
+    fail_panic "Can't create build wrapper: '$MOD_BUILD_WRAPPER'"
+    run chmod +x $MOD_BUILD_WRAPPER
+    fail_panic "Can't chmod +x build wrapper: '$MOD_BUILD_WRAPPER'"
+
+    log "build python-$PYTHON_ABI module '$MOD_NAME' for $1 ..."
+    run $MOD_BUILD_WRAPPER
+    fail_panic "Can't build python-$PYTHON_ABI module '$MOD_NAME' for $1"
+
+    local MOD_BUILD_FNAME
+    local MOD_OUTPUT_FNAME
+    case $1 in
+        windows*)
+            MOD_BUILD_FNAME="${MOD_NAME}.dll"
+            MOD_OUTPUT_FNAME="${MOD_NAME}.pyd"
+            ;;
+        *)
+            MOD_BUILD_FNAME="lib${MOD_NAME}.so"
+            MOD_OUTPUT_FNAME="${MOD_NAME}.so"
+            ;;
+    esac
+
+    run cp -p -T "$MOD_BUILD_DIR/build/$MOD_BUILD_FNAME" "$MODS_OUTPUT_DIR/$MOD_OUTPUT_FNAME"
+    fail_panic "Can't copy '$MOD_BUILD_DIR/build/$MOD_BUILD_FNAME' as '$MODS_OUTPUT_DIR/$MOD_OUTPUT_FNAME'"
 }
 
 # Build Python binaries for host
@@ -607,6 +732,77 @@ build_host_python ()
         run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
         fail_panic "Can't build python-$PYTHON_ABI stdlib for $1"
     fi
+
+# Step 6: build python modules
+# _ctypes
+    local BUILDDIR_CTYPES="$OBJ_DIR/ctypes"
+    case $1 in
+        darwin*)
+            panic "TODO - ctypes for darwin"
+            ;;
+
+        *)
+            local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
+            run mkdir -p $BUILDDIR_CTYPES_CONFIG
+            fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
+            local LIBFFI_CONFIGURE_WRAPPER="$BUILDDIR_CTYPES_CONFIG/configure.sh"
+            {
+                echo "#!/bin/bash -e"
+                echo ''
+                echo "export CC=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc\""
+                echo "export CPP=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc -E\""
+                echo "export AR=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ar\""
+                echo "export RANLIB=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-runlib\""
+                echo ''
+                echo 'cd $(dirname $0)'
+                echo ''
+                echo "exec $PYTHON_SRCDIR/Modules/_ctypes/libffi/configure \\"
+                echo "    --host=$BH_HOST_CONFIG \\"
+                echo "    --build=$BH_BUILD_CONFIG \\"
+                echo "    --prefix=$BUILDDIR_CTYPES_CONFIG/install \\"
+            } >$LIBFFI_CONFIGURE_WRAPPER
+            fail_panic "Can't create configure wrapper for libffi: '$LIBFFI_CONFIGURE_WRAPPER'"
+            chmod +x $LIBFFI_CONFIGURE_WRAPPER
+            fail_panic "Can't chmod +x configure wrapper for libffi"
+            run $LIBFFI_CONFIGURE_WRAPPER
+            fail_panic "Can't configure libffi for $1"
+            run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $CONFIG_INCLUDE_DIR
+            fail_panic "Can't copy configured libffi headers"
+            ;;
+    esac
+
+    local CTYPES_SRC_LIST
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callbacks.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callproc.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/cfield.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/malloc_closure.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/stgdict.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/_ctypes.c"
+    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/prep_cif.c"
+    case $1 in
+        linux-x86_64|darwin-x86_64)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/unix64.S"
+            ;;
+        windows-x86_64)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win64.S"
+            ;;
+        linux-x86|darwin-x86)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/sysv.S"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/ x86/win32.S"
+            ;;
+        windows*)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win32.S"
+            ;;
+    esac
+
+    build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
+        $CMAKE_TOOLCHAIN_WRAPPER $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+   panic "XXX - TODO"
 }
 
 # $1: host tag
