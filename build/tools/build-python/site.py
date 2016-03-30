@@ -71,24 +71,29 @@ def add_zip_package(sitedir, zip_name, known_paths):
     dir, dircase = makepath(sitedir, zip_name)
     if not dircase in known_paths and os.path.exists(dir):
         sys.path.append(dir)
-        known_paths.add(dircase)
 
 
 def addsitedir(sitedir, known_paths):
     sitedir, sitedircase = makepath(sitedir)
     if not sitedircase in known_paths:
-        sys.path.append(sitedir)        # Add path component
+        sys.path.append(sitedir)
         known_paths.add(sitedircase)
     try:
         names = os.listdir(sitedir)
     except OSError:
         return
     pth_names = [name for name in names if name.endswith(".pth")]
-    zip_names = [name for name in names if name.endswith(".zip")]
     for name in sorted(pth_names):
         addpackage(sitedir, name, known_paths)
-    for name in sorted(zip_names):
-        add_zip_package(sitedir, name, known_paths)
+    for site_endpath in known_paths:
+        ext_names = []
+        try:
+            ext_names = os.listdir(site_endpath)
+        except OSError:
+            pass
+        zip_names = [name for name in ext_names if name.endswith(".zip")]
+        for name in sorted(zip_names):
+            add_zip_package(site_endpath, name, known_paths)
 
 
 def setquit():
@@ -124,6 +129,23 @@ def sethelper():
     builtins.help = _sitebuiltins._Helper()
 
 
+def aliasmbcs():
+    if sys.platform == 'win32':
+        if sys.version_info < (3, 0):
+            import locale, codecs
+            enc = locale.getdefaultlocale()[1]
+        else:
+            import _bootlocale, codecs
+            enc = _bootlocale.getpreferredencoding(False)
+        if enc.startswith('cp'):
+            try:
+                codecs.lookup(enc)
+            except LookupError:
+                import encodings
+                encodings._cache[enc] = encodings._unknown
+                encodings.aliases.aliases[enc] = 'mbcs'
+
+
 def main():
     abs_paths()
     sitedir = os.path.join(os.path.dirname(sys.executable), "site-packages")
@@ -134,6 +156,7 @@ def main():
     setquit()
     setcopyright()
     sethelper()
+    aliasmbcs()
 
 
 if not sys.flags.no_site:
