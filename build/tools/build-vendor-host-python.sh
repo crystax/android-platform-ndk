@@ -403,6 +403,14 @@ build_python_module ()
         echo "if(WIN32)"
         echo "  set_target_properties(\${PYMOD_TARGET_NAME} PROPERTIES PREFIX \"\")"
         echo "endif()"
+        echo ""
+        echo "if (APPLE)"
+        echo "  set_target_properties(\${PYMOD_TARGET_NAME} PROPERTIES SUFFIX \".so\")"
+        echo "  add_custom_command(TARGET \${PYMOD_TARGET_NAME} POST_BUILD COMMAND"
+        echo "    install_name_tool -id lib\${PYMOD_TARGET_NAME}.so lib\${PYMOD_TARGET_NAME}.so)"
+        echo "  add_custom_command(TARGET \${PYMOD_TARGET_NAME} POST_BUILD COMMAND"
+        echo "    install_name_tool -change lib${PYCORE_LIBNAME}.so @loader_path/../lib${PYCORE_LIBNAME}.so lib\${PYMOD_TARGET_NAME}.so)"
+        echo "endif()"
     } >$MOD_CMAKE_DESCRIPTION
     fail_panic "Can't generate '$MOD_CMAKE_DESCRIPTION'"
 
@@ -411,7 +419,7 @@ build_python_module ()
         echo '#!/bin/bash -e'
         echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
         echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo 'rm -rf $DID_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
         echo 'make VERBOSE=1'
     } >$MOD_BUILD_WRAPPER
@@ -595,7 +603,7 @@ build_host_python ()
                 echo "export CC=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc\""
                 echo "export CPP=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc -E\""
                 echo "export AR=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ar\""
-                echo "export RANLIB=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-runlib\""
+                echo "export RANLIB=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ranlib\""
                 echo "export READELF=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-readelf\""
                 echo "export PYTHON_FOR_BUILD=\"$PYTHON_FOR_BUILD\""
                 echo "export CONFIG_SITE=\"$CONFIG_SITE\""
@@ -736,40 +744,32 @@ build_host_python ()
 # Step 6: build python modules
 # _ctypes
     local BUILDDIR_CTYPES="$OBJ_DIR/ctypes"
-    case $1 in
-        darwin*)
-            panic "TODO - ctypes for darwin"
-            ;;
-
-        *)
-            local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
-            run mkdir -p $BUILDDIR_CTYPES_CONFIG
-            fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
-            local LIBFFI_CONFIGURE_WRAPPER="$BUILDDIR_CTYPES_CONFIG/configure.sh"
-            {
-                echo "#!/bin/bash -e"
-                echo ''
-                echo "export CC=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc\""
-                echo "export CPP=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc -E\""
-                echo "export AR=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ar\""
-                echo "export RANLIB=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-runlib\""
-                echo ''
-                echo 'cd $(dirname $0)'
-                echo ''
-                echo "exec $PYTHON_SRCDIR/Modules/_ctypes/libffi/configure \\"
-                echo "    --host=$BH_HOST_CONFIG \\"
-                echo "    --build=$BH_BUILD_CONFIG \\"
-                echo "    --prefix=$BUILDDIR_CTYPES_CONFIG/install \\"
-            } >$LIBFFI_CONFIGURE_WRAPPER
-            fail_panic "Can't create configure wrapper for libffi: '$LIBFFI_CONFIGURE_WRAPPER'"
-            chmod +x $LIBFFI_CONFIGURE_WRAPPER
-            fail_panic "Can't chmod +x configure wrapper for libffi"
-            run $LIBFFI_CONFIGURE_WRAPPER
-            fail_panic "Can't configure libffi for $1"
-            run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $CONFIG_INCLUDE_DIR
-            fail_panic "Can't copy configured libffi headers"
-            ;;
-    esac
+    local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
+    run mkdir -p $BUILDDIR_CTYPES_CONFIG
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
+    local LIBFFI_CONFIGURE_WRAPPER="$BUILDDIR_CTYPES_CONFIG/configure.sh"
+    {
+        echo "#!/bin/bash -e"
+        echo ''
+        echo "export CC=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc\""
+        echo "export CPP=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc -E\""
+        echo "export AR=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ar\""
+        echo "export RANLIB=\"$BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-ranlib\""
+        echo ''
+        echo 'cd $(dirname $0)'
+        echo ''
+        echo "exec $PYTHON_SRCDIR/Modules/_ctypes/libffi/configure \\"
+        echo "    --host=$BH_HOST_CONFIG \\"
+        echo "    --build=$BH_BUILD_CONFIG \\"
+        echo "    --prefix=$BUILDDIR_CTYPES_CONFIG/install \\"
+    } >$LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't create configure wrapper for libffi: '$LIBFFI_CONFIGURE_WRAPPER'"
+    chmod +x $LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't chmod +x configure wrapper for libffi"
+    run $LIBFFI_CONFIGURE_WRAPPER
+    fail_panic "Can't configure libffi for $1"
+    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $CONFIG_INCLUDE_DIR
+    fail_panic "Can't copy configured libffi headers"
 
     local CTYPES_SRC_LIST
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callbacks.c"
@@ -780,18 +780,27 @@ build_host_python ()
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/_ctypes.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/prep_cif.c"
     case $1 in
-        linux-x86_64|darwin-x86_64)
+        linux-x86_64)
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/unix64.S"
             ;;
-        windows-x86_64)
-            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
-            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win64.S"
-            ;;
-        linux-x86|darwin-x86)
+        linux-x86)
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/sysv.S"
-            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/ x86/win32.S"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win32.S"
+            ;;
+        darwin-x86_64)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/darwin64.S"
+            ;;
+        darwin-x86)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/darwin.S"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win32.S"
+            ;;
+        windows-x86_64)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/win64.S"
             ;;
         windows*)
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi.c"
@@ -801,8 +810,6 @@ build_host_python ()
 
     build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
         $CMAKE_TOOLCHAIN_WRAPPER $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
-
-   panic "XXX - TODO"
 }
 
 # $1: host tag
