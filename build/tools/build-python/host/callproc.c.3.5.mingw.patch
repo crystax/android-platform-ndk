@@ -1,0 +1,38 @@
+--- callproc.c	2016-01-27 10:54:56.000000000 +0300
++++ callproc.c.3.5.mingw	2016-03-31 07:40:58.000000000 +0300
+@@ -754,7 +754,7 @@
+     int *space;
+     ffi_cif cif;
+     int cc;
+-#ifdef MS_WIN32
++#if defined(MS_WIN32) && !defined(__MINGW32__)
+     int delta;
+ #ifndef DONT_USE_SEH
+     DWORD dwExceptionCode = 0;
+@@ -806,8 +806,10 @@
+ #ifndef DONT_USE_SEH
+     __try {
+ #endif
++#ifndef __MINGW32__
+         delta =
+ #endif
++#endif
+                 ffi_call(&cif, (void *)pProc, resmem, avalues);
+ #ifdef MS_WIN32
+ #ifndef DONT_USE_SEH
+@@ -840,6 +842,7 @@
+         return -1;
+     }
+ #endif
++#ifndef __MINGW32__
+ #ifdef MS_WIN64
+     if (delta != 0) {
+         PyErr_Format(PyExc_RuntimeError,
+@@ -870,6 +873,7 @@
+     }
+ #endif
+ #endif
++#endif
+     if ((flags & FUNCFLAG_PYTHONAPI) && PyErr_Occurred())
+         return -1;
+     return 0;
