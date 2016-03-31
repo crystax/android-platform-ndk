@@ -387,13 +387,27 @@ build_python_module ()
         echo ""
         echo "include_directories(\${MY_PYTHON_SRC_ROOT}/Include)"
         for incd in $INCLUDE_DIR_LIST; do
-            echo "include_directories(\"$incd\")"
+            case $incd in
+                /*)
+                    echo "include_directories($incd)"
+                    ;;
+                *)
+                    echo "include_directories(\${MY_PYTHON_SRC_ROOT}/$incd)"
+                    ;;
+            esac
         done
         echo "link_directories(\"$LIB_DIR\")"
         echo ""
         echo "set(SRC_FILES"
         for src in $MOD_SOURCES; do
-            echo "  \${MY_PYTHON_SRC_ROOT}/$src"
+            case $src in
+                /*)
+                    echo "  $src"
+                    ;;
+                *)
+                    echo "  \${MY_PYTHON_SRC_ROOT}/$src"
+                    ;;
+            esac
         done
         echo ")"
         echo ""
@@ -772,13 +786,28 @@ build_host_python ()
     fail_panic "Can't copy configured libffi headers"
 
     local CTYPES_SRC_LIST
+    local CTYPES_INC_DIR_LIST=$CONFIG_INCLUDE_DIR
+    case $1 in
+        windows*)
+            run cp -p -t "$BUILDDIR_CTYPES" "$PYTHON_SRCDIR/Modules/_ctypes/callproc.c"
+            fail_panic "Can't copy callproc.c to '$BUILDDIR_CTYPES'"
+            run patch "$BUILDDIR_CTYPES/callproc.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/callproc.c.$PYTHON_ABI.mingw.patch"
+            fail_panic "Can't patch callproc.c"
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,$BUILDDIR_CTYPES/callproc.c"
+            CTYPES_INC_DIR_LIST="$CTYPES_INC_DIR_LIST,Modules/_ctypes"
+            ;;
+        *)
+            CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callproc.c"
+            ;;
+    esac
+
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callbacks.c"
-    CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/callproc.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/cfield.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/malloc_closure.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/stgdict.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/_ctypes.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/prep_cif.c"
+
     case $1 in
         linux-x86_64)
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
@@ -809,7 +838,7 @@ build_host_python ()
     esac
 
     build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
-        $CMAKE_TOOLCHAIN_WRAPPER $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+        $CMAKE_TOOLCHAIN_WRAPPER $CTYPES_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 }
 
 # $1: host tag
