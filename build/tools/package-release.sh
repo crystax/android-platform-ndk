@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2009-2010, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2009-2010, 2014, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -296,9 +296,18 @@ unpack_prebuilt ()
     PREBUILT=${PREBUILT}.tar.xz
     PREBUILT64=${PREBUILT64}.tar.xz
 
-    echo "Unpacking $PREBUILT"
-    unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
-    fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
+    # zuav: we do not unpack 32 bit host tools for linux and darwin
+    if [ ! -f "$PREBUILT_DIR/$PREBUILT" ]; then
+        if [ $NAME != ${NAME%"linux-x86"} -o $NAME != ${NAME%"darwin-x86"} ]; then
+            echo "Skipping non-existing archive $PREBUILT_DIR/$PREBUILT"
+        else
+            fail_panic "Could not unpack NON-existing prebuilt $PREBUILT_DIR/$PREBUILT. Aborting."
+        fi
+    else
+        echo "Unpacking $PREBUILT"
+        unpack_archive "$PREBUILT_DIR/$PREBUILT" "$DDIR"
+        fail_panic "Could not unpack prebuilt $PREBUILT. Aborting."
+    fi
 
     test "$PREBUILT" = "$PREBUILT64" && return
 
@@ -865,9 +874,12 @@ for SYSTEM in $SYSTEMS; do
     # universally executable, punt intended
     find $DSTDIR $DSTDIR64 -exec chmod a+r {} \;
     find $DSTDIR $DSTDIR64 -executable -exec chmod a+x {} \;
-    echo "Creating $ARCHIVE"
-    pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_VERSION"
-    fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
+    # we do not build 32 bit version for linux and darwin
+    if [ "$SYSTEM" = "windows" ]; then
+        echo "Creating $ARCHIVE"
+        pack_release "$OUT_DIR/$ARCHIVE" "$TMPDIR" "$RELEASE_VERSION"
+        fail_panic "Could not create archive: $OUT_DIR/$ARCHIVE"
+    fi
     if [ "$SEPARATE_64" = "yes" ] ; then
         rm -rf "$DSTDIR/prebuilt/common"
         rm -rf "$DSTDIR/prebuilt/$SHORT_SYSTEM"

@@ -305,7 +305,7 @@ if timestamp_check make-packages; then
             --release=$RELEASE \
             --prefix=$PREFIX \
             --out-dir="$OUT_DIR" \
-            --arch="$ARCHS" \
+            --arch="$(spaces_to_commas $ARCHS)" \
             --prebuilt-dir="$PREBUILT_DIR" \
             --systems="$HOST_SYSTEMS" \
             --development-root="$DEVELOPMENT_ROOT" \
