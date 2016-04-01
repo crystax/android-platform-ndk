@@ -335,6 +335,8 @@ build_python_module ()
     local OUTPUT_DIR=$8
     local MODS_OUTPUT_DIR="$OUTPUT_DIR/modules"
 
+    log "build python-$PYTHON_ABI module '$MOD_NAME' for $1 ..."
+
     run mkdir -p $MOD_BUILD_DIR
     fail_panic "Can't create directory: $MOD_BUILD_DIR"
     run mkdir -p $MODS_OUTPUT_DIR
@@ -358,7 +360,7 @@ build_python_module ()
     case $1 in
         windows*)
             case $MOD_NAME in
-                _multiprocessing)
+                _multiprocessing|_socket|select)
                     MOD_LIBLIST="$MOD_LIBLIST ws2_32"
                     ;;
             esac
@@ -387,6 +389,15 @@ build_python_module ()
                     fi
                     ;;
             esac
+        elif [ "$MOD_NAME" = "pyexpat" ]; then
+            case $1 in
+                windows*)
+                    echo 'set(CMAKE_C_FLAGS "-DCOMPILED_FROM_DSP -DXML_STATIC")'
+                    ;;
+                *)
+                    echo 'set(CMAKE_C_FLAGS "-DHAVE_EXPAT_CONFIG_H -DXML_STATIC")'
+                    ;;
+            esac
         fi
         echo "set(MY_PYTHON_SRC_ROOT \"$PYTHON_SRCDIR\")"
         echo "set(CMAKE_BUILD_TYPE RELEASE)"
@@ -413,6 +424,7 @@ build_python_module ()
                     ;;
             esac
         done
+        echo ""
         echo "link_directories(\"$LIB_DIR\")"
         echo ""
         echo "set(SRC_FILES"
@@ -490,6 +502,19 @@ build_host_python ()
     local OUTPUT_DIR="$(python_build_install_dir $1)/opt/python$PYTHON_ABI"
     run mkdir -p $OUTPUT_DIR
     fail_panic "Can't create directory: $OUTPUT_DIR"
+
+    local MINGW_ROOT
+    case $1 in
+        windows*)
+            MINGW_ROOT=$(cd "$MINGW_PATH/.." && pwd)
+            if [ ! -d "$MINGW_ROOT" ]; then
+                panic "MINGW root not a directory: '$MINGW_ROOT'"
+            else
+                log "MINGW: '$MINGW_ROOT'"
+            fi
+            ;;
+    esac
+
 
 # Step 1: build python stub once
     local PY_STUB_DIR="$BH_BUILD_DIR/py$PYTHON_ABI-stub"
@@ -579,7 +604,6 @@ build_host_python ()
                 fail_panic "Can't copy getpathp.c to $BUILDDIR_CORE"
             fi
             # fix CamelCase inclusions for windows.h and mstcpip.h
-            local MINGW_ROOT=$(cd "$MINGW_PATH/.." && pwd)
             run find $MINGW_ROOT -name "windows.h" -exec ln -s {} "$BUILDDIR_CORE/Windows.h" \;
             fail_panic "Can't create symlink for Windows.h"
             run find $MINGW_ROOT -name "mstcpip.h" -exec ln -s {} "$BUILDDIR_CORE/MSTcpIP.h" \;
@@ -849,6 +873,41 @@ build_host_python ()
     MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/semaphore.c"
 
     build_python_module $1 '_multiprocessing' $MULTIPROCESSING_SRC_LIST "$OBJ_DIR/multiprocessing" \
+        $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+# _socket
+    local BUILDDIR_SOCKET="$OBJ_DIR/socket"
+    run mkdir -p $BUILDDIR_SOCKET
+    fail_panic "Can't create directory: $BUILDDIR_SOCKET"
+    local SOCKET_INC_DIR_LIST="$CONFIG_INCLUDE_DIR"
+    case $1 in
+        windows*)
+            SOCKET_INC_DIR_LIST="$SOCKET_INC_DIR_LIST,$BUILDDIR_SOCKET"
+            # fix CamelCase inclusions for mstcpip.h
+            run find $MINGW_ROOT -name "mstcpip.h" -exec ln -s {} "$BUILDDIR_SOCKET/MSTcpIP.h" \;
+            fail_panic "Can't create symlink for mstcpip.h"
+        ;;
+    esac
+
+    build_python_module $1 '_socket' 'Modules/socketmodule.c' "$BUILDDIR_SOCKET" \
+        $CMAKE_TOOLCHAIN_DESCRIPTION $SOCKET_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+# pyexpat
+    local PYEXPAT_SRC_LIST
+    PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/expat/xmlparse.c"
+    PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/expat/xmlrole.c"
+    PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/expat/xmltok.c"
+    PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/pyexpat.c"
+
+    build_python_module $1 'pyexpat' $PYEXPAT_SRC_LIST "$OBJ_DIR/pyexpat" \
+        $CMAKE_TOOLCHAIN_DESCRIPTION "$CONFIG_INCLUDE_DIR,Modules/expat" $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+# select
+    build_python_module $1 'select' 'Modules/selectmodule.c' "$OBJ_DIR/select" \
+        $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+# unicodedata
+    build_python_module $1 'unicodedata' 'Modules/unicodedata.c' "$OBJ_DIR/unicodedata" \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 }
 
