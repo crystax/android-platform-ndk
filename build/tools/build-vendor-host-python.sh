@@ -154,6 +154,30 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
     bh_setup_build_for_host $SYSTEM
 done
 
+# Generate shell wrapper for cmake
+# $1: wrapper file name
+# $2: optional path of file with cmake toolchain description
+generate_cmake_wrapper ()
+{
+    local WRAPPER_FNAME=$1
+    local CMAKE_TOOLCHAIN_DESCRIPTION=$2
+    local TOOLCHAIN_OPTION
+    if [ -n "$CMAKE_TOOLCHAIN_DESCRIPTION" ]; then
+        TOOLCHAIN_OPTION="-DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_DESCRIPTION"
+    fi
+    {
+        echo '#!/bin/bash -e'
+        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
+        echo 'DIR_BUILD="$DIR_HERE/build"'
+        echo 'rm -rf $DID_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
+        echo "cmake $TOOLCHAIN_OPTION \$DIR_HERE"
+        echo 'make VERBOSE=1'
+    } >$WRAPPER_FNAME
+    fail_panic "Can't create cmake build wrapper: '$WRAPPER_FNAME'"
+    run chmod +x $WRAPPER_FNAME
+    fail_panic "Can't chmod +x cmake build wrapper: '$WRAPPER_FNAME'"
+}
+
 # Build python stub for internal purposes
 # $1: output directory
 build_python_stub ()
@@ -206,18 +230,10 @@ build_python_stub ()
         cat $PY_CMAKE_TEMPLATE_FILE
     } >$PYSTUB_CORE_CMAKE_DESCRIPTION
     fail_panic "Can't generate $PYSTUB_CORE_CMAKE_DESCRIPTION"
+
     local PYSTUB_CORE_BUILD_WRAPPER="$BUILDDIR_PYSTUB_CORE/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo 'cmake $DIR_HERE'
-        echo 'make VERBOSE=1'
-    } >$PYSTUB_CORE_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: $PYSTUB_CORE_BUILD_WRAPPER"
-    run chmod +x $PYSTUB_CORE_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: $PYSTUB_CORE_BUILD_WRAPPER"
+    generate_cmake_wrapper $PYSTUB_CORE_BUILD_WRAPPER
+
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_PYSTUB_CORE/config.c" && \
         cp -p -t "$BUILDDIR_PYSTUB_CORE" "$BUILDDIR_PYSTUB_CONFIG/pyconfig.h"
     fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_PYSTUB_CORE"
@@ -252,18 +268,10 @@ build_python_stub ()
         echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"$PYTHON_SRCDIR/Lib\\\\\\\"\")"
     } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0
     fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0"
+
     local PYSTUB_INTERPRETER_0_BUILD_WRAPPER="$BUILDDIR_PYSTUB_INTERPRETER_0/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo 'cmake $DIR_HERE'
-        echo 'make VERBOSE=1'
-    } >$PYSTUB_INTERPRETER_0_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: $PYSTUB_INTERPRETER_0_BUILD_WRAPPER"
-    run chmod +x $PYSTUB_INTERPRETER_0_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: $PYSTUB_INTERPRETER_0_BUILD_WRAPPER"
+    generate_cmake_wrapper $PYSTUB_INTERPRETER_0_BUILD_WRAPPER
+
     run cp -p -T $PY_C_INTERPRETER_STUB_FILE "$BUILDDIR_PYSTUB_INTERPRETER_0/interpreter.c"
     fail_panic "Can't copy $PY_C_INTERPRETER_STUB_FILE to $BUILDDIR_PYSTUB_INTERPRETER_0"
     log "build python-$PYTHON_ABI interpreter(0) stub for $BH_BUILD_TAG ..."
@@ -294,18 +302,10 @@ build_python_stub ()
         echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"stdlib.zip\\\\\\\"\")"
     } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1
     fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1"
+
     local PYSTUB_INTERPRETER_1_BUILD_WRAPPER="$BUILDDIR_PYSTUB_INTERPRETER_1/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo 'cmake $DIR_HERE'
-        echo 'make VERBOSE=1'
-    } >$PYSTUB_INTERPRETER_1_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: $PYSTUB_INTERPRETER_1_BUILD_WRAPPER"
-    run chmod +x $PYSTUB_INTERPRETER_1_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: $PYSTUB_INTERPRETER_1_BUILD_WRAPPER"
+    generate_cmake_wrapper $PYSTUB_INTERPRETER_1_BUILD_WRAPPER
+
     run cp -p -T $PY_C_INTERPRETER_STUB_FILE "$BUILDDIR_PYSTUB_INTERPRETER_1/interpreter.c"
     fail_panic "Can't copy $PY_C_INTERPRETER_STUB_FILE to $BUILDDIR_PYSTUB_INTERPRETER_1"
     log "build python-$PYTHON_ABI interpreter(1) stub for $BH_BUILD_TAG ..."
@@ -329,7 +329,7 @@ build_python_module ()
     local MOD_NAME=$2
     local MOD_SOURCES=$(commas_to_spaces $3)
     local MOD_BUILD_DIR=$4
-    local CMAKE_TOOLCHAIN_WRAPPER=$5
+    local CMAKE_TOOLCHAIN_DESCRIPTION=$5
     local INCLUDE_DIR_LIST=$(commas_to_spaces $6)
     local LIB_DIR=$7
     local OUTPUT_DIR=$8
@@ -370,6 +370,13 @@ build_python_module ()
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         if [ "$MOD_NAME" = "_ctypes" ]; then
             echo "enable_language(C ASM)"
+            case $1 in
+                windows*)
+                    if [ "$1" != "windows-x86_64" ]; then
+                        echo 'set(CMAKE_ASM_FLAGS "-DSYMBOL_UNDERSCORE=1")'
+                    fi
+                    ;;
+            esac
         fi
         echo "set(MY_PYTHON_SRC_ROOT \"$PYTHON_SRCDIR\")"
         echo "set(CMAKE_BUILD_TYPE RELEASE)"
@@ -413,6 +420,7 @@ build_python_module ()
         echo ""
         echo "add_library(\${PYMOD_TARGET_NAME} SHARED \${SRC_FILES})"
         echo "target_link_libraries(\${PYMOD_TARGET_NAME} $MOD_LIBLIST)"
+        echo "set_target_properties(\${PYMOD_TARGET_NAME} PROPERTIES DEFINE_SYMBOL \"Py_BUILD_CORE_MODULE\")"
         echo ""
         echo "if(WIN32)"
         echo "  set_target_properties(\${PYMOD_TARGET_NAME} PROPERTIES PREFIX \"\")"
@@ -429,17 +437,7 @@ build_python_module ()
     fail_panic "Can't generate '$MOD_CMAKE_DESCRIPTION'"
 
     local MOD_BUILD_WRAPPER="$MOD_BUILD_DIR/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'rm -rf $DID_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
-        echo 'make VERBOSE=1'
-    } >$MOD_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: '$MOD_BUILD_WRAPPER'"
-    run chmod +x $MOD_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: '$MOD_BUILD_WRAPPER'"
+    generate_cmake_wrapper $MOD_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
 
     log "build python-$PYTHON_ABI module '$MOD_NAME' for $1 ..."
     run $MOD_BUILD_WRAPPER
@@ -520,7 +518,7 @@ build_host_python ()
             panic "Unknown platform: $1"
             ;;
     esac
-    local CMAKE_TOOLCHAIN_WRAPPER="$OBJ_DIR/toolchain.cmake"
+    local CMAKE_TOOLCHAIN_DESCRIPTION="$OBJ_DIR/toolchain.cmake"
     {
         echo "set(CMAKE_SYSTEM_NAME $CMAKE_CROSS_SYSTEM_NAME)"
         echo "set(CMAKE_C_COMPILER $BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc)"
@@ -530,8 +528,8 @@ build_host_python ()
                 echo "set(CMAKE_RC_COMPILER $BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-windres)"
             ;;
         esac
-    } >$CMAKE_TOOLCHAIN_WRAPPER
-    fail_panic "Can't create cmake-toolchain wrapper: $CMAKE_TOOLCHAIN_WRAPPER"
+    } >$CMAKE_TOOLCHAIN_DESCRIPTION
+    fail_panic "Can't create cmake-toolchain wrapper: '$CMAKE_TOOLCHAIN_DESCRIPTION'"
 
 # Step 3: build python core for host
     local BUILDDIR_CORE="$OBJ_DIR/core"
@@ -544,18 +542,10 @@ build_host_python ()
         cat $PY_CMAKE_TEMPLATE_FILE
     } >$CORE_CMAKE_DESCRIPTION
     fail_panic "Can't generate $CORE_CMAKE_DESCRIPTION"
+
     local CORE_BUILD_WRAPPER="$BUILDDIR_CORE/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
-        echo 'make VERBOSE=1'
-    } >$CORE_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: $CORE_BUILD_WRAPPER"
-    run chmod +x $CORE_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: $CORE_BUILD_WRAPPER"
+    generate_cmake_wrapper $CORE_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
+
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
         local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.$PYTHON_ABI"
         run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/getpath.c"
@@ -709,18 +699,9 @@ build_host_python ()
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
     } >$INTERPRETER_CMAKE_DESCRIPTION
     fail_panic "Can't generate $INTERPRETER_CMAKE_DESCRIPTION"
+
     local INTERPRETER_BUILD_WRAPPER="$BUILDDIR_INTERPRETER/build.sh"
-    {
-        echo '#!/bin/bash -e'
-        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
-        echo 'DIR_BUILD="$DIR_HERE/build"'
-        echo 'mkdir -p $DIR_BUILD && cd $DIR_BUILD'
-        echo "cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_WRAPPER cmake \$DIR_HERE"
-        echo 'make VERBOSE=1'
-    } >$INTERPRETER_BUILD_WRAPPER
-    fail_panic "Can't create build wrapper: $INTERPRETER_BUILD_WRAPPER"
-    run chmod +x $INTERPRETER_BUILD_WRAPPER
-    fail_panic "Can't chmod +x build wrapper: '$INTERPRETER_BUILD_WRAPPER'"
+    generate_cmake_wrapper $INTERPRETER_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
 
     local INTERPRETER_SOURCE
     local PY_INTERPRETER_FNAME
@@ -838,7 +819,7 @@ build_host_python ()
     esac
 
     build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
-        $CMAKE_TOOLCHAIN_WRAPPER $CTYPES_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+        $CMAKE_TOOLCHAIN_DESCRIPTION $CTYPES_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 }
 
 # $1: host tag
@@ -907,7 +888,7 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
     fi
 done
 
-if [ -z "$NOT_CACHED_SYSTEMS" ] ; then
+if [ -z "$NOT_CACHED_SYSTEMS" ]; then
     log "For all systems were found cached packages."
     exit 0
 else
@@ -921,7 +902,7 @@ for SYSTEM in $BH_HOST_SYSTEMS; do
     need_install_host_python $SYSTEM
 done
 
-if [ "$PACKAGE_DIR" ]; then
+if [ -n "$PACKAGE_DIR" ]; then
     for SYSTEM in $BH_HOST_SYSTEMS; do
         bh_setup_build_for_host $SYSTEM
         need_package_host_python $SYSTEM
