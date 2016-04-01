@@ -355,15 +355,25 @@ build_python_module ()
     esac
 
     local MOD_LIBLIST="$PYCORE_LIBNAME"
-    if [ "$MOD_NAME" = "_ctypes" ]; then
-        case $1 in
-            windows*)
-                ;;
-            *)
-                MOD_LIBLIST="$MOD_LIBLIST dl"
-                ;;
-        esac
-    fi
+    case $1 in
+        windows*)
+            case $MOD_NAME in
+                _multiprocessing)
+                    MOD_LIBLIST="$MOD_LIBLIST ws2_32"
+                    ;;
+            esac
+            ;;
+        *)
+            case $MOD_NAME in
+                _ctypes)
+                    MOD_LIBLIST="$MOD_LIBLIST dl"
+                    ;;
+                _multiprocessing)
+                    MOD_LIBLIST="$MOD_LIBLIST pthread"
+                    ;;
+            esac
+            ;;
+    esac
 
     local MOD_CMAKE_DESCRIPTION="$MOD_BUILD_DIR/CMakeLists.txt"
     {
@@ -740,8 +750,11 @@ build_host_python ()
 # _ctypes
     local BUILDDIR_CTYPES="$OBJ_DIR/ctypes"
     local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
+    local BUILDDIR_CTYPES_INC="$BUILDDIR_CTYPES/include"
     run mkdir -p $BUILDDIR_CTYPES_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
+    run mkdir -p $BUILDDIR_CTYPES_INC
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES_INC"
     local LIBFFI_CONFIGURE_WRAPPER="$BUILDDIR_CTYPES_CONFIG/configure.sh"
     {
         echo "#!/bin/bash -e"
@@ -763,11 +776,11 @@ build_host_python ()
     fail_panic "Can't chmod +x configure wrapper for libffi"
     run $LIBFFI_CONFIGURE_WRAPPER
     fail_panic "Can't configure libffi for $1"
-    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $CONFIG_INCLUDE_DIR
-    fail_panic "Can't copy configured libffi headers"
+    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES_INC
+    fail_panic "Can't copy configured libffi headers to '$BUILDDIR_CTYPES_INC'"
 
     local CTYPES_SRC_LIST
-    local CTYPES_INC_DIR_LIST=$CONFIG_INCLUDE_DIR
+    local CTYPES_INC_DIR_LIST="$CONFIG_INCLUDE_DIR,$BUILDDIR_CTYPES_INC"
     case $1 in
         windows*)
             run cp -p -t "$BUILDDIR_CTYPES" "$PYTHON_SRCDIR/Modules/_ctypes/callproc.c"
@@ -820,6 +833,23 @@ build_host_python ()
 
     build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CTYPES_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
+
+# _multiprocessing
+    local MULTIPROCESSING_SRC_LIST
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/socket_connection.c"
+        case $1 in
+            windows*)
+                MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/win32_functions.c"
+                MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/pipe_connection.c"
+            ;;
+        esac
+    fi
+    MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/multiprocessing.c"
+    MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/semaphore.c"
+
+    build_python_module $1 '_multiprocessing' $MULTIPROCESSING_SRC_LIST "$OBJ_DIR/multiprocessing" \
+        $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 }
 
 # $1: host tag
