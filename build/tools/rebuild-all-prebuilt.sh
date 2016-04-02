@@ -148,6 +148,10 @@ if [ "$GCC_VERSION_LIST" != "default" ]; then
     TARGET_FLAGS=$TARGET_FLAGS" --gcc-version-list=$(spaces_to_commas $GCC_VERSION_LIST)"
 fi
 
+if [ "$TRY64" = "yes" -o "$ALSO_64" = "yes" ]; then
+    TARGET_FLAGS=$TARGET_FLAGS" --try-64"
+fi
+
 if [ "$SKIP_TARGET_PREBUILTS" = "no" ]; then
 if [ "$SYSTEMS" = "windows" ] ; then
     dump "Done, host toolchains were built for windows only build."
