@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -89,7 +89,13 @@ if [ -z "$PYTHON_MINOR_VERSION" ]; then
     panic "Can't detect python minor version."
 fi
 
-PYTHON_ABI="$PYTHON_MAJOR_VERSION"'.'"$PYTHON_MINOR_VERSION"
+PYTHON_ABI="${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}"
+
+PYTHON_FOR_BUILD="$NDK_DIR/prebuilt/$HOST_TAG/opt/python${PYTHON_ABI}/python"
+if [ ! -f "$PYTHON_FOR_BUILD" ]; then
+    panic "Can't find python for build: '$PYTHON_FOR_BUILD'."
+fi
+
 PYTHON_DSTDIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_ABI
 mkdir -p $PYTHON_DSTDIR
 fail_panic "Can't create python destination directory: $PYTHON_DSTDIR"
@@ -140,7 +146,7 @@ build_python_for_abi ()
 {
     local ABI="$1"
     local BUILDDIR="$2"
-    local PYBIN_INSTALLDIR=$PYTHON_DSTDIR/libs/$ABI
+    local PYBIN_INSTALLDIR="$PYTHON_DSTDIR/shared/$ABI"
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
     if [ -n "$OPENSSL_HOME" ]; then
         log "Building python$PYTHON_ABI for $ABI (with OpenSSL-$DEFAULT_OPENSSL_VERSION)"
@@ -160,8 +166,7 @@ build_python_for_abi ()
 
     local BUILD_ON_PLATFORM=$($PYTHON_SRCDIR/config.guess)
     if [ -z "$BUILD_ON_PLATFORM" ]; then
-        echo "ERROR: Can't resolve platform being built python on." 1>&2
-        exit 1
+        panic "Can't resolve platform being built python on."
     fi
 
     local ARCH
@@ -176,8 +181,8 @@ build_python_for_abi ()
             ARCH=$ABI
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
+            ;;
     esac
 
     local HOST
@@ -201,8 +206,8 @@ build_python_for_abi ()
             HOST=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
+            ;;
     esac
 
     local APILEVEL
@@ -214,8 +219,8 @@ build_python_for_abi ()
             APILEVEL=21
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
+            ;;
     esac
 
     local TOOLCHAIN
@@ -239,8 +244,8 @@ build_python_for_abi ()
             TOOLCHAIN=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
+            ;;
     esac
 
     case $ABI in
@@ -255,11 +260,13 @@ build_python_for_abi ()
             ;;
         *)
             CFLAGS=""
+            ;;
     esac
 
     case $ABI in
         armeabi*)
             CFLAGS="$CFLAGS -mthumb"
+            ;;
     esac
 
     local CFLAGS="$CFLAGS --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH"
@@ -278,7 +285,6 @@ build_python_for_abi ()
     local AR=$TCPREFIX/bin/${HOST}-ar
     local RANLIB=$TCPREFIX/bin/${HOST}-ranlib
     local READELF=$TCPREFIX/bin/${HOST}-readelf
-    local PYTHON_FOR_BUILD=$NDK_DIR/prebuilt/$HOST_TAG/bin/python
     local CONFIG_SITE=$PYTHON_TOOLS_DIR/config.site
 
     local CONFIG_SITE=$BUILDDIR_CONFIG/config.site
@@ -512,8 +518,8 @@ build_python_for_abi ()
             FFI_SRC_LIST="src/mips/ffi.c src/mips/o32.S src/mips/n32.S"
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
+            ;;
     esac
     FFI_SRC_LIST="$FFI_SRC_LIST src/prep_cif.c"
     {
