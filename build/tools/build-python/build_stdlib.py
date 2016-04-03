@@ -1,59 +1,33 @@
+import sys
+if sys.version_info[0] < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
 import argparse
 import os.path
 import zipfile
 
 
-IGNORE_DIR = (
-    'site-packages',
-    'curses',
-    'dbm',
-    'distutils',
-    'idlelib',
-    'lib2to3',
-    'msilib',
-    'pydoc_data',
-    'tkinter',
-    'turtledemo',
-    'venv',
-    'ensurepip',
-
-# 2.7 specific
-    'bsddb',
-    'lib-tk'
-)
-
-IGNORE_FILE = (
-   'site.py',
-   'sysconfig.py',
-   'doctest.py',
-   'turtle.py',
-   'tabnanny.py',
-   'this.py',
-   '__phello__.foo.py',
-   '_osx_support.py',
-   'asyncio/test_utils.py',
-
-# 2.7 specific
-   'anydbm.py',
-   'user.py',
-   'whichdb.py',
-)
+class StdlibConfig:
+    def __init__(self, *, ignore_dir_list, ignore_file_list):
+        self.ignore_dir_list = ignore_dir_list
+        self.ignore_file_list = ignore_file_list
 
 
-def dir_in_interest(arch_path):
-    for exclusion in IGNORE_DIR:
+def dir_in_interest(config, arch_path):
+    for exclusion in config.ignore_dir_list:
         if arch_path == exclusion:
             return False
     return True
 
 
-def file_in_interest(fs_path, arch_path):
-    if arch_path in IGNORE_FILE:
+def file_in_interest(config, arch_path):
+    if arch_path in config.ignore_file_list:
         return False
     return True
 
 
-def in_interest(fs_path, arch_path, is_dir, pathbits):
+def in_interest(config, arch_path, is_dir, pathbits):
     name = pathbits[-1]
     if is_dir:
         if (name == '__pycache__' or name == 'test' or name == 'tests'):
@@ -64,12 +38,12 @@ def in_interest(fs_path, arch_path, is_dir, pathbits):
         if not arch_path.endswith('.py'):
             return False
     if is_dir:
-        return dir_in_interest(arch_path)
+        return dir_in_interest(config, arch_path)
     else:
-        return file_in_interest(fs_path, arch_path)
+        return file_in_interest(config, arch_path)
 
 
-def enum_content(seed, catalog, pathbits = None):
+def enum_content(config, seed, catalog, pathbits = None):
     if pathbits is None:
         fs_path = seed
         is_dir = True
@@ -78,7 +52,7 @@ def enum_content(seed, catalog, pathbits = None):
         is_dir = os.path.isdir(fs_path)
     if pathbits is not None:
         arc_path = '/'.join(pathbits)
-        if not in_interest(fs_path, arc_path, is_dir, pathbits):
+        if not in_interest(config, arc_path, is_dir, pathbits):
             return
         if not is_dir:
             catalog.append((fs_path, arc_path))
@@ -95,15 +69,33 @@ def enum_content(seed, catalog, pathbits = None):
                 files.append(name)
         for name in sorted(dirs):
             pathbits.append(name)
-            enum_content(seed, catalog, pathbits)
+            enum_content(config, seed, catalog, pathbits)
             del pathbits[-1]
         for name in sorted(files):
             pathbits.append(name)
-            enum_content(seed, catalog, pathbits)
+            enum_content(config, seed, catalog, pathbits)
             del pathbits[-1]
 
 
+
+
+def load_build_config():
+    conf_path = os.path.join(os.path.normpath(os.path.abspath(os.path.dirname(__file__))), 'stdlib.config')
+    config = configparser.RawConfigParser()
+    config.read(conf_path)
+    return config
+
+
+def get_conf_strings(config, section, option):
+    return config.get(section, option).split()
+
+
 def build_stdlib():
+    build_config = load_build_config()
+    ignore_dir_list = get_conf_strings(build_config, 'CONFIG', 'IGNORE_DIR')
+    ignore_file_list = get_conf_strings(build_config, 'CONFIG', 'IGNORE_FILE')
+    config = StdlibConfig(ignore_dir_list=ignore_dir_list, ignore_file_list=ignore_file_list)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--pysrc-root', required=True)
     parser.add_argument('--output-zip', required=True)
@@ -116,7 +108,7 @@ def build_stdlib():
     display_zipname = os.path.basename(zipfilename)
 
     catalog = []
-    enum_content(stdlib_srcdir, catalog)
+    enum_content(config, stdlib_srcdir, catalog)
     catalog += [
         (os.path.join(dirhere, 'site.py'), 'site.py'),
         (os.path.join(dirhere, 'sysconfig.py'), 'sysconfig.py'),
