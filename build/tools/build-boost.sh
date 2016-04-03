@@ -75,6 +75,7 @@ done
 STDLIBS=$(spaces_to_commas $STDLIBS)
 register_var_option "--stdlibs=<list>" STDLIBS "List of Standard C++ Library implementations to build with"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"

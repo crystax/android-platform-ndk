@@ -62,6 +62,7 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 TOOLCHAIN_VERSION=clang${DEFAULT_LLVM_VERSION}
 register_var_option "--toolchain-version=<ver>" TOOLCHAIN_VERSION "Specify toolchain version"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"

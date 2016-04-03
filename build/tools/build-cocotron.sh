@@ -60,6 +60,7 @@ register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary bui
 ABIS="$PREBUILT_ABIS"
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"

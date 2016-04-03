@@ -66,6 +66,7 @@ register_var_option "--abis=<list>" ABIS "Specify list of target ABIs."
 LIBTIFF_VERSION=
 register_var_option "--version=<ver>" LIBTIFF_VERSION "Specify libtiff version to build"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"

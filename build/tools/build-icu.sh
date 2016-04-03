@@ -65,6 +65,7 @@ TOOLCHAIN_VERSION=4.9
 ICU_VERSION=$(echo $ICU_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
 register_var_option "--version=<ver>" ICU_VERSION "ICU version"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"
