@@ -235,6 +235,7 @@ def freeze_stdlib():
 
     print('::: generate ::: {}'.format(FROZEN_H))
     with io.open(os.path.join(args.output_dir, FROZEN_H), mode='wt', encoding='ascii') as frozen_h:
+        frozen_h.write(to_string('#pragma once\n\n'))
         for i in range(len(inittab)):
             m = inittab[i]
             frozen_h.write(to_string('extern unsigned char {}[];\n'.format(m.c_name)))
