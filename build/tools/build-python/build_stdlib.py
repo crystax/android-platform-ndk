@@ -9,7 +9,7 @@ import zipfile
 
 
 class StdlibConfig:
-    def __init__(self, *, ignore_dir_list, ignore_file_list):
+    def __init__(self, ignore_dir_list, ignore_file_list):
         self.ignore_dir_list = ignore_dir_list
         self.ignore_file_list = ignore_file_list
 
