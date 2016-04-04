@@ -13,6 +13,7 @@ import os.path
 FROZEN_H = 'python-stdlib.h'
 FROZEN_C = 'python-stdlib.c'
 FROZEN_C_TABLE = '_PyImport_FrozenStdlibModules'
+FROZEN_MK = 'python-stdlib.list'
 
 
 PY2_ENCODING_ISO_8859_1 = (
@@ -117,11 +118,12 @@ def get_conf_strings(config, section, option):
 
 
 class ModuleInfo:
-    def __init__(self, py_name, c_name, c_sz_name, frozen_size):
+    def __init__(self, py_name, c_name, c_sz_name, frozen_size, c_file):
         self.py_name = py_name
         self.c_name = c_name
         self.c_sz_name = c_sz_name
         self.frozen_size = frozen_size
+        self.c_file = c_file
 
 
 def strip_coding_comment(pytext):
@@ -195,6 +197,7 @@ def freeze_stdlib():
 
     print("::: Generating byte-code for python-stdlib in '{}' ...".format(args.output_dir))
     inittab = []
+    bootstrap = []
     for entry in catalog:
         source_file, arcname = entry[0], entry[1]
 
@@ -219,25 +222,25 @@ def freeze_stdlib():
         if is_package:
             frozen_size = -frozen_size
 
-        m = ModuleInfo(py_name=mod_name, c_name=mangled, c_sz_name=sz_mangled, frozen_size=frozen_size)
+        m = ModuleInfo(py_name=mod_name, c_name=mangled, c_sz_name=sz_mangled, frozen_size=frozen_size, c_file=c_output_file)
         inittab.append(m)
 
         if not args.py2:
             if mod_name == "importlib._bootstrap":
                 print('::: link ::: {} >>> {}'.format('_frozen_importlib', 'importlib._bootstrap'))
-                m = ModuleInfo(py_name="_frozen_importlib", c_name=mangled, c_sz_name=sz_mangled, frozen_size=frozen_size)
-                inittab.append(m)
+                bootstrap += [('_frozen_importlib', mangled, sz_mangled)]
             elif mod_name == "importlib._bootstrap_external":
                 print('::: link ::: {} >>> {}'.format('_frozen_importlib_external', 'importlib._bootstrap_external'))
-                m = ModuleInfo(py_name="_frozen_importlib_external", c_name=mangled, c_sz_name=sz_mangled, frozen_size=frozen_size)
-                inittab.append(m)
+                bootstrap += [('_frozen_importlib_external', mangled, sz_mangled)]
 
     print('::: generate ::: {}'.format(FROZEN_H))
     with io.open(os.path.join(args.output_dir, FROZEN_H), mode='wt', encoding='ascii') as frozen_h:
-        for m in inittab:
+        for i in range(len(inittab)):
+            m = inittab[i]
             frozen_h.write(to_string('extern unsigned char {}[];\n'.format(m.c_name)))
             frozen_h.write(to_string('#define {} ((int)({}))\n'.format(m.c_sz_name, m.frozen_size)))
-            frozen_h.write(to_string('\n'))
+            if (i + 1) < len(inittab):
+                frozen_h.write(to_string('\n'))
 
     print('::: generate ::: {}'.format(FROZEN_C))
     with io.open(os.path.join(args.output_dir, FROZEN_C), mode='wt', encoding='ascii') as frozen_c:
@@ -245,10 +248,17 @@ def freeze_stdlib():
         frozen_c.write(to_string('#include <{}>\n'.format(FROZEN_H)))
         frozen_c.write(to_string('\n'))
         frozen_c.write(to_string('struct _frozen {}[] = {{\n'.format(FROZEN_C_TABLE)))
+        for py_name, c_name, c_sz_name in bootstrap:
+            frozen_c.write(to_string('    {{"{}", {}, {}}},\n'.format(py_name, c_name, c_sz_name)))
         for m in inittab:
             frozen_c.write(to_string('    {{"{}", {}, {}}},\n'.format(m.py_name, m.c_name, m.c_sz_name)))
         frozen_c.write(to_string('    {0, 0, 0}\n'))
         frozen_c.write(to_string('};\n'))
+
+    print('::: generate ::: {}'.format(FROZEN_MK))
+    with io.open(os.path.join(args.output_dir, FROZEN_MK), mode='wt', encoding='ascii') as frozen_mk:
+        for m in inittab:
+            frozen_mk.write(to_string('{}\n'.format(m.c_file)))
 
 
 if __name__ == '__main__':
