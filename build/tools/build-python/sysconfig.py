@@ -1,5 +1,6 @@
 """Access to Python's configuration information."""
 
+from __future__ import print_function
 import os
 import sys
 import os.path
@@ -131,10 +132,23 @@ def get_config_var(name):
 
 def get_platform():
     """Return a string that identifies the current platform."""
+    if os.name == 'nt':
+        if sys.maxsize >= 2**32:
+            return 'win-amd64'
+        return 'win32'
+
     osname, host, release, version, machine = os.uname()
+
     osname = osname.lower().replace('/', '')
     machine = machine.replace(' ', '_')
     machine = machine.replace('/', '-')
+
+    if osname[:6] == 'darwin':
+        osname = 'macosx'
+        machine = 'i386'
+        if sys.maxsize >= 2**32:
+            machine = 'x86_64'
+
     return "%s-%s" % (osname, machine)
 
 

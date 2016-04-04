@@ -1,0 +1,135 @@
+#include <stdio.h>
+#include <limits.h>
+#include <unistd.h>
+#include <string.h>
+#include <dlfcn.h>
+#include <stdlib.h>
+
+#if defined(__linux__)
+#  define MY_POSIX_MAX_PATH PATH_MAX
+#elif defined(__APPLE__)
+#  include <libproc.h>
+#  define MY_POSIX_MAX_PATH PROC_PIDPATHINFO_MAXSIZE
+#endif
+
+#ifndef PYTHON_STDLIB_PATH
+#error PYTHON_STDLIB_PATH must be defined in Makefile
+#endif
+
+#define PYTHON2_DLL_REL_PATH "libpython2.7.so"
+static char NULL_PTR_STR[] = "NULL";
+
+#if defined(__linux__)
+static void GetExecutablePath(char* path)
+{
+  int size = readlink("/proc/self/exe", path, MY_POSIX_MAX_PATH);
+  if (size < 0)
+    size = 0;
+  path[size] = 0;
+}
+#elif defined(__APPLE__)
+static void GetExecutablePath(char* path)
+{
+  int size = proc_pidpath(getpid(), path, MY_POSIX_MAX_PATH);
+  if (size < 0)
+    size = 0;
+  path[size] = 0;
+}
+#endif
+
+static void GetRelativePathFormat(char* base, char* fmt)
+{
+  unsigned idx;
+  char *p, *end;
+  end = strrchr(base, '/');
+  for (idx = 0, p = base; *p; ++p, ++idx)
+  {
+    fmt[idx] = *p;
+    if (p == end)
+      break;
+  }
+  fmt[++idx] = '%';
+  fmt[++idx] = 's';
+  fmt[++idx] = 0;
+}
+
+typedef void (*Py_SetProgramNamePtr)(char*);
+typedef void (*Py_SetPathPtr)(char*);
+typedef int (*Py_MainPtr)(int, char **);
+
+int main(int argc, char** argv)
+{
+  char executable[MY_POSIX_MAX_PATH + 1] = {0};
+  char pthfmt[MY_POSIX_MAX_PATH + 1]     = {0};
+  char corepath[MY_POSIX_MAX_PATH + 1]   = {0};
+  char syspath[MY_POSIX_MAX_PATH + 1]    = {0};
+  void* core = 0;
+  int retcode = 126;
+
+  Py_SetProgramNamePtr Py_SetProgramName = 0;
+  Py_SetPathPtr Py_SetPath = 0;
+  Py_MainPtr Py_Main = 0;
+
+  GetExecutablePath(executable);
+  GetRelativePathFormat(executable, pthfmt);
+
+  snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON2_DLL_REL_PATH);
+  if (PYTHON_STDLIB_PATH[0] == '/')
+  {
+    snprintf(syspath, MY_POSIX_MAX_PATH, "%s", PYTHON_STDLIB_PATH);
+  }
+  else
+  {
+    snprintf(syspath, MY_POSIX_MAX_PATH, pthfmt, PYTHON_STDLIB_PATH);
+  }
+
+  core = dlopen(corepath, RTLD_LAZY);
+  if (core == 0)
+  {
+    const char* lasterr = dlerror();
+    if (lasterr == 0)
+      lasterr = NULL_PTR_STR;
+    fprintf(stderr, "Fatal Python error: cannot load library: '%s', dlerror: %s\n", corepath, lasterr);
+    goto exit;
+  }
+
+  Py_SetProgramName = (Py_SetProgramNamePtr)dlsym(core, "Py_SetProgramName");
+  if (Py_SetProgramName == 0)
+  {
+    const char* lasterr = dlerror();
+    if (lasterr == 0)
+      lasterr = NULL_PTR_STR;
+    fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_SetProgramName", corepath, lasterr);
+    goto exit;
+  }
+
+  Py_SetPath = (Py_SetPathPtr)dlsym(core, "Py_SetPath");
+  if (Py_SetPath == 0)
+  {
+    const char* lasterr = dlerror();
+    if (lasterr == 0)
+      lasterr = NULL_PTR_STR;
+    fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_SetPath", corepath, lasterr);
+    goto exit;
+  }
+
+  Py_Main = (Py_MainPtr)dlsym(core, "Py_Main");
+  if (Py_Main == 0)
+  {
+    const char* lasterr = dlerror();
+    if (lasterr == 0)
+      lasterr = NULL_PTR_STR;
+    fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_Main", corepath, lasterr);
+    goto exit;
+  }
+
+  Py_SetProgramName(executable);
+  Py_SetPath(syspath);
+  retcode = Py_Main(argc, argv);
+
+exit:
+  if (core != 0)
+    dlclose(core);
+
+  return retcode;
+}

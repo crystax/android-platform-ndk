@@ -1,0 +1,9 @@
+/* Minimal frozen modules initializer */
+
+#include <Python.h>
+
+static struct _frozen _PyImport_FrozenModules[] = {
+    {0, 0, 0}
+};
+
+struct _frozen *PyImport_FrozenModules = _PyImport_FrozenModules;
