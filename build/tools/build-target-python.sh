@@ -405,9 +405,9 @@ build_python_for_abi ()
 
     if [ "$PYTHON_HEADERS_INSTALLED" != "yes" ]; then
         log "Install python$PYTHON_ABI headers into $PYTHON_DSTDIR"
-        run rm -Rf $PYTHON_DSTDIR/include
-        run mkdir -p $PYTHON_DSTDIR/include/python && \
-        run cp -p $PYTHON_BUILD_UTILS_DIR/pyconfig.h $PYTHON_SRCDIR/Include/*.h $PYTHON_DSTDIR/include/python
+        run rm -Rf $PYTHON_DSTDIR/include/python && \
+            mkdir -p $PYTHON_DSTDIR/include/python && \
+            cp -p $PYTHON_BUILD_UTILS_DIR/pyconfig.h $PYTHON_SRCDIR/Include/*.h $PYTHON_DSTDIR/include/python
         fail_panic "Can't install python$PYTHON_ABI headers"
         PYTHON_HEADERS_INSTALLED=yes
         export PYTHON_HEADERS_INSTALLED
@@ -481,6 +481,63 @@ build_python_for_abi ()
         run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
         fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
     fi
+
+# freeze python stdlib
+    local BUILDDIR_STDLIB_FREEZE="$BUILDDIR/stdlib-freeze"
+    log "Freeze python$PYTHON_ABI stdlib"
+    run rm -Rf $BUILDDIR_STDLIB_FREEZE && mkdir -p $BUILDDIR_STDLIB_FREEZE
+    fail_panic "Can't create directory: $BUILDDIR_STDLIB_FREEZE"
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/freeze_stdlib.py --py2 --stdlib-dir "$PYTHON_SRCDIR/Lib" --output-dir $BUILDDIR_STDLIB_FREEZE
+        fail_panic "Can't freeze python$PYTHON_ABI-$ABI stdlib"
+    else
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/freeze_stdlib.py --stdlib-dir "$PYTHON_SRCDIR/Lib" --output-dir $BUILDDIR_STDLIB_FREEZE
+        fail_panic "Can't freeze python$PYTHON_ABI-$ABI stdlib"
+    fi
+    if [ "$PYTHON_STDLIB_FROZEN_HEADERS_INSTALLED" != "yes" ]; then
+        run rm -Rf $PYTHON_DSTDIR/include/frozen && \
+            mkdir -p $PYTHON_DSTDIR/include/frozen && \
+        run cp -p "$BUILDDIR_STDLIB_FREEZE/python-stdlib.h" "$PYTHON_DSTDIR/include/frozen"
+        fail_panic "Can't install headers of python$PYTHON_ABI frozen stdlib"
+        PYTHON_STDLIB_FROZEN_HEADERS_INSTALLED=yes
+        export PYTHON_STDLIB_FROZEN_HEADERS_INSTALLED
+    fi
+
+# build frozen python stdlib as static library
+    local BUILDDIR_STDLIB_FROZEN="$BUILDDIR/stdlib-frozen"
+    run mkdir -p $BUILDDIR_STDLIB_FROZEN/jni
+    fail_panic "Can't create directory: $BUILDDIR_STDLIB_FROZEN/jni"
+    local STDLIB_FROZEN_SRC_CATALOG="$BUILDDIR_STDLIB_FREEZE/python-stdlib.list"
+    if [ ! -f "$STDLIB_FROZEN_SRC_CATALOG" ]; then
+        panic "File '$STDLIB_FROZEN_SRC_CATALOG' not found."
+    fi
+    local STDLIB_FROZEN_SRC_LIST=$(cat $STDLIB_FROZEN_SRC_CATALOG)
+    if [ -z "$STDLIB_FROZEN_SRC_LIST" ]; then
+        panic "Can't resolve sources list for frozen stdlib."
+    fi
+
+    run cd $BUILDDIR_STDLIB_FREEZE && cp -p $STDLIB_FROZEN_SRC_LIST "$BUILDDIR_STDLIB_FROZEN/jni"
+    fail_panic "Can't copy source of frozen stdlib to '$BUILDDIR_STDLIB_FROZEN/jni'"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}-stdlib"
+        echo 'LOCAL_SRC_FILES := \'
+        for src in $STDLIB_FROZEN_SRC_LIST; do
+            echo "  $src \\"
+        done
+        echo ''
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_STDLIB_FROZEN/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_STDLIB_FROZEN/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_STDLIB_FROZEN -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI frozen stdlib"
+
+    log "Install python$PYTHON_ABI-$ABI frozen stdlib in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$BUILDDIR_STDLIB_FROZEN/obj/local/$ABI/libpython${PYTHON_ABI}-stdlib.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI frozen stdlib in $PYBIN_INSTALLDIR_STATIC_LIBS"
 
 # Step 4: build python-interpreter
     local BUILDDIR_INTERPRETER="$BUILDDIR/interpreter"
