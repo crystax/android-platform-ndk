@@ -154,8 +154,11 @@ def assemble_source(co_fname, mangled, source_file, output, py2):
     output.write('unsigned char {0}[] = {{'.format(mangled))
     for i in range(0, len(code), 16):
         output.write('\n    ')
-        for c in bytes(code[i:i+16]):
-            output.write('{},'.format(c))
+        for c in code[i:i+16]:
+            if sys.version_info[0] < 3:
+                output.write('{: >3d}, '.format(ord(c)))
+            else:
+                output.write('{: >3d}, '.format(c))
     output.write('\n};\n')
     return len(code)
 
