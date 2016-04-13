@@ -140,6 +140,29 @@ if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
     fi
 fi
 
+
+# $1: module name
+# $2: target directory
+generate_python_module_header ()
+{
+    local PYMOD_NAME=$1
+    local TARGET_DIR=$2
+    local HEADER_FNAME="python_module_${PYMOD_NAME}.h"
+    local HEADER_FPATH="$TARGET_DIR/$HEADER_FNAME"
+    {
+        echo '#pragma once'
+        echo ''
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo "extern void init${PYMOD_NAME}(void);"
+        else
+            echo '#include <Python.h>'
+            echo ''
+            echo "extern PyObject* PyInit_${PYMOD_NAME}(void);"
+        fi
+    } > $HEADER_FPATH
+    fail_panic "Can't generate c-header '$HEADER_FPATH'"
+}
+
 # $1: ABI
 # $2: build directory
 build_python_for_abi ()
@@ -517,12 +540,12 @@ build_python_for_abi ()
     fi
 
     run cd $BUILDDIR_STDLIB_FREEZE && cp -p $STDLIB_FROZEN_SRC_LIST "$BUILDDIR_STDLIB_FROZEN/jni"
-    fail_panic "Can't copy source of frozen stdlib to '$BUILDDIR_STDLIB_FROZEN/jni'"
+    fail_panic "Can't copy sources of frozen stdlib to '$BUILDDIR_STDLIB_FROZEN/jni'"
 
     {
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
-        echo "LOCAL_MODULE := python${PYTHON_ABI}-stdlib"
+        echo "LOCAL_MODULE := python${PYTHON_ABI}_stdlib"
         echo 'LOCAL_SRC_FILES := \'
         for src in $STDLIB_FROZEN_SRC_LIST; do
             echo "  $src \\"
@@ -536,7 +559,7 @@ build_python_for_abi ()
     fail_panic "Can't build python$PYTHON_ABI-$ABI frozen stdlib"
 
     log "Install python$PYTHON_ABI-$ABI frozen stdlib in $PYBIN_INSTALLDIR_STATIC_LIBS"
-    run cp -fpH "$BUILDDIR_STDLIB_FROZEN/obj/local/$ABI/libpython${PYTHON_ABI}-stdlib.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    run cp -fpH "$BUILDDIR_STDLIB_FROZEN/obj/local/$ABI/libpython${PYTHON_ABI}_stdlib.a" $PYBIN_INSTALLDIR_STATIC_LIBS
     fail_panic "Can't install python$PYTHON_ABI-$ABI frozen stdlib in $PYBIN_INSTALLDIR_STATIC_LIBS"
 
 # Step 4: build python-interpreter
@@ -574,11 +597,14 @@ build_python_for_abi ()
 
 # Step 6: build python modules
 # _ctypes
-    local BUILDDIR_CTYPES="$BUILDDIR/ctypes"
-    local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
-    local BUILDDIR_CTYPES_CONFIG="$BUILDDIR_CTYPES/config"
+    local BUILDDIR_CTYPES_CONFIG="$BUILDDIR/ctypes/config"
     run mkdir -p $BUILDDIR_CTYPES_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_CTYPES_CONFIG"
+
+    local BUILDDIR_CTYPES="$BUILDDIR/ctypes/shared"
+    local OBJDIR_CTYPES="$BUILDDIR_CTYPES/obj/local/$ABI"
+    local BUILDDIR_CTYPES_STATIC="$BUILDDIR/ctypes/static"
+    local OBJDIR_CTYPES_STATIC="$BUILDDIR_CTYPES_STATIC/obj/local/$ABI"
 
     local LIBFFI_CONFIGURE_WRAPPER=$BUILDDIR_CTYPES_CONFIG/configure.sh
     {
@@ -606,13 +632,14 @@ build_python_for_abi ()
     run $LIBFFI_CONFIGURE_WRAPPER
     fail_panic "Can't configure libffi for $ABI"
 
-    run mkdir -p "$BUILDDIR_CTYPES/jni"
-    fail_panic "Can't create directory: $BUILDDIR_CTYPES/jni"
-
     run mkdir -p "$BUILDDIR_CTYPES/jni/include"
     fail_panic "Can't create directory: $BUILDDIR_CTYPES/jni/include"
 
-    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES/jni/include
+    run mkdir -p "$BUILDDIR_CTYPES_STATIC/jni/include"
+    fail_panic "Can't create directory: $BUILDDIR_CTYPES_STATIC/jni/include"
+
+    run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES/jni/include && \
+        cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES_STATIC/jni/include
     fail_panic "Can't copy configured libffi headers"
 
     local FFI_SRC_LIST
@@ -640,6 +667,7 @@ build_python_for_abi ()
             ;;
     esac
     FFI_SRC_LIST="$FFI_SRC_LIST src/prep_cif.c"
+
     {
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
@@ -668,6 +696,40 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_CTYPES/lib_ctypes.so $PYBIN_INSTALLDIR_MODULES/_ctypes.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ctypes' in $PYBIN_INSTALLDIR_MODULES"
+
+# _ctypes static
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}__ctypes"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python \$(LOCAL_PATH)/include"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        for ffi_src in $FFI_SRC_LIST; do
+            echo "  \$(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/libffi/$ffi_src \\"
+        done
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callbacks.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/callproc.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/cfield.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/malloc_closure.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/stgdict.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ctypes/_ctypes.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_CTYPES_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_CTYPES_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_CTYPES_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_ctypes'"
+
+    log "Install python$PYTHON_ABI-$ABI static module '_ctypes' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_CTYPES_STATIC/libpython${PYTHON_ABI}__ctypes.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_ctypes' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_CTYPES_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header _ctypes $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_CTYPES_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_CTYPES_STATIC_HEADERS_INSTALLED
+    fi
 
 # _multiprocessing
     local BUILDDIR_MULTIPROCESSING="$BUILDDIR/multiprocessing"
@@ -700,6 +762,42 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_MULTIPROCESSING/lib_multiprocessing.so $PYBIN_INSTALLDIR_MODULES/_multiprocessing.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_multiprocessing' in $PYBIN_INSTALLDIR_MODULES"
 
+# _multiprocessing static
+    local BUILDDIR_MULTIPROCESSING_STATIC="$BUILDDIR/multiprocessing-static"
+    local OBJDIR_MULTIPROCESSING_STATIC="$BUILDDIR_MULTIPROCESSING_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_MULTIPROCESSING_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_MULTIPROCESSING_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}__multiprocessing"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/socket_connection.c \'
+        fi
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/multiprocessing.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_multiprocessing/semaphore.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_MULTIPROCESSING_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_MULTIPROCESSING_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_MULTIPROCESSING_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_multiprocessing'"
+
+    log "Install python$PYTHON_ABI-$ABI static module '_multiprocessing' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_MULTIPROCESSING_STATIC/libpython${PYTHON_ABI}__multiprocessing.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_multiprocessing' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_MULTIPROCESSING_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header _multiprocessing $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_MULTIPROCESSING_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_MULTIPROCESSING_STATIC_HEADERS_INSTALLED
+    fi
+
 # _socket
     local BUILDDIR_SOCKET="$BUILDDIR/socket"
     local OBJDIR_SOCKET="$BUILDDIR_SOCKET/obj/local/$ABI"
@@ -727,7 +825,39 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_SOCKET/lib_socket.so $PYBIN_INSTALLDIR_MODULES/_socket.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_socket' in $PYBIN_INSTALLDIR_MODULES"
 
-#_ssl
+# _socket static
+    local BUILDDIR_SOCKET_STATIC="$BUILDDIR/socket-static"
+    local OBJDIR_SOCKET_STATIC="$BUILDDIR_SOCKET_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_SOCKET_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SOCKET_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}__socket"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/socketmodule.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_SOCKET_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SOCKET_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SOCKET_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_socket'"
+
+    log "Install python$PYTHON_ABI-$ABI static module '_socket' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_SOCKET_STATIC/libpython${PYTHON_ABI}__socket.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_socket' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_SOCKET_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header _socket $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_SOCKET_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_SOCKET_STATIC_HEADERS_INSTALLED
+    fi
+
+# _ssl
     if [ -n "$OPENSSL_HOME" ]; then
         local BUILDDIR_SSL="$BUILDDIR/ssl"
         local OBJDIR_SSL="$BUILDDIR_SSL/obj/local/$ABI"
@@ -755,6 +885,42 @@ build_python_for_abi ()
         log "Install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
         run cp -p -T $OBJDIR_SSL/lib_ssl.so $PYBIN_INSTALLDIR_MODULES/_ssl.so
         fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+    fi
+
+# _ssl static
+    if [ -n "$OPENSSL_HOME" ]; then
+        local BUILDDIR_SSL_STATIC="$BUILDDIR/ssl-static"
+        local OBJDIR_SSL_STATIC="$BUILDDIR_SSL_STATIC/obj/local/$ABI"
+
+        run mkdir -p "$BUILDDIR_SSL_STATIC/jni"
+        fail_panic "Can't create directory: $BUILDDIR_SSL_STATIC/jni"
+
+        {
+            echo 'LOCAL_PATH := $(call my-dir)'
+            echo 'include $(CLEAR_VARS)'
+            echo "LOCAL_MODULE := python${PYTHON_ABI}__ssl"
+            echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+            echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+            echo 'LOCAL_SRC_FILES := \'
+            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
+            echo 'LOCAL_STATIC_LIBRARIES := openssl_static'
+            echo 'include $(BUILD_STATIC_LIBRARY)'
+            echo "\$(call import-module,$OPENSSL_HOME)"
+        } >$BUILDDIR_SSL_STATIC/jni/Android.mk
+        fail_panic "Can't generate $BUILDDIR_SSL_STATIC/jni/Android.mk"
+
+        run $NDK_DIR/ndk-build -C $BUILDDIR_SSL_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+        fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_ssl'"
+
+        log "Install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+        run cp -fpH "$OBJDIR_SSL_STATIC/libpython${PYTHON_ABI}__ssl.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+        fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+        if [ "$PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+            generate_python_module_header _ssl $PYTHON_DSTDIR/include/frozen
+            PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED=yes
+            export PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED
+        fi
     fi
 
 # _sqlite3
@@ -793,6 +959,49 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_SQLITE3/lib_sqlite3.so $PYBIN_INSTALLDIR_MODULES/_sqlite3.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module '_sqlite3' in $PYBIN_INSTALLDIR_MODULES"
+
+# _sqlite3 static
+    local BUILDDIR_SQLITE3_STATIC="$BUILDDIR/sqlite3-static"
+    local OBJDIR_SQLITE3_STATIC="$BUILDDIR_SQLITE3_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_SQLITE3_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SQLITE3_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}__sqlite3"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo 'LOCAL_CFLAGS := -DMODULE_NAME=\"sqlite3\"'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cache.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/connection.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/cursor.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/microprotocols.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/module.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/prepare_protocol.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/row.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/statement.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_sqlite/util.c'
+        echo 'LOCAL_STATIC_LIBRARIES := sqlite3_static'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+        echo '$(call import-module,sqlite/3)'
+    } >$BUILDDIR_SQLITE3_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SQLITE3_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SQLITE3_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_sqlite3'"
+
+    log "Install python$PYTHON_ABI-$ABI static module '_sqlite3' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_SQLITE3_STATIC/libpython${PYTHON_ABI}__sqlite3.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_sqlite3' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_SQLITE3_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header _sqlite3 $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_SQLITE3_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_SQLITE3_STATIC_HEADERS_INSTALLED
+    fi
 
 #pyexpat
     local BUILDDIR_PYEXPAT="$BUILDDIR/pyexpat"

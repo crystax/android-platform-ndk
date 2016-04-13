@@ -38,9 +38,3 @@ LOCAL_MODULE := python_static
 LOCAL_SRC_FILES := static/libs/$(TARGET_ARCH_ABI)/libpython2.7.a
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python
 include $(PREBUILT_STATIC_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := python_stdlib_static
-LOCAL_SRC_FILES := static/libs/$(TARGET_ARCH_ABI)/libpython2.7-stdlib.a
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python $(LOCAL_PATH)/include/frozen
-include $(PREBUILT_STATIC_LIBRARY)
