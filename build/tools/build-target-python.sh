@@ -1003,7 +1003,7 @@ build_python_for_abi ()
         export PYTHON_MODULE_SQLITE3_STATIC_HEADERS_INSTALLED
     fi
 
-#pyexpat
+# pyexpat
     local BUILDDIR_PYEXPAT="$BUILDDIR/pyexpat"
     local OBJDIR_PYEXPAT="$BUILDDIR_PYEXPAT/obj/local/$ABI"
 
@@ -1035,6 +1035,42 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_PYEXPAT/libpyexpat.so $PYBIN_INSTALLDIR_MODULES/pyexpat.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module 'pyexpat' in $PYBIN_INSTALLDIR_MODULES"
 
+# pyexpat static
+    local BUILDDIR_PYEXPAT_STATIC="$BUILDDIR/pyexpat-static"
+    local OBJDIR_PYEXPAT_STATIC="$BUILDDIR_PYEXPAT_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_PYEXPAT_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_PYEXPAT_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}_pyexpat"
+        echo 'LOCAL_CFLAGS := -DHAVE_EXPAT_CONFIG_H -DXML_STATIC'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python \$(MY_PYTHON_SRC_ROOT)/Modules/expat"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmlparse.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmlrole.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/expat/xmltok.c \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/pyexpat.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_PYEXPAT_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_PYEXPAT_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_PYEXPAT_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module 'pyexpat'"
+
+    log "Install python$PYTHON_ABI-$ABI static module 'pyexpat' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_PYEXPAT_STATIC/libpython${PYTHON_ABI}_pyexpat.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module 'pyexpat' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_PYEXPAT_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header pyexpat $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_PYEXPAT_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_PYEXPAT_STATIC_HEADERS_INSTALLED
+    fi
+
 # select
     local BUILDDIR_SELECT="$BUILDDIR/select"
     local OBJDIR_SELECT="$BUILDDIR_SELECT/obj/local/$ABI"
@@ -1062,6 +1098,38 @@ build_python_for_abi ()
     run cp -p -T $OBJDIR_SELECT/libselect.so $PYBIN_INSTALLDIR_MODULES/select.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module 'select' in $PYBIN_INSTALLDIR_MODULES"
 
+# select static
+    local BUILDDIR_SELECT_STATIC="$BUILDDIR/select-static"
+    local OBJDIR_SELECT_STATIC="$BUILDDIR_SELECT_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_SELECT_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SELECT_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}_select"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/selectmodule.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_SELECT_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SELECT_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SELECT_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module 'select'"
+
+    log "Install python$PYTHON_ABI-$ABI static module 'select' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_SELECT_STATIC/libpython${PYTHON_ABI}_select.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module 'select' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_SELECT_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header select $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_SELECT_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_SELECT_STATIC_HEADERS_INSTALLED
+    fi
+
 # unicodedata
     local BUILDDIR_UNICODEDATA="$BUILDDIR/unicodedata"
     local OBJDIR_UNICODEDATA="$BUILDDIR_UNICODEDATA/obj/local/$ABI"
@@ -1088,6 +1156,38 @@ build_python_for_abi ()
     log "Install python$PYTHON_ABI-$ABI module 'unicodedata' in $PYBIN_INSTALLDIR_MODULES"
     run cp -p -T $OBJDIR_UNICODEDATA/libunicodedata.so $PYBIN_INSTALLDIR_MODULES/unicodedata.so
     fail_panic "Can't install python$PYTHON_ABI-$ABI module 'unicodedata' in $PYBIN_INSTALLDIR_MODULES"
+
+# unicodedata static
+    local BUILDDIR_UNICODEDATA_STATIC="$BUILDDIR/unicodedata-static"
+    local OBJDIR_UNICODEDATA_STATIC="$BUILDDIR_UNICODEDATA_STATIC/obj/local/$ABI"
+
+    run mkdir -p "$BUILDDIR_UNICODEDATA_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_UNICODEDATA_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}_unicodedata"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/unicodedata.c'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+    } >$BUILDDIR_UNICODEDATA_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_UNICODEDATA_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_UNICODEDATA_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module 'unicodedata'"
+
+    log "Install python$PYTHON_ABI-$ABI static module 'unicodedata' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_UNICODEDATA_STATIC/libpython${PYTHON_ABI}_unicodedata.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module 'unicodedata' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+
+    if [ "$PYTHON_MODULE_UNICODEDATA_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header unicodedata $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_UNICODEDATA_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_UNICODEDATA_STATIC_HEADERS_INSTALLED
+    fi
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
