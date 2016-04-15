@@ -115,6 +115,11 @@ if [ ! -f "$PY_C_INTERPRETER_FILE" ]; then
     panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_FILE"
 fi
 
+PY_C_INTERPRETER_STATIC_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter-static.c.$PYTHON_ABI"
+if [ ! -f "$PY_C_INTERPRETER_STATIC_FILE" ]; then
+    panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_STATIC_FILE"
+fi
+
 PY_ANDROID_MK_TEMPLATE_FILE="$PYTHON_BUILD_UTILS_DIR/android.mk.$PYTHON_ABI"
 if [ ! -f "$PY_ANDROID_MK_TEMPLATE_FILE" ]; then
     panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_ANDROID_MK_TEMPLATE_FILE"
@@ -189,6 +194,7 @@ build_python_for_abi ()
     local PYBIN_INSTALLDIR="$PYTHON_DSTDIR/shared/$ABI"
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
     local PYBIN_INSTALLDIR_STATIC_LIBS="$PYTHON_DSTDIR/static/libs/$ABI"
+    local PYBIN_INSTALLDIR_STATIC_BIN="$PYTHON_DSTDIR/static/bin/$ABI"
     if [ -n "$OPENSSL_HOME" ]; then
         log "Building python$PYTHON_ABI for $ABI (with OpenSSL-$DEFAULT_OPENSSL_VERSION)"
     else
@@ -1208,6 +1214,72 @@ build_python_for_abi ()
         PYTHON_MODULE_UNICODEDATA_STATIC_HEADERS_INSTALLED=yes
         export PYTHON_MODULE_UNICODEDATA_STATIC_HEADERS_INSTALLED
     fi
+
+# Step 7: build static interpreter
+    local BUILDDIR_INTERPRETER_STATIC="$BUILDDIR/interpreter-static"
+    local OBJDIR_INTERPRETER_STATIC="$BUILDDIR_INTERPRETER_STATIC/obj/local/$ABI"
+
+    run mkdir -p $PYBIN_INSTALLDIR_STATIC_BIN
+    fail_panic "Can't create directory: $PYBIN_INSTALLDIR_STATIC_BIN"
+
+    run mkdir -p $BUILDDIR_INTERPRETER_STATIC/jni
+    fail_panic "Can't create directory: $BUILDDIR_INTERPRETER_STATIC/jni"
+
+    run cp -p -T $PY_C_INTERPRETER_STATIC_FILE $BUILDDIR_INTERPRETER_STATIC/jni/interpreter.c
+    fail_panic "Can't copy $PY_C_INTERPRETER_STATIC_FILE to $BUILDDIR_INTERPRETER/jni"
+
+    run cp -fpH "$BUILDDIR_STDLIB_FREEZE/python-stdlib.c" $BUILDDIR_INTERPRETER_STATIC/jni
+    fail_panic "Can't copy $BUILDDIR_STDLIB_FREEZE/python-stdlib.c to $BUILDDIR_INTERPRETER_STATIC/jni"
+
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := python'
+        if [ -n "$OPENSSL_HOME" ]; then
+            echo 'LOCAL_CFLAGS := -DNDK_HAVE_OPENSSL_SUPPORT'
+        fi
+        echo 'LOCAL_SRC_FILES := interpreter.c python-stdlib.c'
+        echo 'LOCAL_STATIC_LIBRARIES := \'
+        echo '  python_static \'
+        echo '  python_stdlib_static \'
+        echo '  python_module__ctypes \'
+        echo '  python_module__multiprocessing \'
+        echo '  python_module__socket \'
+        if [ -n "$OPENSSL_HOME" ]; then
+            echo '  python_module__ssl openssl_static opencrypto_static \'
+        fi
+        echo '  python_module__sqlite3 sqlite3_static \'
+        echo '  python_module_pyexpat \'
+        echo '  python_module_select \'
+        echo '  python_module_unicodedata'
+        echo ''
+        echo 'LOCAL_LDLIBS := -lz'
+        echo ''
+        echo 'include $(BUILD_EXECUTABLE)'
+        echo ''
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/stdlib)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/_ctypes)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/_multiprocessing)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/_socket)"
+        if [ -n "$OPENSSL_HOME" ]; then
+            echo "\$(call import-module,python/$PYTHON_ABI/frozen/_ssl)"
+            echo "\$(call import-module,$OPENSSL_HOME)"
+        fi
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/_sqlite3)"
+        echo "\$(call import-module,sqlite/3)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/pyexpat)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/select)"
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/unicodedata)"
+    } >$BUILDDIR_INTERPRETER_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_INTERPRETER_STATIC/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC APP_LIBCRYSTAX=static -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static interpreter"
+
+    log "Install python$PYTHON_ABI-$ABI static interpreter in $PYBIN_INSTALLDIR_STATIC_BIN"
+    run cp -p -T "$OBJDIR_INTERPRETER_STATIC/python" "$PYBIN_INSTALLDIR_STATIC_BIN/python"
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static interpreter in $PYBIN_INSTALLDIR_STATIC_BIN"
 }
 
 if [ -n "$PACKAGE_DIR" ]; then
