@@ -141,6 +141,23 @@ if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
 fi
 
 
+# $1: target directory
+generate_python_interpreter_wrapper ()
+{
+    local TARGET_DIR=$1
+    local INTERPRETER_FPATH="$TARGET_DIR/python"
+    {
+        echo '#!/system/bin/sh'
+        echo 'DIR_HERE=$(cd ${0%python} && pwd)'
+        echo 'export LD_LIBRARY_PATH=$DIR_HERE/libs'
+        echo 'exec $DIR_HERE/python.bin $*'
+    } > $INTERPRETER_FPATH
+    fail_panic "Can't generate python interpreter wrapper '$INTERPRETER_FPATH'"
+
+    chmod +x $INTERPRETER_FPATH
+    fail_panic "Can't chmod +x interpreter wrapper: '$INTERPRETER_FPATH'"
+}
+
 # $1: module name
 # $2: target directory
 generate_python_module_header ()
@@ -439,14 +456,14 @@ build_python_for_abi ()
     run cp -p $PYCONFIG_FOR_ABI $PYTHON_DSTDIR/include/python
     fail_panic "Can't install $PYCONFIG_FOR_ABI"
 
-    run mkdir -p $PYBIN_INSTALLDIR
-    fail_panic "Can't create $PYBIN_INSTALLDIR"
+    run mkdir -p $PYBIN_INSTALLDIR/libs
+    fail_panic "Can't create $PYBIN_INSTALLDIR/libs"
     run mkdir -p $PYBIN_INSTALLDIR_MODULES
     fail_panic "Can't create directory: $PYBIN_INSTALLDIR_MODULES"
 
-    log "Install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
-    run cp -fpH $OBJDIR_CORE/lib$PYTHON_CORE_MODULE_NAME.so $PYBIN_INSTALLDIR
-    fail_panic "Can't install python$PYTHON_ABI-$ABI core in $PYBIN_INSTALLDIR"
+    log "Install python$PYTHON_ABI-$ABI core in '$PYBIN_INSTALLDIR/libs'"
+    run cp -fpH $OBJDIR_CORE/lib$PYTHON_CORE_MODULE_NAME.so $PYBIN_INSTALLDIR/libs
+    fail_panic "Can't install python$PYTHON_ABI-$ABI core in '$PYBIN_INSTALLDIR/libs'"
 
 # build static python-core
     run mkdir -p $BUILDDIR_CORE_STATIC/jni
@@ -573,11 +590,13 @@ build_python_for_abi ()
     fail_panic "Can't copy $PY_C_INTERPRETER_FILE to $BUILDDIR_INTERPRETER/jni"
 
     {
-         echo 'LOCAL_PATH := $(call my-dir)'
-         echo 'include $(CLEAR_VARS)'
-         echo 'LOCAL_MODULE := python'
-         echo 'LOCAL_SRC_FILES := interpreter.c'
-         echo 'include $(BUILD_EXECUTABLE)'
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := python'
+        echo 'LOCAL_SRC_FILES := interpreter.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'include $(BUILD_EXECUTABLE)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
     } >$BUILDDIR_INTERPRETER/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER/jni/Android.mk"
 
@@ -585,8 +604,9 @@ build_python_for_abi ()
     fail_panic "Can't build python$PYTHON_ABI-$ABI interpreter"
 
     log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
-    run cp -fpH $OBJDIR_INTERPRETER/python $PYBIN_INSTALLDIR
+    run cp -p -T "$OBJDIR_INTERPRETER/python" "$PYBIN_INSTALLDIR/python.bin"
     fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
+    generate_python_interpreter_wrapper $PYBIN_INSTALLDIR
 
 # Step 5: site-packages
     local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
