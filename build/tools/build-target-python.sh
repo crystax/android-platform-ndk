@@ -591,6 +591,7 @@ build_python_for_abi ()
         echo 'LOCAL_MODULE := python'
         echo 'LOCAL_SRC_FILES := interpreter.c'
         echo 'LOCAL_STATIC_LIBRARIES := python_shared'
+        echo 'LOCAL_LDLIBS := -lz'
         echo 'include $(BUILD_EXECUTABLE)'
         echo "\$(call import-module,python/$PYTHON_ABI)"
     } >$BUILDDIR_INTERPRETER/jni/Android.mk
