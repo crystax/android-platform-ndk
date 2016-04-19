@@ -5,6 +5,7 @@ extern PyObject* PyInit_pwd(void);
 extern PyObject* PyInit_fcntl(void);
 extern PyObject* PyInit__posixsubprocess(void);
 extern PyObject* PyInit_termios(void);
+extern PyObject* PyInit_resource(void);
 extern PyObject* PyInit_audioop(void);
 extern PyObject* PyInit__locale(void);
 extern PyObject* PyInit_array(void);
@@ -68,6 +69,7 @@ struct _inittab _PyImport_Inittab[] = {
     {"fcntl", PyInit_fcntl},
     {"_posixsubprocess", PyInit__posixsubprocess},
     {"termios", PyInit_termios},
+    {"resource", PyInit_resource},
     {"audioop", PyInit_audioop},
     {"_locale", PyInit__locale},
     {"array", PyInit_array},
