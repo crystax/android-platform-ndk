@@ -1,6 +1,5 @@
 MY_PYCORE_SRC_FILES := \
   \
-  $(MY_PYTHON_SRC_ROOT)/Python/random.c \
   $(MY_PYTHON_SRC_ROOT)/Python/_warnings.c \
   $(MY_PYTHON_SRC_ROOT)/Python/asdl.c \
   $(MY_PYTHON_SRC_ROOT)/Python/ast.c \
@@ -8,6 +7,7 @@ MY_PYCORE_SRC_FILES := \
   $(MY_PYTHON_SRC_ROOT)/Python/ceval.c \
   $(MY_PYTHON_SRC_ROOT)/Python/codecs.c \
   $(MY_PYTHON_SRC_ROOT)/Python/compile.c \
+  $(MY_PYTHON_SRC_ROOT)/Python/dtoa.c \
   $(MY_PYTHON_SRC_ROOT)/Python/dynamic_annotations.c \
   $(MY_PYTHON_SRC_ROOT)/Python/dynload_shlib.c \
   $(MY_PYTHON_SRC_ROOT)/Python/errors.c \
@@ -34,14 +34,14 @@ MY_PYCORE_SRC_FILES := \
   $(MY_PYTHON_SRC_ROOT)/Python/pyhash.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pylifecycle.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pymath.c \
-  $(MY_PYTHON_SRC_ROOT)/Python/pytime.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pystate.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pystrcmp.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pystrhex.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pystrtod.c \
-  $(MY_PYTHON_SRC_ROOT)/Python/dtoa.c \
   $(MY_PYTHON_SRC_ROOT)/Python/Python-ast.c \
   $(MY_PYTHON_SRC_ROOT)/Python/pythonrun.c \
+  $(MY_PYTHON_SRC_ROOT)/Python/pytime.c \
+  $(MY_PYTHON_SRC_ROOT)/Python/random.c \
   $(MY_PYTHON_SRC_ROOT)/Python/structmember.c \
   $(MY_PYTHON_SRC_ROOT)/Python/symtable.c \
   $(MY_PYTHON_SRC_ROOT)/Python/sysmodule.c \
@@ -64,8 +64,8 @@ MY_PYCORE_SRC_FILES := \
   $(MY_PYTHON_SRC_ROOT)/Objects/abstract.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/accu.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/boolobject.c \
-  $(MY_PYTHON_SRC_ROOT)/Objects/bytes_methods.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/bytearrayobject.c \
+  $(MY_PYTHON_SRC_ROOT)/Objects/bytes_methods.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/bytesobject.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/capsule.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/cellobject.c \
@@ -101,58 +101,39 @@ MY_PYCORE_SRC_FILES := \
   $(MY_PYTHON_SRC_ROOT)/Objects/unicodeobject.c \
   $(MY_PYTHON_SRC_ROOT)/Objects/weakrefobject.c \
   \
-  $(MY_PYTHON_SRC_ROOT)/Modules/audioop.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_bisectmodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_codecsmodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_collectionsmodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_csv.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_datetimemodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_functoolsmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/hashtable.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_heapqmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/_iomodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/bufferedio.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/bytesio.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/fileio.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/iobase.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/stringio.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_io/textio.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_json.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_localemodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_lsprof.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_math.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_opcode.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_operator.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_pickle.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_posixsubprocess.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_randommodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_sre.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_stat.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_struct.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_threadmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/_tracemalloc.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/_weakref.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/arraymodule.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/atexitmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/audioop.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/binascii.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/cmathmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_datetimemodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/errnomodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/faulthandler.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/fcntlmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/gcmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/itertoolsmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/main.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/mathmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/md5module.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/mmapmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_opcode.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_operator.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/parsermodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/posixmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_posixsubprocess.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/pwdmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/rotatingtree.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/sha1module.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/sha256module.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/sha512module.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/signalmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_stat.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/symtablemodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_threadmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_tracemalloc.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/termios.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/timemodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/xxsubtype.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/zipimport.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/zlibmodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/getbuildinfo.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/_codecs_cn.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/_codecs_hk.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/_codecs_iso2022.c \
@@ -160,10 +141,29 @@ MY_PYCORE_SRC_FILES := \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/_codecs_kr.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/_codecs_tw.c \
   $(MY_PYTHON_SRC_ROOT)/Modules/cjkcodecs/multibytecodec.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/_iomodule.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/textio.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/iobase.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/bufferedio.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/stringio.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/bytesio.c \
-  $(MY_PYTHON_SRC_ROOT)/Modules/_io/fileio.c
+  $(MY_PYTHON_SRC_ROOT)/Modules/cmathmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/errnomodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/faulthandler.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/fcntlmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/gcmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/getbuildinfo.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/hashtable.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/itertoolsmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/main.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/mathmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/md5module.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/mmapmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/parsermodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/posixmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/pwdmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/rotatingtree.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/sha1module.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/sha256module.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/sha512module.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/signalmodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/symtablemodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/termios.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/timemodule.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/xxsubtype.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/zipimport.c \
+  $(MY_PYTHON_SRC_ROOT)/Modules/zlibmodule.c
