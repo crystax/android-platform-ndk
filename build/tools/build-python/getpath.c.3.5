@@ -1,32 +1,27 @@
-#include "Python.h"
-#include "osdefs.h"
-
-#include <sys/types.h>
-#include <string.h>
+#include <Python.h>
+#include <osdefs.h>
 
 static wchar_t EMPTY_STR[1] = {0};
-static wchar_t * *module_search_path = NULL;
-static wchar_t progpath[MAXPATHLEN + 1] = {0};
+static wchar_t* module_search_path = NULL;
+static wchar_t* prog_path = NULL;
 static int calculated = 0;
 
-static wchar_t * prefix = EMPTY_STR;
-static wchar_t * exec_prefix = EMPTY_STR;
+static wchar_t* prefix = EMPTY_STR;
+static wchar_t* exec_prefix = EMPTY_STR;
 
 static void
 calculate_path(void)
 {
     if (module_search_path == NULL) {
-        PyMem_RawMalloc(sizeof(wchar_t));
+        module_search_path = (wchar_t*)PyMem_RawMalloc(sizeof(wchar_t));
         module_search_path[0] = 0;
     }
-    char exe_path[MAXPATHLEN];
+    char exe_path[MAXPATHLEN + 1];
     int size = readlink("/proc/self/exe", exe_path, MAXPATHLEN);
     if (size < 0)
         size = 0;
     exe_path[size] = 0;
-    wchar_t* exe_path_w = Py_DecodeLocale(exe_path, 0);
-    wcsncpy(progpath, exe_path_w, MAXPATHLEN);
-    PyMem_RawFree(exe_path_w);
+    prog_path = Py_DecodeLocale(exe_path, 0);
     calculated = 1;
 }
 
@@ -61,7 +56,7 @@ Py_GetProgramFullPath(void)
 {
     if (!calculated)
         calculate_path();
-    return progpath;
+    return prog_path;
 }
 
 void
@@ -72,11 +67,11 @@ Py_SetPath(const wchar_t *path)
         module_search_path = NULL;
     }
     if (path != NULL) {
-        module_search_path = PyMem_RawMalloc((wcslen(path) + 1) * sizeof(wchar_t));
+        module_search_path = (wchar_t*)PyMem_RawMalloc((wcslen(path) + 1) * sizeof(wchar_t));
         wcscpy(module_search_path, path);
     }
     else {
-        module_search_path = PyMem_RawMalloc(sizeof(wchar_t));
+        module_search_path = (wchar_t*)PyMem_RawMalloc(sizeof(wchar_t));
         module_search_path[0] = 0;
     }
     if (!calculated)

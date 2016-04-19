@@ -54,7 +54,9 @@ def _expand_vars(scheme, vars):
     _extend_dict(vars, {'bundled_root': os.path.dirname(sys.executable)})
 
     for key, value in _INSTALL_SCHEMES[scheme].items():
-        res[key] = os.path.normpath(_subst_vars(value, vars))
+        normalized_path = os.path.normpath(_subst_vars(value, vars))
+        if os.path.exists(normalized_path):
+            res[key] = normalized_path
     return res
 
 
@@ -167,9 +169,7 @@ def _main():
     print('Platform: "%s"' % get_platform())
     print('Python version: "%s"' % get_python_version())
     print('Current installation scheme: "%s"' % _get_default_scheme())
-    print()
     _print_dict('Paths', get_paths())
-    print()
     _print_dict('Variables', get_config_vars())
 
 

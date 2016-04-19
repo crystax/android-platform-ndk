@@ -27,24 +27,10 @@ static struct _inittab extensions[] = {
   {0, 0}
 };
 
-static void GetExecutablePath(char* path)
-{
-  int size = readlink("/proc/self/exe", path, PATH_MAX);
-  if (size < 0)
-    size = 0;
-  path[size] = 0;
-}
-
 int main(int argc, char** argv)
 {
-  char executable[PATH_MAX + 1] = {0};
-  const char syspath[] = "";
-
-  GetExecutablePath(executable);
-
-  Py_SetProgramName(executable);
-  Py_SetPath(syspath);
   PyImport_FrozenModules = _PyImport_FrozenStdlibModules;
   PyImport_ExtendInittab(extensions);
+
   return Py_Main(argc, argv);
 }

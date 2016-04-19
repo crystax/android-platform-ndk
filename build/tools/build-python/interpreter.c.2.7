@@ -45,7 +45,6 @@ int main(int argc, char** argv)
   snprintf(modpath, PATH_MAX, pthfmt, PYTHON2_MODULES_REL_PATH);
   snprintf(syspath, SYS_PATH_BUFFER_SIZE-1, "%s:%s", stdlibpath, modpath);
 
-  Py_SetProgramName(executable);
   Py_SetPath(syspath);
   return Py_Main(argc, argv);
 }
