@@ -27,32 +27,13 @@ static struct _inittab extensions[] = {
   {0, 0}
 };
 
-static void GetExecutablePath(char* path)
-{
-  int size = readlink("/proc/self/exe", path, PATH_MAX);
-  if (size < 0)
-    size = 0;
-  path[size] = 0;
-}
-
 int main(int argc, char** argv)
 {
-  char executable[PATH_MAX + 1] = {0};
-  const wchar_t syspath_w[] = L"";
   int retcode = 126;
   int i;
 
-  GetExecutablePath(executable);
-
   char* oldloc = strdup(setlocale(LC_ALL, 0));
   setlocale(LC_ALL, "");
-
-  wchar_t* executable_w = Py_DecodeLocale(executable, 0);
-  if (executable_w == 0)
-  {
-    fprintf(stderr, "Fatal Python error: unable to decode executable path: '%s'\n", executable);
-    goto exit;
-  }
 
   wchar_t** argv_copy = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
   wchar_t** argv_copy2 = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
@@ -72,15 +53,11 @@ int main(int argc, char** argv)
   setlocale(LC_ALL, oldloc);
   free(oldloc);
 
-  Py_SetProgramName(executable_w);
-  Py_SetPath(syspath_w);
-
   PyImport_FrozenModules = _PyImport_FrozenStdlibModules;
   PyImport_ExtendInittab(extensions);
 
   retcode = Py_Main(argc, argv_copy);
 
-  PyMem_RawFree(executable_w);
   for (i = 0; i < argc; i++)
   {
     PyMem_RawFree(argv_copy2[i]);

@@ -50,13 +50,6 @@ int main(int argc, char** argv)
   char* oldloc = strdup(setlocale(LC_ALL, 0));
   setlocale(LC_ALL, "");
 
-  wchar_t* executable_w = Py_DecodeLocale(executable, 0);
-  if (executable_w == 0)
-  {
-    fprintf(stderr, "Fatal Python error: unable to decode executable path: '%s'\n", executable);
-    goto exit;
-  }
-
   wchar_t* syspath_w = Py_DecodeLocale(syspath, 0);
   if (syspath_w == 0)
   {
@@ -82,11 +75,9 @@ int main(int argc, char** argv)
   setlocale(LC_ALL, oldloc);
   free(oldloc);
 
-  Py_SetProgramName(executable_w);
   Py_SetPath(syspath_w);
   retcode = Py_Main(argc, argv_copy);
 
-  PyMem_RawFree(executable_w);
   PyMem_RawFree(syspath_w);
   for (i = 0; i < argc; i++)
   {

@@ -398,21 +398,15 @@ build_python_for_abi ()
 # Step 2: build python-core
     run mkdir -p $BUILDDIR_CORE/jni
     fail_panic "Can't create directory: $BUILDDIR_CORE/jni"
-    local PY_C_GETPATH
-    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.${PYTHON_ABI}"
-    fi
+
+    local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.${PYTHON_ABI}"
     local PY_C_FROZEN="$PYTHON_BUILD_UTILS_DIR/frozen.c.${PYTHON_ABI}"
 
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/jni/config.c" && \
         cp -p -T $PY_C_FROZEN "$BUILDDIR_CORE/jni/frozen.c" && \
+        cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/jni/getpath.c" && \
         cp -p -t "$BUILDDIR_CORE/jni" "$PYTHON_BUILD_UTILS_DIR/pyconfig.h"
-    fail_panic "Can't copy config.c frozen.c pyconfig.h to $BUILDDIR_CORE/jni"
-
-    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/jni/getpath.c"
-        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE/jni"
-    fi
+    fail_panic "Can't copy config.c frozen.c getpath.c pyconfig.h to $BUILDDIR_CORE/jni"
 
     local PYCONFIG_FOR_ABI="$BUILDDIR_CORE/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
     run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI
@@ -436,12 +430,11 @@ build_python_for_abi ()
             echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPy_ENABLE_SHARED -DPLATFORM=\\\"linux\\\""
         fi
         echo 'LOCAL_LDLIBS := -lz'
+        echo ''
         cat $PY_ANDROID_MK_TEMPLATE_FILE
-        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-            echo 'LOCAL_SRC_FILES := config.c frozen.c getpath.c $(MY_PYCORE_SRC_FILES)'
-        else
-            echo 'LOCAL_SRC_FILES := config.c frozen.c $(MY_PYCORE_SRC_FILES)'
-        fi
+        echo ''
+        echo 'LOCAL_SRC_FILES := config.c frozen.c getpath.c $(MY_PYCORE_SRC_FILES)'
+        echo ''
         echo 'include $(BUILD_SHARED_LIBRARY)'
     } >$BUILDDIR_CORE/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_CORE/jni/Android.mk"
@@ -477,12 +470,10 @@ build_python_for_abi ()
 
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE_STATIC/jni/config.c" && \
         cp -p -T $PY_C_FROZEN "$BUILDDIR_CORE_STATIC/jni/frozen.c" && \
+        cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE_STATIC/jni/getpath.c" && \
         cp -p -t "$BUILDDIR_CORE_STATIC/jni" "$PYTHON_BUILD_UTILS_DIR/pyconfig.h"
-    fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_CORE_STATIC/jni"
-    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE_STATIC/jni/getpath.c"
-        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE_STATIC/jni"
-    fi
+    fail_panic "Can't copy config.c frozen.c getpath.c pyconfig.h to $BUILDDIR_CORE_STATIC/jni"
+
     local PYCONFIG_FOR_ABI_STATIC="$BUILDDIR_CORE_STATIC/jni/pyconfig_$(echo $ABI | tr '-' '_').h"
     run cp -p -T $BUILDDIR_CONFIG/pyconfig.h $PYCONFIG_FOR_ABI_STATIC
     fail_panic "Can't copy $BUILDDIR_CONFIG/pyconfig.h to $PYCONFIG_FOR_ABI_STATIC"
@@ -498,12 +489,11 @@ build_python_for_abi ()
         else
             echo "LOCAL_CFLAGS := -DSOABI=\\\"$PYTHON_SOABI\\\" -DPy_BUILD_CORE -DPLATFORM=\\\"linux\\\""
         fi
+        echo ''
         cat $PY_ANDROID_MK_TEMPLATE_FILE
-        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-            echo 'LOCAL_SRC_FILES := config.c frozen.c getpath.c $(MY_PYCORE_SRC_FILES)'
-        else
-            echo 'LOCAL_SRC_FILES := config.c frozen.c $(MY_PYCORE_SRC_FILES)'
-        fi
+        echo ''
+        echo 'LOCAL_SRC_FILES := config.c frozen.c getpath.c $(MY_PYCORE_SRC_FILES)'
+        echo ''
         echo 'include $(BUILD_STATIC_LIBRARY)'
     } >$BUILDDIR_CORE_STATIC/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_CORE_STATIC/jni/Android.mk"
