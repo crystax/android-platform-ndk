@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2010 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -42,8 +42,6 @@ OPTION_BUILD_OUT=
 BUILD_OUT=$TMPDIR/build/gdbserver
 register_option "--build-out=<path>" do_build_out "Set temporary build directory"
 do_build_out () { OPTION_BUILD_OUT="$1"; }
-
-register_var_option "--platform=<name>"  PLATFORM "Target specific platform"
 
 SYSROOT=
 register_var_option "--sysroot=<path>" SYSROOT "Specify sysroot directory directly"
@@ -130,26 +128,9 @@ fi
 prepare_target_build
 
 parse_toolchain_name $TOOLCHAIN
-check_toolchain_install $NDK_DIR $TOOLCHAIN
+check_toolchain_install $ANDROID_BUILD_TOP/prebuilts/ndk/current $TOOLCHAIN
 
-#
-# Try cached package
-#
-ARCHIVE=$ARCH-gdbserver.tar.xz
-if [ "$PACKAGE_DIR" ]; then
-    mkdir -p "$PACKAGE_DIR"
-    fail_panic "Could not create package directory: $PACKAGE_DIR"
-    # will exit 0 if cached package found
-    try_cached_package "$PACKAGE_DIR" "$ARCHIVE"
-fi
-
-#
-# Rebuild from scratch
-#
-
-if [ -z "$PLATFORM" ]; then
-    PLATFORM="android-"$(get_default_api_level_for_arch $ARCH)
-fi
+PLATFORM="android-$LATEST_API_LEVEL"
 
 # Check build directory
 #
@@ -167,25 +148,6 @@ run mkdir -p "$BUILD_OUT"
 BUILD_SYSROOT="$BUILD_OUT/sysroot"
 run mkdir -p "$BUILD_SYSROOT"
 run cp -RHL "$SYSROOT"/* "$BUILD_SYSROOT"
-
-ABI=$(echo $(commas_to_spaces $(convert_arch_to_abi $ARCH)) | tr -s ' ' '\n' | head -n 1)
-run mkdir -p "$BUILD_SYSROOT/usr/lib"
-
-for DIR in lib lib64 lib64r2 libr2 libr6 ; do
-    if [ -n "$BUILD_SYSROOT/usr/$LIB" ] ; then
-        run cp -RHL $NDK_DIR/$CRYSTAX_SUBDIR/empty/libcrystax.a "$BUILD_SYSROOT/usr/$DIR"
-        fail_panic "Couldn't copy libcrystax.a stub to $BUILD_SYSROOT/usr/$DIR"
-    fi
-done
-
-# Don't use CrystaX headers when building gdbserver
-log "Restore Google's headers in $BUILD_SYSROOT ..."
-(cd $BUILD_SYSROOT/usr/include/crystax/google && tar chf - *) | (cd $BUILD_SYSROOT/usr/include && tar xf -)
-if [ $? != 0 ]; then
-    dump "ERROR: Could not restore Google's headers in $BUILD_SYSROOT!"
-    exit 1
-fi
-rm -Rf $BUILD_SYSROOT/usr/include/crystax*
 
 LIBDIR=$(get_default_libdir_for_arch $ARCH)
 
@@ -236,7 +198,7 @@ export CC="$TOOLCHAIN_PREFIX-gcc --sysroot=$BUILD_SYSROOT" &&
 export AR="$TOOLCHAIN_PREFIX-ar" &&
 export RANLIB="$TOOLCHAIN_PREFIX-ranlib" &&
 export CFLAGS="-O2 $GDBSERVER_CFLAGS"  &&
-export LDFLAGS="-lcrystax -lm -lc -static -Wl,-z,muldefs -Wl,-z,nocopyreloc -Wl,--no-undefined" &&
+export LDFLAGS="-static -Wl,-z,nocopyreloc -Wl,--no-undefined" &&
 run $SRC_DIR/configure \
 --host=$GDBSERVER_HOST \
 $CONFIGURE_FLAGS
@@ -265,7 +227,9 @@ else
     DSTFILE="gdbserver"
 fi
 dump "Install  : $TOOLCHAIN $DSTFILE."
-DEST=$ANDROID_NDK_ROOT/prebuilt/android-$ARCH/gdbserver
+INSTALL_DIR=`mktemp -d $TMPDIR/gdbserver.XXXXXX`
+GDBSERVER_SUBDIR="gdbserver-$ARCH"
+DEST=$INSTALL_DIR/$GDBSERVER_SUBDIR
 mkdir -p $DEST &&
 run $TOOLCHAIN_PREFIX-objcopy --strip-unneeded $BUILD_OUT/gdbserver $DEST/$DSTFILE
 if [ $? != 0 ] ; then
@@ -274,9 +238,13 @@ if [ $? != 0 ] ; then
 fi
 
 if [ "$PACKAGE_DIR" ]; then
+    make_repo_prop "$INSTALL_DIR/$GDBSERVER_SUBDIR"
+    cp "$SRC_DIR/../../COPYING" "$DEST/NOTICE"
+    fail_panic "Could not copy license file!"
+
+    ARCHIVE=gdbserver-$ARCH.zip
     dump "Packaging: $ARCHIVE"
-    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$ANDROID_NDK_ROOT" "prebuilt/android-$ARCH/gdbserver/$DSTFILE"
-    cache_package "$PACKAGE_DIR" "$ARCHIVE"
+    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$INSTALL_DIR" "$GDBSERVER_SUBDIR"
 fi
 
 log "Cleaning up."

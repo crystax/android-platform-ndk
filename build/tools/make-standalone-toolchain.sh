@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2010 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +29,12 @@ make scripts."
 TOOLCHAIN_NAME=
 register_var_option "--toolchain=<name>" TOOLCHAIN_NAME "Specify toolchain name"
 
-LLVM_VERSION=
-register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
+USE_LLVM=no
+do_option_use_llvm ()
+{
+    USE_LLVM=yes
+}
+register_option "--use-llvm" do_option_use_llvm "Use LLVM."
 
 STL=gnustl
 register_var_option "--stl=<name>" STL "Specify C++ STL"
@@ -48,13 +51,6 @@ NDK_DIR=`dirname $NDK_DIR`
 NDK_DIR=`dirname $NDK_DIR`
 register_var_option "--ndk-dir=<path>" NDK_DIR "Take source files from NDK at <path>"
 
-if [ -d "$NDK_DIR/prebuilt/$HOST_TAG" ]; then
-  SYSTEM=$HOST_TAG
-else
-  SYSTEM=$HOST_TAG32
-fi
-register_var_option "--system=<name>" SYSTEM "Specify host system"
-
 PACKAGE_DIR=$TMPDIR
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Place package file in <path>"
 
@@ -62,7 +58,7 @@ INSTALL_DIR=
 register_var_option "--install-dir=<path>" INSTALL_DIR "Don't create package, install files to <path> instead."
 
 PLATFORM=
-register_option "--platform=<name>" do_platform "Specify target Android platform/API level." "android-3"
+register_option "--platform=<name>" do_platform "Specify target Android platform/API level." "android-9"
 do_platform () {
     PLATFORM=$1;
     if [ "$PLATFORM" = "android-L" ]; then
@@ -138,28 +134,18 @@ if [ -z "$TOOLCHAIN_NAME" ]; then
 fi
 
 # Detect LLVM version from toolchain name with *clang*
-LLVM_VERSION_EXTRACT=$(echo "$TOOLCHAIN_NAME" | grep 'clang[0-9]\.[0-9]$' | sed -e 's/.*-clang//')
-if [ -n "$LLVM_VERSION_EXTRACT" ]; then
+TOOLCHAIN_LLVM=$(echo "$TOOLCHAIN_NAME" | grep clang)
+if [ -n "$TOOLCHAIN_LLVM" ]; then
+    USE_LLVM=yes
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
-    NEW_TOOLCHAIN_NAME=${TOOLCHAIN_NAME%-clang${LLVM_VERSION_EXTRACT}}-${DEFAULT_GCC_VERSION}
-    if [ -z "$LLVM_VERSION" ]; then
-        LLVM_VERSION=$LLVM_VERSION_EXTRACT
-        echo "Auto-config: --toolchain=$NEW_TOOLCHAIN_NAME, --llvm-version=$LLVM_VERSION"
-    else
-        if [ "$LLVM_VERSION" != "$LLVM_VERSION_EXTRACT" ]; then
-            echo "Conflict llvm-version: --llvm-version=$LLVM_VERSION and as implied by --toolchain=$TOOLCHAIN_NAME"
-            exit 1
-	fi
-    fi
+    NEW_TOOLCHAIN_NAME=${TOOLCHAIN_NAME%-clang}-${DEFAULT_GCC_VERSION}
     TOOLCHAIN_NAME=$NEW_TOOLCHAIN_NAME
 fi
 
 # Check PLATFORM
 if [ -z "$PLATFORM" ] ; then
     case $ARCH in
-        arm) PLATFORM=android-3
-            ;;
-        x86|mips)
+        arm|x86|mips)
             PLATFORM=android-9
             ;;
         arm64|x86_64|mips64)
@@ -177,12 +163,24 @@ if [ ! -d "$NDK_DIR/platforms/$PLATFORM" ] ; then
     exit 1
 fi
 
+if [ -d "$NDK_DIR/prebuilt/$HOST_TAG" ]; then
+    SYSTEM=$HOST_TAG
+else
+    SYSTEM=$HOST_TAG32
+fi
+
 # Check toolchain name
-TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME"
+TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME/prebuilt/$SYSTEM"
 if [ ! -d "$TOOLCHAIN_PATH" ] ; then
-    echo "Invalid toolchain name: $TOOLCHAIN_NAME"
+    echo "Could not find toolchain: $TOOLCHAIN_PATH"
     echo "Please use --toolchain=<name> with the name of a toolchain supported by the source NDK."
-    echo "Try one of: " `(cd "$NDK_DIR/toolchains" && ls)`
+    echo "Try one of: "
+    for tc in $(cd "$NDK_DIR/toolchains" && ls); do
+        if [ "$tc" != "llvm" ]; then
+            echo $tc
+            echo $tc | sed 's/-4.9$/-clang/'
+        fi
+    done
     exit 1
 fi
 
@@ -216,19 +214,13 @@ if [ ! -d "$SRC_SYSROOT_INC" -o ! -d "$SRC_SYSROOT_LIB" ] ; then
 fi
 
 # Check that we have any prebuilts GCC toolchain here
-if [ ! -d "$TOOLCHAIN_PATH/prebuilt" ]; then
+if [ ! -d "$TOOLCHAIN_PATH" ]; then
     echo "Toolchain is missing prebuilt files: $TOOLCHAIN_NAME"
     echo "You must point to a valid NDK release package!"
     exit 1
 fi
 
-if [ ! -d "$TOOLCHAIN_PATH/prebuilt/$SYSTEM" ] ; then
-    echo "Host system '$SYSTEM' is not supported by the source NDK!"
-    echo "Try --system=<name> with one of: " `(cd $TOOLCHAIN_PATH/prebuilt && ls) | grep -v gdbserver`
-    exit 1
-fi
-
-TOOLCHAIN_PATH="$TOOLCHAIN_PATH/prebuilt/$SYSTEM"
+TOOLCHAIN_PATH="$TOOLCHAIN_PATH"
 TOOLCHAIN_GCC=$TOOLCHAIN_PATH/bin/$ABI_CONFIGURE_TARGET-gcc
 
 if [ ! -f "$TOOLCHAIN_GCC" ] ; then
@@ -236,21 +228,15 @@ if [ ! -f "$TOOLCHAIN_GCC" ] ; then
     exit 1
 fi
 
-if [ -n "$LLVM_VERSION" ]; then
-    LLVM_TOOLCHAIN_PATH="$NDK_DIR/toolchains/llvm-$LLVM_VERSION"
+if [ "$USE_LLVM" = "yes" ]; then
+    LLVM_TOOLCHAIN_PATH="$NDK_DIR/toolchains/llvm/prebuilt/$SYSTEM"
     # Check that we have any prebuilts LLVM toolchain here
-    if [ ! -d "$LLVM_TOOLCHAIN_PATH/prebuilt" ] ; then
+    if [ ! -d "$LLVM_TOOLCHAIN_PATH" ] ; then
         echo "LLVM Toolchain is missing prebuilt files"
         echo "You must point to a valid NDK release package!"
         exit 1
     fi
-
-    if [ ! -d "$LLVM_TOOLCHAIN_PATH/prebuilt/$SYSTEM" ] ; then
-        echo "Host system '$SYSTEM' is not supported by the source NDK!"
-        echo "Try --system=<name> with one of: " `(cd $LLVM_TOOLCHAIN_PATH/prebuilt && ls)`
-        exit 1
-    fi
-    LLVM_TOOLCHAIN_PATH="$LLVM_TOOLCHAIN_PATH/prebuilt/$SYSTEM"
+    LLVM_TOOLCHAIN_PATH="$LLVM_TOOLCHAIN_PATH"
 fi
 
 # Get GCC_BASE_VERSION.  Note that GCC_BASE_VERSION may be slightly different from GCC_VERSION.
@@ -260,7 +246,7 @@ LIBGCC_BASE_PATH=${LIBGCC_PATH%/*}         # base path of libgcc.a
 GCC_BASE_VERSION=${LIBGCC_BASE_PATH##*/}   # stuff after the last /
 
 # Create temporary directory
-TMPDIR=$NDK_TMPDIR/standalone/$TOOLCHAIN_NAME
+TMPDIR=`mktemp -d $NDK_TMPDIR/ndk.XXXXXXX`
 
 dump "Copying prebuilt binaries..."
 # Now copy the GCC toolchain prebuilt binaries
@@ -284,7 +270,7 @@ fi
 
 # Clang stuff
 
-if [ -n "$LLVM_VERSION" ]; then
+if [ "$USE_LLVM" = "yes" ]; then
   # Copy the clang/llvm toolchain prebuilt binaries
   copy_directory "$LLVM_TOOLCHAIN_PATH" "$TMPDIR"
 
@@ -295,9 +281,10 @@ if [ -n "$LLVM_VERSION" ]; then
   # "++" tells clang to compile in C++ mode
   LLVM_TARGET=
   case "$ARCH" in
-      arm) # NOte: -target may change by clang based on the
-           #        presence of subsequent -march=armv7-a and/or -mthumb
-          LLVM_TARGET=armv5te-none-linux-androideabi
+      arm)
+          # Note: -target may change by clang based on the presence of
+          # subsequent -march=armv5te and/or -mthumb.
+          LLVM_TARGET=armv7a-none-linux-androideabi
           TOOLCHAIN_PREFIX=$DEFAULT_ARCH_TOOLCHAIN_PREFIX_arm
           ;;
       x86)
@@ -323,6 +310,14 @@ if [ -n "$LLVM_VERSION" ]; then
       *)
         dump "ERROR: Unsupported NDK architecture $ARCH!"
   esac
+
+  # We need to copy clang and clang++ to some other named binary because clang
+  # and clang++ are going to be the shell scripts with the prefilled target. We
+  # have the version info available, and that's a typical alternate name (and is
+  # what we historically used).
+  LLVM_VERSION=$(cat $LLVM_TOOLCHAIN_PATH/AndroidVersion.txt | \
+      egrep -o '[[:digit:]]+\.[[:digit:]]')
+
   # Need to remove '.' from LLVM_VERSION when constructing new clang name,
   # otherwise clang3.3++ may still compile *.c code as C, not C++, which
   # is not consistent with g++
@@ -396,9 +391,8 @@ fi
 dump "Copying sysroot headers and libraries..."
 # Copy the sysroot under $TMPDIR/sysroot. The toolchain was built to
 # expect the sysroot files to be placed there!
-run copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
-run copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
-
+copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
+copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
 case "$ARCH" in
 # x86_64 and mips* toolchain are built multilib.
     x86_64)
@@ -417,313 +411,15 @@ case "$ARCH" in
         ;;
 esac
 
-# remove this libstdc++ library to avoid possible clashes
-# with real ones
-run find "$TMPDIR/sysroot/usr/" -name 'libstdc++.*' -delete
-
-if [ "$ARCH_INC" != "$ARCH" ]; then
-    cp -a $NDK_DIR/$GABIXX_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
-    cp -a $NDK_DIR/$GCCUNWIND_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
-    if [ "$ARCH" = "${ARCH%%64*}" ]; then
-        cp -a $NDK_DIR/$COMPILER_RT_SUBDIR/libs/$ABI/* $TMPDIR/sysroot/usr/lib
-    fi
-fi
-
-if [ "$ARCH_LIB" != "$ARCH" ]; then
-    cp -a $NDK_DIR/platforms/$PLATFORM/arch-$ARCH/usr/lib/crt* $TMPDIR/sysroot/usr/lib
-fi
-
-ABI_TARGET="$TMPDIR/$ABI_CONFIGURE_TARGET"
-
-dump "Copying crystax headers and libraries..."
-
-CRYSTAX_DIR=$NDK_DIR/$CRYSTAX_SUBDIR
-CRYSTAX_LIBS=$CRYSTAX_DIR/libs
-
-# $1: Source ABI (e.g. 'armeabi')
-copy_crystax_libs_for_abi () {
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    case $ABI in
-        armeabi*)
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/thumb" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a/thumb" "$ABI_TARGET/lib/armv7-a/thumb" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi-v7a-hard/thumb" "$ABI_TARGET/lib/armv7-a/thumb/hard" "libcrystax.so"
-            ;;
-        mips64)
-            copy_file_list "$CRYSTAX_LIBS/mips64" "$ABI_TARGET/lib64" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64" "$ABI_TARGET/lib64" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64/r2" "$ABI_TARGET/lib64r2" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32" "$ABI_TARGET/lib" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r2" "$ABI_TARGET/libr2" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r2" "$ABI_TARGET/libr2" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r6" "$ABI_TARGET/libr6" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips64/lib32r6" "$ABI_TARGET/libr6" "libcrystax.so"
-            ;;
-        mips)
-            copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips" "$ABI_TARGET/lib" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips/r2" "$ABI_TARGET/libr2" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips/r2" "$ABI_TARGET/libr2" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/mips/r6" "$ABI_TARGET/libr6" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/mips/r6" "$ABI_TARGET/libr6" "libcrystax.so"
-            ;;
-        x86_64)
-            copy_file_list "$CRYSTAX_LIBS/x86_64" "$ABI_TARGET/lib64" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/x86_64" "$ABI_TARGET/lib64" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/x86_64/32" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/x86_64/32" "$ABI_TARGET/lib" "libcrystax.so"
-            #
-            copy_file_list "$CRYSTAX_LIBS/x86_64/x32" "$ABI_TARGET/libx32" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/x86_64/x32" "$ABI_TARGET/libx32" "libcrystax.so"
-            ;;
-        *)
-            copy_file_list "$CRYSTAX_LIBS/$ABI" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/$ABI" "$ABI_TARGET/lib" "libcrystax.so"
-            ;;
-    esac
-}
-
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-  copy_crystax_libs_for_abi "$ABI"
-done
-
-dump "Copying Objective C/C++ runtime (gnustep-libobjc2 headers and libraries)..."
-
-LIBOBJC2_DIR=$NDK_DIR/$GNUSTEP_OBJC2_SUBDIR
-LIBOBJC2_LIBS=$LIBOBJC2_DIR/libs
-
-# $1: ABI
-copy_libobjc2_libs_for_abi()
-{
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    local LABI
-    local LIB
-
-    for LIB in libobjc.a libobjc.so libobjcxx.so; do
-        case $ABI in
-            armeabi*)
-                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
-                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
-                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
-                #
-                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
-                copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
-                ;;
-            mips64)
-                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            x86_64)
-                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            *)
-                copy_file_list "$LIBOBJC2_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
-        esac
-    done
-}
-
-copy_directory "$LIBOBJC2_DIR/include" "$TMPDIR/sysroot/usr/include"
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-    copy_libobjc2_libs_for_abi "$ABI"
-done
-
-
-dump "Copying libpng headers and libraries..."
-
-LIBPNG_DIR=$NDK_DIR/$LIBPNG_SUBDIR/$(echo $LIBPNG_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
-LIBPNG_LIBS=$LIBPNG_DIR/libs
-
-# $1: ABI
-copy_libpng_libs_for_abi()
-{
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    local LABI
-    local LIB
-
-    for LIB in libpng.a libpng.so; do
-        case $ABI in
-            armeabi*)
-                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
-                copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
-                copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
-                #
-                copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
-                copy_file_list "$LIBPNG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
-                ;;
-            mips64)
-                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            x86_64)
-                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            *)
-                copy_file_list "$LIBPNG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
-        esac
-    done
-}
-
-copy_directory "$LIBPNG_DIR/include" "$TMPDIR/sysroot/usr/include"
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-    copy_libpng_libs_for_abi "$ABI"
-done
-
-dump "Copying libjpeg headers and libraries..."
-
-LIBJPEG_DIR=$NDK_DIR/$LIBJPEG_SUBDIR/$(echo $LIBJPEG_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
-LIBJPEG_LIBS=$LIBJPEG_DIR/libs
-
-# $1: ABI
-copy_libjpeg_libs_for_abi()
-{
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    local LABI
-    local LIB
-
-    for LIB in libjpeg.a libjpeg.so; do
-        case $ABI in
-            armeabi*)
-                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
-                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
-                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
-                #
-                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
-                copy_file_list "$LIBJPEG_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
-                ;;
-            mips64)
-                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            x86_64)
-                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            *)
-                copy_file_list "$LIBJPEG_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
-        esac
-    done
-}
-
-copy_directory "$LIBJPEG_DIR/include" "$TMPDIR/sysroot/usr/include"
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-    copy_libjpeg_libs_for_abi "$ABI"
-done
-
-dump "Copying libtiff headers and libraries..."
-
-LIBTIFF_DIR=$NDK_DIR/$LIBTIFF_SUBDIR/$(echo $LIBTIFF_VERSIONS | tr ' ' '\n' | grep -v '^$' | tail -n 1)
-LIBTIFF_LIBS=$LIBTIFF_DIR/libs
-
-# $1: ABI
-copy_libtiff_libs_for_abi()
-{
-    local ABI=$1
-
-    if [ "$(convert_abi_to_arch "$ABI")" != "$ARCH" ]; then
-        dump "ERROR: ABI '$ABI' does not match ARCH '$ARCH'"
-        exit 1
-    fi
-
-    local LABI
-    local LIB
-
-    for LIB in libtiff.a libtiff.so libtiffxx.a libtiffxx.so; do
-        case $ABI in
-            armeabi*)
-                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
-                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
-                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
-                #
-                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/hard" "$LIB"
-                copy_file_list "$LIBTIFF_LIBS/armeabi-v7a-hard" "$ABI_TARGET/lib/armv7-a/thumb/hard" "$LIB"
-                ;;
-            mips64)
-                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            x86_64)
-                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib64" "$LIB"
-                ;;
-            *)
-                copy_file_list "$LIBTIFF_LIBS/$ABI" "$ABI_TARGET/lib" "$LIB"
-        esac
-    done
-}
-
-copy_directory "$LIBTIFF_DIR/include" "$TMPDIR/sysroot/usr/include"
-for ABI in $(tr ',' ' ' <<< $ABIS); do
-    copy_libtiff_libs_for_abi "$ABI"
-done
-
-GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION
+GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR/4.9
 GNUSTL_LIBS=$GNUSTL_DIR/libs
 
 STLPORT_DIR=$NDK_DIR/$STLPORT_SUBDIR
 STLPORT_LIBS=$STLPORT_DIR/libs
 
 LIBCXX_DIR=$NDK_DIR/$LIBCXX_SUBDIR
-LIBCXX_LIBS=$LIBCXX_DIR/$LLVM_VERSION/libs
-case $ARCH in
-    x86|x86_64|mips|mips64)
-        LIBCXX_SUPPORT_LIB=gabi++
-        ;;
-    *)
-        LIBCXX_SUPPORT_LIB=libc++abi
-        ;;
-esac
+LIBCXX_LIBS=$LIBCXX_DIR/libs
+LIBCXX_SUPPORT_LIB=libc++abi
 
 SUPPORT_DIR=$NDK_DIR/$SUPPORT_SUBDIR
 
@@ -757,14 +453,14 @@ copy_stl_common_headers () {
             copy_directory "$GNUSTL_DIR/include" "$ABI_STL_INCLUDE"
             ;;
         libcxx|libc++)
-            copy_directory "$LIBCXX_DIR/$LLVM_VERSION/libcxx/include" "$ABI_STL_INCLUDE"
-            #copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
+            copy_directory "$LIBCXX_DIR/libcxx/include" "$ABI_STL_INCLUDE"
+            copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
             if [ "$LIBCXX_SUPPORT_LIB" = "gabi++" ]; then
                 copy_directory "$STLPORT_DIR/../gabi++/include" "$ABI_STL_INCLUDE/../../gabi++/include"
                 copy_abi_headers gabi++ cxxabi.h unwind.h unwind-arm.h unwind-itanium.h gabixx_config.h
             elif [ "$LIBCXX_SUPPORT_LIB" = "libc++abi" ]; then
                 copy_directory "$LIBCXX_DIR/../llvm-libc++abi/libcxxabi/include" "$ABI_STL_INCLUDE/../../llvm-libc++abi/include"
-                copy_abi_headers llvm-libc++abi cxxabi.h libunwind.h unwind.h
+                copy_abi_headers llvm-libc++abi cxxabi.h __cxxabi_config.h libunwind.h unwind.h
             else
                 dump "ERROR: Unknown libc++ support lib: $LIBCXX_SUPPORT_LIB"
                 exit 1
@@ -834,21 +530,16 @@ copy_stl_libs_for_abi () {
 
     case $ABI in
         armeabi)
-            copy_stl_libs armeabi           "bits"                "bits"
-            copy_stl_libs armeabi           "thumb/bits"          "bits"       "/thumb"
+            copy_stl_libs armeabi          "bits"                "bits"
+            copy_stl_libs armeabi          "thumb/bits"          "bits"       "/thumb"
             ;;
         armeabi-v7a)
-            copy_stl_libs armeabi-v7a       "armv7-a/bits"        "bits"       "armv7-a"
-            copy_stl_libs armeabi-v7a       "armv7-a/thumb/bits"  "bits"       "armv7-a/thumb"
+            copy_stl_libs armeabi-v7a      "armv7-a/bits"        "bits"       "armv7-a"
+            copy_stl_libs armeabi-v7a      "armv7-a/thumb/bits"  "bits"       "armv7-a/thumb"
             ;;
         armeabi-v7a-hard)
-            if [ "$STL" = "gnustl" ]; then
-                copy_stl_libs armeabi-v7a-hard "armv7-a/hard/bits"        "bits"  "armv7-a/hard"        "."
-                copy_stl_libs armeabi-v7a-hard "armv7-a/thumb/hard/bits"  "bits"  "armv7-a/thumb/hard"  "thumb"
-            else
-                copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/hard"        "."
-                copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/thumb/hard"  "thumb"
-            fi
+            copy_stl_libs armeabi-v7a-hard ""                    ""           "armv7-a/hard"       "."
+            copy_stl_libs armeabi-v7a-hard ""                    ""           "armv7-a/thumb/hard" "thumb"
             ;;
         x86_64)
             if [ "$STL" = "gnustl" ]; then
@@ -865,7 +556,6 @@ copy_stl_libs_for_abi () {
                 copy_stl_libs mips64       "32/mips-r2/bits"     "32/mips-r2/bits"  "../libr2"     "libr2"
                 copy_stl_libs mips64       "32/mips-r6/bits"     "32/mips-r6/bits"  "../libr6"     "libr6"
                 copy_stl_libs mips64       "bits"                "bits"             "../lib64"     "lib64"
-                copy_stl_libs mips64       "mips64-r2/bits"      "mips64-r2/bits"   "../lib64r2"   "lib64r2"
             else
                 copy_stl_libs mips64       ""                    ""                 "../lib64"     "."
             fi
@@ -901,7 +591,7 @@ if [ -n "$INSTALL_DIR" ] ; then
         copy_directory "$TMPDIR" "$INSTALL_DIR"
     fi
 else
-    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.xz"
+    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.bz2"
     dump "Creating package file: $PACKAGE_FILE"
     pack_archive "$PACKAGE_FILE" "`dirname $TMPDIR`" "$TOOLCHAIN_NAME"
     fail_panic "Could not create tarball from $TMPDIR"

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2011, 2015 The Android Open Source Project
+# Copyright (C) 2011 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,7 +101,6 @@ builder_begin_module ()
     _BUILD_C_INCLUDES=
     _BUILD_CFLAGS=
     _BUILD_CXXFLAGS=
-    _BUILD_CRYSTAX_LIBDIR=
     _BUILD_LDFLAGS_BEGIN_SO=
     _BUILD_LDFLAGS_END_SO=
     _BUILD_LDFLAGS_BEGIN_EXE=
@@ -389,7 +388,6 @@ builder_shared_library ()
         $_BUILD_STATIC_LIBRARIES \
         $_BUILD_COMPILER_RUNTIME_LDFLAGS \
         $_BUILD_SHARED_LIBRARIES \
-        -L$_BUILD_CRYSTAX_LIBDIR -lcrystax \
         $libm -lc \
         $_BUILD_LDFLAGS \
         $_BUILD_LDFLAGS_END_SO \
@@ -514,11 +512,11 @@ builder_begin_android ()
     local CRTBEGIN_SO_O CRTEND_SO_O CRTBEGIN_EXE_SO CRTEND_SO_O
     local BINPREFIX GCC_TOOLCHAIN LLVM_TRIPLE GCC_VERSION
     local SCRATCH_FLAGS PLATFORM
-    local CRYSTAX_SRCDIR
-    if [ -z "$NDK_DIR" ]; then
-        panic "NDK_DIR is not defined!"
-    elif [ ! -d "$NDK_DIR/platforms" ]; then
-        panic "Missing directory: $NDK_DIR/platforms"
+    local PREBUILT_NDK=$ANDROID_BUILD_TOP/prebuilts/ndk/current
+    if [ -z "$ANDROID_BUILD_TOP" ]; then
+        panic "ANDROID_BUILD_TOP is not defined!"
+    elif [ ! -d "$PREBUILT_NDK/platforms" ]; then
+        panic "Missing directory: $PREBUILT_NDK/platforms"
     fi
     ABI=$1
     BUILDDIR=$2
@@ -537,7 +535,7 @@ builder_begin_android ()
         fi
     fi
     for TAG in $HOST_TAG $HOST_TAG32; do
-        BINPREFIX=$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)
+        BINPREFIX=$ANDROID_BUILD_TOP/prebuilts/ndk/current/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)
         if [ -f ${BINPREFIX}gcc ]; then
             break;
         fi
@@ -545,14 +543,13 @@ builder_begin_android ()
     if [ -n "$LLVM_VERSION" ]; then
         GCC_TOOLCHAIN=`dirname $BINPREFIX`
         GCC_TOOLCHAIN=`dirname $GCC_TOOLCHAIN`
-        GCC_BINPREFIX=$BINPREFIX
-        BINPREFIX=$(get_llvm_toolchain_binprefix $LLVM_VERSION $TAG)
+        LLVM_BINPREFIX=$(get_llvm_toolchain_binprefix $TAG)
     fi
 
     if [ -z "$PLATFORM" ]; then
-      SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
+      SYSROOT=$PREBUILT_NDK/$(get_default_platform_sysroot_for_arch $ARCH)
     else
-      SYSROOT=$NDK_DIR/platforms/$PLATFORM/arch-$ARCH
+      SYSROOT=$PREBUILT_NDK/platforms/$PLATFORM/arch-$ARCH
     fi
     LDIR=$SYSROOT"/usr/"$(get_default_libdir_for_abi $ABI)
 
@@ -573,7 +570,7 @@ builder_begin_android ()
     if [ -z "$LLVM_VERSION" ]; then
         builder_set_binprefix "$BINPREFIX"
     else
-        builder_set_binprefix_llvm "$BINPREFIX" "$GCC_BINPREFIX"
+        builder_set_binprefix_llvm "$LLVM_BINPREFIX" "$BINPREFIX"
         case $ABI in
             armeabi)
                 LLVM_TRIPLE=armv5te-none-linux-androideabi
@@ -625,9 +622,6 @@ builder_begin_android ()
 
     _BUILD_LDFLAGS_END_SO="$CRTEND_SO_O"
     _BUILD_LDFLAGS_END_EXE="$CRTEND_EXE_O"
-
-    CRYSTAX_SRCDIR="$NDK_DIR/$CRYSTAX_SUBDIR"
-    _BUILD_CRYSTAX_LIBDIR="$CRYSTAX_SRCDIR/"`$CRYSTAX_SRCDIR/bin/config --libpath --abi=$ABI`
 
     case $ABI in
         armeabi)

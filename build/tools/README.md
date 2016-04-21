@@ -12,8 +12,8 @@ Their purpose is to handle various sophisticated issues:
  * Rebuilding all target-specific prebuilt binaries from sources (this requires
    working host cross-toolchains).
 
- * Packaging final NDK release tarballs, including adding samples and
-   documentation which normally live in $NDK/../development/ndk.
+ * Packaging final NDK release tarballs, including adding documentation which
+   normally lives in $NDK/../development/ndk.
 
 This document is here to explain how to use these dev-scripts and how everything
 is architected / designed, in case you want to maintain it.
@@ -24,7 +24,7 @@ traces can be activated by using the --verbose option. Use it several times to
 increase the level of verbosity.
 
 Note that all Windows host programs can be built on Linux if you have the
-`mingw32` cross-toolchain installed (`apt-get install mingw32` on Debian or
+`mingw-w64` cross-toolchain installed (`apt-get install mingw-w64` on Debian or
 Ubuntu). You will need to add the `--mingw` option when invoking the script.
 
 All dev-scripts rebuilding host programs on Linux and Darwin will only generate
@@ -73,9 +73,8 @@ Contains the sources of various C++ runtime and libraries that can be used with
 sources/cxx-stl/gabi++
 ----------------------
 
-Contains the sources of the GAbi++ C++ runtime library. Note that the dev-script
-`build-cxx-stl.sh` can be used to generate prebuilt libraries from these
-sources, that will be copied under this directory.
+Contains the sources of the GAbi++ C++ runtime library. Only used via stlport or
+libc++.
 
 sources/cxx-stl/stlport
 -----------------------
@@ -193,13 +192,6 @@ These files can be generated from a given platform build using the
 This is handy to compare which symbols were added between platform releases (and
 check that nothing disappeared).
 
-$DEVNDK/platforms/android-$PLATFORM/samples
--------------------------------------------
-
-Contains samples that are specific to a given API level. These are
-usually copied into $INSTALLED\_NDK/samples/ by the `gen-platforms.sh`
-script.
-
 $NDK/platforms
 --------------
 
@@ -248,9 +240,8 @@ version of the toolchain repository at toolchain/. The old process of using
 download-toolchain-sources.sh is now obsolete.
 
 The toolchains binaries are typically placed under the directory
-$NDK/toolchains/$NAME/prebuilt/$SYSTEM, where $NAME is the toolchain name's full
-name (e.g. arm-linux-androideabi-4.8), and $SYSTEM is the name of the host
-system it is meant to run on (e.g. `linux-x86`, `windows` or `darwin-x86`)
+$NDK/toolchains/$NAME/prebuilt, where $NAME is the toolchain name's full name
+(e.g. arm-linux-androideabi-4.8).
 
 I.2. Building the toolchains:
 -----------------------------
@@ -293,9 +284,9 @@ minutes.
 For the record, on a 2.4 GHz Xeon with 16 Hyper-threaded cores and 12GB of
 memory, rebuilding each toolchain takes between 2 and 4 minutes.
 
-You need to be on Linux to build the Windows binaries, using the "mingw32"
-cross-toolchain (install it with "apt-get install mingw32" on Ubuntu). To do so
-use the "--mingw" option, as in:
+You need to be on Linux to build the Windows binaries, using the "mingw-w64"
+cross-toolchain (install it with "apt-get install mingw-w64" on Ubuntu). To do
+so use the "--mingw" option, as in:
 
     $NDK/build/tools/build-gcc.sh --mingw \
         /tmp/ndk-$USER/src $NDK arm-linux-androideabi-4.8
@@ -303,9 +294,8 @@ use the "--mingw" option, as in:
     $NDK/build/tools/build-gcc.sh --mingw \
         /tmp/ndk-$USER/src $NDK x86-4.8
 
-The corresponding binaries are installed under
-$NDK/toolchains/$NAME/prebuilt/windows Note that these are native Windows
-programs, not Cygwin ones.
+The corresponding binaries are installed under $NDK/toolchains/$NAME/prebuilt.
+Note that these are native Windows programs, not Cygwin ones.
 
 Building the Windows toolchains under MSys and Cygwin is completely unsupported
 and highly un-recommended: even if it works, it will probably take several
@@ -348,13 +338,8 @@ is run on the device through `ndk-gdb` during debugging. For a variety of
 technical reasons, it must be copied into a debuggable project's output
 directory when `ndk-build` is called.
 
-The prebuilt binary is placed under $NDK/toolchains/$NAME/prebuilt/gdbserver in
-the final NDK installation. You can generate with `build-gdbserver.sh` and takes
-the same parameters than `build-gcc.sh`. So one can do:
-
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK \
-        arm-linux-androideabi-4.8
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK x86-4.8
+The prebuilt binary is placed under $NDK/gdbserver/$ARCH in the final NDK
+installation. You can generate them with `build-gdbserver.py`.
 
 
 III.3. Generating C++ runtime prebuilt binaries:
@@ -363,8 +348,8 @@ III.3. Generating C++ runtime prebuilt binaries:
 Sources and support files for several C++ runtimes / standard libraries are
 provided under $NDK/sources/cxx-stl/. Several dev-scripts are provided to
 rebuild their binaries. The scripts place them to their respective location
-(e.g. the GAbi++ binaries will go to $NDK/sources/cxx-stl/gabi++/libs/) unless
-you use the --out-dir=<path> option.
+(e.g. the libc++ binaries will go to $NDK/sources/cxx-stl/llvm-libc++/libs/)
+unless you use the --out-dir=<path> option.
 
 Note that:
 
@@ -377,7 +362,6 @@ Note that:
 
 An example usage would be:
 
-    $NDK/build/tools/build-cxx-stl.sh --stl=gabi++
     $NDK/build/tools/build-cxx-stl.sh --stl=stlport
     $NDK/build/tools/build-cxx-stl.sh --stl=libc++
     $NDK/build/tools/build-gnu-libstdc++.sh /tmp/ndk-$USER/src
@@ -421,17 +405,17 @@ Most dev-scripts generating them typically support a --package-dir=<path> option
 to do this, where <path> points to a directory that will store compressed
 tarballs of the generated binaries.
 
-For example, to build and package the GAbi++ binaries, use:
+For example, to build and package the libc++ binaries, use:
 
-    $NDK/build/tools/build-cxx-stl.sh --stl=gabi++ \
+    $NDK/build/tools/build-cxx-stl.sh --stl=libc++ \
         --package-dir=/tmp/ndk-$USER/prebuilt/
 
-In NDK r7, this will actually create three tarballs (one per supported ABI),
-under the directory /tmp/ndk-$USER/prebuilt/, i.e.:
+This will actually create one tarball per supported ABI in
+`$ANDROID_BUILD_TOP/out/ndk`, i.e.:
 
- * gabixx-libs-armeabi.tar.bz2
- * gabixx-libs-armeabi-v7a.tar.bz2
- * gabixx-libs-x86.tar.bz2
+ * libcxx-libs-armeabi.tar.bz2
+ * libcxx-libs-armeabi-v7a.tar.bz2
+ * libcxx-libs-x86.tar.bz2
  * ...
 
 Note that these tarballs are built to be uncompressed from the top-level of an
@@ -442,24 +426,13 @@ Similarly, to rebuild the STLport binaries and package them:
     $NDK/build/tools/build-cxx-stl.sh --stl=stlport \
         --package-dir=/tmp/ndk-$USER/prebuilt
 
-A dev-script is provided to rebuild _and_ package all prebuilts. It is called
-`rebuild-all-prebuilt.sh`. Note that by default, it will automatically place the
-prebuilt tarballs under /tmp/ndk-$USER/prebuilt-$DATE, where $DATE is the
-current date in ISO order.
+The `rebuilt-all-prebuilt.sh` script has been entirely replaced by checkbuild.py
+in the root of the NDK.  Note that by default, it will automatically place the
+prebuilt tarballs under `$ANDROID_BUILD_TOP/out/ndk`.
 
 By default, this only rebuilds the host prebuilts for the current host system.
-You can use --mingw to force the generation of Windows binaries on Linux.
-
-Additionally, you can use the --darwin-ssh=<hostname> option to launch the build
-of the Darwin binaries from a Linux machine, by using ssh to access a remote
-Darwin machine. The script will package all required sources into a temporary
-tarball, copy it to the remote machine, launch the build there, then copy back
-all binaries to your own machine.
-
-This means that it is possible to generate the host binaries for all supported
-host systems from Linux (provided you have ssh access to a Darwin machine).
-
-Alternatively, you can run `rebuild-all-prebuilt.sh` on a Darwin machine.
+You can use `--system windows` or `--system windows64` to build Windows binaries
+on Linux.
 
 Once you have used the script three times (once per supported host systems), you
 should have plenty of files under /tmp/ndk-$USER/prebuilt-$DATE.  For the
@@ -472,7 +445,6 @@ Use the `package-release.sh` dev-script to generate full NDK release packages.
 These contain everything needed by a typical NDK user, including:
 
  * All prebuilt binaries (host toolchains, host tools, target libs, etc...).
- * All samples (including those collected from $DEVNDK/platforms/).
  * All documentation.
 
 You need to have a directory containing prebuilt tarballs, as described in the

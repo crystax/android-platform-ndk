@@ -1,4 +1,4 @@
-# Copyright (C) 2008, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2008, 2014, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,6 +67,7 @@ system_libs := \
     GLESv1_CM \
     GLESv2 \
     GLESv3 \
+    vulkan \
     OpenSLES \
     OpenMAXAL \
     mediandk \
@@ -161,6 +162,8 @@ ifeq ($(LOCAL_CPP_EXTENSION),)
 endif
 LOCAL_RS_EXTENSION := $(default-rs-extensions)
 
+LOCAL_LDFLAGS += -Wl,--build-id
+
 #
 # Check LOCAL_OBJC_EXTENSION, use '.m' by default
 #
@@ -215,6 +218,17 @@ else
   LOCAL_LDFLAGS += $($(my)RELRO_LDFLAGS)
 endif
 
+# We enable shared text relocation warnings by default. These are not allowed in
+# current versions of Android (android-21 for LP64 ABIs, android-23 for LP32
+# ABIs).
+LOCAL_LDFLAGS += -Wl,--warn-shared-textrel
+
+# We enable fatal linker warnings by default.
+# If LOCAL_DISABLE_FATAL_LINKER_WARNINGS is true, we don't enable this check.
+ifneq ($(LOCAL_DISABLE_FATAL_LINKER_WARNINGS),true)
+  LOCAL_LDFLAGS += -Wl,--fatal-warnings
+endif
+
 # By default, we protect against format string vulnerabilities
 # If LOCAL_DISABLE_FORMAT_STRING_CHECKS is true, we disable the protections.
 ifeq ($(LOCAL_DISABLE_FORMAT_STRING_CHECKS),true)
@@ -252,6 +266,9 @@ ifdef LOCAL_ARM_MODE
       $(call __ndk_info,   LOCAL_ARM_MODE must be defined to either 'arm' or 'thumb' in $(LOCAL_MAKEFILE) not '$(LOCAL_ARM_MODE)')\
       $(call __ndk_error, Aborting)\
   )
+  my_link_arm_mode := $(LOCAL_ARM_MODE)
+else
+  my_link_arm_mode := thumb
 endif
 
 # As a special case, the original Android build system
@@ -318,14 +335,6 @@ ifeq ($(LOCAL_ARM_MODE),arm)
     ifneq (,$(LOCAL_PCH))
         $(call tag-src-files,$(LOCAL_PCH),arm)
     endif
-else
-# For arm, all sources are compiled in thumb mode by default in release mode.
-# Linker should behave similarly
-ifneq ($(filter armeabi%, $(TARGET_ARCH_ABI)),)
-ifneq ($(APP_OPTIM),debug)
-    LOCAL_LDFLAGS += -mthumb
-endif
-endif
 endif
 ifeq ($(LOCAL_ARM_MODE),thumb)
     arm_sources := $(empty)
@@ -438,7 +447,7 @@ endif
 #
 ifneq (,$(call module-has-c++-features,$(LOCAL_MODULE),rtti exceptions))
     ifeq (system,$(NDK_APP_STL))
-      LOCAL_LDLIBS := $(LOCAL_LDLIBS) $(call host-path,$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/$(TOOLCHAIN_VERSION)/libs/$(TARGET_ARCH_ABI)/libsupc++$(TARGET_LIB_EXTENSION))
+      LOCAL_LDLIBS := $(LOCAL_LDLIBS) $(call host-path,$(NDK_ROOT)/sources/cxx-stl/gnu-libstdc++/4.9/libs/$(TARGET_ARCH_ABI)/libsupc++$(TARGET_LIB_EXTENSION))
     endif
 endif
 
@@ -450,7 +459,6 @@ ifneq ($(LOCAL_RENDERSCRIPT_INCLUDES_OVERRIDE),)
 else
     LOCAL_RENDERSCRIPT_INCLUDES := \
         $(RENDERSCRIPT_TOOLCHAIN_HEADER) \
-        $(TARGET_C_INCLUDES)/rs/scriptc \
         $(LOCAL_RENDERSCRIPT_INCLUDES)
 endif
 
@@ -473,16 +481,29 @@ ifneq (,$(LOCAL_PCH))
     # Build PCH into obj directory
     LOCAL_BUILT_PCH := $(call get-pch-name,$(LOCAL_PCH))
 
+    # Clang whines about a "c-header" (.h rather than .hpp) being used in C++
+    # mode (note that we use compile-cpp-source to build the header).
+    LOCAL_SRC_FILES_TARGET_CFLAGS.$(LOCAL_PCH) += -x c++-header
+
     # Build PCH
     $(call compile-cpp-source,$(LOCAL_PCH),$(LOCAL_BUILT_PCH).gch)
 
-    # All obj files are dependent on the PCH
-    $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\
+    # Filter obj files that are dependent on the PCH (only those without tags)
+    ifeq (true,$(LOCAL_ARM_NEON))
+        TAGS_TO_FILTER=arm
+    else
+        TAGS_TO_FILTER=arm neon
+    endif
+
+    allowed_src := $(foreach src,$(filter $(all_cpp_patterns),$(LOCAL_SRC_FILES)),\
+        $(if $(filter $(TAGS_TO_FILTER),$(LOCAL_SRC_FILES_TAGS.$(src))),,$(src))\
+    )
+    # All files without tags depend on PCH
+    $(foreach src,$(allowed_src),\
         $(eval $(LOCAL_OBJS_DIR)/$(call get-object-name,$(src)) : $(LOCAL_OBJS_DIR)/$(LOCAL_BUILT_PCH).gch)\
     )
-
-    # Files from now on build with PCH
-    LOCAL_CPPFLAGS += -Winvalid-pch -include $(LOCAL_OBJS_DIR)/$(LOCAL_BUILT_PCH)
+    # Make sure those files are built with PCH
+    $(call add-src-files-target-cflags,$(allowed_src),-Winvalid-pch -include $(LOCAL_OBJS_DIR)/$(LOCAL_BUILT_PCH))
 
     # Insert PCH dir at beginning of include search path
     LOCAL_C_INCLUDES := \
@@ -532,6 +553,11 @@ ifneq ($(filter -l%,$(LOCAL_LDLIBS)),)
     ifneq ($(filter x86_64 mips64,$(TARGET_ARCH_ABI)),)
         LOCAL_LDLIBS := -L$(call host-path,$(SYSROOT_LINK)/usr/lib64) $(LOCAL_LDLIBS)
     endif
+endif
+
+my_ldflags := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)
+ifneq ($(filter armeabi%,$(TARGET_ARCH_ABI)),)
+    my_ldflags += $(TARGET_$(my_link_arm_mode)_LDFLAGS)
 endif
 
 # When LOCAL_SHORT_COMMANDS is defined to 'true' we are going to write the
@@ -613,7 +639,7 @@ $(LOCAL_BUILT_MODULE): PRIVATE_OBJECTS := $(LOCAL_OBJECTS)
 $(LOCAL_BUILT_MODULE): PRIVATE_LIBGCC := $(TARGET_LIBGCC)
 
 $(LOCAL_BUILT_MODULE): PRIVATE_LD := $(TARGET_LD)
-$(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(TARGET_LDFLAGS) $(LOCAL_LDFLAGS) $(NDK_APP_LDFLAGS)
+$(LOCAL_BUILT_MODULE): PRIVATE_LDFLAGS := $(my_ldflags)
 $(LOCAL_BUILT_MODULE): PRIVATE_LDLIBS  := $(call interpose-libcrystax,$(LOCAL_LDLIBS) $(TARGET_LDLIBS))
 
 $(LOCAL_BUILT_MODULE): PRIVATE_NAME := $(notdir $(LOCAL_BUILT_MODULE))

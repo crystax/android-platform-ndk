@@ -27,6 +27,7 @@ NDK_BUILDTOOLS_ABSPATH=$(cd $NDK_BUILDTOOLS_PATH && pwd)
 . $NDK_BUILDTOOLS_PATH/ndk-common.sh
 . $NDK_BUILDTOOLS_PATH/dev-defaults.sh
 
+
 # Given an input string of the form <foo>-<bar>-<version>, where
 # <version> can be <major>.<minor>, extract <major>
 extract_version ()
@@ -84,9 +85,9 @@ version_is_at_least ()
     B_MINOR=$(extract_minor_version $2)
 
     if [ $A_MINOR -lt $B_MINOR ]; then
-        return 0
-    else
         return 1
+    else
+        return 0
     fi
 }
 
@@ -614,7 +615,7 @@ fix_sysroot ()
     else
         SYSROOT_SUFFIX=$PLATFORM/arch-$ARCH
         SYSROOT=
-        check_sysroot $NDK_DIR/platforms $SYSROOT_SUFFIX
+        check_sysroot $ANDROID_BUILD_TOP/prebuilts/ndk/current/platforms $SYSROOT_SUFFIX
         check_sysroot $ANDROID_NDK_ROOT/platforms $SYSROOT_SUFFIX
         check_sysroot `dirname $ANDROID_NDK_ROOT`/development/ndk/platforms $SYSROOT_SUFFIX
 
@@ -653,7 +654,7 @@ check_darwin_sdk ()
         fi
     fi
     if [ -d "$MACSDK" ] ; then
-        HOST_CFLAGS=$HOST_CFLAGS" -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMACOSX_DEPLOYMENT_TARGET=$MINVER"
+        HOST_CFLAGS=$HOST_CFLAGS" -isysroot $MACSDK -mmacosx-version-min=$MINVER -DMAXOSX_DEPLOYEMENT_TARGET=$MINVER"
         HOST_LDFLAGS=$HOST_LDFLAGS" -Wl,-syslibroot,$MACSDK -mmacosx-version-min=$MINVER"
         DARWIN_MINVER=$MINVER
         return 0  # success
@@ -744,33 +745,25 @@ find_mingw_toolchain ()
     # so we just add more prefixes to the list to check.
     if [ "$HOST_ARCH" = "x86_64" -a "$TRY64" = "yes" ]; then
         BINPREFIX=x86_64-pc-mingw32msvc-
-        #BINPREFIXLST="x86_64-w64-mingw32- x86_64-pc-mingw32msvc- amd64-mingw32msvc-"
-        MINGW_GCC=x86_64-w64-mingw32-gcc
-        DEBIAN_NAME=mingw64
-        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin"
+        BINPREFIXLST="x86_64-pc-mingw32msvc- x86_64-w64-mingw32- amd64-mingw32msvc-"
+        DEBIAN_NAME=mingw-w64
     else
         # we are trying 32 bit anyway, so forcing it to avoid build issues
         force_32bit_binaries
         BINPREFIX=i586-pc-mingw32msvc-
-        #BINPREFIXLST="i686-w64-mingw32- i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc-"
-        MINGW_GCC=i686-w64-mingw32-gcc
-        DEBIAN_NAME=mingw32
-        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin"
+        BINPREFIXLST="i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc- i686-w64-mingw32-"
+        DEBIAN_NAME=mingw-w64
     fi
-
-    export PATH="$MINGW_PATH:$PATH"
-    dump "Will use mingw toolchain in: $MINGW_PATH"
-
 
     # Scan $BINPREFIXLST list to find installed mingw toolchain. It will be
     # wrapped later with $BINPREFIX.
-    #for i in $BINPREFIXLST; do
-    #    find_program MINGW_GCC ${i}gcc
-    #    if [ -n "$MINGW_GCC" ]; then
-    #        dump "Found mingw toolchain: $MINGW_GCC"
-    #        break
-    #    fi
-    #done
+    for i in $BINPREFIXLST; do
+        find_program MINGW_GCC ${i}gcc
+        if [ -n "$MINGW_GCC" ]; then
+            dump "Found mingw toolchain: $MINGW_GCC"
+            break
+        fi
+    done
 }
 
 # Check there is a working cross-toolchain installed.
@@ -846,7 +839,7 @@ EOF
     # generate wrappers for BUILD toolchain
     # this is required for mingw/darwin build to avoid tools canadian cross configuration issues
     # 32-bit BUILD toolchain
-    LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8"
+    LEGACY_TOOLCHAIN_DIR="$ANDROID_BUILD_TOP/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8"
     $NDK_BUILDTOOLS_PATH/gen-toolchain-wrapper.sh --src-prefix=i386-linux-gnu- \
             --cflags="-m32" --cxxflags="-m32" --ldflags="-m elf_i386" --asflags="--32" \
             --dst-prefix="$LEGACY_TOOLCHAIN_DIR/bin/x86_64-linux-" "$CROSS_WRAP_DIR"
@@ -925,29 +918,11 @@ prepare_common_build ()
     if [ -z "$CC" ]; then
         LEGACY_TOOLCHAIN_DIR=
         if [ "$HOST_OS" = "linux" ]; then
-            LEGACY_TOOLCHAIN_DIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin"
+            LEGACY_TOOLCHAIN_DIR="$ANDROID_BUILD_TOP/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/bin"
             LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/x86_64-linux-"
         elif [ "$HOST_OS" = "darwin" ]; then
-            local GCCVER=4.9.3
-            local LLVMVER=3.7.0
-            local GCCDIR="$ANDROID_NDK_ROOT/../prebuilts/gcc/darwin-x86/host/x86_64-apple-darwin-$GCCVER"
-            local LLVMDIR="$ANDROID_NDK_ROOT/../prebuilts/clang/darwin-x86/host/x86_64-apple-darwin-$LLVMVER"
-
-            LEGACY_TOOLCHAIN_DIR="$GCCDIR/bin"
-            LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/"
-
-            # For compilation LLDB's Objective-C++ sources we need use clang++, since g++ have a bug
-            # not distinguishing between Objective-C call and definition of C++11 lambda:
-            # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=57607
-            # To workaround this, we're using prebuilt clang++
-            # with includes from our g++, to keep binary compatibility of produced code
-            CXXINC="$LEGACY_TOOLCHAIN_DIR/../include/c++/$GCCVER"
-            CXXBITSINC="$CXXINC/x86_64-apple-darwin"
-            if [ "$TRY64" != "yes" ]; then
-                CXXBITSINC="$CXXBITSINC/i386"
-            fi
-            OBJCXX="$LLVMDIR/bin/clang++ -I$CXXBITSINC -I$CXXINC"
-            export OBJCXX
+            LEGACY_TOOLCHAIN_DIR="$ANDROID_BUILD_TOP/prebuilts/gcc/darwin-x86/host/i686-apple-darwin-4.2.1/bin"
+            LEGACY_TOOLCHAIN_PREFIX="$LEGACY_TOOLCHAIN_DIR/i686-apple-darwin10-"
         fi
         if [ -d "$LEGACY_TOOLCHAIN_DIR" ] ; then
             log "Forcing generation of $HOST_OS binaries with legacy toolchain"
@@ -1230,15 +1205,11 @@ get_prebuilt_host_tag ()
         RET=darwin-x86_64  # let the following handles 32-bit case
     fi
     case $RET in
-        linux-x86_64)
-            if [ "$TRY64" = "no" ]; then
-                RET=linux-x86
-            fi
+        linux-*)
+            RET=linux-x86_64
             ;;
-        darwin-x86_64)
-            if [ "$TRY64" = "no" ]; then
-                RET=darwin-x86
-            fi
+        darwin-*)
+            RET=darwin-x86_64
             ;;
     esac
     echo $RET
@@ -1339,7 +1310,7 @@ convert_archs_to_abis ()
 }
 
 # Return the default toolchain binary path prefix for given architecture and gcc version
-# For example: arm 4.8 -> toolchains/arm-linux-androideabi-4.8/prebuilt/<system>/bin/arm-linux-androideabi-
+# For example: arm 4.8 -> toolchains/<system>/arm-linux-androideabi-4.8/bin/arm-linux-androideabi-
 # $1: Architecture name
 # $2: GCC version
 # $3: optional, system name, defaults to $HOST_TAG
@@ -1355,15 +1326,14 @@ get_toolchain_binprefix_for_arch ()
 }
 
 # Return llvm toolchain binary path prefix for given llvm version
-# $1: llvm version
-# $2: optional, system name, defaults to $HOST_TAG
+# $1: optional, system name, defaults to $HOST_TAG
 get_llvm_toolchain_binprefix ()
 {
     local NAME DIR BINPREFIX
-    local SYSTEM=${2:-$(get_prebuilt_host_tag)}
-    NAME=llvm-$1
-    DIR=$(get_toolchain_install . $NAME $SYSTEM)
-    BINPREFIX=${DIR#./}/bin/
+    local SYSTEM=${1:-$(get_prebuilt_host_tag)}
+    local VERSION=2629532
+    SYSTEM=${SYSTEM%_64} # Trim _64 suffix. We only have one LLVM.
+    BINPREFIX=$ANDROID_BUILD_TOP/prebuilts/clang/host/$SYSTEM/clang-$VERSION/bin
     echo "$BINPREFIX"
 }
 
@@ -1406,7 +1376,6 @@ get_default_platform_sysroot_for_abi ()
 
 # Return the default libs dir corresponding to a given architecture
 # $1: Architecture name
-# $2: Optional llvm version
 get_default_libdir_for_arch ()
 {
     case $1 in
@@ -1418,7 +1387,6 @@ get_default_libdir_for_arch ()
 
 # Return the default libs dir corresponding to a given abi
 # $1: ABI
-# $2: Optional llvm version
 get_default_libdir_for_abi ()
 {
     local ARCH
@@ -1427,7 +1395,7 @@ get_default_libdir_for_abi ()
       mips32r6) echo "libr6" ;;
       *)
         local ARCH=$(convert_abi_to_arch $1)
-        echo "$(get_default_libdir_for_arch $ARCH $2)"
+        echo "$(get_default_libdir_for_arch $ARCH)"
         ;;
     esac
 }
@@ -1451,32 +1419,27 @@ get_toolchain_install ()
 get_toolchain_install_subdir ()
 {
     local SYSTEM=${2:-$(get_prebuilt_host_tag)}
-    echo "toolchains/$1/prebuilt/$SYSTEM"
+    echo "toolchains/$SYSTEM/$1"
 }
 
 # Return the relative install prefix for prebuilt host
 # executables (relative to the NDK top directory).
-# NOTE: This deals with MINGW==yes or DARWIN==yes appropriately
 #
-# $1: optional, system name
 # Out: relative path to prebuilt install prefix
 get_prebuilt_install_prefix ()
 {
-    local TAG=${1:-$(get_prebuilt_host_tag)}
-    echo "prebuilt/$TAG"
+    echo "host-tools"
 }
 
 # Return the relative path of an installed prebuilt host
-# executable
-# NOTE: This deals with MINGW==yes or DARWIN==yes appropriately.
+# executable.
 #
 # $1: executable name
-# $2: optional, host system name
 # Out: path to prebuilt host executable, relative
 get_prebuilt_host_exec ()
 {
     local PREFIX EXE
-    PREFIX=$(get_prebuilt_install_prefix $2)
+    PREFIX=$(get_prebuilt_install_prefix)
     EXE=$(get_prebuilt_host_exe_ext)
     echo "$PREFIX/bin/$1$EXE"
 }
@@ -1550,6 +1513,22 @@ check_toolchain_src_dir ()
     fi
 }
 
+make_repo_prop () {
+    local OUT_PATH="$1/repo.prop"
+
+    # The build server generates a repo.prop file that contains the current SHAs
+    # of each project.
+    if [ -f $DIST_DIR/repo.prop ]; then
+        cp $DIST_DIR/repo.prop $OUT_PATH
+    else
+        # Generate our own if we're building locally.
+        pushd $ANDROID_NDK_ROOT
+        repo forall \
+            -c 'echo $REPO_PROJECT $(git rev-parse HEAD)' > $OUT_PATH
+        popd
+    fi
+}
+
 #
 # The NDK_TMPDIR variable is used to specify a root temporary directory
 # when invoking toolchain build scripts. If it is not defined, we will
@@ -1557,7 +1536,6 @@ check_toolchain_src_dir ()
 # call after that use the same one.
 #
 if [ -z "$NDK_TMPDIR" ]; then
-    
     NDK_TMPDIR=$TMPDIR/tmp/build-$$
     mkdir -p $NDK_TMPDIR
     if [ $? != 0 ]; then
@@ -1575,33 +1553,3 @@ case $HOST_TAG32 in
         HOST_TAG32=${HOST_TAG%%_64}
         ;;
 esac
-
-# this function should be called after all options are extracted
-CACHE_HOST_TAG=linux-x86
-set_cache_host_tag ()
-{
-    if [ "$MINGW" = "yes" ] ; then
-        if [ "$TRY64" = "yes" ]; then
-            CACHE_HOST_TAG=windows-x86_64
-        else
-            CACHE_HOST_TAG=windows
-        fi
-    elif [ "$DARWIN" = "yes" -o "$HOST_OS" = "darwin" ] ; then
-        if [ "$TRY64" = "yes" ]; then
-            CACHE_HOST_TAG=darwin-x86_64
-        else
-            CACHE_HOST_TAG=darwin-x86
-        fi
-    else
-        if [ "$TRY64" = "yes" ]; then
-            CACHE_HOST_TAG=linux-x86_64
-        fi        
-    fi
-}
-
-assert_cache_host_tag ()
-{
-    if [ "$CACHE_HOST_TAG" != "$HOST_TAG" ]; then
-        fail_panic "ASSERT in $PROGNAME: $CACHE_HOST_TAG != $HOST_TAG"
-    fi
-}

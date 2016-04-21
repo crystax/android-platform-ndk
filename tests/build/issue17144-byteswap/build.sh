@@ -26,21 +26,21 @@ if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%armeabi-v7
     grep -qw rev16 issue17144-byteswap.s
     fail_panic "armeabi-v7a doesn't use rev16 instruction for __swap16()"
     grep -qw rev issue17144-byteswap.s
-    fail_panic "armeabi-v7a doesn't use rev instruciton for __swap32()"
+    fail_panic "armeabi-v7a doesn't use rev instruction for __swap32()"
 fi
 
-if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%x86*}" ]; then
+if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%x86}" ]; then
     # checking x86
     $NDK/ndk-build -B APP_ABI=x86 APP_CFLAGS=-save-temps NDK_DEBUG=1
     fail_panic "can't compile for x86"
-    grep -qw rorw issue17144-byteswap.s
+    grep -qw 'ro[lr]w' issue17144-byteswap.s
     fail_panic "x86 doesn't use rorw instruction for __swap16()"
     grep -qw bswap issue17144-byteswap.s
     test $? -eq 0 || grep -qw bswapl issue17144-byteswap.s
-    fail_panic "x86 doesn't use bswap instruciton for __swap32()"
+    fail_panic "x86 doesn't use bswap instruction for __swap32()"
 fi
 
-if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%mips*}" ]; then
+if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%mips}" ]; then
     # checking mips
     # Note that MD_SWAP in machine/endian.h is only defined for r2.  Add
     # -mips32r2 because default Android toolchain support r1
@@ -48,8 +48,8 @@ if [ -z "$APP_ABI" -o "$APP_ABI" = "all" -o "$APP_ABI" != "${APP_ABI%%mips*}" ];
     fail_panic "can't compile for mips"
     grep -qw wsbh issue17144-byteswap.s
     fail_panic "mips doesn't use wsbh instruction for __swap16()"
-    grep -w rotr issue17144-byteswap.s | grep -qw rotr
-    fail_panic "mips doesn't use wsbh/rotr instruciton for __swap32()"
+    grep -wA1 wsbh issue17144-byteswap.s | egrep -qw 'rot?r'
+    fail_panic "mips doesn't use wsbh/rotr instruction for __swap32()"
 fi
 
 rm -rf libs obj issue17144-byteswap.*

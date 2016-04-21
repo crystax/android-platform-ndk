@@ -410,6 +410,7 @@ modules-LOCALS := \
     DISABLE_NO_EXECUTE \
     DISABLE_RELRO \
     DISABLE_FORMAT_STRING_CHECKS \
+    DISABLE_FATAL_LINKER_WARNINGS \
     EXPORT_CFLAGS \
     EXPORT_CONLYFLAGS \
     EXPORT_CPPFLAGS \
@@ -1721,7 +1722,7 @@ _FLAGS := $$($$(my)CFLAGS) \
           $$(LOCAL_CONLYFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CONLYFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _TEXT := Compile $$(call get-src-file-text,$1)
@@ -1745,7 +1746,7 @@ _OBJ:=$$(LOCAL_OBJS_DIR:%/=%)/$(2)
 _FLAGS := $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_ASMFLAGS) \
           $$(NDK_APP_ASMFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           $$(if $$(filter x86_64, $$(TARGET_ARCH_ABI)), -f elf64, -f elf32 -m x86)
 
 _TEXT := Assemble $$(call get-src-file-text,$1)
@@ -1861,7 +1862,7 @@ _FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _CC   := $$(NDK_CCACHE) $$($$(my)CXX)
@@ -1951,7 +1952,7 @@ _CPP_FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -fno-rtti \
           -c \
 
@@ -2316,32 +2317,12 @@ $(call ndk-stl-register,\
     \
     )
 
-# Register the 'gabi++_static' STL implementation
-#
-$(call ndk-stl-register,\
-    gabi++_static,\
-    cxx-stl/gabi++,\
-    gabi++_static,\
-    ,\
-    \
-    )
-
-# Register the 'gabi++_shared' STL implementation
-#
-$(call ndk-stl-register,\
-    gabi++_shared,\
-    cxx-stl/gabi++,\
-    ,\
-    gabi++_shared,\
-    \
-    )
-
 # Register the 'c++_static' STL implementation
 #
 $(call ndk-stl-register,\
     c++_static,\
     cxx-stl/llvm-libc++,\
-    c++_static,\
+    c++_static libc++abi libunwind android_support,\
     ,\
     -ldl\
     )
@@ -2351,7 +2332,7 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     c++_shared,\
     cxx-stl/llvm-libc++,\
-    ,\
+    libunwind,\
     c++_shared,\
     \
     )

@@ -15,6 +15,7 @@
 #
 import contextlib
 import os
+import subprocess
 
 
 def color_string(string, color):
@@ -27,6 +28,10 @@ def color_string(string, color):
     return colors[color] + string + end_color
 
 
+def maybe_color(text, color, do_color):
+    return color_string(text, color) if do_color else text
+
+
 @contextlib.contextmanager
 def cd(path):
     curdir = os.getcwd()
@@ -35,3 +40,20 @@ def cd(path):
         yield
     finally:
         os.chdir(curdir)
+
+
+def call_output(cmd, *args, **kwargs):
+    """Invoke the specified command and return exit code and output.
+
+    This is the missing subprocess.call_output, which is the combination of
+    subprocess.call and subprocess.check_output. Like call, it returns an exit
+    code rather than raising an exception. Like check_output, it returns the
+    output of the program. Unlike check_output, it returns the output even on
+    failure.
+
+    Returns: Tuple of (exit_code, output).
+    """
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, *args, **kwargs)
+    out, _ = proc.communicate()
+    return proc.returncode, out

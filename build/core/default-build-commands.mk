@@ -30,7 +30,7 @@ TARGET_NO_UNDEFINED_LDFLAGS := -Wl,--no-undefined
 TARGET-get-linker-objects-and-libraries = \
     $(call host-path, $1) \
     $(call link-whole-archives,$3) \
-    $(call host-path, $2 $(PRIVATE_LIBGCC) $4) \
+    $(call host-path, $2) $(PRIVATE_LIBGCC) $(call host-path, $4) \
 
 
 # These flags are used to enforce the NX (no execute) security feature in the
@@ -150,7 +150,7 @@ TARGET_LDFLAGS :=
 
 # Use *-gcc-ar instead of *-ar for better LTO support, except for
 # gcc4.6 which doesn't have gcc-ar
-ifneq (4.6,$(NDK_TOOLCHAIN_VERSION))
+ifneq (clang,$(NDK_TOOLCHAIN_VERSION))
 TARGET_AR       = $(TOOLCHAIN_PREFIX)gcc-ar
 else
 TARGET_AR       = $(TOOLCHAIN_PREFIX)ar
