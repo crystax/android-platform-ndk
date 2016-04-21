@@ -252,6 +252,10 @@ set( ANDROID_DEFAULT_NDK_API_LEVEL_mips64 ${ANDROID_DEFAULT_64BIT_API_LEVEL} )
 set( DEFAULT_GCC_VERSION 5 )
 set( DEFAULT_LLVM_VERSION 3.7 )
 
+if( NOT DEFINED ANDROID_TOOLCHAIN_VERSION)
+ set( ANDROID_TOOLCHAIN_VERSION gcc-${DEFAULT_GCC_VERSION})
+endif()
+
 macro( __LIST_FILTER listvar regex )
   if( ${listvar} )
     foreach( __val ${${listvar}} )
