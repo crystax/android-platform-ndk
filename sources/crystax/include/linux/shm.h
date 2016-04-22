@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,58 +27,14 @@
  * or implied, of CrystaX.
  */
 
-#include <sys/shm.h>
+#ifndef __CRYSTAX_INCLUDE_LINUX_SHM_H_7CF842A013E34669B4AFB7409C38E965
+#define __CRYSTAX_INCLUDE_LINUX_SHM_H_7CF842A013E34669B4AFB7409C38E965
 
-#include "gen/sys_shm.inc"
+#include <crystax/id.h>
+#include <android/api-level.h>
+#include <crystax/google/linux/shm.h>
+#if __ANDROID_API__ >= 21
+#include <asm-generic/shmparam.h>
+#endif
 
-#include "helper.h"
-
-#define CHECK(type) type JOIN(sys_shm_check_type_, __LINE__)
-
-#if !__ANDROID__
-CHECK(shmatt_t);
-#endif /* !__ANDROID__ */
-CHECK(struct shmid_ds);
-CHECK(pid_t);
-CHECK(size_t);
-CHECK(time_t);
-
-#if __ANDROID__
-void *shmat(int shmid, const void *shmaddr, int shmflg)
-{
-    (void)shmid;
-    (void)shmaddr;
-    (void)shmflg;
-    return (void*)12345;
-}
-
-int shmctl(int shmid, int cmd, struct shmid_ds *buf)
-{
-    (void)shmid;
-    (void)cmd;
-    (void)buf;
-    return -1;
-}
-
-int shmdt(const void *shmaddr)
-{
-    (void)shmaddr;
-    return -1;
-}
-
-int shmget(key_t key, size_t size, int shmflg)
-{
-    (void)key;
-    (void)size;
-    (void)shmflg;
-    return -1;
-}
-#endif /* __ANDROID__ */
-
-void sys_shm_check_functions()
-{
-    (void)shmat(0, (const void*)1234, 0);
-    (void)shmctl(0, 0, (struct shmid_ds *)1234);
-    (void)shmdt((const void *)1234);
-    (void)shmget((key_t)0, (size_t)0, 0);
-}
+#endif /* __CRYSTAX_INCLUDE_LINUX_SHM_H_7CF842A013E34669B4AFB7409C38E965 */
