@@ -180,7 +180,7 @@ elif [ "$CXX_SUPPORT_LIB" = "libc++abi" ]; then
 else
     panic "Unknown CXX_SUPPORT_LIB: $CXX_SUPPORT_LIB"
 fi
-LIBCXX_INCLUDES="-I$CRYSTAX_SRCDIR/include $LIBCXX_INCLUDES"
+LIBCXX_INCLUDES="$LIBCXX_INCLUDES -I$CRYSTAX_SRCDIR/include"
 
 COMMON_C_CXX_FLAGS="-fPIC -O2 -ffunction-sections -fdata-sections"
 COMMON_CXXFLAGS="-fexceptions -frtti -fuse-cxa-atexit"

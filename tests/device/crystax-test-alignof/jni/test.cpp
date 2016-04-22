@@ -23,17 +23,17 @@ void test(const char *tname)
 #define TEST(type) test<type>(#type)
 
 #if defined(__clang__)
-#define CLANG_AT_LEAST(major, minor) \
-    (__clang_major__ > major || (__clang_major__ == major && __clang_minor__ >= minor))
+#define CLANG_VERSION_GREATER_THAN(major, minor) \
+    (__clang_major__ > major || (__clang_major__ == major && __clang_minor__ > minor))
 #else
-#define CLANG_AT_LEAST(major, minor) 0
+#define CLANG_VERSION_GREATER_THAN(major, minor) 0
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
-#define GCC_AT_LEAST(major, minor) \
-    (__GNUC__ > major || (__GNUC__ == major && __GNUC_MINOR__ >= minor))
+#define GCC_VERSION_GREATER_THAN(major, minor) \
+    (__GNUC__ > major || (__GNUC__ == major && __GNUC_MINOR__ > minor))
 #else
-#define GCC_AT_LEAST(major, minor) 0
+#define GCC_VERSION_GREATER_THAN(major, minor) 0
 #endif
 
 int main()
@@ -45,7 +45,7 @@ int main()
     // and clang-3.7 are failing. In the future, this bug should be fixed, so next
     // gcc/clang versions should pass.
 
-#if !defined(__i386__) || CLANG_AT_LEAST(3, 8) || GCC_AT_LEAST(6, 1)
+#if !defined(__i386__) || CLANG_VERSION_GREATER_THAN(3, 8) || GCC_VERSION_GREATER_THAN(6, 0)
     TEST(long long);
     TEST(double);
     TEST(long double);
