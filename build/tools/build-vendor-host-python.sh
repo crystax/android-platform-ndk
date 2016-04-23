@@ -600,7 +600,7 @@ build_host_python ()
                 "$PYTHON_SRCDIR/Modules/posixmodule.c"
             fail_panic "Can't copy pyconfig.h errmap.h importdl.h dynload_win.c posixmodule.c to $BUILDDIR_CORE"
             run patch "$BUILDDIR_CORE/pyconfig.h" < "$PYTHON_BUILD_UTILS_DIR_HOST/pyconfig.h.$PYTHON_ABI.mingw.patch"
-            fail_panic "Can't patch getpathp.c"
+            fail_panic "Can't patch pyconfig.h"
             if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
                 run cp -p -t "$BUILDDIR_CORE" "$PYTHON_SRCDIR/PC/getpathp.c"
                 fail_panic "Can't copy getpathp.c to $BUILDDIR_CORE"
