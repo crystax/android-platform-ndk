@@ -533,7 +533,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt cocotron-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $PYTHON_VERSIONS; do
-            unpack_prebuilt python${VERSION}-libs-$ABI "$REFERENCE"
+            unpack_prebuilt python${VERSION}-binaries-$ABI "$REFERENCE"
         done
         for VERSION in $LIBPNG_VERSIONS; do
             unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
@@ -667,7 +667,9 @@ for SYSTEM in $SYSTEMS; do
         for VERSION in $PYTHON_VERSIONS; do
             copy_prebuilt "$PYTHON_SUBDIR/$VERSION/include" "$PYTHON_SUBDIR/$VERSION/"
             for PYTHON_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/libs/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/libs"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/shared/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/shared"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/bin/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/bin"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/libs/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/libs"
             done
         done
 
@@ -774,6 +776,10 @@ for SYSTEM in $SYSTEMS; do
         if [ "$SYSTEM" = "windows" ]; then
             unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
         fi
+
+        for VERSION in $PYTHON_VERSIONS; do
+            unpack_prebuilt ndk-vendor-host-python$VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        done
     fi
 
     # Unpack other host tools

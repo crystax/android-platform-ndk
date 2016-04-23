@@ -1329,8 +1329,11 @@ if [ -n "$PACKAGE_DIR" ]; then
     fi
 
     for ABI in $BUILT_ABIS; do
-        FILES="$PYTHON_SUBDIR/$PYTHON_ABI/libs/$ABI"
-        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-libs-${ABI}.tar.xz"
+        FILES=""
+        for SUBDIR in shared/$ABI static/bin/$ABI static/libs/$ABI; do
+            FILES="$FILES $PYTHON_SUBDIR/$PYTHON_ABI/$SUBDIR"
+        done
+        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-binaries-${ABI}.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
