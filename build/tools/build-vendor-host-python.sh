@@ -326,6 +326,7 @@ build_python_stub ()
 # $8: output dir
 build_python_module ()
 {
+    local HOST_SYSTEM_TAG=$1
     local MOD_NAME=$2
     local MOD_SOURCES=$(commas_to_spaces $3)
     local MOD_BUILD_DIR=$4
@@ -335,7 +336,7 @@ build_python_module ()
     local OUTPUT_DIR=$8
     local MODS_OUTPUT_DIR="$OUTPUT_DIR/modules"
 
-    log "build python-$PYTHON_ABI module '$MOD_NAME' for $1 ..."
+    log "build python-$PYTHON_ABI module '$MOD_NAME' for $HOST_SYSTEM_TAG ..."
 
     run mkdir -p $MOD_BUILD_DIR
     fail_panic "Can't create directory: $MOD_BUILD_DIR"
@@ -343,7 +344,7 @@ build_python_module ()
     fail_panic "Can't create directory: $MODS_OUTPUT_DIR"
 
     local PYCORE_LIBNAME
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             PYCORE_LIBNAME="python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}"
             ;;
@@ -357,7 +358,7 @@ build_python_module ()
     esac
 
     local MOD_LIBLIST="$PYCORE_LIBNAME"
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             case $MOD_NAME in
                 _multiprocessing|_socket|select)
@@ -382,15 +383,15 @@ build_python_module ()
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         if [ "$MOD_NAME" = "_ctypes" ]; then
             echo "enable_language(C ASM)"
-            case $1 in
+            case $HOST_SYSTEM_TAG in
                 windows*)
-                    if [ "$1" != "windows-x86_64" ]; then
+                    if [ "$HOST_SYSTEM_TAG" != "windows-x86_64" ]; then
                         echo 'set(CMAKE_ASM_FLAGS "-DSYMBOL_UNDERSCORE=1")'
                     fi
                     ;;
             esac
         elif [ "$MOD_NAME" = "pyexpat" ]; then
-            case $1 in
+            case $HOST_SYSTEM_TAG in
                 windows*)
                     echo 'set(CMAKE_C_FLAGS "-DCOMPILED_FROM_DSP -DXML_STATIC")'
                     ;;
@@ -461,13 +462,13 @@ build_python_module ()
     local MOD_BUILD_WRAPPER="$MOD_BUILD_DIR/build.sh"
     generate_cmake_wrapper $MOD_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
 
-    log "build python-$PYTHON_ABI module '$MOD_NAME' for $1 ..."
+    log "build python-$PYTHON_ABI module '$MOD_NAME' for $HOST_SYSTEM_TAG ..."
     run $MOD_BUILD_WRAPPER
-    fail_panic "Can't build python-$PYTHON_ABI module '$MOD_NAME' for $1"
+    fail_panic "Can't build python-$PYTHON_ABI module '$MOD_NAME' for $HOST_SYSTEM_TAG"
 
     local MOD_BUILD_FNAME
     local MOD_OUTPUT_FNAME
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             MOD_BUILD_FNAME="${MOD_NAME}.dll"
             MOD_OUTPUT_FNAME="${MOD_NAME}.pyd"
@@ -487,7 +488,8 @@ build_python_module ()
 build_host_python ()
 {
 # Define directories to be used
-    local OBJ_DIR="$BH_BUILD_DIR/py$PYTHON_ABI-$1"
+    local HOST_SYSTEM_TAG=$1
+    local OBJ_DIR="$BH_BUILD_DIR/py$PYTHON_ABI-$HOST_SYSTEM_TAG"
     run mkdir -p $OBJ_DIR
     fail_panic "Can't create directory: $OBJ_DIR"
 
@@ -499,12 +501,12 @@ build_host_python ()
     run mkdir -p $PY_HOST_LINK_LIB_DIR
     fail_panic "Can't create directory: $PY_HOST_LINK_LIB_DIR"
 
-    local OUTPUT_DIR="$(python_build_install_dir $1)/opt/python$PYTHON_ABI"
+    local OUTPUT_DIR="$(python_build_install_dir $HOST_SYSTEM_TAG)/opt/python$PYTHON_ABI"
     run mkdir -p $OUTPUT_DIR
     fail_panic "Can't create directory: $OUTPUT_DIR"
 
     local MINGW_ROOT
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             MINGW_ROOT=$(cd "$MINGW_PATH/.." && pwd)
             if [ ! -d "$MINGW_ROOT" ]; then
@@ -524,7 +526,7 @@ build_host_python ()
 # Step 2: prepare cmake toolchain wrappers for host
     local TOOLCHAIN_WRAPPER_PREFIX
     local CMAKE_CROSS_SYSTEM_NAME
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows-x86_64)
             TOOLCHAIN_WRAPPER_PREFIX="x86_64-w64-mingw32"
             CMAKE_CROSS_SYSTEM_NAME="Windows"
@@ -550,7 +552,7 @@ build_host_python ()
             CMAKE_CROSS_SYSTEM_NAME="Darwin"
             ;;
         *)
-            panic "Unknown platform: $1"
+            panic "Unknown platform: $HOST_SYSTEM_TAG"
             ;;
     esac
     local CMAKE_TOOLCHAIN_DESCRIPTION="$OBJ_DIR/toolchain.cmake"
@@ -558,7 +560,7 @@ build_host_python ()
         echo "set(CMAKE_SYSTEM_NAME $CMAKE_CROSS_SYSTEM_NAME)"
         echo "set(CMAKE_C_COMPILER $BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-gcc)"
         echo "set(CMAKE_CXX_COMPILER $BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-g++)"
-        case $1 in
+        case $HOST_SYSTEM_TAG in
             windows*)
                 echo "set(CMAKE_RC_COMPILER $BH_BUILD_DIR/toolchain-wrappers/$TOOLCHAIN_WRAPPER_PREFIX-windres)"
             ;;
@@ -588,7 +590,7 @@ build_host_python ()
     fi
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/config.c"
     fail_panic "Can't copy config.c to $BUILDDIR_CORE"
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             run cp -p -t "$BUILDDIR_CORE" \
                 "$PYTHON_SRCDIR/PC/pyconfig.h" \
@@ -673,24 +675,24 @@ build_host_python ()
             fail_panic "Can't create configure wrapper: '$CONFIGURE_WRAPPER'"
             run chmod +x $CONFIGURE_WRAPPER
             fail_panic "Can't chmod +x configure wrapper: '$CONFIGURE_WRAPPER'"
-            log "configure python-$PYTHON_ABI for $1 ..."
+            log "configure python-$PYTHON_ABI for $HOST_SYSTEM_TAG ..."
             run $CONFIGURE_WRAPPER
-            fail_panic "Can't configure python-$PYTHON_ABI for $1"
+            fail_panic "Can't configure python-$PYTHON_ABI for $HOST_SYSTEM_TAG"
             run cp -p -t "$BUILDDIR_CORE" "$BUILDDIR_CONFIG/pyconfig.h"
             fail_panic "Can't copy pyconfig.h to $BUILDDIR_CORE"
             ;;
         *)
-            panic "Unknown platform: $1"
+            panic "Unknown platform: $HOST_SYSTEM_TAG"
             ;;
     esac
 
-    log "build python-$PYTHON_ABI core for $1 ..."
+    log "build python-$PYTHON_ABI core for $HOST_SYSTEM_TAG ..."
     run $CORE_BUILD_WRAPPER
-    fail_panic "Can't build python-$PYTHON_ABI core for $1"
+    fail_panic "Can't build python-$PYTHON_ABI core for $HOST_SYSTEM_TAG"
 
     local PY_CORE_FNAME
     local PY_CORE_LIB_FNAME
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             PY_CORE_FNAME="python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.dll"
             PY_CORE_LIB_FNAME="libpython${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.dll.a"
@@ -720,7 +722,7 @@ build_host_python ()
     {
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         echo 'set(CMAKE_BUILD_TYPE RELEASE)'
-        case $1 in
+        case $HOST_SYSTEM_TAG in
             windows*)
                 if [ "$PYTHON_MAJOR_VERSION" = "3" ]; then
                     echo 'set(CMAKE_EXE_LINKER_FLAGS "-municode")'
@@ -739,7 +741,7 @@ build_host_python ()
 
     local INTERPRETER_SOURCE
     local PY_INTERPRETER_FNAME
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-winapi.c.${PYTHON_ABI}"
             PY_INTERPRETER_FNAME="python.exe"
@@ -752,22 +754,22 @@ build_host_python ()
     run cp -p -T "$INTERPRETER_SOURCE" "$BUILDDIR_INTERPRETER/interpreter.c"
     fail_panic "Can't copy '$INTERPRETER_SOURCE' to '$BUILDDIR_INTERPRETER'"
 
-    log "build python-$PYTHON_ABI interpreter for $1 ..."
+    log "build python-$PYTHON_ABI interpreter for $HOST_SYSTEM_TAG ..."
     run $INTERPRETER_BUILD_WRAPPER
-    fail_panic "Can't build python-$PYTHON_ABI interpreter for $1"
+    fail_panic "Can't build python-$PYTHON_ABI interpreter for $HOST_SYSTEM_TAG"
 
     run cp -p -t "$OUTPUT_DIR" "$BUILDDIR_INTERPRETER/build/$PY_INTERPRETER_FNAME"
     fail_panic "Can't copy '$PY_INTERPRETER_FNAME' to '$OUTPUT_DIR'"
 
 # Step 5: build python stdlib for host
-    log "build python-$PYTHON_ABI stdlib for $1 ..."
+    log "build python-$PYTHON_ABI stdlib for $HOST_SYSTEM_TAG ..."
     local PY_STDLIB_ZIPFILE="$OUTPUT_DIR/stdlib.zip"
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
         run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
-        fail_panic "Can't build python-$PYTHON_ABI stdlib for $1"
+        fail_panic "Can't build python-$PYTHON_ABI stdlib for $HOST_SYSTEM_TAG"
     else
         run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
-        fail_panic "Can't build python-$PYTHON_ABI stdlib for $1"
+        fail_panic "Can't build python-$PYTHON_ABI stdlib for $HOST_SYSTEM_TAG"
     fi
 
 # Step 6: build python modules
@@ -799,13 +801,13 @@ build_host_python ()
     chmod +x $LIBFFI_CONFIGURE_WRAPPER
     fail_panic "Can't chmod +x configure wrapper for libffi"
     run $LIBFFI_CONFIGURE_WRAPPER
-    fail_panic "Can't configure libffi for $1"
+    fail_panic "Can't configure libffi for $HOST_SYSTEM_TAG"
     run cp -p $BUILDDIR_CTYPES_CONFIG/fficonfig.h $BUILDDIR_CTYPES_CONFIG/include/*.h $BUILDDIR_CTYPES_INC
     fail_panic "Can't copy configured libffi headers to '$BUILDDIR_CTYPES_INC'"
 
     local CTYPES_SRC_LIST
     local CTYPES_INC_DIR_LIST="$CONFIG_INCLUDE_DIR,$BUILDDIR_CTYPES_INC"
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             run cp -p -t "$BUILDDIR_CTYPES" "$PYTHON_SRCDIR/Modules/_ctypes/callproc.c"
             fail_panic "Can't copy callproc.c to '$BUILDDIR_CTYPES'"
@@ -826,7 +828,7 @@ build_host_python ()
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/_ctypes.c"
     CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/prep_cif.c"
 
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         linux-x86_64)
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/ffi64.c"
             CTYPES_SRC_LIST="$CTYPES_SRC_LIST,Modules/_ctypes/libffi/src/x86/unix64.S"
@@ -855,14 +857,14 @@ build_host_python ()
             ;;
     esac
 
-    build_python_module $1 '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
+    build_python_module $HOST_SYSTEM_TAG '_ctypes' $CTYPES_SRC_LIST $BUILDDIR_CTYPES \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CTYPES_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 
 # _multiprocessing
     local MULTIPROCESSING_SRC_LIST
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
         MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/socket_connection.c"
-        case $1 in
+        case $HOST_SYSTEM_TAG in
             windows*)
                 MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/win32_functions.c"
                 MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/pipe_connection.c"
@@ -872,7 +874,7 @@ build_host_python ()
     MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/multiprocessing.c"
     MULTIPROCESSING_SRC_LIST="$MULTIPROCESSING_SRC_LIST,Modules/_multiprocessing/semaphore.c"
 
-    build_python_module $1 '_multiprocessing' $MULTIPROCESSING_SRC_LIST "$OBJ_DIR/multiprocessing" \
+    build_python_module $HOST_SYSTEM_TAG '_multiprocessing' $MULTIPROCESSING_SRC_LIST "$OBJ_DIR/multiprocessing" \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 
 # _socket
@@ -880,7 +882,7 @@ build_host_python ()
     run mkdir -p $BUILDDIR_SOCKET
     fail_panic "Can't create directory: $BUILDDIR_SOCKET"
     local SOCKET_INC_DIR_LIST="$CONFIG_INCLUDE_DIR"
-    case $1 in
+    case $HOST_SYSTEM_TAG in
         windows*)
             SOCKET_INC_DIR_LIST="$SOCKET_INC_DIR_LIST,$BUILDDIR_SOCKET"
             # fix CamelCase inclusions for mstcpip.h
@@ -889,7 +891,7 @@ build_host_python ()
         ;;
     esac
 
-    build_python_module $1 '_socket' 'Modules/socketmodule.c' "$BUILDDIR_SOCKET" \
+    build_python_module $HOST_SYSTEM_TAG '_socket' 'Modules/socketmodule.c' "$BUILDDIR_SOCKET" \
         $CMAKE_TOOLCHAIN_DESCRIPTION $SOCKET_INC_DIR_LIST $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 
 # pyexpat
@@ -899,15 +901,15 @@ build_host_python ()
     PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/expat/xmltok.c"
     PYEXPAT_SRC_LIST="$PYEXPAT_SRC_LIST,Modules/pyexpat.c"
 
-    build_python_module $1 'pyexpat' $PYEXPAT_SRC_LIST "$OBJ_DIR/pyexpat" \
+    build_python_module $HOST_SYSTEM_TAG 'pyexpat' $PYEXPAT_SRC_LIST "$OBJ_DIR/pyexpat" \
         $CMAKE_TOOLCHAIN_DESCRIPTION "$CONFIG_INCLUDE_DIR,Modules/expat" $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 
 # select
-    build_python_module $1 'select' 'Modules/selectmodule.c' "$OBJ_DIR/select" \
+    build_python_module $HOST_SYSTEM_TAG 'select' 'Modules/selectmodule.c' "$OBJ_DIR/select" \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 
 # unicodedata
-    build_python_module $1 'unicodedata' 'Modules/unicodedata.c' "$OBJ_DIR/unicodedata" \
+    build_python_module $HOST_SYSTEM_TAG 'unicodedata' 'Modules/unicodedata.c' "$OBJ_DIR/unicodedata" \
         $CMAKE_TOOLCHAIN_DESCRIPTION $CONFIG_INCLUDE_DIR $PY_HOST_LINK_LIB_DIR $OUTPUT_DIR
 }
 
