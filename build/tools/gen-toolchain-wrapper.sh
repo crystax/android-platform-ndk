@@ -160,6 +160,21 @@ gen_wrapper_program ()
       ld|ld.bfd|ld.gold) FLAGS=$FLAGS" $EXTRA_LDFLAGS";;
     esac
 
+    # Add -m32 for x86_64 C/C++ compilers intended to produce 32-bit code
+    case $PROG in
+        cc|gcc|cpp|c++|g++)
+            case $SRC_PREFIX in
+                i[3456]86-*)
+                    case $DST_PREFIX in
+                        x86_64-*)
+                            FLAGS=$FLAGS" -m32"
+                            ;;
+                    esac
+                    ;;
+            esac
+            ;;
+    esac
+
     if [ -n "$CCACHE" ]; then
         DST_PREFIX=$CCACHE" "$DST_PREFIX
     fi
