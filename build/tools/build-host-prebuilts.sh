@@ -93,6 +93,8 @@ if [ ! -f "$SRC_DIR/build/configure" -o ! -d "$SRC_DIR/gcc/gcc-$DEFAULT_GCC32_VE
     exit 1
 fi
 
+VENDOR_SRC_DIR=$(cd $SRC_DIR/../vendor && pwd)
+
 # Now we can do the build
 BUILDTOOLS=$ANDROID_NDK_ROOT/build/tools
 
@@ -283,6 +285,12 @@ for SYSTEM in $SYSTEMS; do
         run $BUILDTOOLS/build-host-toolbox.sh $FLAGS
         fail_panic "Windows toolbox build failure!"
     fi
+
+    for PYTHON_VERSION in $PYTHON_VERSIONS; do
+        echo "Building $SYSNAME ndk-vendor-host-python-$PYTHON_VERSION"
+        run $BUILDTOOLS/build-vendor-host-python.sh $TOOLCHAIN_FLAGS "--systems=$SYSTEM" "--force" $VENDOR_SRC_DIR/python/python-$PYTHON_VERSION
+        fail_panic "vendor-python build failure!"
+    done
 
     # Then the toolchains
     for ARCH in $ARCHS; do
