@@ -263,7 +263,7 @@ build_python_stub ()
     {
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         echo 'set(CMAKE_BUILD_TYPE RELEASE)'
-        echo 'set(CMAKE_EXE_LINKER_FLAGS "-ldl")'
+        echo 'link_libraries(dl)'
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
         echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"$PYTHON_SRCDIR/Lib\\\\\\\"\")"
     } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0
@@ -297,7 +297,7 @@ build_python_stub ()
     {
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         echo 'set(CMAKE_BUILD_TYPE RELEASE)'
-        echo 'set(CMAKE_EXE_LINKER_FLAGS "-ldl")'
+        echo 'link_libraries(dl)'
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
         echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"stdlib.zip\\\\\\\"\")"
     } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1
@@ -727,7 +727,7 @@ build_host_python ()
                 fi
                 ;;
             *)
-                echo 'set(CMAKE_EXE_LINKER_FLAGS "-ldl")'
+                echo 'link_libraries(dl)'
                 ;;
         esac
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
