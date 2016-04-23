@@ -584,7 +584,7 @@ build_host_python ()
     generate_cmake_wrapper $CORE_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
 
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.$PYTHON_ABI"
+        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.$PYTHON_ABI"
         run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/getpath.c"
         fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE"
     fi
