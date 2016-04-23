@@ -171,7 +171,7 @@ generate_cmake_wrapper ()
         echo 'DIR_BUILD="$DIR_HERE/build"'
         echo 'rm -rf $DID_BUILD && mkdir -p $DIR_BUILD && cd $DIR_BUILD'
         echo "cmake $TOOLCHAIN_OPTION \$DIR_HERE"
-        echo 'make VERBOSE=1'
+        echo 'make -j'$NUM_JOBS' VERBOSE=1'
     } >$WRAPPER_FNAME
     fail_panic "Can't create cmake build wrapper: '$WRAPPER_FNAME'"
     run chmod +x $WRAPPER_FNAME
