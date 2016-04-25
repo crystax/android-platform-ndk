@@ -88,7 +88,7 @@ register_var_option "--arflags=<options>" EXTRA_ARFLAGS "Add extra archiver flag
 CCACHE=
 register_var_option "--ccache=<prefix>" CCACHE "Use ccache compiler driver"
 
-PROGRAMS="cc gcc c++ g++ cpp as ld ar ranlib strip strings nm objdump dlltool"
+PROGRAMS="cc gcc c++ g++ cpp as ld ar ranlib readelf strip strings nm objdump dlltool"
 register_var_option "--programs=<list>" PROGRAMS "List of programs to generate wrapper for"
 
 extract_parameters "$@"

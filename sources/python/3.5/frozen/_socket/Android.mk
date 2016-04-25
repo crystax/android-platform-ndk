@@ -28,13 +28,7 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := python_shared
-LOCAL_SRC_FILES := shared/$(TARGET_ARCH_ABI)/libs/libpython2.7.so
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python
-include $(PREBUILT_SHARED_LIBRARY)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := python_static
-LOCAL_SRC_FILES := static/libs/$(TARGET_ARCH_ABI)/libpython2.7.a
-LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python
+LOCAL_MODULE := python_module__socket
+LOCAL_SRC_FILES := ../../static/libs/$(TARGET_ARCH_ABI)/libpython3.5__socket.a
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../../include/python $(LOCAL_PATH)/../../include/frozen
 include $(PREBUILT_STATIC_LIBRARY)
