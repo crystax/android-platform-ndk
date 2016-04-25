@@ -16,9 +16,6 @@ PREBUILT_ABIS="armeabi armeabi-v7a x86 mips armeabi-v7a-hard arm64-v8a x86_64 mi
 # Location of the libcrystax sources, relative to the NDK root directory
 CRYSTAX_SUBDIR=sources/crystax
 
-# Location of the STLport sources, relative to the NDK root directory
-STLPORT_SUBDIR=sources/cxx-stl/stlport
-
 # Location of the GAbi++ sources, relative to the NDK root directory
 GABIXX_SUBDIR=sources/cxx-stl/gabi++
 

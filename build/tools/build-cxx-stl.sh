@@ -17,7 +17,7 @@
 #  This shell script is used to rebuild one of the NDK C++ STL
 #  implementations from sources. To use it:
 #
-#   - Define CXX_STL to one of 'gabi++', 'stlport' or 'libc++'
+#   - Define CXX_STL to one of 'gabi++', 'libc++'
 #   - Run it.
 #
 
@@ -25,7 +25,7 @@
 . `dirname $0`/prebuilt-common.sh
 . `dirname $0`/builder-funcs.sh
 
-CXX_STL_LIST="gabi++ stlport libc++"
+CXX_STL_LIST="gabi++ libc++"
 
 PROGRAM_PARAMETERS=""
 
@@ -127,8 +127,6 @@ CXX_SUPPORT_LIB=gabi++
 case $CXX_STL in
   gabi++)
     ;;
-  stlport)
-    ;;
   libc++)
     CXX_SUPPORT_LIB=gabi++  # libc++abi
     ;;
@@ -169,7 +167,6 @@ fi
 
 CRYSTAX_SRCDIR=$BUILD_DIR/ndk/$CRYSTAX_SUBDIR
 GABIXX_SRCDIR=$BUILD_DIR/ndk/$GABIXX_SUBDIR
-STLPORT_SRCDIR=$BUILD_DIR/ndk/$STLPORT_SUBDIR
 LIBCXX_SRCDIR=$BUILD_DIR/ndk/$LIBCXX_SUBDIR/$LLVM_VERSION
 LIBCXXABI_SRCDIR=$BUILD_DIR/ndk/$LIBCXXABI_SUBDIR
 
@@ -190,7 +187,7 @@ if [ "$WITH_DEBUG_INFO" ]; then
 fi
 
 # Determine GAbi++ build parameters. Note that GAbi++ is also built as part
-# of STLport and Libc++, in slightly different ways.
+# of Libc++, in slightly different ways.
 if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
     if [ "$CXX_STL" = "libc++" ]; then
         GABIXX_INCLUDES="$LIBCXX_INCLUDES"
@@ -203,43 +200,6 @@ if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
     GABIXX_SOURCES=$(cd $ANDROID_NDK_ROOT/$GABIXX_SUBDIR && ls src/*.cc)
     GABIXX_LDFLAGS="-ldl"
 fi
-
-# Determine STLport build parameters
-STLPORT_CFLAGS="$COMMON_C_CXX_FLAGS -DGNU_SOURCE -I$STLPORT_SRCDIR/stlport $GABIXX_INCLUDES"
-STLPORT_CXXFLAGS="$STLPORT_CFLAGS $COMMON_CXXFLAGS"
-STLPORT_SOURCES=\
-"src/dll_main.cpp \
-src/fstream.cpp \
-src/strstream.cpp \
-src/sstream.cpp \
-src/ios.cpp \
-src/stdio_streambuf.cpp \
-src/istream.cpp \
-src/ostream.cpp \
-src/iostream.cpp \
-src/codecvt.cpp \
-src/collate.cpp \
-src/ctype.cpp \
-src/monetary.cpp \
-src/num_get.cpp \
-src/num_put.cpp \
-src/num_get_float.cpp \
-src/num_put_float.cpp \
-src/numpunct.cpp \
-src/time_facets.cpp \
-src/messages.cpp \
-src/locale.cpp \
-src/locale_impl.cpp \
-src/locale_catalog.cpp \
-src/facets_byname.cpp \
-src/complex.cpp \
-src/complex_io.cpp \
-src/complex_trig.cpp \
-src/string.cpp \
-src/bitset.cpp \
-src/allocators.cpp \
-src/c_locale.c \
-src/cxa.c"
 
 # Determine Libc++ build parameters
 LIBCXX_LINKER_SCRIPT=export_symbols.txt
@@ -336,16 +296,6 @@ case $CXX_STL in
     CXX_STL_LDFLAGS=$GABIXX_LDFLAGS
     CXX_STL_SOURCES=$GABIXX_SOURCES
     CXX_STL_PACKAGE=gabixx
-    ;;
-  stlport)
-    CXX_STL_LIB=libstlport
-    CXX_STL_SUBDIR=$STLPORT_SUBDIR
-    CXX_STL_SRCDIR=$STLPORT_SRCDIR
-    CXX_STL_CFLAGS=$STLPORT_CFLAGS
-    CXX_STL_CXXFLAGS=$STLPORT_CXXFLAGS
-    CXX_STL_LDFLAGS=$STLPORT_LDFLAGS
-    CXX_STL_SOURCES=$STLPORT_SOURCES
-    CXX_STL_PACKAGE=stlport
     ;;
   libc++)
     CXX_STL_LIB=libc++

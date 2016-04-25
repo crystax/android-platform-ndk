@@ -294,11 +294,6 @@ for ABI in $ARMv7_ABIS; do
     check_armv7_elf_binary $GABIXX_LIBS/libgabi++_shared.so
     check_armv7_elf_binary $GABIXX_LIBS/libgabi++_static.a
 
-    STLPORT_LIBS=$NDK/sources/cxx-stl/stlport/libs/$ABI
-    check_armv7_elf_binary $STLPORT_LIBS/libstlport_shared.so
-    check_armv7_elf_binary $STLPORT_LIBS/libstlport_static.a
-
-
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
         GNUSTL_LIBS=$NDK/sources/cxx-stl/gnu-libstdc++/$VERSION/libs/$ABI
         check_armv7_elf_binary $GNUSTL_LIBS/libsupc++.a

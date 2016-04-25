@@ -77,13 +77,6 @@ Contains the sources of the GAbi++ C++ runtime library. Note that the dev-script
 `build-cxx-stl.sh` can be used to generate prebuilt libraries from these
 sources, that will be copied under this directory.
 
-sources/cxx-stl/stlport
------------------------
-
-Contains the sources of a port of STLport that can be used with `ndk-build`. The
-dev-script `build-cxx-stl.sh` can be used to generate prebuilt libraries from
-these sources, that will be copied under this directory.
-
 sources/cxx-stl/llvm-libc++
 ---------------------------
 
@@ -378,13 +371,11 @@ Note that:
 An example usage would be:
 
     $NDK/build/tools/build-cxx-stl.sh --stl=gabi++
-    $NDK/build/tools/build-cxx-stl.sh --stl=stlport
     $NDK/build/tools/build-cxx-stl.sh --stl=libc++
     $NDK/build/tools/build-gnu-libstdc++.sh /tmp/ndk-$USER/src
 
-Note that generating the STLport and GNU libstdc++ binaries can take a few
-minutes. You can follow the build by using the --verbose option to display
-what's going on.
+Note that generating such binaries can take a few minutes. You can follow the
+build by using the --verbose option to display what's going on.
 
 IV. Other host prebuilt binaries:
 =================================
@@ -436,11 +427,6 @@ under the directory /tmp/ndk-$USER/prebuilt/, i.e.:
 
 Note that these tarballs are built to be uncompressed from the top-level of an
 existing NDK install tree.
-
-Similarly, to rebuild the STLport binaries and package them:
-
-    $NDK/build/tools/build-cxx-stl.sh --stl=stlport \
-        --package-dir=/tmp/ndk-$USER/prebuilt
 
 A dev-script is provided to rebuild _and_ package all prebuilts. It is called
 `rebuild-all-prebuilt.sh`. Note that by default, it will automatically place the

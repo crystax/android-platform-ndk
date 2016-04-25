@@ -1384,8 +1384,7 @@ get_default_api_level_for_arch ()
 }
 
 # Return the default platform sysroot corresponding to a given architecture
-# This is the sysroot used to build the toolchain and other binaries like
-# the STLport libraries.
+# This is the sysroot used to build the toolchain and other binaries
 # $1: Architecture name
 get_default_platform_sysroot_for_arch ()
 {

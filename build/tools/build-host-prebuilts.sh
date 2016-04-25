@@ -165,7 +165,6 @@ do_remote_host_build ()
     dump "Prepare NDK build scripts"
     copy_directory "$ANDROID_NDK_ROOT/build" "$TMPDARWIN/ndk/build"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/android/libthread_db
-    copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$STLPORT_SUBDIR"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" "$GABIXX_SUBDIR"
     copy_file_list "$ANDROID_NDK_ROOT" "$TMPDARWIN/ndk" sources/host-tools
     dump "Prepare platforms files"

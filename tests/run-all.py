@@ -61,11 +61,7 @@ SUPPORTED_ABIS = (
 
 # TODO(danalbert): How much time do we actually save by not running these?
 LONG_TESTS = (
-    'prebuild-stlport',
-    'test-stlport',
     'test-gnustl-full',
-    'test-stlport_shared-exception',
-    'test-stlport_static-exception',
     'test-gnustl_shared-exception-full',
     'test-gnustl_static-exception-full',
     'test-googletest-full',
