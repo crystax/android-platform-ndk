@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,20 +27,26 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C
-#define __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C
+#include <netdb.h>
+#include <crystax/private.h>
 
-#include <crystax/id.h>
-#include <inttypes.h>
+int setnetgrent(const char *netgroup)
+{
+    (void)netgroup;
+    PANIC("setnetgrent() not implemented!!!");
+    return 0;
+}
 
-#define setnetgrent __crystax_google_setnetgrent
-#include <crystax/google/netdb.h>
-#undef setnetgrent
+void endnetgrent()
+{
+    PANIC("endnetgrent() not implemented!!!");
+}
 
-__BEGIN_DECLS
-
-int setnetgrent(const char *netgroup);
-
-__END_DECLS
-
-#endif /* __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C */
+int getnetgrent(char **host, char **user, char **domain)
+{
+    (void)host;
+    (void)user;
+    (void)domain;
+    PANIC("getnetgrent() not implemented!!!");
+    return 0;
+}
