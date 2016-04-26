@@ -521,7 +521,6 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
     for ABI in $ABIS; do
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
-        unpack_prebuilt gabixx-libs-$ABI-g "$REFERENCE"
         for VERSION in $LLVM_VERSION_LIST; do
             unpack_prebuilt libcxx-libs-$VERSION-$ABI-g "$REFERENCE"
         done
@@ -616,15 +615,6 @@ for SYSTEM in $SYSTEMS; do
             done
         else
             echo "WARNING: Could not find CrystaX source tree!"
-        fi
-
-        if [ -d "$DSTDIR/$GABIXX_SUBDIR" ]; then
-            GABIXX_ABIS=$PREBUILT_ABIS
-            for GABIXX_ABI in $GABIXX_ABIS; do
-                copy_prebuilt "$GABIXX_SUBDIR/libs/$GABIXX_ABI" "$GABIXX_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find GAbi++ source tree!"
         fi
 
         for VERSION in $LLVM_VERSION_LIST; do

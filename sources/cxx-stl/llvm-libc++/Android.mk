@@ -48,34 +48,6 @@ ifndef LIBCXX_FORCE_REBUILD
   endif
 endif
 
-# Use gabi++ for x86* and mips* until libc++/libc++abi is ready for them
-#ifneq (,$(filter x86% mips%,$(TARGET_ARCH_ABI)))
-#  __prebuilt_libcxx_compiled_with_gabixx := true
-#else
-#  __prebuilt_libcxx_compiled_with_gabixx := false
-#endif
-__prebuilt_libcxx_compiled_with_gabixx := false
-
-__libcxx_use_gabixx := $(__prebuilt_libcxx_compiled_with_gabixx)
-
-LIBCXX_USE_GABIXX := $(strip $(LIBCXX_USE_GABIXX))
-ifeq ($(LIBCXX_USE_GABIXX),true)
-  __libcxx_use_gabixx := true
-endif
-
-ifneq ($(__libcxx_use_gabixx),$(__prebuilt_libcxx_compiled_with_gabixx))
-  ifneq ($(__libcxx_force_rebuild),true)
-    ifeq ($(__prebuilt_libcxx_compiled_with_gabixx),true)
-      $(call __ndk_info,WARNING: Rebuilding libc++ libraries from sources since libc++ prebuilt libraries for $(TARGET_ARCH_ABI))
-      $(call __ndk_info,are compiled with gabi++ but LIBCXX_USE_GABIXX is not set to true)
-    else
-      $(call __ndk_info,WARNING: Rebuilding libc++ libraries from sources since libc++ prebuilt libraries for $(TARGET_ARCH_ABI))
-      $(call __ndk_info,are not compiled with gabi++ and LIBCXX_USE_GABIXX is set to true)
-    endif
-    __libcxx_force_rebuild := true
-  endif
-endif
-
 llvm_libc++_includes := $(LOCAL_PATH)/$(__libcxx_version)/libcxx/include
 llvm_libc++_export_includes := $(llvm_libc++_includes)
 llvm_libc++_sources := \
@@ -122,41 +94,13 @@ endif
 llvm_libc++_cxxflags := $(llvm_libc++_export_cxxflags)
 llvm_libc++_cflags :=
 
-ifeq ($(__libcxx_use_gabixx),true)
-
-# Gabi++ emulates libcxxabi when building libcxx.
-llvm_libc++_cxxflags += -DLIBCXXABI=1
-
-# Find the GAbi++ sources to include them here.
-# The voodoo below is to allow building libc++ out of the NDK source
-# tree. This can make it easier to experiment / update / debug it.
-#
-libgabi++_sources_dir := $(strip $(wildcard $(LOCAL_PATH)/../gabi++))
-ifdef libgabi++_sources_dir
-  libgabi++_sources_prefix := ../gabi++
-else
-  libgabi++_sources_dir := $(strip $(wildcard $(NDK_ROOT)/sources/cxx-stl/gabi++))
-  ifndef libgabi++_sources_dir
-    $(error Can't find GAbi++ sources directory!!)
-  endif
-  libgabi++_sources_prefix := $(libgabi++_sources_dir)
-endif
-
-include $(libgabi++_sources_dir)/sources.mk
-llvm_libc++_sources += $(addprefix $(libgabi++_sources_prefix:%/=%)/,$(libgabi++_src_files))
-llvm_libc++_includes += $(libgabi++_c_includes)
-llvm_libc++_export_includes += $(libgabi++_c_includes)
-
-else
-# libc++abi
-
 libcxxabi_sources_dir := $(strip $(wildcard $(LOCAL_PATH)/../llvm-libc++abi))
 ifdef libcxxabi_sources_dir
   libcxxabi_sources_prefix := ../llvm-libc++abi
 else
   libcxxabi_sources_dir := $(strip $(wildcard $(NDK_ROOT)/sources/cxx-stl/llvm-libc++abi))
   ifndef libcxxabi_sources_dir
-    $(error Can't find libcxxabi sources directory!!)
+    $(error Can not find libcxxabi sources directory!!)
   endif
   libcxxabi_sources_prefix := $(libcxxabi_sources_dir)
 endif
@@ -171,8 +115,6 @@ llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=1
 llvm_libc++_sources += $(addprefix $(libcxxabi_sources_prefix:%/=%)/,$(libcxxabi_unwind_src_files))
 else
 llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=0
-endif
-
 endif
 
 

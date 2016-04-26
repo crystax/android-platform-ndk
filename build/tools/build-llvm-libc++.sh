@@ -15,28 +15,21 @@
 # limitations under the License.
 #
 #  This shell script is used to rebuild one of the NDK C++ STL
-#  implementations from sources. To use it:
-#
-#   - Define CXX_STL to one of 'gabi++', 'libc++'
-#   - Run it.
+#  implementations from sources.
 #
 
 # include common function and variable definitions
 . `dirname $0`/prebuilt-common.sh
 . `dirname $0`/builder-funcs.sh
 
-CXX_STL_LIST="gabi++ libc++"
-
 PROGRAM_PARAMETERS=""
 
 PROGRAM_DESCRIPTION=\
-"Rebuild one of the following NDK C++ runtimes: $CXX_STL_LIST.
+"Rebuild LLVM C++ Standard Library.
 
 This script is called when pacakging a new NDK release. It will simply
 rebuild the static and shared libraries of a given C++ runtime from
 sources.
-
-Use the --stl=<name> option to specify which runtime you want to rebuild.
 
 This requires a temporary NDK installation containing platforms and
 toolchain binaries for all target architectures.
@@ -44,16 +37,10 @@ toolchain binaries for all target architectures.
 By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
-If you want to use clang to rebuild the binaries, please use
---llvm-version=<ver> option.
-
 The output will be placed in appropriate sub-directories of
 <ndk>/sources/cxx-stl/$CXX_STL_SUBDIR, but you can override this with
 the --out-dir=<path> option.
 "
-
-CXX_STL=
-register_var_option "--stl=<name>" CXX_STL "Select C++ runtime to rebuild."
 
 PACKAGE_DIR=
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Put prebuilt tarballs into <path>."
@@ -80,10 +67,7 @@ register_var_option "--visible-static" VISIBLE_STATIC "Do not use hidden visibil
 WITH_DEBUG_INFO=
 register_var_option "--with-debug-info" WITH_DEBUG_INFO "Build with -g.  STL is still built with optimization but with debug info"
 
-GCC_VERSION=
-register_var_option "--gcc-version=<ver>" GCC_VERSION "Specify GCC version"
-
-LLVM_VERSION=
+LLVM_VERSION=$DEFAULT_LLVM_VERSION
 register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
 
 register_jobs_option
@@ -91,10 +75,6 @@ register_jobs_option
 register_try64_option
 
 extract_parameters "$@"
-
-if [ -n "${LLVM_VERSION}" -a -n "${GCC_VERSION}" ]; then
-    panic "Cannot set both LLVM_VERSION and GCC_VERSION. Make up your mind!"
-fi
 
 ABIS=$(commas_to_spaces $ABIS)
 
@@ -117,34 +97,8 @@ else
   fail_panic "Could not create directory: $OUT_DIR"
 fi
 
-# Check that --stl=<name> is used with one of the supported runtime names.
-if [ -z "$CXX_STL" ]; then
-  panic "Please use --stl=<name> to select a C++ runtime to rebuild."
-fi
-
-# Derive runtime, and normalize CXX_STL
-CXX_SUPPORT_LIB=gabi++
-case $CXX_STL in
-  gabi++)
-    ;;
-  libc++)
-    CXX_SUPPORT_LIB=gabi++  # libc++abi
-    ;;
-  libc++-libc++abi)
-    CXX_SUPPORT_LIB=libc++abi
-    CXX_STL=libc++
-    ;;
-  libc++-gabi++)
-    CXX_SUPPORT_LIB=gabi++
-    CXX_STL=libc++
-    ;;
-  *)
-    panic "Invalid --stl value ('$CXX_STL'), please use one of: $CXX_STL_LIST."
-    ;;
-esac
-
 if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-$CXX_STL
+    BUILD_DIR=$NDK_TMPDIR/build-libc++
 else
     BUILD_DIR=$OPTION_BUILD_DIR
 fi
@@ -158,25 +112,11 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 rm -f $BUILD_DIR/ndk
 ln -sf $ANDROID_NDK_ROOT $BUILD_DIR/ndk
 
-if [ "$CXX_STL" = "libc++" ]; then
-    # Use clang to build libc++ by default.
-    if [ -z "$LLVM_VERSION" -a -z "$GCC_VERSION" ]; then
-        LLVM_VERSION=$DEFAULT_LLVM_VERSION
-    fi
-fi
-
 CRYSTAX_SRCDIR=$BUILD_DIR/ndk/$CRYSTAX_SUBDIR
-GABIXX_SRCDIR=$BUILD_DIR/ndk/$GABIXX_SUBDIR
 LIBCXX_SRCDIR=$BUILD_DIR/ndk/$LIBCXX_SUBDIR/$LLVM_VERSION
 LIBCXXABI_SRCDIR=$BUILD_DIR/ndk/$LIBCXXABI_SUBDIR
 
-if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
-    LIBCXX_INCLUDES="-I$LIBCXX_SRCDIR/libcxx/include -I$GABIXX_SRCDIR/include"
-elif [ "$CXX_SUPPORT_LIB" = "libc++abi" ]; then
-    LIBCXX_INCLUDES="-I$LIBCXX_SRCDIR/libcxx/include -I$LIBCXXABI_SRCDIR/include"
-else
-    panic "Unknown CXX_SUPPORT_LIB: $CXX_SUPPORT_LIB"
-fi
+LIBCXX_INCLUDES="-I$LIBCXX_SRCDIR/libcxx/include -I$LIBCXXABI_SRCDIR/include"
 LIBCXX_INCLUDES="$LIBCXX_INCLUDES -I$CRYSTAX_SRCDIR/include"
 
 COMMON_C_CXX_FLAGS="-fPIC -O2 -ffunction-sections -fdata-sections"
@@ -184,21 +124,6 @@ COMMON_CXXFLAGS="-fexceptions -frtti -fuse-cxa-atexit"
 
 if [ "$WITH_DEBUG_INFO" ]; then
     COMMON_C_CXX_FLAGS="$COMMON_C_CXX_FLAGS -g"
-fi
-
-# Determine GAbi++ build parameters. Note that GAbi++ is also built as part
-# of Libc++, in slightly different ways.
-if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
-    if [ "$CXX_STL" = "libc++" ]; then
-        GABIXX_INCLUDES="$LIBCXX_INCLUDES"
-        GABIXX_CXXFLAGS="$GABIXX_CXXFLAGS -DLIBCXXABI=1"
-    else
-        GABIXX_INCLUDES="-I$GABIXX_SRCDIR/include"
-    fi
-    GABIXX_CFLAGS="$COMMON_C_CXX_FLAGS $GABIXX_INCLUDES"
-    GABIXX_CXXFLAGS="$GABIXX_CXXFLAGS $GABIXX_CFLAGS $COMMON_CXXFLAGS"
-    GABIXX_SOURCES=$(cd $ANDROID_NDK_ROOT/$GABIXX_SUBDIR && ls src/*.cc)
-    GABIXX_LDFLAGS="-ldl"
 fi
 
 # Determine Libc++ build parameters
@@ -286,31 +211,14 @@ else
 fi
 
 # Define a few common variables based on parameters.
-case $CXX_STL in
-  gabi++)
-    CXX_STL_LIB=libgabi++
-    CXX_STL_SUBDIR=$GABIXX_SUBDIR
-    CXX_STL_SRCDIR=$GABIXX_SRCDIR
-    CXX_STL_CFLAGS=$GABIXX_CFLAGS
-    CXX_STL_CXXFLAGS=$GABIXX_CXXFLAGS
-    CXX_STL_LDFLAGS=$GABIXX_LDFLAGS
-    CXX_STL_SOURCES=$GABIXX_SOURCES
-    CXX_STL_PACKAGE=gabixx
-    ;;
-  libc++)
-    CXX_STL_LIB=libc++
-    CXX_STL_SUBDIR=$LIBCXX_SUBDIR/$LLVM_VERSION
-    CXX_STL_SRCDIR=$LIBCXX_SRCDIR
-    CXX_STL_CFLAGS=$LIBCXX_CFLAGS
-    CXX_STL_CXXFLAGS=$LIBCXX_CXXFLAGS
-    CXX_STL_LDFLAGS=$LIBCXX_LDFLAGS
-    CXX_STL_SOURCES=$LIBCXX_SOURCES
-    CXX_STL_PACKAGE=libcxx
-    ;;
-  *)
-    panic "Internal error: Unknown STL name '$CXX_STL'"
-    ;;
-esac
+CXX_STL_LIB=libc++
+CXX_STL_SUBDIR=$LIBCXX_SUBDIR/$LLVM_VERSION
+CXX_STL_SRCDIR=$LIBCXX_SRCDIR
+CXX_STL_CFLAGS=$LIBCXX_CFLAGS
+CXX_STL_CXXFLAGS=$LIBCXX_CXXFLAGS
+CXX_STL_LDFLAGS=$LIBCXX_LDFLAGS
+CXX_STL_SOURCES=$LIBCXX_SOURCES
+CXX_STL_PACKAGE=libcxx
 
 HIDDEN_VISIBILITY_FLAGS="-fvisibility=hidden -fvisibility-inlines-hidden"
 
@@ -357,10 +265,10 @@ build_stl_libs_for_abi ()
             FLOAT_ABI="hard"
             ;;
         arm64-v8a)
-            if [ -n "$GCC_VERSION" ]; then
-                EXTRA_CFLAGS="-mfix-cortex-a53-835769"
-                EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
-            fi
+            #if [ -n "$GCC_VERSION" ]; then
+            #    EXTRA_CFLAGS="-mfix-cortex-a53-835769"
+            #    EXTRA_CXXFLAGS="-mfix-cortex-a53-835769"
+            #fi
             ;;
         x86|x86_64)
             # ToDo: remove the following once all x86-based device call JNI function with
@@ -409,25 +317,18 @@ build_stl_libs_for_abi ()
     mkdir -p "$BUILDDIR"
     mkdir -p "$DSTDIR"
 
-    if [ -n "$GCC_VERSION" ]; then
-        GCCVER=$GCC_VERSION
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -std=c99"
-    else
-        ARCH=$(convert_abi_to_arch $ABI)
-        GCCVER=$(get_default_gcc_version_for_arch $ARCH)
-    fi
+    ARCH=$(convert_abi_to_arch $ABI)
+    GCCVER=$(get_default_gcc_version_for_arch $ARCH)
 
-    if [ -n "$LLVM_VERSION" -a "$CXX_STL_LIB" = "libc++" ]; then
-        # clang3.5+ use integrated-as as default, which has trouble compiling
-        # llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersRestore.S
-        EXTRA_CFLAGS="${EXTRA_CFLAGS} -fno-integrated-as"
-        EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -fno-integrated-as"
-        # libc++ built with clang (for ABI armeabi-only) produces
-        # libc++_shared.so and libc++_static.a with undefined __atomic_fetch_add_4
-        # Add -latomic.
-        if [ "$ABI" = "armeabi" ]; then
-            EXTRA_LDFLAGS="$EXTRA_LDFLAGS -latomic"
-        fi
+    # clang3.5+ use integrated-as as default, which has trouble compiling
+    # llvm-libc++abi/libcxxabi/src/Unwind/UnwindRegistersRestore.S
+    EXTRA_CFLAGS="${EXTRA_CFLAGS} -fno-integrated-as"
+    EXTRA_CXXFLAGS="${EXTRA_CXXFLAGS} -fno-integrated-as"
+    # libc++ built with clang (for ABI armeabi-only) produces
+    # libc++_shared.so and libc++_static.a with undefined __atomic_fetch_add_4
+    # Add -latomic.
+    if [ "$ABI" = "armeabi" ]; then
+        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -latomic"
     fi
 
     builder_begin_android $ABI "$BUILDDIR" "$GCCVER" "$LLVM_VERSION" "$MAKEFILE"
@@ -436,32 +337,19 @@ build_stl_libs_for_abi ()
     builder_reset_cflags DEFAULT_CFLAGS
     builder_reset_cxxflags DEFAULT_CXXFLAGS
 
-    if [ "$CXX_SUPPORT_LIB" = "gabi++" ]; then
-        builder_set_srcdir "$GABIXX_SRCDIR"
-        builder_cflags "$DEFAULT_CFLAGS $GABIXX_CFLAGS $EXTRA_CFLAGS"
-        builder_cxxflags "$DEFAULT_CXXFLAGS $GABIXX_CXXFLAGS $EXTRA_CXXFLAGS"
-        builder_ldflags "$GABIXX_LDFLAGS $EXTRA_LDFLAGS"
-        builder_sources $GABIXX_SOURCES
+    builder_set_srcdir "$CXX_STL_SRCDIR"
+    builder_reset_cflags
+    builder_cflags "$DEFAULT_CFLAGS $CXX_STL_CFLAGS $EXTRA_CFLAGS"
+    builder_reset_cxxflags
+    builder_cxxflags "$DEFAULT_CXXFLAGS $CXX_STL_CXXFLAGS $EXTRA_CXXFLAGS"
+    builder_ldflags "$CXX_STL_LDFLAGS $EXTRA_LDFLAGS"
+    builder_sources $CXX_STL_SOURCES
+    if [ "$USE_LLVM_UNWIND" = "true" ]; then
+      builder_sources $LIBCXXABI_SOURCES $LIBCXXABI_UNWIND_SOURCES
+    else
+      builder_sources $LIBCXXABI_SOURCES
     fi
-
-    # Build the runtime sources, except if we're only building GAbi++
-    if [ "$CXX_STL" != "gabi++" ]; then
-      builder_set_srcdir "$CXX_STL_SRCDIR"
-      builder_reset_cflags
-      builder_cflags "$DEFAULT_CFLAGS $CXX_STL_CFLAGS $EXTRA_CFLAGS"
-      builder_reset_cxxflags
-      builder_cxxflags "$DEFAULT_CXXFLAGS $CXX_STL_CXXFLAGS $EXTRA_CXXFLAGS"
-      builder_ldflags "$CXX_STL_LDFLAGS $EXTRA_LDFLAGS"
-      builder_sources $CXX_STL_SOURCES
-      if [ "$CXX_SUPPORT_LIB" = "libc++abi" ]; then
-          if [ "$USE_LLVM_UNWIND" = "true" ]; then
-              builder_sources $LIBCXXABI_SOURCES $LIBCXXABI_UNWIND_SOURCES
-          else
-              builder_sources $LIBCXXABI_SOURCES
-          fi
-          builder_ldflags "-ldl"
-      fi
-    fi
+    builder_ldflags "-ldl"
 
     if [ "$TYPE" = "static" ]; then
         log "Building $DSTDIR/${CXX_STL_LIB}_static.a"
@@ -479,11 +367,8 @@ build_stl_libs_for_abi ()
 get_libstdcxx_package_name_for_abi ()
 {
     local package_name
-    
-    package_name="${CXX_STL_PACKAGE}-libs"
-    if [ "$CXX_STL" = "libc++" ]; then
-        package_name="${package_name}-${LLVM_VERSION}"
-    fi
+
+    package_name="${CXX_STL_PACKAGE}-${LLVM_VERSION}-libs"
     package_name="${package_name}-$1"
     if [ "$WITH_DEBUG_INFO" ]; then
         package_name="${package_name}-g"
@@ -523,7 +408,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         FILES=""
         LIB_SUFFIX="$(get_lib_suffix_for_abi $ABI)"
         for LIB in ${CXX_STL_LIB}_static.a ${CXX_STL_LIB}_shared${LIB_SUFFIX}; do
-	    if [ -d "$CXX_STL_SUBDIR/libs/$ABI/thumb" ]; then
+        if [ -d "$CXX_STL_SUBDIR/libs/$ABI/thumb" ]; then
                 FILES="$FILES $CXX_STL_SUBDIR/libs/$ABI/thumb/$LIB"
             fi
             FILES="$FILES $CXX_STL_SUBDIR/libs/$ABI/$LIB"
@@ -532,7 +417,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$OUT_DIR" "$FILES"
-        fail_panic "Could not package $ABI $CXX_STL binaries!"
+        fail_panic "Could not package $ABI libc++ binaries!"
         dump "Packaging: $PACKAGE"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done

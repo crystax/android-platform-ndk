@@ -290,10 +290,6 @@ fi
 ARMv7_ABIS="armeabi-v7a armeabi-v7a-hard"
 for ABI in $ARMv7_ABIS; do
 
-    GABIXX_LIBS=$NDK/sources/cxx-stl/gabi++/libs/$ABI
-    check_armv7_elf_binary $GABIXX_LIBS/libgabi++_shared.so
-    check_armv7_elf_binary $GABIXX_LIBS/libgabi++_static.a
-
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
         GNUSTL_LIBS=$NDK/sources/cxx-stl/gnu-libstdc++/$VERSION/libs/$ABI
         check_armv7_elf_binary $GNUSTL_LIBS/libsupc++.a

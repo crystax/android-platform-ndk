@@ -134,22 +134,6 @@
 #        system_re      -> Use the default minimal system C++ runtime library.
 #                          Implies -frtti -fexceptions.
 #                          Is not available for standalone toolchain.
-#        gabi++_static  -> Use the GAbi++ runtime as a static library.
-#                          Implies -frtti -fno-exceptions.
-#                          Available for NDK r7 and newer.
-#                          Is not available for standalone toolchain.
-#        gabi++_shared  -> Use the GAbi++ runtime as a shared library.
-#                          Implies -frtti -fno-exceptions.
-#                          Available for NDK r7 and newer.
-#                          Is not available for standalone toolchain.
-#        stlport_static -> Use the STLport runtime as a static library.
-#                          Implies -fno-rtti -fno-exceptions for NDK before r7.
-#                          Implies -frtti -fno-exceptions for NDK r7 and newer.
-#                          Is not available for standalone toolchain.
-#        stlport_shared -> Use the STLport runtime as a shared library.
-#                          Implies -fno-rtti -fno-exceptions for NDK before r7.
-#                          Implies -frtti -fno-exceptions for NDK r7 and newer.
-#                          Is not available for standalone toolchain.
 #        gnustl_static  -> Use the GNU STL as a static library.
 #                          Implies -frtti -fexceptions.
 #        gnustl_shared  -> Use the GNU STL as a shared library.
@@ -796,16 +780,12 @@ set( ANDROID_STL_FORCE_FEATURES ON CACHE BOOL "automatically configure rtti and 
 mark_as_advanced( ANDROID_STL ANDROID_STL_FORCE_FEATURES )
 
 if( BUILD_WITH_ANDROID_NDK )
- if( NOT "${ANDROID_STL}" MATCHES "^(none|system|system_re|gabi\\+\\+_static|gabi\\+\\+_shared|stlport_static|stlport_shared|gnustl_static|gnustl_shared)$")
+ if( NOT "${ANDROID_STL}" MATCHES "^(none|system|system_re|gnustl_static|gnustl_shared)$")
   message( FATAL_ERROR "ANDROID_STL is set to invalid value \"${ANDROID_STL}\".
 The possible values are:
   none           -> Do not configure the runtime.
   system         -> Use the default minimal system C++ runtime library.
   system_re      -> Same as system but with rtti and exceptions.
-  gabi++_static  -> Use the GAbi++ runtime as a static library.
-  gabi++_shared  -> Use the GAbi++ runtime as a shared library.
-  stlport_static -> Use the STLport runtime as a static library.
-  stlport_shared -> Use the STLport runtime as a shared library.
   gnustl_static  -> (default) Use the GNU STL as a static library.
   gnustl_shared  -> Use the GNU STL as a shared library.
 " )
@@ -922,16 +902,6 @@ if( BUILD_WITH_ANDROID_NDK )
   set( ANDROID_RTTI             ON )
   set( ANDROID_EXCEPTIONS       ON )
   set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/system/include" )
- elseif( ANDROID_STL MATCHES "gabi" )
-  set( ANDROID_RTTI             ON )
-  set( ANDROID_EXCEPTIONS       OFF )
-  set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/gabi++/include" )
-  set( __libstl                 "${ANDROID_NDK}/sources/cxx-stl/gabi++/libs/${ANDROID_NDK_ABI_NAME}/libgabi++_static.a" )
- elseif( ANDROID_STL MATCHES "stlport" )
-  set( ANDROID_EXCEPTIONS       ON )
-  set( ANDROID_RTTI             ON )
-  set( ANDROID_STL_INCLUDE_DIRS "${ANDROID_NDK}/sources/cxx-stl/stlport/stlport" )
-  set( __libstl                 "${ANDROID_NDK}/sources/cxx-stl/stlport/libs/${ANDROID_NDK_ABI_NAME}/libstlport_static.a" )
  elseif( ANDROID_STL MATCHES "gnustl" )
   set( ANDROID_EXCEPTIONS       ON )
   set( ANDROID_RTTI             ON )
@@ -1584,7 +1554,7 @@ endif()
 #                 "armeabi-v7a-hard", "armeabi-v7a-hard+neon", "armeabi-v7a-hard+vfpv3",
 #                 "armeabi-v6+vfp", "x86", "mips", "arm64-v8a", "x86_64", "mips64"
 #   ANDROID_NATIVE_API_LEVEL : 3,4,5,8,9,14,15,16,17,18,19,21 (depends on NDK version)
-#   ANDROID_STL : gnustl_static/gnustl_shared/stlport_static/stlport_shared/gabi++_static/gabi++_shared/system_re/system/none
+#   ANDROID_STL : gnustl_static/gnustl_shared/system_re/system/none
 #   ANDROID_FORBID_SYGWIN : ON/OFF
 #   ANDROID_NO_UNDEFINED : ON/OFF
 #   ANDROID_SO_UNDEFINED : OFF/ON  (default depends on NDK version)

@@ -136,23 +136,10 @@ dump "Building $ABIS compiler-rt binaries..."
 run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$DEFAULT_LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$DEFAULT_LLVM_VERSION
 fail_panic "Could not build compiler-rt!"
 
-dump "Building $ABIS gabi++ binaries..."
-run $BUILDTOOLS/build-cxx-stl.sh --stl=gabi++ --abis="$ABIS" $FLAGS --with-debug-info $BUILD_TOOLCHAIN
-fail_panic "Could not build gabi++ with debug info!"
-
 for VERSION in $LLVM_VERSION_LIST; do
     dump "Building $ABIS LLVM libc++ $VERSION binaries... with libc++abi"
-    run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-libc++abi --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$VERSION
+    run $BUILDTOOLS/build-llvm-libc++.sh --abis="$ABIS" $FLAGS --with-debug-info --llvm-version=$VERSION
     fail_panic "Could not build LLVM libc++ $VERSION!"
-
-    # workaround issues in libc++/libc++abi for x86 and mips
-    #for abi in $(commas_to_spaces $ABIS); do
-    #    case $abi in
-    #        x86|x86_64|mips|mips32r6|mips64)
-    #            dump "Rebuilding $abi libc++ binaries... with gabi++"
-    #            run $BUILDTOOLS/build-cxx-stl.sh --stl=libc++-gabi++ --abis=$abi $FLAGS --with-debug-info --llvm-version=$VERSION
-    #    esac
-    #done
 done
 
 if [ ! -z $VISIBLE_LIBGNUSTL_STATIC ]; then
