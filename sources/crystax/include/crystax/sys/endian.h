@@ -56,6 +56,12 @@
 #define __BIG_ENDIAN _BIG_ENDIAN
 #endif
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define __LONG_LONG_PAIR(HI, LO) LO, HI
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#define __LONG_LONG_PAIR(HI, LO) HI, LO
+#endif
+
 #if __BSD_VISIBLE
 
 #if _BYTE_ORDER == _LITTLE_ENDIAN
