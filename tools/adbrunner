@@ -919,6 +919,7 @@ def do_run_test(attempt, devid, tag, exe, args)
         else
             dstarg = arg
         end
+        dstarg = "'#{dstarg}'" if dstarg =~ /\s+/
         newarg = "#{prefix}#{dstarg}"
         newargs << newarg
     end
