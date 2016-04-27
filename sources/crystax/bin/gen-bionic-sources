@@ -244,6 +244,17 @@ g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 # getpwnam/getpwuid
 g.add "libc/bionic/stubs.cpp"
 
+# mkfifo
+g.add "libc/bionic/mkfifo.cpp"
+
+# mknodat
+g.add "libc/arch-arm/syscalls/mknodat.S"
+g.add "libc/arch-arm64/syscalls/mknodat.S"
+g.add "libc/arch-mips/syscalls/mknodat.S"
+g.add "libc/arch-mips64/syscalls/mknodat.S"
+g.add "libc/arch-x86/syscalls/mknodat.S"
+g.add "libc/arch-x86_64/syscalls/mknodat.S"
+
 # mlockall
 g.add "libc/arch-arm/syscalls/mlockall.S"
 g.add "libc/arch-arm64/syscalls/mlockall.S"

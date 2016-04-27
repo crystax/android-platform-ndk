@@ -31,7 +31,15 @@
 #define __CRYSTAX_INCLUDE_SYS_STAT_H_7C2E455BB8194B16AFADE75BA7063EE6
 
 #include <crystax/id.h>
+#include <android/api-level.h>
+
+#define mkfifo __crystax_google_mkfifo
+#define mkfifoat __crystax_google_mkfifoat
+#define mknodat __crystax_google_mknodat
 #include <crystax/google/sys/stat.h>
+#undef mkfifo
+#undef mkfifoat
+#undef mknodat
 
 #if __BSD_VISIBLE
 /* 0777 */
@@ -41,5 +49,13 @@
 /* 0666 */
 #define DEFFILEMODE (S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH)
 #endif /* __BSD_VISIBLE */
+
+__BEGIN_DECLS
+
+int mkfifo(const char*, mode_t);
+int mkfifoat(int, const char*, mode_t);
+int mknodat(int, const char*, mode_t, dev_t);
+
+__END_DECLS
 
 #endif /* __CRYSTAX_INCLUDE_SYS_STAT_H_7C2E455BB8194B16AFADE75BA7063EE6 */
