@@ -29,9 +29,12 @@
 
 #include <stdlib.h>
 #include <unistd.h>
-#include <crystax/private.h>
+#include <sys/resource.h>
 
 int getdtablesize()
 {
-    PANIC("getdtablesize() not implemented!!!");
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_NOFILE, &rl) < 0)
+        return sysconf(_SC_OPEN_MAX);
+    return rl.rlim_cur;
 }
