@@ -1,5 +1,6 @@
 """Access to Python's configuration information."""
 
+from __future__ import print_function
 import os
 import sys
 import os.path
@@ -53,7 +54,9 @@ def _expand_vars(scheme, vars):
     _extend_dict(vars, {'bundled_root': os.path.dirname(sys.executable)})
 
     for key, value in _INSTALL_SCHEMES[scheme].items():
-        res[key] = os.path.normpath(_subst_vars(value, vars))
+        normalized_path = os.path.normpath(_subst_vars(value, vars))
+        if os.path.exists(normalized_path):
+            res[key] = normalized_path
     return res
 
 
@@ -131,10 +134,23 @@ def get_config_var(name):
 
 def get_platform():
     """Return a string that identifies the current platform."""
+    if os.name == 'nt':
+        if sys.maxsize >= 2**32:
+            return 'win-amd64'
+        return 'win32'
+
     osname, host, release, version, machine = os.uname()
+
     osname = osname.lower().replace('/', '')
     machine = machine.replace(' ', '_')
     machine = machine.replace('/', '-')
+
+    if osname[:6] == 'darwin':
+        osname = 'macosx'
+        machine = 'i386'
+        if sys.maxsize >= 2**32:
+            machine = 'x86_64'
+
     return "%s-%s" % (osname, machine)
 
 
@@ -153,9 +169,7 @@ def _main():
     print('Platform: "%s"' % get_platform())
     print('Python version: "%s"' % get_python_version())
     print('Current installation scheme: "%s"' % _get_default_scheme())
-    print()
     _print_dict('Paths', get_paths())
-    print()
     _print_dict('Variables', get_config_vars())
 
 

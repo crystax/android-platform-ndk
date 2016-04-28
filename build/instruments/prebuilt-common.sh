@@ -12,7 +12,7 @@ export LC_ALL=C
 if [ -z "$NDK_BUILDTOOLS_PATH" ]; then
     NDK_BUILDTOOLS_PATH=$(dirname $0)
     if [ ! -f "$NDK_BUILDTOOLS_PATH/prebuilt-common.sh" ]; then
-        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to \$NDK/build/instruments"
+        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to \$NDK/build/tools"
         exit 1
     fi
 fi
@@ -745,18 +745,20 @@ find_mingw_toolchain ()
     if [ "$HOST_ARCH" = "x86_64" -a "$TRY64" = "yes" ]; then
         BINPREFIX=x86_64-pc-mingw32msvc-
         #BINPREFIXLST="x86_64-w64-mingw32- x86_64-pc-mingw32msvc- amd64-mingw32msvc-"
-        MINGW_GCC=x86_64-w64-mingw32-gcc
+        #MINGW_GCC=x86_64-w64-mingw32-gcc
         DEBIAN_NAME=mingw64
-        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin"
+        #MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.8/bin"
     else
         # we are trying 32 bit anyway, so forcing it to avoid build issues
         force_32bit_binaries
         BINPREFIX=i586-pc-mingw32msvc-
         #BINPREFIXLST="i686-w64-mingw32- i586-pc-mingw32msvc- i686-pc-mingw32- i586-mingw32msvc-"
-        MINGW_GCC=i686-w64-mingw32-gcc
+        #MINGW_GCC=i686-w64-mingw32-gcc
         DEBIAN_NAME=mingw32
-        MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin"
+        #MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/i686-w64-mingw32-4.8/bin"
     fi
+    MINGW_GCC=x86_64-w64-mingw32-gcc
+    MINGW_PATH="$ANDROID_NDK_ROOT/../prebuilts/gcc/linux-x86/host/x86_64-w64-mingw32-4.9.3/bin"
 
     export PATH="$MINGW_PATH:$PATH"
     dump "Will use mingw toolchain in: $MINGW_PATH"
@@ -1050,7 +1052,7 @@ prepare_abi_configure_build ()
             ;;
         *)
             echo "ERROR: Unsupported HOST_TAG: $HOST_TAG"
-            echo "Please update 'prepare_host_flags' in build/instruments/prebuilt-common.sh"
+            echo "Please update 'prepare_host_flags' in build/tools/prebuilt-common.sh"
             ;;
     esac
 }
@@ -1382,8 +1384,7 @@ get_default_api_level_for_arch ()
 }
 
 # Return the default platform sysroot corresponding to a given architecture
-# This is the sysroot used to build the toolchain and other binaries like
-# the STLport libraries.
+# This is the sysroot used to build the toolchain and other binaries
 # $1: Architecture name
 get_default_platform_sysroot_for_arch ()
 {

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012, 2014, 2015, 2016 The Android Open Source Project
+# Copyright (C) 2012, 2014, 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ the top-level NDK installation path and <toolchain> is the name of
 the toolchain to use (e.g. llvm-3.6)."
 
 RELEASE=`date +%Y%m%d`
-BUILD_OUT=$TMPDIR/build/toolchain
+BUILD_OUT=/tmp/ndk-$USER/build/toolchain
 OPTION_BUILD_OUT=
 register_var_option "--build-out=<path>" OPTION_BUILD_OUT "Set temporary build directory"
 
@@ -56,13 +56,17 @@ USE_PYTHON_BC2NATIVE=no
 do_use_python_bc2native_option () { USE_PYTHON_BC2NATIVE=yes; }
 register_option "--use-python-bc2native" do_use_python_bc2native_option "Use python bc2native instead of integrated one"
 
+INCREMENTAL=no
+do_incremental_option () { INCREMENTAL=yes; }
+register_option "--incremental" do_incremental_option "Build incremenally"
+
 register_jobs_option
 register_canadian_option
 register_try64_option
 
 extract_parameters "$@"
 
-prepare_canadian_toolchain $TMPDIR/build
+prepare_canadian_toolchain /tmp/ndk-$USER/build
 
 fix_option BUILD_OUT "$OPTION_BUILD_OUT" "build directory"
 setup_default_log_file $BUILD_OUT/config.log
@@ -175,7 +179,9 @@ if [ "$MINGW" = "yes" -a "$TRY64" != "yes" ]; then
     fi
 fi
 
-rm -rf $BUILD_OUT
+if [ "$INCREMENTAL" != "yes" ]; then
+    rm -rf $BUILD_OUT
+fi
 mkdir -p $BUILD_OUT
 
 MAKE_FLAGS="VERBOSE=1"
@@ -260,14 +266,17 @@ if [ "$MINGW" != "yes" ]; then
     mkdir -p $LIBEDIT_BUILD_OUT && cd $LIBEDIT_BUILD_OUT
     fail_panic "Can't cd into libedit build path: $LIBEDIT_BUILD_OUT"
 
-    run $SRC_DIR/libedit/configure \
-        --prefix=$TOOLCHAIN_BUILD_PREFIX \
-        --host=$ABI_CONFIGURE_HOST \
-        --enable-static \
-        --disable-shared \
-        --with-pic \
-        --enable-widec
-    fail_panic "Can't configure libedit"
+    if [ "$INCREMENTAL" != "yes" -o ! -f $LIBEDIT_BUILD_OUT/.libedit-configured ]; then
+        run $SRC_DIR/libedit/configure \
+            --prefix=$TOOLCHAIN_BUILD_PREFIX \
+            --host=$ABI_CONFIGURE_HOST \
+            --enable-static \
+            --disable-shared \
+            --with-pic \
+            --enable-widec
+        fail_panic "Can't configure libedit"
+        touch $LIBEDIT_BUILD_OUT/.libedit-configured
+    fi
 
     run make -j $NUM_JOBS
     fail_panic "Can't build libedit"
@@ -356,18 +365,21 @@ if [ "$MINGW" != "yes" ]; then
     EXTRA_CONFIG_FLAGS="$EXTRA_CONFIG_FLAGS --with-python=$PYTHON"
 fi
 
-run $SRC_DIR/$TOOLCHAIN/llvm/configure \
-    --prefix=$TOOLCHAIN_BUILD_PREFIX \
-    --host=$ABI_CONFIGURE_HOST \
-    --build=$ABI_CONFIGURE_BUILD \
-    --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
-    --enable-targets=arm,mips,x86,aarch64 \
-    --enable-optimized \
-    --with-binutils-include=$SRC_DIR/binutils/binutils-$BINUTILS_VERSION/include \
-    --disable-lldb \
-    --disable-debugserver \
-    $EXTRA_CONFIG_FLAGS
-fail_panic "Couldn't configure llvm toolchain"
+if [ "$INCREMENTAL" != "yes" -o ! -f $LLVM_BUILD_OUT/.llvm-configured ]; then
+    run $SRC_DIR/$TOOLCHAIN/llvm/configure \
+        --prefix=$TOOLCHAIN_BUILD_PREFIX \
+        --host=$ABI_CONFIGURE_HOST \
+        --build=$ABI_CONFIGURE_BUILD \
+        --with-bug-report-url=$DEFAULT_ISSUE_TRACKER_URL \
+        --enable-targets=arm,mips,x86,aarch64 \
+        --enable-optimized \
+        --with-binutils-include=$SRC_DIR/binutils/binutils-$BINUTILS_VERSION/include \
+        --disable-lldb \
+        --disable-debugserver \
+        $EXTRA_CONFIG_FLAGS
+    fail_panic "Couldn't configure llvm toolchain"
+    touch $LLVM_BUILD_OUT/.llvm-configured
+fi
 
 # build llvm/clang
 dump "Building : llvm toolchain [this can take a long time]."
@@ -601,6 +613,6 @@ if [ "$PACKAGE_DIR" ]; then
 fi
 
 dump "Done."
-if [ -z "$OPTION_BUILD_OUT" ] ; then
+if [ -z "$OPTION_BUILD_OUT" -a "$INCREMENTAL" != "yes" ] ; then
     rm -rf $BUILD_OUT
 fi

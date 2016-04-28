@@ -1,10 +1,21 @@
 #include <Python.h>
 
+#ifdef _WIN32
+extern PyObject* PyInit_nt(void);
+extern PyObject* PyInit_msvcrt(void);
+extern PyObject* PyInit__winapi(void);
+extern PyObject* PyInit_winreg(void);
+#else
 extern PyObject* PyInit_posix(void);
 extern PyObject* PyInit_pwd(void);
 extern PyObject* PyInit_fcntl(void);
 extern PyObject* PyInit__posixsubprocess(void);
 extern PyObject* PyInit_termios(void);
+#endif
+#ifdef __APPLE__
+extern PyObject* PyInit__scproxy(void);
+#endif
+
 extern PyObject* PyInit_audioop(void);
 extern PyObject* PyInit__locale(void);
 extern PyObject* PyInit_array(void);
@@ -63,11 +74,21 @@ extern PyObject* PyMarshal_Init(void);
 extern PyObject* PyInit_imp(void);
 
 struct _inittab _PyImport_Inittab[] = {
+#ifdef _WIN32
+    {"msvcrt", PyInit_msvcrt},
+    {"nt", PyInit_nt},
+    {"_winapi", PyInit__winapi},
+    {"winreg", PyInit_winreg},
+#else
     {"posix", PyInit_posix},
     {"pwd", PyInit_pwd},
     {"fcntl", PyInit_fcntl},
     {"_posixsubprocess", PyInit__posixsubprocess},
     {"termios", PyInit_termios},
+#endif
+#ifdef __APPLE__
+    {"_scproxy", PyInit__scproxy},
+#endif
     {"audioop", PyInit_audioop},
     {"_locale", PyInit__locale},
     {"array", PyInit_array},
@@ -139,4 +160,3 @@ struct _inittab _PyImport_Inittab[] = {
     /* Sentinel */
     {0, 0}
 };
-
