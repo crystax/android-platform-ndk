@@ -41,11 +41,11 @@ int main()
     // These tests failed for 32-bit x86 target being built by both gcc and clang
     // This is not Android-specific; both gcc and clang behave the same on 32-bit
     // linux and darwin targets. However, this is obviously a bug, so this test
-    // here to track it. Right now, we know gcc-4.9, gcc-5.3, gcc-6, clang-3.6
-    // and clang-3.7 are failing. In the future, this bug should be fixed, so next
+    // here to track it. Right now, we know gcc-4.9, gcc-5.3, gcc-6.1, clang-3.6
+    // clang-3.7 and clang-3.8 are failing. In the future, this bug should be fixed, so next
     // gcc/clang versions should pass.
 
-#if !defined(__i386__) || CLANG_VERSION_GREATER_THAN(3, 8) || GCC_VERSION_GREATER_THAN(6, 0)
+#if !defined(__i386__) || CLANG_VERSION_GREATER_THAN(3, 8) || GCC_VERSION_GREATER_THAN(6, 1)
     TEST(long long);
     TEST(double);
     TEST(long double);
