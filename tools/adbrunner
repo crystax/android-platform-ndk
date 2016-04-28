@@ -14,8 +14,6 @@ ENV['LC_ALL'] = ENV['LANG']
 
 WINDOWS = RUBY_PLATFORM =~ /(cygwin|mingw|win32)/ ? true : false
 
-USE_SELECT_BASED_IO = true
-
 MYPID = Process.pid
 CHILDREN = []
 
@@ -34,6 +32,7 @@ OPTIONS[:timeout] = 3153600000 # 100 years
 OPTIONS[:pie] = true
 OPTIONS[:device_lock_timeout] = 1
 OPTIONS[:print_timestamps] = true
+OPTIONS[:verbose_errors] = false
 
 optparser = OptionParser.new do |o|
     o.banner = "Usage: #{$0} [options] executable [exe-options]"
@@ -154,6 +153,10 @@ optparser = OptionParser.new do |o|
         OPTIONS[:min_api_level] = l
     end
 
+    o.on("--[no-]verbose-errors", "Print verbose output on fail [#{OPTIONS[:verbose_errors]}]") do |v|
+        OPTIONS[:verbose_errors] = v
+    end
+
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
@@ -218,6 +221,7 @@ KEEPGOING = OPTIONS[:keepgoing]
 MROPREFIX = OPTIONS[:mroprefix]
 SYMDIRS = OPTIONS[:symdirs]
 ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
+VERBOSE_ERRORS = OPTIONS[:verbose_errors]
 
 if OPTIONS[:min_api_level].nil?
     case ABI
@@ -294,6 +298,7 @@ if OPTIONS[:strip].nil?
 end
 STRIP = OPTIONS[:strip]
 
+$stdin.sync = true
 $stdout.sync = true
 $stderr.sync = true
 
@@ -452,51 +457,32 @@ def adb_devices
 
     err = ""
     run ADB, 'devices', timeout: 5 do |i,o,e,t|
-        if USE_SELECT_BASED_IO
-            i.close
+        i.close
 
-            out = ""
-            while true
-                rs = []
-                rs << o unless o.eof?
-                rs << e unless e.eof?
-                break if rs.empty?
+        out = ""
+        while true
+            rs = []
+            rs << o unless o.eof?
+            rs << e unless e.eof?
+            break if rs.empty?
 
-                ios, = IO.select(rs)
-                ios.each do |io|
-                    c = io.read_nonblock(4096) rescue nil
-                    next if c.nil?
+            ios, = IO.select(rs)
+            ios.each do |io|
+                c = io.read_nonblock(4096) rescue nil
+                next if c.nil?
 
-                    case io
-                    when e
-                        err << c
-                    when o
-                        out << c
-                    end
+                case io
+                when e
+                    err << c
+                when o
+                    out << c
                 end
             end
+        end
 
-            out.split("\n").map(&:chomp).each do |line|
-                next unless line =~ /^([^\t]+)\tdevice$/
-                devices << $1
-            end
-        else
-            ot = Thread.start do
-                while line = o.gets.chomp rescue nil
-                    next unless line =~ /^([^\t]+)\tdevice$/
-                    devices << $1
-                end
-            end
-
-            et = Thread.start do
-                while line = e.gets
-                    err << "#{line}\n"
-                end
-            end
-
-            i.close
-            ot.join
-            et.join
+        out.split("\n").map(&:chomp).each do |line|
+            next unless line =~ /^([^\t]+)\tdevice$/
+            devices << $1
         end
 
         raise AdbError.new('devices', err) unless t.value.success?
@@ -573,41 +559,30 @@ def adb_getprop(devid, propname = nil)
     run ADB, '-s', devid, 'shell', "#{operation} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
         i.close
 
-        if USE_SELECT_BASED_IO
-            out = ""
-            err = ""
-            while true
-                rs = []
-                rs << o unless o.eof?
-                rs << e unless e.eof?
-                break if rs.empty?
+        out = ""
+        err = ""
+        while true
+            rs = []
+            rs << o unless o.eof?
+            rs << e unless e.eof?
+            break if rs.empty?
 
-                ios, = IO.select(rs)
-                ios.each do |io|
-                    c = io.read_nonblock(4096) rescue nil
-                    next if c.nil?
+            ios, = IO.select(rs)
+            ios.each do |io|
+                c = io.read_nonblock(4096) rescue nil
+                next if c.nil?
 
-                    case io
-                    when e
-                        err << c
-                    when o
-                        out << c
-                    end
+                case io
+                when e
+                    err << c
+                when o
+                    out << c
                 end
             end
-
-            os = out.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
-            es = err.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
-        else
-            {o => os, e => es}.map do |io,sink|
-                Thread.start do
-                    while line = io.gets.chomp rescue nil
-                        line.chop! while line[-1] == "\r"
-                        sink << line
-                    end
-                end
-            end.each(&:join)
         end
+
+        os = out.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
+        es = err.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
 
         raise AdbError.new(operation, es.join("\n")) unless t.value.success?
     end
@@ -640,26 +615,16 @@ def adb_rm(devid, files)
     run ADB, '-s', devid, 'shell', "rm -r #{files}", timeout: 10, verbose: VERBOSE do |i,o,e,t|
         i.close
 
-        if USE_SELECT_BASED_IO
-            while true
-                rs = []
-                rs << o unless o.eof?
-                rs << e unless e.eof?
-                break if rs.empty?
+        while true
+            rs = []
+            rs << o unless o.eof?
+            rs << e unless e.eof?
+            break if rs.empty?
 
-                ios, = IO.select(rs)
-                ios.each do |io|
-                    io.read_nonblock(4096) rescue nil
-                end
+            ios, = IO.select(rs)
+            ios.each do |io|
+                io.read_nonblock(4096) rescue nil
             end
-        else
-            [o,e].map do |io|
-                Thread.start do
-                    while io.getc
-                        # Nothing
-                    end
-                end
-            end.each(&:join)
         end
 
         t.value
@@ -676,38 +641,68 @@ def adb_shell(devid, cmd, options = {})
     os = []
     es = []
     run ADB, '-s', devid, 'shell', "#{cmd} ; echo #{tag}:$?" do |i,o,e,t|
-        ot = Thread.start do
-            have_tag = false
-            while line = o.gets.chomp rescue nil
-                next if have_tag
 
-                line.chop! while line[-1] == "\r"
-                os << line
+        have_tag = false
 
-                logline = line.dup
-                if logline =~ /#{tag}:.*$/
-                    have_tag = true
-                    logline.sub!(/#{tag}:.*$/, '')
-                    log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
-                    $stdout.puts logline if !LOG.nil? && !logline.empty?
-                else
-                    log "#{STDOUT_PREFIX}#{logline}"
-                    $stdout.puts logline if !LOG.nil?
+        opl = ""
+        epl = ""
+        while true
+            rs = []
+            rs << o unless o.eof?
+            rs << e unless e.eof?
+            break if rs.empty?
+
+            ios, = IO.select([$stdin] + rs)
+            ios.each do |io|
+                c = io.read_nonblock(4096) rescue nil
+                next if c.nil?
+
+                case io
+                when $stdin
+                    i.write_nonblock c
+                when o
+                    lines = (opl + c).lines
+                    if lines.last !~ /\n$/
+                        opl = lines.last
+                        lines = lines[0..-2]
+                    else
+                        opl = ""
+                    end
+                    lines.each do |line|
+                        line.chomp!
+                        line.chop! while line[-1] == "\r"
+                        os << line
+
+                        logline = line.dup
+                        if logline =~ /#{tag}:.*$/
+                            have_tag = true
+                            logline.sub!(/#{tag}:.*$/, '')
+                            log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
+                            $stdout.puts logline if !LOG.nil? && !logline.empty?
+                        else
+                            log "#{STDOUT_PREFIX}#{logline}"
+                            $stdout.puts logline if !LOG.nil?
+                        end
+                    end
+                when e
+                    lines = (epl + c).lines
+                    if lines.last !~ /\n$/
+                        epl = lines.last
+                        lines = lines[0..-2]
+                    else
+                        epl = ""
+                    end
+                    lines.each do |line|
+                        line.chomp!
+                        line.chop! while line[-1] == "\r"
+                        log "#{STDERR_PREFIX}#{line}"
+                        es << line
+                    end
                 end
             end
         end
 
-        et = Thread.start do
-            while line = e.gets.chomp rescue nil
-                line.chop! while line[-1] == "\r"
-                log "#{STDERR_PREFIX}#{line}"
-                es << line
-            end
-        end
-
         i.close
-        ot.join
-        et.join
 
         raise AdbError.new('shell', es.join("\n")) unless t.value.success?
     end
@@ -913,14 +908,13 @@ def do_run_test(attempt, devid, tag, exe, args)
         arg = arg.sub(/^(-#{prefix}|--#{prefix}=)/, '') unless prefix.nil?
 
         if File.exists?(arg)
-            dstarg = File.join(dstdatapath, File.basename(arg))
-            adb_push devid, arg, dstarg if pushed[arg] != dstarg
-            pushed[arg] = dstarg
-        else
-            dstarg = arg
+            dstfile = File.join(dstdatapath, File.basename(arg))
+            adb_push devid, arg, dstfile if pushed[arg] != dstfile
+            pushed[arg] = dstfile
+            arg = dstfile if arg =~ /^\//
         end
-        dstarg = "'#{dstarg}'" if dstarg =~ /\s+/
-        newarg = "#{prefix}#{dstarg}"
+        arg = "'#{arg}'" if arg =~ /\s+/
+        newarg = "#{prefix}#{arg}"
         newargs << newarg
     end
 
@@ -928,13 +922,13 @@ def do_run_test(attempt, devid, tag, exe, args)
     env['LD_LIBRARY_PATH'] = dstlibpath
     env['TMPDIR'] = dsttmppath
 
-    adb_shell devid, "log #{tag} && cd #{dstbinpath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} ./#{targetexe} #{newargs.join(' ')}"
+    adb_shell devid, "log #{tag} && cd #{dstdatapath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} #{dstbinpath}/#{targetexe} #{newargs.join(' ')}"
 rescue AdbShellCommandFailed => err
     log err.message
 
     logerr = proc do |msg|
         log "#{STDERR_PREFIX}#{msg}"
-        $stderr.puts msg unless LOG.nil?
+        $stderr.puts msg if VERBOSE_ERRORS
     end
 
     logerr.call ""

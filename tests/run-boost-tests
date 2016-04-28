@@ -725,6 +725,7 @@ Kernel.exec('#{File.join(OPTIONS[:ndk], 'tools', 'adbrunner')}',
     '--strip=#{strip}',
     '--strip-dir=#{libdir}',
     '--#{'no-' unless OPTIONS[:pie]}pie',
+    '--verbose-errors',
     *ARGV)
         EOF
     end
