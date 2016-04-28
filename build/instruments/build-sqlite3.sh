@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -112,12 +112,14 @@ build_sqlite3_for_abi ()
         echo 'LOCAL_MODULE := sqlite3'
         echo "LOCAL_SRC_FILES := $SQLITE3_SRCDIR/sqlite3.c"
         echo "LOCAL_INCLUDES := $SQLITE3_SRCDIR/"
-        echo 'LOCAL_CFLAGS := -Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2 -Werror'
-        case $ABI in
-            x86|x86_64|arm64-v8a)
-                echo 'LOCAL_CFLAGS += -Wno-strict-aliasing'
-                ;;
-        esac
+        echo 'LOCAL_CFLAGS := -Wall -Wno-unused -Wno-multichar -Wno-strict-aliasing -Werror'
+        # todo: zuav:
+        #echo 'LOCAL_CFLAGS := -Wall -Wno-unused -Wno-multichar -Wstrict-aliasing=2 -Werror'
+        #case $ABI in
+        #    x86|x86_64|arm64-v8a)
+        #        echo 'LOCAL_CFLAGS += -Wno-strict-aliasing'
+        #        ;;
+        #esac
         echo 'LOCAL_CFLAGS += -fno-exceptions -fmessage-length=0'
         echo 'LOCAL_CFLAGS += -DSQLITE_THREADSAFE=1'
         echo "include \$(BUILD_$(echo $TYPE | tr '[a-z]' '[A-Z]')_LIBRARY)"
