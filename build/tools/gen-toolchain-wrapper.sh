@@ -88,7 +88,7 @@ register_var_option "--arflags=<options>" EXTRA_ARFLAGS "Add extra archiver flag
 CCACHE=
 register_var_option "--ccache=<prefix>" CCACHE "Use ccache compiler driver"
 
-PROGRAMS="cc gcc c++ g++ cpp as ld ar ranlib strip strings nm objdump dlltool"
+PROGRAMS="cc gcc c++ g++ cpp as ld ar ranlib readelf strip strings nm objdump dlltool"
 register_var_option "--programs=<list>" PROGRAMS "List of programs to generate wrapper for"
 
 extract_parameters "$@"
@@ -158,6 +158,21 @@ gen_wrapper_program ()
       ar) FLAGS=$FLAGS" $EXTRA_ARFLAGS";;
       as) FLAGS=$FLAGS" $EXTRA_ASFLAGS";;
       ld|ld.bfd|ld.gold) FLAGS=$FLAGS" $EXTRA_LDFLAGS";;
+    esac
+
+    # Add -m32 for x86_64 C/C++ compilers intended to produce 32-bit code
+    case $PROG in
+        cc|gcc|cpp|c++|g++)
+            case $SRC_PREFIX in
+                i[3456]86-*)
+                    case $DST_PREFIX in
+                        x86_64-*)
+                            FLAGS=$FLAGS" -m32"
+                            ;;
+                    esac
+                    ;;
+            esac
+            ;;
     esac
 
     if [ -n "$CCACHE" ]; then

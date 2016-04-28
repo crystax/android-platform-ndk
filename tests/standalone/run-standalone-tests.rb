@@ -62,7 +62,7 @@ class Ndk_data
       ". " + File.join(@ndk_build_tools_path, 'ndk-common.sh')      + " ; " +
       ". " + File.join(@ndk_build_tools_path, 'prebuilt-common.sh') + " ; "
 
-    @default_stl_types = ["gnustl", "libc++", "stlport"]
+    @default_stl_types = ["gnustl", "libc++"]
 
     @llvm_versions = default_llvm_versions
     @compiler_types = ["gcc"] + @llvm_versions.map { |v| "clang" + v }

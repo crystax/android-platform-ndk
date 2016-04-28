@@ -2277,26 +2277,6 @@ $(call ndk-stl-register,\
     \
     )
 
-# Register the 'stlport_static' STL implementation
-#
-$(call ndk-stl-register,\
-    stlport_static,\
-    cxx-stl/stlport,\
-    stlport_static,\
-    ,\
-    \
-    )
-
-# Register the 'stlport_shared' STL implementation
-#
-$(call ndk-stl-register,\
-    stlport_shared,\
-    cxx-stl/stlport,\
-    ,\
-    stlport_shared,\
-    \
-    )
-
 # Register the 'gnustl_static' STL implementation
 #
 $(call ndk-stl-register,\
@@ -2338,7 +2318,7 @@ $(call ndk-stl-register,\
     )
 
 # The 'none' APP_STL value corresponds to no C++ support at
-# all. Used by some of the STLport and GAbi++ test projects.
+# all. Used by some of the test projects.
 #
 $(call ndk-stl-register,\
     none,\

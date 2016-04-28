@@ -23,7 +23,8 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := aarch64-linux-android-6
+GCC_VERSION      := 6
+TOOLCHAIN_NAME   := aarch64-linux-android-$(GCC_VERSION)
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/aarch64-linux-android-
 
 TARGET_CFLAGS := \

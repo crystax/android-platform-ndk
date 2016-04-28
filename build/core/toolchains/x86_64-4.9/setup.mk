@@ -23,7 +23,8 @@
 # revisions of the NDK.
 #
 
-TOOLCHAIN_NAME   := x86_64-4.9
+GCC_VERSION      := 4.9
+TOOLCHAIN_NAME   := x86_64-$(GCC_VERSION)
 TOOLCHAIN_PREFIX := $(TOOLCHAIN_PREBUILT_ROOT)/bin/x86_64-linux-android-
 
 TARGET_CFLAGS := \

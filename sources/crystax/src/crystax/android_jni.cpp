@@ -28,7 +28,21 @@
  */
 
 #include <crystax.h>
+#include <pthread.h>
+#include <jni.h>
+#include <dlfcn.h>
 #include "crystax/private.h"
+
+static pthread_mutex_t mtx = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+static void *libart_handle = NULL;
+
+typedef jint (*JNI_GetDefaultJavaVMInitArgs_func_t)(void *);
+typedef jint (*JNI_CreateJavaVM_func_t)(JavaVM**, JNIEnv**, void*);
+typedef jint (*JNI_GetCreatedJavaVMs_func_t)(JavaVM**, jsize, jsize*);
+
+static JNI_GetDefaultJavaVMInitArgs_func_t JNI_GetDefaultJavaVMInitArgs_func = NULL;
+static JNI_CreateJavaVM_func_t JNI_CreateJavaVM_func = NULL;
+static JNI_GetCreatedJavaVMs_func_t JNI_GetCreatedJavaVMs_func = NULL;
 
 CRYSTAX_GLOBAL
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
@@ -40,4 +54,56 @@ CRYSTAX_GLOBAL
 void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 {
     crystax_jni_on_unload(vm);
+}
+
+static void initialize_jni_runtime()
+{
+    if (::pthread_mutex_lock(&mtx) != 0)
+        PANIC("Can't lock mutex");
+
+    if (!libart_handle)
+    {
+        libart_handle = ::dlopen("libart.so", RTLD_NOW);
+        if (!libart_handle)
+            PANIC("Can't open libart.so");
+
+        JNI_GetDefaultJavaVMInitArgs_func = (JNI_GetDefaultJavaVMInitArgs_func_t)::dlsym(
+                libart_handle, "JNI_GetDefaultJavaVMInitArgs");
+        if (!JNI_GetDefaultJavaVMInitArgs_func)
+            PANIC("Can't find JNI_GetDefaultJavaVMInitArgs in libart.so");
+
+        JNI_CreateJavaVM_func = (JNI_CreateJavaVM_func_t)::dlsym(
+                libart_handle, "JNI_CreateJavaVM");
+        if (!JNI_CreateJavaVM_func)
+            PANIC("Can't find JNI_CreateJavaVM in libart.so");
+
+        JNI_GetCreatedJavaVMs_func = (JNI_GetCreatedJavaVMs_func_t)::dlsym(
+                libart_handle, "JNI_GetCreatedJavaVMs");
+        if (!JNI_GetCreatedJavaVMs_func)
+            PANIC("Can't find JNI_GetCreatedJavaVMs in libart.so");
+    }
+
+    if (::pthread_mutex_unlock(&mtx) != 0)
+        PANIC("Can't unlock mutex");
+}
+
+CRYSTAX_GLOBAL
+jint JNI_GetDefaultJavaVMInitArgs(void* args)
+{
+    initialize_jni_runtime();
+    return JNI_GetDefaultJavaVMInitArgs_func(args);
+}
+
+CRYSTAX_GLOBAL
+jint JNI_CreateJavaVM(JavaVM** vm, JNIEnv** env, void* args)
+{
+    initialize_jni_runtime();
+    return JNI_CreateJavaVM(vm, env, args);
+}
+
+CRYSTAX_GLOBAL
+jint JNI_GetCreatedJavaVMs(JavaVM** vms, jsize size, jsize* count)
+{
+    initialize_jni_runtime();
+    return JNI_GetCreatedJavaVMs(vms, size, count);
 }

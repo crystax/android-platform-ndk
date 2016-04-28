@@ -32,6 +32,15 @@
 
 #include <crystax/id.h>
 #include <inttypes.h>
+
+#define setnetgrent __crystax_google_setnetgrent
 #include <crystax/google/netdb.h>
+#undef setnetgrent
+
+__BEGIN_DECLS
+
+int setnetgrent(const char *netgroup);
+
+__END_DECLS
 
 #endif /* __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C */

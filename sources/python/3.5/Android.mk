@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -29,6 +29,12 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := python_shared
-LOCAL_SRC_FILES := libs/$(TARGET_ARCH_ABI)/libpython3.5m.so
+LOCAL_SRC_FILES := shared/$(TARGET_ARCH_ABI)/libs/libpython3.5m.so
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python
 include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := python_static
+LOCAL_SRC_FILES := static/libs/$(TARGET_ARCH_ABI)/libpython3.5m.a
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include/python
+include $(PREBUILT_STATIC_LIBRARY)

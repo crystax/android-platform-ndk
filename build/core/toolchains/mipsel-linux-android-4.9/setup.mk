@@ -23,6 +23,8 @@
 # revisions of the NDK.
 #
 
+GCC_VERSION := 6
+
 TARGET_CFLAGS := \
     -fpic \
     -finline-functions \

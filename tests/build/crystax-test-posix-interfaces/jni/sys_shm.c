@@ -27,11 +27,6 @@
  * or implied, of CrystaX.
  */
 
-#if __ANDROID__
-/* WARNING!!! There is no sys/sem.h in Android */
-
-#else /* !__ANDROID__ */
-
 #include <sys/shm.h>
 
 #include "gen/sys_shm.inc"
@@ -40,11 +35,45 @@
 
 #define CHECK(type) type JOIN(sys_shm_check_type_, __LINE__)
 
+#if !__ANDROID__
 CHECK(shmatt_t);
+#endif /* !__ANDROID__ */
 CHECK(struct shmid_ds);
 CHECK(pid_t);
 CHECK(size_t);
 CHECK(time_t);
+
+#if __ANDROID__
+void *shmat(int shmid, const void *shmaddr, int shmflg)
+{
+    (void)shmid;
+    (void)shmaddr;
+    (void)shmflg;
+    return (void*)12345;
+}
+
+int shmctl(int shmid, int cmd, struct shmid_ds *buf)
+{
+    (void)shmid;
+    (void)cmd;
+    (void)buf;
+    return -1;
+}
+
+int shmdt(const void *shmaddr)
+{
+    (void)shmaddr;
+    return -1;
+}
+
+int shmget(key_t key, size_t size, int shmflg)
+{
+    (void)key;
+    (void)size;
+    (void)shmflg;
+    return -1;
+}
+#endif /* __ANDROID__ */
 
 void sys_shm_check_functions()
 {
@@ -53,5 +82,3 @@ void sys_shm_check_functions()
     (void)shmdt((const void *)1234);
     (void)shmget((key_t)0, (size_t)0, 0);
 }
-
-#endif /* !__ANDROID__ */

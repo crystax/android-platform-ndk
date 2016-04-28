@@ -521,8 +521,6 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
     for ABI in $ABIS; do
         unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
-        unpack_prebuilt gabixx-libs-$ABI-g "$REFERENCE"
-        unpack_prebuilt stlport-libs-$ABI-g "$REFERENCE"
         for VERSION in $LLVM_VERSION_LIST; do
             unpack_prebuilt libcxx-libs-$VERSION-$ABI-g "$REFERENCE"
         done
@@ -533,7 +531,7 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt cocotron-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
         for VERSION in $PYTHON_VERSIONS; do
-            unpack_prebuilt python${VERSION}-libs-$ABI "$REFERENCE"
+            unpack_prebuilt python${VERSION}-binaries-$ABI "$REFERENCE"
         done
         for VERSION in $LIBPNG_VERSIONS; do
             unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
@@ -619,24 +617,6 @@ for SYSTEM in $SYSTEMS; do
             echo "WARNING: Could not find CrystaX source tree!"
         fi
 
-        if [ -d "$DSTDIR/$GABIXX_SUBDIR" ]; then
-            GABIXX_ABIS=$PREBUILT_ABIS
-            for GABIXX_ABI in $GABIXX_ABIS; do
-                copy_prebuilt "$GABIXX_SUBDIR/libs/$GABIXX_ABI" "$GABIXX_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find GAbi++ source tree!"
-        fi
-
-        if [ -d "$DSTDIR/$STLPORT_SUBDIR" ] ; then
-            STLPORT_ABIS=$PREBUILT_ABIS
-            for STL_ABI in $STLPORT_ABIS; do
-                copy_prebuilt "$STLPORT_SUBDIR/libs/$STL_ABI" "$STLPORT_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find STLport source tree!"
-        fi
-
         for VERSION in $LLVM_VERSION_LIST; do
             for STL_ABI in $PREBUILT_ABIS; do
                 copy_prebuilt "$LIBCXX_SUBDIR/$VERSION/libs/$STL_ABI" "$LIBCXX_SUBDIR/$VERSION/libs"
@@ -667,7 +647,9 @@ for SYSTEM in $SYSTEMS; do
         for VERSION in $PYTHON_VERSIONS; do
             copy_prebuilt "$PYTHON_SUBDIR/$VERSION/include" "$PYTHON_SUBDIR/$VERSION/"
             for PYTHON_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/libs/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/libs"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/shared/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/shared"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/bin/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/bin"
+                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/libs/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/libs"
             done
         done
 
@@ -774,6 +756,10 @@ for SYSTEM in $SYSTEMS; do
         if [ "$SYSTEM" = "windows" ]; then
             unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
         fi
+
+        for VERSION in $PYTHON_VERSIONS; do
+            unpack_prebuilt ndk-vendor-host-python$VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        done
     fi
 
     # Unpack other host tools

@@ -267,7 +267,7 @@ APILEVELS.each do |apilevel|
                         end
                     end
 
-                    %w(libbz2.a libm.a libm_hard.a).each do |lib|
+                    %w(libbz2.a libm.a libm_hard.a libpthread.a librt.a).each do |lib|
                         FileUtils.rm_f File.join(dstlp, lib)
                         FileUtils.cp File.join(CRYSTAX_DIR, 'empty', 'libcrystax.a'), File.join(dstlp, lib)
                     end

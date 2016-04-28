@@ -796,7 +796,6 @@ bh_do ()
 # Return the build install directory of a given Python version
 #
 # $1: host system tag
-# $2: python version
 # The suffix of this has to match python_ndk_install_dir
 #  as I package them from the build folder, substituting
 #  the end part of python_build_install_dir matching

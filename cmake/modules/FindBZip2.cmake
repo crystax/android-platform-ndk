@@ -1,0 +1,5 @@
+set(BZIP2_FOUND true)
+set(BZIP2_INCLUDE_DIR ${ANDROID_SYSROOT}/include)
+set(BZIP2_LIBRARIES ${ANDROID_SYSROOT}/lib/libbz2.a)
+
+mark_as_advanced(BZIP2_INCLUDE_DIR)

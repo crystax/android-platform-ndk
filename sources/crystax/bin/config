@@ -171,11 +171,7 @@ sources_for_abi()
 
     find src -name '*.c' -a -not -name 'fenv.c' -print | sort
 
-    find src -name '*.cpp' -a -not -name 'android_jni.cpp' -print | sort
-
-    if [ "$t" = "shared" ]; then
-        echo "src/crystax/android_jni.cpp"
-    fi
+    find src -name '*.cpp' -print | sort
 
     arch=""
     case $a in

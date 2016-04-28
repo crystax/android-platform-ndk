@@ -36,70 +36,89 @@ endif
 #
 
 LIBCXX_FORCE_REBUILD := $(strip $(LIBCXX_FORCE_REBUILD))
+
+__libcxx_force_rebuild := $(LIBCXX_FORCE_REBUILD)
+
 ifndef LIBCXX_FORCE_REBUILD
   ifeq (,$(strip $(wildcard $(LOCAL_PATH)/$(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/libc++_static$(TARGET_LIB_EXTENSION))))
     $(call __ndk_info,WARNING: Rebuilding libc++ libraries from sources!)
     $(call __ndk_info,You might want to use $$NDK/build/tools/build-cxx-stl.sh --stl=libc++)
     $(call __ndk_info,in order to build prebuilt versions to speed up your builds!)
-    LIBCXX_FORCE_REBUILD := true
+    __libcxx_force_rebuild := true
   endif
 endif
 
-libcxx_includes := $(LOCAL_PATH)/libcxx/include
-libcxx_export_includes := $(libcxx_includes)
-libcxx_sources := \
-    algorithm.cpp \
-    bind.cpp \
-    chrono.cpp \
-    condition_variable.cpp \
-    debug.cpp \
-    exception.cpp \
-    future.cpp \
-    hash.cpp \
-    ios.cpp \
-    iostream.cpp \
-    locale.cpp \
-    memory.cpp \
-    mutex.cpp \
-    new.cpp \
-    optional.cpp \
-    random.cpp \
-    regex.cpp \
-    shared_mutex.cpp \
-    stdexcept.cpp \
-    string.cpp \
-    strstream.cpp \
-    system_error.cpp \
-    thread.cpp \
-    typeinfo.cpp \
-    utility.cpp \
-    valarray.cpp \
-    support/android/locale_android.cpp
+llvm_libc++_includes := $(LOCAL_PATH)/$(__libcxx_version)/libcxx/include
+llvm_libc++_export_includes := $(llvm_libc++_includes)
+llvm_libc++_sources := \
+	algorithm.cpp \
+	bind.cpp \
+	chrono.cpp \
+	condition_variable.cpp \
+	debug.cpp \
+	exception.cpp \
+	future.cpp \
+	hash.cpp \
+	ios.cpp \
+	iostream.cpp \
+	locale.cpp \
+	memory.cpp \
+	mutex.cpp \
+	new.cpp \
+	optional.cpp \
+	random.cpp \
+	regex.cpp \
+	shared_mutex.cpp \
+	stdexcept.cpp \
+	string.cpp \
+	strstream.cpp \
+	system_error.cpp \
+	thread.cpp \
+	typeinfo.cpp \
+	utility.cpp \
+	valarray.cpp \
 
-libcxx_sources := $(libcxx_sources:%=libcxx/src/%)
+llvm_libc++_sources := $(llvm_libc++_sources:%=$(__libcxx_version)/libcxx/src/%)
 
 # For now, this library can only be used to build C++11 binaries.
-libcxx_export_cxxflags := -std=c++11
+llvm_libc++_export_cxxflags := -std=c++11
+llvm_libc++_export_cxxflags += -frtti -fexceptions
 
 ifeq (,$(filter clang%,$(NDK_TOOLCHAIN_VERSION)))
 # Add -fno-strict-aliasing because __list_imp::_end_ breaks TBAA rules by declaring
 # simply as __list_node_base then casted to __list_node derived from that.  See
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61571 for details
-libcxx_export_cxxflags += -fno-strict-aliasing
+llvm_libc++_export_cxxflags += -fno-strict-aliasing
 endif
 
-libcxx_cxxflags := $(libcxx_export_cxxflags)
-libcxx_cflags := -D__STDC_FORMAT_MACROS
+llvm_libc++_cxxflags := $(llvm_libc++_export_cxxflags)
+llvm_libc++_cflags :=
 
-libcxx_ldflags :=
-libcxx_export_ldflags :=
-# Need to make sure the unwinder is always linked with hidden visibility.
+libcxxabi_sources_dir := $(strip $(wildcard $(LOCAL_PATH)/../llvm-libc++abi))
+ifdef libcxxabi_sources_dir
+  libcxxabi_sources_prefix := ../llvm-libc++abi
+else
+  libcxxabi_sources_dir := $(strip $(wildcard $(NDK_ROOT)/sources/cxx-stl/llvm-libc++abi))
+  ifndef libcxxabi_sources_dir
+    $(error Can not find libcxxabi sources directory!!)
+  endif
+  libcxxabi_sources_prefix := $(libcxxabi_sources_dir)
+endif
+
+include $(libcxxabi_sources_dir)/sources.mk
+llvm_libc++_sources += $(addprefix $(libcxxabi_sources_prefix:%/=%)/,$(libcxxabi_src_files))
+llvm_libc++_includes += $(libcxxabi_c_includes)
+llvm_libc++_export_includes += $(libcxxabi_c_includes)
+# For armeabi*, use unwinder from libc++abi
 ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
-    libcxx_ldflags += -Wl,--exclude-libs,libunwind.a
-    libcxx_export_ldflags += -Wl,--exclude-libs,libunwind.a
+llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=1
+llvm_libc++_sources += $(addprefix $(libcxxabi_sources_prefix:%/=%)/,$(libcxxabi_unwind_src_files))
+else
+llvm_libc++_cflags += -DLIBCXXABI_USE_LLVM_UNWINDER=0
 endif
 
-ifneq ($(LIBCXX_FORCE_REBUILD),true)
+
+ifneq ($(__libcxx_force_rebuild),true)
 
 $(call ndk_log,Using prebuilt libc++ libraries)
 
@@ -114,9 +133,8 @@ LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_
 endif
 endif
 endif
-LOCAL_EXPORT_C_INCLUDES := $(libcxx_export_includes)
-LOCAL_EXPORT_CPPFLAGS := $(libcxx_export_cxxflags)
-LOCAL_EXPORT_LDFLAGS := $(libcxx_export_ldflags)
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
+LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 LOCAL_EXPORT_LDLIBS := -latomic
 include $(PREBUILT_STATIC_LIBRARY)
 
@@ -131,56 +149,40 @@ LOCAL_SRC_FILES := $(__libcxx_version)/libs/$(TARGET_ARCH_ABI)/thumb/lib$(LOCAL_
 endif
 endif
 endif
-LOCAL_EXPORT_C_INCLUDES := $(libcxx_export_includes)
-LOCAL_EXPORT_CPPFLAGS := $(libcxx_export_cxxflags)
-LOCAL_EXPORT_LDFLAGS := $(libcxx_export_ldflags)
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
+LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 LOCAL_EXPORT_LDLIBS := -latomic
 include $(PREBUILT_SHARED_LIBRARY)
 
 else
-# LIBCXX_FORCE_REBUILD == true
+# __libcxx_force_rebuild == true
 
 $(call ndk_log,Rebuilding libc++ libraries from sources)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_static
-LOCAL_SRC_FILES := $(libcxx_sources)
+LOCAL_SRC_FILES := $(llvm_libc++_sources)
 LOCAL_C_INCLUDES := $(llvm_libc++_includes)
-LOCAL_C_INCLUDES := $(libcxx_includes)
-LOCAL_CFLAGS := $(libcxx_cflags)
-LOCAL_CPPFLAGS := $(libcxx_cxxflags)
+LOCAL_CFLAGS := $(llvm_libc++_cflags)
+LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
 LOCAL_CPP_FEATURES := rtti exceptions
-LOCAL_EXPORT_C_INCLUDES := $(libcxx_export_includes)
-LOCAL_EXPORT_CPPFLAGS := $(libcxx_export_cxxflags)
-LOCAL_EXPORT_LDFLAGS := $(libcxx_export_ldflags)
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
+LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 LOCAL_LDLIBS := -latomic
 LOCAL_EXPORT_LDLIBS := -latomic
-LOCAL_STATIC_LIBRARIES := libc++abi
 include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := c++_shared
-LOCAL_WHOLE_STATIC_LIBRARIES := c++_static
-LOCAL_EXPORT_C_INCLUDES := $(libcxx_export_includes)
-LOCAL_EXPORT_CPPFLAGS := $(libcxx_export_cxxflags)
-LOCAL_EXPORT_LDFLAGS := $(libcxx_export_ldflags)
-LOCAL_STATIC_LIBRARIES := libc++abi android_support
-LOCAL_LDFLAGS := $(libcxx_ldflags)
+LOCAL_SRC_FILES := $(llvm_libc++_sources)
+LOCAL_C_INCLUDES := $(llvm_libc++_includes)
+LOCAL_CFLAGS := $(llvm_libc++_cflags)
+LOCAL_CPPFLAGS := $(llvm_libc++_cxxflags)
+LOCAL_CPP_FEATURES := rtti exceptions
+LOCAL_EXPORT_C_INCLUDES := $(llvm_libc++_export_includes)
+LOCAL_EXPORT_CPPFLAGS := $(llvm_libc++_export_cxxflags)
 LOCAL_LDLIBS := -latomic
 LOCAL_EXPORT_LDLIBS := -latomic
-
-# We use the LLVM unwinder for all the 32-bit ARM targets.
-ifneq (,$(filter armeabi%,$(TARGET_ARCH_ABI)))
-    LOCAL_STATIC_LIBRARIES += libunwind
-endif
-
-# But only need -latomic for armeabi.
-ifeq ($(TARGET_ARCH_ABI),armeabi)
-    LOCAL_LDLIBS := -latomic
-endif
 include $(BUILD_SHARED_LIBRARY)
 
-endif # LIBCXX_FORCE_REBUILD == true
-
-$(call import-module, android/support)
-$(call import-module, cxx-stl/llvm-libc++abi)
+endif # __libcxx_force_rebuild == true
