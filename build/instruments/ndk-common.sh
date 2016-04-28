@@ -30,7 +30,12 @@ if [ ! -d "$NDK_CACHE_DIR" ]; then
     fi
 fi
 
-export TMPDIR=/tmp/ndk-$USER
+if [ -z "$CRYSTAX_NDK_BASE_TMP_DIR" ]; then
+    TMPDIR=/tmp/ndk-$USER
+else
+    TMPDIR="$CRYSTAX_NDK_BASE_TMP_DIR/ndk-$USER"
+fi
+export TMPDIR
 
 OS=`uname -s`
 if [ "$OS" == "Darwin" -a -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
