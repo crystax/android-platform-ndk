@@ -366,10 +366,10 @@ build_stl_libs_for_abi ()
 # $1: ABI
 get_libstdcxx_package_name_for_abi ()
 {
+    local ABI=$1
     local package_name
 
-    package_name="${CXX_STL_PACKAGE}-${LLVM_VERSION}-libs"
-    package_name="${package_name}-$1"
+    package_name="${CXX_STL_PACKAGE}-libs-${LLVM_VERSION}-$ABI"
     if [ "$WITH_DEBUG_INFO" ]; then
         package_name="${package_name}-g"
     fi
