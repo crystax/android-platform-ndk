@@ -31,7 +31,7 @@
 
 # ------------------------------------------------------------------------------
 #  Android CMake toolchain file, for use with the CrystaX NDK
-#  Requires cmake 2.6.3 or newer (2.8.9 or newer is recommended).
+#  Requires cmake 3.0 or newer (3.2 or newer is recommended).
 #
 #  Usage Linux:
 #   $ mkdir build && cd build
@@ -165,7 +165,7 @@
 #
 # ------------------------------------------------------------------------------
 
-cmake_minimum_required( VERSION 2.6.3 )
+cmake_minimum_required( VERSION 3.0.0 )
 
 if( DEFINED CMAKE_CROSSCOMPILING )
  # subsequent toolchain loading is not really needed
