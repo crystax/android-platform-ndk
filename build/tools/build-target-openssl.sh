@@ -277,7 +277,6 @@ build_openssl_for_abi ()
         echo '        ln -s $OPENSSL_SOURCE/$F $F'
         echo '    fi'
         echo 'done'
-        echo 'rm -rf engines'
     } >$OBJTREE_WRAPPER
     fail_panic "Can't create OpenSSL objtree wrapper"
     chmod +x $OBJTREE_WRAPPER
@@ -306,7 +305,7 @@ build_openssl_for_abi ()
         *)
             panic "ERROR: Unknown ABI: '$ABI'"
     esac
-    local OPENSSL_OPTIONS='shared zlib-dynamic no-hw no-dso -DOPENSSL_NO_DEPRECATED'
+    local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
 
     # script for build
     local BUILD_WRAPPER=$BUILDDIR/build.sh
