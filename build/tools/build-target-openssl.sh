@@ -294,12 +294,14 @@ build_openssl_for_abi ()
             OPENSSL_TARGET=linux-armv4
             ;;
         arm64-v8a)
-            OPENSSL_TARGET=linux-generic64
+            OPENSSL_TARGET=linux-aarch64
             ;;
         mips)
+# 'linux-generic32' means here that ASM optimizations disabled - TODO
             OPENSSL_TARGET=linux-generic32
             ;;
         mips64)
+# 'linux-generic64' means here that ASM optimizations disabled - TODO
             OPENSSL_TARGET=linux-generic64
             ;;
         *)

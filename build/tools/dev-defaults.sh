@@ -59,7 +59,7 @@ PYTHON_VERSIONS="2.7 3.5"
 
 # Location of the OpenSSL libraries, relative to the NDK root directory
 OPENSSL_SUBDIR=sources/openssl
-OPENSSL_VERSIONS="1.0.1"
+OPENSSL_VERSIONS="1.0.2"
 DEFAULT_OPENSSL_VERSION=$(echo $OPENSSL_VERSIONS | tr ' ' '\n' | head -n 1)
 
 # Location of the libpng libraries, relative to the NDK root directory
