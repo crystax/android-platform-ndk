@@ -299,10 +299,12 @@ build_openssl_for_abi ()
         mips)
 # 'linux-generic32' means here that ASM optimizations disabled - TODO
             OPENSSL_TARGET=linux-generic32
+#            OPENSSL_TARGET=linux-mips32
             ;;
         mips64)
 # 'linux-generic64' means here that ASM optimizations disabled - TODO
             OPENSSL_TARGET=linux-generic64
+#            OPENSSL_TARGET=XXX - linux-mips64 or linux64-mips64
             ;;
         *)
             panic "ERROR: Unknown ABI: '$ABI'"
