@@ -250,7 +250,6 @@ build_openssl_for_abi ()
         echo 'else'
         echo '    ARGS="$MY_CFLAGS $ARGS"'
         echo 'fi'
-        echo 'set -x'
         echo "exec $TCPREFIX/bin/${HOST}-gcc --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH \$ARGS"
     } >$MY_GCC
     fail_panic "Can't create gcc wrapper"
