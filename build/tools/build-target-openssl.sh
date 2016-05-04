@@ -273,6 +273,8 @@ build_openssl_for_abi ()
         echo '        cp -fpH $OPENSSL_SOURCE/crypto/opensslconf.h ./crypto'
         echo '    elif [ "$F" = "./crypto/cryptlib.h" ]; then'
         echo '        cp -fpH $OPENSSL_SOURCE/crypto/cryptlib.h ./crypto'
+        echo '    elif [ "$F" = "./Makefile.org" ]; then'
+        echo '        cp -fpH $OPENSSL_SOURCE/Makefile.org .'
         echo '    else'
         echo '        ln -s $OPENSSL_SOURCE/$F $F'
         echo '    fi'
@@ -297,18 +299,17 @@ build_openssl_for_abi ()
             OPENSSL_TARGET=linux-aarch64
             ;;
         mips)
-# 'linux-generic32' means here that ASM optimizations disabled - TODO
+            # Looks like asm code in OpenSSL doesn't support MIPS32r6
             OPENSSL_TARGET=linux-generic32
-#            OPENSSL_TARGET=linux-mips32
             ;;
-        mips64)
-# 'linux-generic64' means here that ASM optimizations disabled - TODO
+        mips64) 
+            # Looks like asm code in OpenSSL doesn't support MIPS64r6
             OPENSSL_TARGET=linux-generic64
-#            OPENSSL_TARGET=XXX - linux-mips64 or linux64-mips64
             ;;
         *)
             panic "ERROR: Unknown ABI: '$ABI'"
     esac
+
     local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
 
     # script for build
@@ -320,6 +321,7 @@ build_openssl_for_abi ()
         echo 'cd $DIR_HERE'
         echo './mkobjtree.sh'
         echo 'cd objtree'
+        echo "perl -p -i -e 's/^(install:.*)\\binstall_docs\\b(.*)$/\$1 \$2/g' Makefile.org"
         echo "perl ./Configure --openssldir=/system/etc/security --prefix=/pkg --cross-compile-prefix=\"${HOST}-\" $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "perl -p -i -e 's/^(#\\s*define\\s+ENGINESDIR\\s+).*$/\$1NULL/g' crypto/opensslconf.h"
         echo "perl -p -i -e 's/^(#\\s*define\\s+X509_CERT_DIR\\s+OPENSSLDIR\\s+).*$/\$1\"\\/cacerts\"/g' crypto/cryptlib.h"
