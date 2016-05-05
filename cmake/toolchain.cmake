@@ -240,6 +240,9 @@ if( NOT DEFINED ANDROID_TOOLCHAIN_VERSION)
  set( ANDROID_TOOLCHAIN_VERSION gcc-${DEFAULT_GCC_VERSION})
 endif()
 
+# Set ANDROID_PREBUILT_LIBRARIES to empty value initially
+set( ANDROID_PREBUILT_LIBRARIES )
+
 macro( __LIST_FILTER listvar regex )
   if( ${listvar} )
     foreach( __val ${${listvar}} )
@@ -1176,6 +1179,7 @@ if( EXISTS "${__libstl}" OR EXISTS "${__libsupcxx}" )
   set( CMAKE_CXX_CREATE_SHARED_MODULE  "${CMAKE_CXX_CREATE_SHARED_MODULE} \"${__libstl}\"" )
   set( CMAKE_CXX_LINK_EXECUTABLE       "${CMAKE_CXX_LINK_EXECUTABLE} \"${__libstl}\"" )
   set( ANDROID_LIBSTDCXX_FILE ${__libstl} )
+  list( APPEND ANDROID_PREBUILT_LIBRARIES ${ANDROID_LIBSTDCXX_FILE} )
  endif()
  if( EXISTS "${__libsupcxx}" )
   set( CMAKE_CXX_CREATE_SHARED_LIBRARY "${CMAKE_CXX_CREATE_SHARED_LIBRARY} \"${__libsupcxx}\"" )
@@ -1209,6 +1213,7 @@ if( ANDROID_NDK_ABI_NAME MATCHES "^armeabi.*$" AND NOT ANDROID_FORCE_ARM_BUILD )
  set( ANDROID_LIBCRYSTAX_LIBDIR ${ANDROID_LIBCRYSTAX_LIBDIR}/thumb )
 endif()
 set( ANDROID_LIBCRYSTAX_FILE ${ANDROID_LIBCRYSTAX_LIBDIR}/libcrystax.so )
+list( APPEND ANDROID_PREBUILT_LIBRARIES ${ANDROID_LIBCRYSTAX_FILE} )
 
 set( __androidLinkOptions )
 set( __androidLinkOptions "${__androidLinkOptions} -L${ANDROID_LIBCRYSTAX_LIBDIR} -lcrystax" )
@@ -1592,6 +1597,7 @@ endif()
 #   ANDROID_SYSROOT : path to the compiler sysroot
 #   TOOL_OS_SUFFIX : "" or ".exe" depending on host platform
 #   ANDROID_COMPILER_IS_CLANG : TRUE if clang compiler is used
+#   ANDROID_PREBUILT_LIBRARIES : list of libraries to be copied with binary (such as libcrystax.so and libgnustl_shared.so)
 #
 # Secondary (less stable) read-only variables:
 #   ANDROID_COMPILER_VERSION : GCC version used (not Clang version)
