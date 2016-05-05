@@ -56,6 +56,8 @@ class Project
         @outdir = options[:outdir]
         @tmpdir = File.join(@outdir, @type, @name)
 
+        @jobs = options[:jobs] || 1
+
         @adb = options[:adb]
 
         propf = File.join(path, 'properties.json')
@@ -124,6 +126,13 @@ class Project
         end
 
         @gnumake
+    end
+
+    def cmake
+        if @cmake.nil?
+            @cmake = 'cmake'
+        end
+        @cmake
     end
 
     def cleanup
@@ -255,8 +264,8 @@ class Project
 
         # Allow on-host testing on Linux/Darwin hosts only
         return if RUBY_PLATFORM !~ /(linux|darwin)/
-        # Disable on-host testing if there is no host/GNUmakefile
-        return if !File.exists?(File.join(path, 'host', 'GNUmakefile'))
+        # Disable on-host testing if there is no host/GNUmakefile or CMakeLists.txt
+        return if !File.exists?(File.join(path, 'host', 'GNUmakefile')) && !File.exists?(File.join(path, 'CMakeLists.txt'))
         # Disable on-host testing if it was explicitly requested
         return if ENV['DISABLE_ONHOST_TESTING'] == 'yes'
 
@@ -275,9 +284,11 @@ class Project
             'gcc',
             'gcc-4.9',
             'gcc-5',
+            'gcc-6',
             'clang',
             'clang-3.6',
             'clang-3.7',
+            'clang-3.8',
         ].each do |cc|
             found = false
             ENV['PATH'].split(':').each do |p|
@@ -317,11 +328,45 @@ class Project
             FileUtils.mkdir_p File.dirname(dir)
             FileUtils.cp_r path, dir
 
+            cmakelists = File.read(File.join(path, 'CMakeLists.txt')) rescue nil
+            File.open(File.join(dir, 'CMakeLists.txt'), 'w') do |bf|
+                bf.puts 'cmake_minimum_required(VERSION 3.2 FATAL_ERROR)' if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
+                bf.write cmakelists
+                if cmakelists.split("\n").select { |line| line =~ /^\s*add_custom_target\s*\(\s*run\b/i }.empty?
+                    bf.puts 'add_custom_target(run COMMAND $<TARGET_FILE:${TARGET}> )'
+                    bf.puts 'add_dependencies(run ${TARGET})'
+                end
+            end unless cmakelists.nil?
+
+            File.open(File.join(dir, 'run.sh'), 'w') do |bf|
+                bf.puts '#!/bin/sh'
+                bf.puts "export GNUMAKE='#{gnumake}'"
+                bf.puts "export JOBS=#{@jobs}"
+                bf.puts 'run()'
+                bf.puts '{'
+                bf.puts '    echo "## COMMAND: $@"'
+                bf.puts '    "$@"'
+                bf.puts '}'
+                if File.exists?(File.join(dir, 'CMakeLists.txt'))
+                    bf.puts "run rm -Rf #{dir}/cmake-build || exit 1"
+                    bf.puts "run mkdir -p #{dir}/cmake-build || exit 1"
+                    bf.puts "run cd #{dir}/cmake-build || exit 1"
+                    bf.puts "run cmake -DCMAKE_C_COMPILER=#{cc} -DCMAKE_CXX_COMPILER=#{cc} #{dir} || exit 1"
+                    bf.puts "run #{gnumake} -j#{@jobs} VERBOSE=1 || exit 1"
+                    bf.puts "run #{gnumake} run VERBOSE=1 || exit 1"
+                elsif File.exists?(File.join(dir, 'host', 'GNUmakefile'))
+                    bf.puts "run #{gnumake} -C #{File.join(dir, 'host')} -B -j#{@jobs} test CC=#{cc}"
+                else
+                    raise "Don't know how to run on-host testing for this test!"
+                end
+                bf.puts "exit 0"
+            end
+            FileUtils.chmod 0755, File.join(dir, 'run.sh')
+
             max_attempts = 5
             attempt = 1
             begin
-                cmd = "#{gnumake} -C #{File.join(dir, 'host')} -B -j#{@options[:jobs]} test CC=#{cc}"
-                run_cmd cmd, errmsg: "On-host test of #{name} failed", track_mkdir_errors: true
+                run_cmd File.join(dir, 'run.sh'), errmsg: "On-host test of #{name} failed", track_mkdir_errors: true
             rescue MkdirFailed
                 attempt += 1
                 raise "On-host testing of project #{name} failed" if attempt > max_attempts
@@ -359,12 +404,69 @@ class Project
         FileUtils.cp_r path, dstdir
 
         FileUtils.cd(dstdir) do
+            cmakelists = File.read(File.join(path, 'CMakeLists.txt')) rescue nil
+            if !cmakelists.nil? && !File.send(WINDOWS ? 'exists?' : 'executable?', File.join(dstdir, 'build.sh'))
+                File.open(File.join(dstdir, 'CMakeLists.txt'), 'w') do |bf|
+                    bf.puts 'cmake_minimum_required(VERSION 3.2 FATAL_ERROR)'
+                    bf.puts ''
+                    bf.write cmakelists
+
+                    if cmakelists.split("\n").reject { |line| line =~ /^\s*(#|$)/ }.first =~ /^\s*set\s*\(\s*TARGET\b/i
+                        bf.puts ''
+                        bf.puts 'install(TARGETS ${TARGET}'
+                        bf.puts '        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin'
+                        bf.puts '        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib'
+                        bf.puts ')'
+                        bf.puts 'foreach(__extLibrary ${ANDROID_PREBUILT_LIBRARIES})'
+                        bf.puts '    install(FILES ${__extLibrary} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)'
+                        bf.puts 'endforeach()'
+                    end
+                end
+
+                File.open(File.join(dstdir, 'build.sh'), 'w') do |bf|
+                    bf.puts '#!/bin/sh'
+                    bf.puts 'run()'
+                    bf.puts '{'
+                    bf.puts '    echo "## COMMAND: $@"'
+                    bf.puts '    "$@"'
+                    bf.puts '}'
+
+                    args = []
+                    args << "-DCMAKE_TOOLCHAIN_FILE=#{File.join(@ndk, 'cmake', 'toolchain.cmake')}"
+                    args << "-DANDROID_TOOLCHAIN_VERSION=#{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
+                    args << "-DANDROID_APP_PIE=#{options[:pie]}" unless options[:pie].nil?
+
+                    %w[armeabi armeabi-v7a armeabi-v7a-hard x86 mips arm64-v8a x86_64 mips64].each do |abi|
+                        blddir = File.join(dstdir, 'cmake-build', abi)
+                        tmpinstalldir = File.join(dstdir, 'cmake-install', abi)
+                        installdir = File.join(dstdir, 'libs', abi)
+
+                        aargs = args.dup
+                        aargs << "-DCMAKE_INSTALL_PREFIX=#{tmpinstalldir}"
+                        aargs << "-DANDROID_ABI=#{abi}"
+
+                        bf.puts "run rm -Rf #{blddir} #{tmpinstalldir} #{installdir} || exit 1"
+                        bf.puts "run mkdir -p #{blddir} || exit 1"
+                        bf.puts "run cd #{blddir} || exit 1"
+                        bf.puts "run #{cmake} #{aargs.join(' ')} #{dstdir} || exit 1"
+                        bf.puts "run #{gnumake} -j#{@jobs} VERBOSE=1 || exit 1"
+                        bf.puts "run #{gnumake} install VERBOSE=1 || exit 1"
+                        bf.puts "for f in `ls -1 #{tmpinstalldir}/bin/ 2>/dev/null` `ls -1 #{tmpinstalldir}/lib/lib*.so 2>/dev/null`; do"
+                        bf.puts "    mkdir -p #{installdir} || exit 1"
+                        bf.puts "    run cp $f #{installdir}/ || exit 1"
+                        bf.puts "done"
+                    end
+                    bf.puts "exit 0"
+                end
+                FileUtils.chmod 0755, File.join(dstdir, 'build.sh') unless WINDOWS
+            end
+
             bs = nil
             [
                 File.join(dstdir, 'build.sh'),
                 @ndkbuild,
             ].each do |bf|
-                next unless (WINDOWS ? File.exists?(bf) : File.executable?(bf))
+                next unless File.send(WINDOWS ? 'exists?' : 'executable?', bf)
                 bs = bf
                 break
             end
@@ -374,16 +476,16 @@ class Project
             env = {}
             env['V'] = '1'
             env['APP_PIE'] = (options[:pie] ? true : false).to_s
+            env['GNUMAKE'] = gnumake
+            env['JOBS'] = @jobs
 
             args = [bs]
             if bs == @ndkbuild
                 args << "-B"
-                args << "-j#{@options[:jobs]}" if @options[:jobs]
+                args << "-j#{@jobs}"
                 env.each do |k,v|
                     args << "#{k}=#{v}"
                 end
-            else
-                env['JOBS'] = @options[:jobs] if @options[:jobs]
             end
 
             cmd = args.join(' ')
