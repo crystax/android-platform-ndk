@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2009, 2014, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1822,7 +1822,7 @@ _FLAGS := $$($$(my)CFLAGS) \
           $$(LOCAL_CFLAGS) \
           $$(LOCAL_OBJCFLAGS) \
           $$(NDK_APP_CFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _TEXT := "Compile $$(call get-src-file-text,$1)"
@@ -1904,7 +1904,7 @@ _FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _CC   := $$(NDK_CCACHE) $$($$(my)CXX)
