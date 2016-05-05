@@ -38,6 +38,8 @@ class Project
 
     WINDOWS = RUBY_PLATFORM =~ /(cygwin|mingw|win32)/ ? true : false
 
+    CMAKE_MINIMUM_VERSION = '3.2'
+
     class MkdirFailed < Exception; end
 
     def initialize(path, ndk, options = {})
@@ -171,6 +173,14 @@ class Project
         @properties['long'].to_s =~ /^(true|yes|1)/i ? true : false
     end
 
+    def has_build_script?
+        File.send(WINDOWS ? 'exists?' : 'executable?', File.join(path, 'build.sh'))
+    end
+
+    def has_cmakelists?
+        File.exists?(File.join(path, 'CMakeLists.txt'))
+    end
+
     def elapsed(seconds)
         s = seconds.to_i % 60
         m = (seconds.to_i / 60) % 60
@@ -265,7 +275,7 @@ class Project
         # Allow on-host testing on Linux/Darwin hosts only
         return if RUBY_PLATFORM !~ /(linux|darwin)/
         # Disable on-host testing if there is no host/GNUmakefile or CMakeLists.txt
-        return if !File.exists?(File.join(path, 'host', 'GNUmakefile')) && !File.exists?(File.join(path, 'CMakeLists.txt'))
+        return if !File.exists?(File.join(path, 'host', 'GNUmakefile')) && !has_cmakelists?
         # Disable on-host testing if it was explicitly requested
         return if ENV['DISABLE_ONHOST_TESTING'] == 'yes'
 
@@ -328,15 +338,19 @@ class Project
             FileUtils.mkdir_p File.dirname(dir)
             FileUtils.cp_r path, dir
 
-            cmakelists = File.read(File.join(path, 'CMakeLists.txt')) rescue nil
             File.open(File.join(dir, 'CMakeLists.txt'), 'w') do |bf|
-                bf.puts 'cmake_minimum_required(VERSION 3.2 FATAL_ERROR)' if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
-                bf.write cmakelists
-                if cmakelists.split("\n").select { |line| line =~ /^\s*add_custom_target\s*\(\s*run\b/i }.empty?
-                    bf.puts 'add_custom_target(run COMMAND $<TARGET_FILE:${TARGET}> )'
-                    bf.puts 'add_dependencies(run ${TARGET})'
+                cmakelists = File.read(File.join(path, 'CMakeLists.txt'))
+                if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
+                    bf.puts "cmake_minimum_required(VERSION #{CMAKE_MINIMUM_VERSION} FATAL_ERROR)"
+                    bf.puts ''
                 end
-            end unless cmakelists.nil?
+                bf.write cmakelists
+                if cmakelists.split("\n").select { |line| line =~ /^\s*enable_testing\s*\(/i }.empty?
+                    bf.puts ''
+                    bf.puts 'enable_testing()'
+                    bf.puts 'add_test(NAME ${TARGET} COMMAND $<TARGET_FILE:${TARGET}>)'
+                end
+            end if has_cmakelists?
 
             File.open(File.join(dir, 'run.sh'), 'w') do |bf|
                 bf.puts '#!/bin/sh'
@@ -353,7 +367,7 @@ class Project
                     bf.puts "run cd #{dir}/cmake-build || exit 1"
                     bf.puts "run cmake -DCMAKE_C_COMPILER=#{cc} -DCMAKE_CXX_COMPILER=#{cc} #{dir} || exit 1"
                     bf.puts "run #{gnumake} -j#{@jobs} VERBOSE=1 || exit 1"
-                    bf.puts "run #{gnumake} run VERBOSE=1 || exit 1"
+                    bf.puts "run #{gnumake} test VERBOSE=1 || exit 1"
                 elsif File.exists?(File.join(dir, 'host', 'GNUmakefile'))
                     bf.puts "run #{gnumake} -C #{File.join(dir, 'host')} -B -j#{@jobs} test CC=#{cc}"
                 else
@@ -404,10 +418,10 @@ class Project
         FileUtils.cp_r path, dstdir
 
         FileUtils.cd(dstdir) do
-            cmakelists = File.read(File.join(path, 'CMakeLists.txt')) rescue nil
-            if !cmakelists.nil? && !File.send(WINDOWS ? 'exists?' : 'executable?', File.join(dstdir, 'build.sh'))
+            if has_cmakelists? && !has_build_script?
+                cmakelists = File.read(File.join(path, 'CMakeLists.txt'))
                 File.open(File.join(dstdir, 'CMakeLists.txt'), 'w') do |bf|
-                    bf.puts 'cmake_minimum_required(VERSION 3.2 FATAL_ERROR)'
+                    bf.puts "cmake_minimum_required(VERSION #{CMAKE_MINIMUM_VERSION} FATAL_ERROR)" if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
                     bf.puts ''
                     bf.write cmakelists
 
