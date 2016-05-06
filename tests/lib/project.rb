@@ -181,6 +181,41 @@ class Project
         File.exists?(File.join(path, 'CMakeLists.txt'))
     end
 
+    def host_compilers(options = {})
+        if @host_compilers.nil?
+            ccs = []
+
+            %w[cc gcc gcc-4.9 gcc-5 gcc-6 clang clang-3.6 clang-3.7 clang-3.8].each do |cc|
+                found = false
+                ENV['PATH'].split(':').each do |p|
+                    next if !File.executable?(File.join(p, cc))
+                    found = true
+                    break
+                end
+                next unless found
+
+                if preprocess(cc, "__clang__") != "__clang__"
+                    type = :clang
+                    version = preprocess(cc, "__clang_version__")
+                elsif preprocess(cc, "__GNUC__") != "__GNUC__"
+                    type = :gcc
+                    version = preprocess(cc, "__VERSION__")
+                else
+                    raise "Can't detect type of #{cc}"
+                end
+
+                ccs << {exe: cc, type: type, version: version} if ccs.select { |x| x[:type] == type && x[:version] == version }.empty?
+            end
+
+            @host_compilers = ccs
+        end
+
+        ccs = @host_compilers.dup
+        ccs.select! { |x| x[:type] != options[:type] } unless options[:type].nil?
+        ccs.select! { |x| x[:version] != options[:version] } unless options[:version].nil?
+        ccs
+    end
+
     def elapsed(seconds)
         s = seconds.to_i % 60
         m = (seconds.to_i / 60) % 60
@@ -287,45 +322,12 @@ class Project
 
         log_notice "HST #{@display_type} [#{name}]"
 
-        ccs = []
-
-        [
-            'cc',
-            'gcc',
-            'gcc-4.9',
-            'gcc-5',
-            'gcc-6',
-            'clang',
-            'clang-3.6',
-            'clang-3.7',
-            'clang-3.8',
-        ].each do |cc|
-            found = false
-            ENV['PATH'].split(':').each do |p|
-                next if !File.executable?(File.join(p, cc))
-                found = true
-                break
-            end
-            next unless found
-
-            if preprocess(cc, "__clang__") != "__clang__"
-                type = :clang
-                version = preprocess(cc, "__clang_version__")
-            elsif preprocess(cc, "__GNUC__") != "__GNUC__"
-                type = :gcc
-                version = preprocess(cc, "__VERSION__")
-            else
-                raise "Can't detect type of #{cc}"
-            end
-
-            ccs << {exe: cc, type: type, version: version} if ccs.select { |x| x[:type] == type && x[:version] == version }.empty?
-        end
-
+        cctype = nil
         if @options[:toolchain_version]
-            ndk_toolchain_type = @options[:toolchain_version] =~ /^clang/ ? :clang : :gcc
-            ccs.select! { |e| e[:type] == ndk_toolchain_type }
+            cctype = @options[:toolchain_version] =~ /^clang/ ? :clang : :gcc
         end
 
+        ccs = host_compilers(type: cctype)
         ccs = [{exe: 'cc'}] if ccs.empty?
 
         ccs.map { |e| e[:exe] }.each do |cc|
