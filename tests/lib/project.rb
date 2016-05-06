@@ -177,8 +177,41 @@ class Project
         File.send(WINDOWS ? 'exists?' : 'executable?', File.join(path, 'build.sh'))
     end
 
-    def has_cmakelists?
-        File.exists?(File.join(path, 'CMakeLists.txt'))
+    def has_cmakelists?(dir = nil)
+        File.exists?(File.join(dir || path, 'CMakeLists.txt'))
+    end
+
+    def copy_cmakelists(dir)
+        src = File.join(path, 'CMakeLists.txt')
+        dst = File.join(dir, File.basename(src))
+        return unless File.exists?(src)
+
+        content = File.read(src).split("\n").map(&:chomp)
+
+        File.open(dst, 'w') do |bf|
+            if content.select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
+                bf.puts "cmake_minimum_required(VERSION #{CMAKE_MINIMUM_VERSION} FATAL_ERROR)"
+                bf.puts ''
+            end
+
+            bf.write content.join("\n")
+
+            if content.select { |line| line =~ /^\s*enable_testing\s*\(/i }.empty?
+                bf.puts ''
+                bf.puts 'if(ANDROID)'
+                bf.puts '    install(TARGETS ${TARGET}'
+                bf.puts '            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin'
+                bf.puts '            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib'
+                bf.puts '    )'
+                bf.puts '    foreach(__extLibrary ${ANDROID_PREBUILT_LIBRARIES})'
+                bf.puts '        install(FILES ${__extLibrary} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)'
+                bf.puts '    endforeach()'
+                bf.puts 'else()'
+                bf.puts '    enable_testing()'
+                bf.puts '    add_test(NAME ${TARGET} COMMAND $<TARGET_FILE:${TARGET}>)'
+                bf.puts 'endif()'
+            end
+        end
     end
 
     def host_compilers(options = {})
@@ -345,19 +378,7 @@ class Project
             FileUtils.mkdir_p File.dirname(dir)
             FileUtils.cp_r path, dir
 
-            File.open(File.join(dir, 'CMakeLists.txt'), 'w') do |bf|
-                cmakelists = File.read(File.join(path, 'CMakeLists.txt'))
-                if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
-                    bf.puts "cmake_minimum_required(VERSION #{CMAKE_MINIMUM_VERSION} FATAL_ERROR)"
-                    bf.puts ''
-                end
-                bf.write cmakelists
-                if cmakelists.split("\n").select { |line| line =~ /^\s*enable_testing\s*\(/i }.empty?
-                    bf.puts ''
-                    bf.puts 'enable_testing()'
-                    bf.puts 'add_test(NAME ${TARGET} COMMAND $<TARGET_FILE:${TARGET}>)'
-                end
-            end if has_cmakelists?
+            copy_cmakelists(dir) if has_cmakelists?
 
             File.open(File.join(dir, 'run.sh'), 'w') do |bf|
                 bf.puts '#!/bin/sh'
@@ -366,7 +387,7 @@ class Project
                 bf.puts '    echo "## COMMAND: $@"'
                 bf.puts '    "$@"'
                 bf.puts '}'
-                if File.exists?(File.join(dir, 'CMakeLists.txt'))
+                if has_cmakelists?(dir)
                     bf.puts "run rm -Rf #{dir}/cmake-build || exit 1"
                     bf.puts "run mkdir -p #{dir}/cmake-build || exit 1"
                     bf.puts "run cd #{dir}/cmake-build || exit 1"
@@ -424,23 +445,7 @@ class Project
 
         FileUtils.cd(dstdir) do
             if has_cmakelists? && !has_build_script?
-                cmakelists = File.read(File.join(path, 'CMakeLists.txt'))
-                File.open(File.join(dstdir, 'CMakeLists.txt'), 'w') do |bf|
-                    bf.puts "cmake_minimum_required(VERSION #{CMAKE_MINIMUM_VERSION} FATAL_ERROR)" if cmakelists.split("\n").select { |line| line =~ /^\s*cmake_minimum_required\s*\(/i }.empty?
-                    bf.puts ''
-                    bf.write cmakelists
-
-                    if cmakelists.split("\n").reject { |line| line =~ /^\s*(#|$)/ }.first =~ /^\s*set\s*\(\s*TARGET\b/i
-                        bf.puts ''
-                        bf.puts 'install(TARGETS ${TARGET}'
-                        bf.puts '        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin'
-                        bf.puts '        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib'
-                        bf.puts ')'
-                        bf.puts 'foreach(__extLibrary ${ANDROID_PREBUILT_LIBRARIES})'
-                        bf.puts '    install(FILES ${__extLibrary} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)'
-                        bf.puts 'endforeach()'
-                    end
-                end
+                copy_cmakelists(dstdir)
 
                 File.open(File.join(dstdir, 'build.sh'), 'w') do |bf|
                     bf.puts '#!/bin/sh'
