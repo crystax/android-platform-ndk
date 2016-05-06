@@ -245,7 +245,12 @@ class Project
     def run_cmd(cmd, options = {}, &block)
         log_info "## COMMAND: #{cmd}"
         log_info "## CWD: #{Dir.pwd}"
-        Open3.popen3(options[:env] || {}, cmd) do |i,o,e,t|
+
+        env = options[:env] || {}
+        env['GNUMAKE'] = gnumake
+        env['JOBS'] = @jobs
+
+        Open3.popen3(env, cmd) do |i,o,e,t|
             [i,o,e].each { |io| io.sync = true }
 
             ot = Thread.start do
@@ -356,8 +361,6 @@ class Project
 
             File.open(File.join(dir, 'run.sh'), 'w') do |bf|
                 bf.puts '#!/bin/sh'
-                bf.puts "export GNUMAKE='#{gnumake}'"
-                bf.puts "export JOBS=#{@jobs}"
                 bf.puts 'run()'
                 bf.puts '{'
                 bf.puts '    echo "## COMMAND: $@"'
@@ -492,8 +495,6 @@ class Project
             env = {}
             env['V'] = '1'
             env['APP_PIE'] = (options[:pie] ? true : false).to_s
-            env['GNUMAKE'] = gnumake
-            env['JOBS'] = @jobs
 
             args = [bs]
             if bs == @ndkbuild
@@ -609,11 +610,9 @@ class Project
         args << "--ld-library-path=#{File.join(dstdir, 'libs', abi)}"
         args << "@#{cmdslist}"
 
-        env = {}
-
         skipreason = nil
 
-        run_cmd args.join(' '), env: env, errmsg: "Test #{name} failed", mroprefix: mroprefix do |obj|
+        run_cmd args.join(' '), errmsg: "Test #{name} failed", mroprefix: mroprefix do |obj|
             case obj["event"]
             when "skip"
                 num = obj["number"].to_i
