@@ -340,7 +340,7 @@ class Project
         # For maximum coverage, we use wide range of C/C++ compilers and test with all of them
         # we can found on host
         # Requirements for on-host tests:
-        # - there should be host/GNUmakefile file in test directory
+        # - there should be host/GNUmakefile or CMakeLists.txt file in test directory
         # - that GNUmakefile should support 'test' target, which build and run test on host
         # - that GNUmakefile should allow redefining of CC and CXX variables and use them for
         #   test build
