@@ -347,6 +347,13 @@ class Project
     end
     private :run_cmd
 
+    def run_build_cmd(cmd, dir, env = {})
+        FileUtils.cd(dir) do
+            run_cmd cmd, env: env, errmsg: "Build of project #{name} failed", track_mkdir_errors: true
+        end
+    end
+    private :run_build_cmd
+
     def run_on_host
         # If there is 'host/GNUmakefile', that means this test is capable to run on host too.
         # In this case, before we build test with NDK build system, we build and run it on host,
@@ -452,6 +459,97 @@ class Project
     end
     private :variants
 
+    def buildfunc_with_generic_script(dir, script, options)
+        proc do
+            if WINDOWS
+                shell = ENV['SHELL']
+                if ENV['OSTYPE'] == 'cygwin'
+                    o,e,s = Open3.capture3("cygpath -m #{shell}")
+                    raise "Can't convert cygwin path to native: #{e}" unless s.success?
+                    shell = o.chomp
+                else
+                    shell = shell.sub(/^\/([A-Za-z])\//, '\1:/')
+                end
+                cmd = "#{shell} #{script}"
+            else
+                cmd = script
+            end
+            env = {}
+            env['V'] = '1'
+            env['APP_PIE'] = (options[:pie] ? true : false).to_s unless options[:pie].nil?
+            run_build_cmd cmd, dir, env
+        end
+    end
+    private :buildfunc_with_generic_script
+
+    def buildfunc_with_cmake(dir, options)
+        copy_cmakelists(dir)
+        proc do
+            args = [cmake]
+            args << "-DCMAKE_TOOLCHAIN_FILE=#{File.join(@ndk, 'cmake', 'toolchain.cmake')}"
+            args << "-DANDROID_TOOLCHAIN_VERSION=#{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
+            args << "-DANDROID_APP_PIE=#{options[:pie]}" unless options[:pie].nil?
+            %w[armeabi armeabi-v7a armeabi-v7a-hard x86 mips arm64-v8a x86_64 mips64].each do |abi|
+                log_notice "BLD #{@display_type} [#{name}]#{variants(options)}: #{abi}"
+
+                blddir = File.join(dir, 'cmake-build', abi)
+                tmpinstalldir = File.join(dir, 'cmake-install', abi)
+                installdir = File.join(dir, 'libs', abi)
+
+                aargs = args.dup
+                aargs << "-DCMAKE_INSTALL_PREFIX=#{tmpinstalldir}"
+                aargs << "-DANDROID_ABI=#{abi}"
+                aargs << dir
+
+                FileUtils.rm_rf blddir
+                FileUtils.rm_rf tmpinstalldir
+                FileUtils.rm_rf installdir
+                FileUtils.mkdir_p blddir
+
+                run_build_cmd aargs.join(' '), blddir
+                run_build_cmd "#{gnumake} -j#{@jobs} VERBOSE=1", blddir
+                run_build_cmd "#{gnumake} install VERBOSE=1", blddir
+
+                bins = []
+                bins += Dir.glob(File.join(tmpinstalldir, 'bin', '*')) if File.directory?(File.join(tmpinstalldir, 'bin'))
+                bins += Dir.glob(File.join(tmpinstalldir, 'lib', 'lib*.so')) if File.directory?(File.join(tmpinstalldir, 'lib'))
+                bins.each do |bin|
+                    FileUtils.mkdir_p installdir
+                    FileUtils.cp bin, installdir
+                end
+            end
+        end
+    end
+    private :buildfunc_with_cmake
+
+    def buildfunc_with_ndkbuild(dir, options)
+        proc do
+            args = [@ndkbuild]
+            args << '-B'
+            args << "-j#{@jobs}"
+            args << 'V=1'
+            args << "APP_PIE=#{options[:pie]}" unless options[:pie].nil?
+            run_build_cmd args.join(' '), dir
+        end
+    end
+    private :buildfunc_with_ndkbuild
+
+    def buildfunc(dir, options)
+        genscript = File.join(dir, 'build')
+        if has_script?('build.sh', dir) && !has_script?(File.basename(genscript), dir)
+            FileUtils.mv File.join(dir, 'build.sh'), genscript
+        end
+
+        if has_script?(File.basename(genscript), dir)
+            buildfunc_with_generic_script(dir, genscript, options)
+        elsif has_cmakelists?(dir)
+            buildfunc_with_cmake(dir, options)
+        else
+            buildfunc_with_ndkbuild(dir, options)
+        end
+    end
+    private :buildfunc
+
     def build(options = {})
         log_notice "BLD #{@display_type} [#{name}]#{variants(options)}"
 
@@ -461,91 +559,7 @@ class Project
         FileUtils.mkdir_p File.dirname(dstdir)
         FileUtils.cp_r path, dstdir
 
-        bldscript = File.join(dstdir, 'build')
-
-        if has_script?('build.sh') && !has_script?(File.basename(bldscript), dstdir)
-            FileUtils.cp File.join(dstdir, 'build.sh'), bldscript
-        end
-
-        copy_cmakelists(dstdir)
-
-        errmsg = "Build of project #{name} failed"
-
-        env = {}
-        env['V'] = '1'
-        env['APP_PIE'] = (options[:pie] ? true : false).to_s
-
-        if has_script?(File.basename(bldscript), dstdir)
-            bldfunc = proc do
-                if WINDOWS
-                    shell = ENV['SHELL']
-                    if ENV['OSTYPE'] == 'cygwin'
-                        o,e,s = Open3.capture3("cygpath -m #{shell}")
-                        raise "Can't convert cygwin path to native: #{e}" unless s.success?
-                        shell = o.chomp
-                    else
-                        shell = shell.sub(/^\/([A-Za-z])\//, '\1:/')
-                    end
-                    cmd = "#{shell} #{bldscript}"
-                else
-                    cmd = bldscript
-                end
-                FileUtils.cd(dstdir) do
-                    run_cmd cmd, env: env, errmsg: errmsg, track_mkdir_errors: true
-                end
-            end
-        elsif has_cmakelists?(dstdir)
-            bldfunc = proc do
-                args = [cmake]
-                args << "-DCMAKE_TOOLCHAIN_FILE=#{File.join(@ndk, 'cmake', 'toolchain.cmake')}"
-                args << "-DANDROID_TOOLCHAIN_VERSION=#{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
-                args << "-DANDROID_APP_PIE=#{options[:pie]}" unless options[:pie].nil?
-                %w[armeabi armeabi-v7a armeabi-v7a-hard x86 mips arm64-v8a x86_64 mips64].each do |abi|
-                    log_notice "BLD #{@display_type} [#{name}]#{variants(options)}: #{abi}"
-
-                    blddir = File.join(dstdir, 'cmake-build', abi)
-                    tmpinstalldir = File.join(dstdir, 'cmake-install', abi)
-                    installdir = File.join(dstdir, 'libs', abi)
-
-                    aargs = args.dup
-                    aargs << "-DCMAKE_INSTALL_PREFIX=#{tmpinstalldir}"
-                    aargs << "-DANDROID_ABI=#{abi}"
-                    aargs << dstdir
-
-                    FileUtils.rm_rf blddir
-                    FileUtils.rm_rf tmpinstalldir
-                    FileUtils.rm_rf installdir
-                    FileUtils.mkdir_p blddir
-
-                    FileUtils.cd(blddir) do
-                        run_cmd aargs.join(' '), errmsg: errmsg
-                        run_cmd "#{gnumake} -j#{@jobs} VERBOSE=1", errmsg: errmsg
-                        run_cmd "#{gnumake} install VERBOSE=1", errmsg: errmsg
-                    end
-
-                    bins = []
-                    bins += Dir.glob(File.join(tmpinstalldir, 'bin', '*')) if File.directory?(File.join(tmpinstalldir, 'bin'))
-                    bins += Dir.glob(File.join(tmpinstalldir, 'lib', 'lib*.so')) if File.directory?(File.join(tmpinstalldir, 'lib'))
-                    bins.each do |bin|
-                        FileUtils.mkdir_p installdir
-                        FileUtils.cp bin, installdir
-                    end
-                end
-            end
-        else
-            bldfunc = proc do
-                args = [@ndkbuild]
-                args << '-B'
-                args << "-j#{@jobs}"
-                env.each do |k,v|
-                    args << "#{k}=#{v =~ /\s+/ ? "'#{v}'" : v}"
-                end
-                cmd = args.join(' ')
-                FileUtils.cd(dstdir) do
-                    run_cmd cmd, env: env, errmsg: errmsg, track_mkdir_errors: true
-                end
-            end
-        end
+        bldfunc = buildfunc(dstdir, options)
 
         max_attempts = 5
         attempt = 1
