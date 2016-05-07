@@ -1515,16 +1515,17 @@ $(strip $(foreach __opt,$(1),\
 endef
 
 # Put platforms include option to the end of list, ensuring CrystaX include option going right before that
+# We use subst function here to workaround the fact that '-isystem /some/path' is 2 words while '-I/some/path' is one.
 define interpose-crystax-headers
 $(strip \
-    $(filter-out $(call extract-platforms-include,$(1)),$(1)) \
+    $(filter-out $(call extract-platforms-include,$(subst -isystem ,-I,$(1))),$(subst -isystem ,-I,$(1))) \
     $(eval __libcrystax_incpath := $(crystax-dir)/include)\
     $(if $(wildcard $(__libcrystax_incpath)),\
         -I$(__libcrystax_incpath),\
         $(call __ndk_info,Could not find libcrystax headers: $(call pretty-dir,$(__libcrystax_incpath)) (broken NDK?))\
         $(call __ndk_error,Aborting)\
     )\
-    $(call extract-platforms-include,$(1))\
+    $(subst -I,-isystem ,$(call extract-platforms-include,$(subst -isystem ,-I,$(1))))\
 )
 endef
 
@@ -2302,7 +2303,7 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     c++_static,\
     cxx-stl/llvm-libc++,\
-    c++_static libc++abi libunwind android_support,\
+    c++_static,\
     ,\
     -ldl\
     )
@@ -2312,7 +2313,7 @@ $(call ndk-stl-register,\
 $(call ndk-stl-register,\
     c++_shared,\
     cxx-stl/llvm-libc++,\
-    libunwind,\
+    ,\
     c++_shared,\
     \
     )
