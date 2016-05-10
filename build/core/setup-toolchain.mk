@@ -33,6 +33,7 @@ endif
 
 # Check that we have a toolchain that supports the current ABI.
 # NOTE: If NDK_TOOLCHAIN is defined, we're going to use it.
+#
 ifndef NDK_TOOLCHAIN
     # This is a sorted list of toolchains that support the given ABI. For older
     # NDKs this was a bit more complicated, but now we just have the GCC and the
@@ -81,8 +82,7 @@ ifndef NDK_TOOLCHAIN
         # So it TARGET_TOOLCHAIN is 'foo-bar-zoo-xxx', then
         # TARGET_TOOLCHAIN_BASE will be 'foo-bar-zoo'
         #
-        TARGET_TOOLCHAIN_BASE := \
-            $(subst $(space),-,$(call chop,$(subst -,$(space),$(TARGET_TOOLCHAIN))))
+        TARGET_TOOLCHAIN_BASE := $(subst $(space),-,$(call chop,$(subst -,$(space),$(TARGET_TOOLCHAIN))))
         # if TARGET_TOOLCHAIN_BASE is llvm, remove clang from NDK_TOOLCHAIN_VERSION
         VERSION := $(NDK_TOOLCHAIN_VERSION)
         TARGET_TOOLCHAIN := $(TARGET_TOOLCHAIN_BASE)-$(VERSION)
