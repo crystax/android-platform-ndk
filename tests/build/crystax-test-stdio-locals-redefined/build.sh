@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. $NDK/build/tools/dev-defaults.sh
+. $NDK/build/instruments/dev-defaults.sh
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
 case $HOST_OS in

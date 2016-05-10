@@ -6,7 +6,7 @@ if [ -z "$NDK" ]; then
     NDK=$(cd ../../.. && pwd)
 fi
 
-source $NDK/build/tools/dev-defaults.sh || exit 1
+source $NDK/build/instruments/dev-defaults.sh || exit 1
 
 if [ -z "$NDK_TOOLCHAIN_VERSION" ]; then
     TOOLCHAIN_VERSIONS="$DEFAULT_GCC_VERSION_LIST"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -27,7 +27,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of CrystaX.
 
-. $NDK/build/tools/dev-defaults.sh
+. $NDK/build/instruments/dev-defaults.sh
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
 case $HOST_OS in

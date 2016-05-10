@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2015 CrystaX.
+# Copyright (c) 2015, 2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -42,10 +42,10 @@ fi
 
 FILE_DIR=$(dirname $0)
 NDK_DIR=$(cd $FILE_DIR/../../.. && pwd)
-NDK_BUILDTOOLS_PATH="$NDK_DIR/build/tools"
+NDK_BUILDTOOLS_PATH="$NDK_DIR/build/instruments"
 
-#. $NDK_DIR/build/tools/dev-defaults.sh
-#. $NDK_DIR/build/tools/prebuilt-common.sh
+#. $NDK_DIR/build/instruments/dev-defaults.sh
+#. $NDK_DIR/build/instruments/prebuilt-common.sh
 
 run()
 {

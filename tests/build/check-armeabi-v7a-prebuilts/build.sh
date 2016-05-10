@@ -218,8 +218,8 @@ check_armv7_elf_binary ()
 
 export ANDROID_NDK_ROOT=$NDK
 
-NDK_BUILDTOOLS_PATH=$NDK/build/tools
-. $NDK/build/tools/prebuilt-common.sh
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
+. $NDK/build/instruments/prebuilt-common.sh
 
 if [ -n "$APP_ABI" ]; then
     if [ "$(convert_abi_to_arch $APP_ABI)" != "arm" ]; then

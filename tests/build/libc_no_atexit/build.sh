@@ -6,8 +6,8 @@
 
 export ANDROID_NDK_ROOT=$NDK
 
-NDK_BUILDTOOLS_PATH=$NDK/build/tools
-. $NDK/build/tools/prebuilt-common.sh
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
+. $NDK/build/instruments/prebuilt-common.sh
 echo DEFAULT_ARCHS=$DEFAULT_ARCHS
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')

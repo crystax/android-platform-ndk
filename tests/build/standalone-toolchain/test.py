@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2015 The Android Open Source Project
+# Copyright (C) 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import build_support  # pylint: disable=import-error
 def make_standalone_toolchain(arch, platform, toolchain, install_dir):
     ndk_dir = os.environ['NDK']
     make_standalone_toolchain_path = os.path.join(
-        ndk_dir, 'build/tools/make-standalone-toolchain.sh')
+        ndk_dir, 'build/instruments/make-standalone-toolchain.sh')
 
     cmd = [make_standalone_toolchain_path, '--install-dir=' + install_dir]
 

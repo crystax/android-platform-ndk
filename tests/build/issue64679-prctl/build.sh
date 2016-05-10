@@ -5,8 +5,8 @@
 
 export ANDROID_NDK_ROOT=$NDK
 
-NDK_BUILDTOOLS_PATH=$NDK/build/tools
-. $NDK/build/tools/prebuilt-common.sh
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
+. $NDK/build/instruments/prebuilt-common.sh
 
 JOBS=1
 for OPT; do
