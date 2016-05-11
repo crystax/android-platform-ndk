@@ -101,7 +101,7 @@ fail_panic "Can't create build directory: $BUILD_DIR"
 # $2: build directory
 build_openssl_for_abi ()
 {
-    dump "Building OpenSSL-$OPENSSL_SRC_VERSION for $ABI"
+    log "Building OpenSSL-$OPENSSL_SRC_VERSION for $ABI"
 
     local ABI="$1"
     local BUILDDIR="$2"
@@ -324,7 +324,7 @@ build_openssl_for_abi ()
         echo "perl ./Configure --openssldir=/system/etc/security --prefix=/pkg --cross-compile-prefix=\"${HOST}-\" $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "perl -p -i -e 's/^(#\\s*define\\s+ENGINESDIR\\s+).*$/\$1NULL/g' crypto/opensslconf.h"
         echo "perl -p -i -e 's/^(#\\s*define\\s+X509_CERT_DIR\\s+OPENSSLDIR\\s+).*$/\$1\"\\/cacerts\"/g' crypto/cryptlib.h"
-        echo 'make'
+        echo "make -j$NUM_JOBS"
         echo "make INSTALL_PREFIX=$BUILDDIR/install install"
     } >$BUILD_WRAPPER
     fail_panic "Can't create OpenSSL build wrapper"
@@ -384,6 +384,88 @@ build_openssl_for_abi ()
       $BUILDDIR/install/pkg/lib/libssl.so \
       $OPENSSL_DSTDIR/libs/$ABI
     fail_panic "Can't install OpenSSL binaries"
+
+    log "Build openssl tool for $ABI"
+    local BUILDDIR_OPENSSL_TOOL="$BUILDDIR/tool"
+    local OBJDIR_OPENSSL_TOOL="$BUILDDIR_OPENSSL_TOOL/obj/local/$ABI"
+    run mkdir -p $BUILDDIR_OPENSSL_TOOL/jni
+    fail_panic "Can't create directory: $BUILDDIR_OPENSSL_TOOL/jni"
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := openssl'
+        echo "MY_OPENSSL_SRC_ROOT := $OPENSSL_SRCDIR"
+        echo 'LOCAL_CFLAGS := -DMONOLITH -DOPENSSL_NO_DEPRECATED'
+        echo 'LOCAL_C_INCLUDES := $(MY_OPENSSL_SRC_ROOT)'
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/app_rand.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/apps.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/asn1pars.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ca.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ciphers.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/cms.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/crl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/crl2p7.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dgst.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dh.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dhparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dsaparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ec.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ecparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/enc.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/engine.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/errstr.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/gendh.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/gendsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/genpkey.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/genrsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/nseq.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ocsp.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/openssl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/passwd.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs12.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs7.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs8.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkey.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkeyparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkeyutl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/prime.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rand.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/req.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rsautl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_cb.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_client.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_server.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_socket.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_time.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/sess_id.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/smime.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/speed.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/spkac.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/srp.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ts.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/verify.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/version.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/x509.c'
+        echo ''
+        echo 'LOCAL_STATIC_LIBRARIES := openssl_static opencrypto_static'
+        echo 'include $(BUILD_EXECUTABLE)'
+        echo "\$(call import-module,openssl/$OPENSSL_SRC_VERSION)"
+    } >$BUILDDIR_OPENSSL_TOOL/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_OPENSSL_TOOL/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL APP_LIBCRYSTAX=static -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build build openssl tool for $ABI"
+
+    local OPENSSL_INSTALLDIR_BIN="$OPENSSL_DSTDIR/bin/$ABI"
+    run mkdir -p $OPENSSL_INSTALLDIR_BIN
+    fail_panic "Can't create directory: $OPENSSL_INSTALLDIR_BIN"
+
+    log "Install openssl tool in $OPENSSL_INSTALLDIR_BIN"
+    run cp -p -T "$OBJDIR_OPENSSL_TOOL/openssl" "$OPENSSL_INSTALLDIR_BIN/openssl"
+    fail_panic "Can't install openssl tool in $OPENSSL_INSTALLDIR_BIN"
 }
 
 for ABI in $ABIS; do
