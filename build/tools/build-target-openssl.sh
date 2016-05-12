@@ -468,7 +468,70 @@ build_openssl_for_abi ()
     fail_panic "Can't install openssl tool in $OPENSSL_INSTALLDIR_BIN"
 }
 
+
+if [ -n "$PACKAGE_DIR" ]; then
+    PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-headers.tar.xz"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+    if [ $? -eq 0 ]; then
+        OPENSSL_HEADERS_NEED_PACKAGE=no
+    else
+        OPENSSL_HEADERS_NEED_PACKAGE=yes
+    fi
+fi
+
+BUILT_ABIS=""
 for ABI in $ABIS; do
-    build_openssl_for_abi $ABI "$BUILD_DIR/$ABI"
+    DO_BUILD_PACKAGE="yes"
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-binaries-${ABI}.tar.xz"
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+        if [ $? -eq 0 ]; then
+            if [ "$OPENSSL_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+            else
+                DO_BUILD_PACKAGE="no"
+            fi
+        else
+            BUILT_ABIS="$BUILT_ABIS $ABI"
+        fi
+    fi
+    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+        build_openssl_for_abi $ABI "$BUILD_DIR/$ABI"
+    fi
 done
+
+if [ -n "$PACKAGE_DIR" ]; then
+    if [ "$OPENSSL_HEADERS_NEED_PACKAGE" = "yes" ]; then
+        FILES="$OPENSSL_SUBDIR/${OPENSSL_SRC_VERSION}/include"
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-headers.tar.xz"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package openssl headers"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    fi
+
+    for ABI in $BUILT_ABIS; do
+        FILES=""
+        for SUBDIR in libs/$ABI bin/$ABI; do
+            FILES="$FILES $OPENSSL_SUBDIR/${OPENSSL_SRC_VERSION}/$SUBDIR"
+        done
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-binaries-${ABI}.tar.xz"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package openssl $ABI binaries"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    done
+fi
+
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $BUILD_DIR
+else
+    log "Don't forget to cleanup: $BUILD_DIR"
+fi
+
 log "Done!"

@@ -1316,7 +1316,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Can't package python $ABI libs"
+        fail_panic "Can't package python $ABI binaries"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done
 fi
