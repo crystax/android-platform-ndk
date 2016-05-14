@@ -27,7 +27,7 @@
 # Override the toolchain prefix
 #
 
-LLVM_VERSION := 3.6
+LLVM_VERSION := 3.7
 LLVM_NAME := llvm-$(LLVM_VERSION)
 LLVM_TOOLCHAIN_PREBUILT_ROOT := $(call get-toolchain-root,$(LLVM_NAME))
 LLVM_TOOLCHAIN_PREFIX := $(LLVM_TOOLCHAIN_PREBUILT_ROOT)/bin/
