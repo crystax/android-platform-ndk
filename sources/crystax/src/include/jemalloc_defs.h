@@ -33,6 +33,8 @@
 #define je_dallocm            crystax_je_dallocm
 #define je_nallocm            crystax_je_nallocm
 
+#define jemalloc_constructor  __crystax_jemalloc_constructor
+
 /*
  * Hyper-threaded CPUs may need a special instruction inside spin loops in
  * order to yield to another virtual CPU.
