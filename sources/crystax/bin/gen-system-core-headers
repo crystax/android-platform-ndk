@@ -39,15 +39,6 @@ SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'system', 'core'))
 PRIVATEDIR = File.join(TOPDIR, 'gen', 'systemcore')
 PUBLICDIR  = File.join(TOPDIR, 'include')
 
-ARCHS = [
-    "arm",
-    "x86",
-    "mips",
-    "arm64",
-    "x86_64",
-    "mips64",
-]
-
 class Generator
     def initialize
         @files = []

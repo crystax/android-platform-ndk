@@ -84,6 +84,8 @@
 #define __nothrow
 #endif
 
+#define __nonnull(args) __attribute__((__nonnull__ args))
+
 #ifdef __weak_alias
 #undef __weak_alias
 #endif
@@ -116,10 +118,41 @@
 #define __always_inline __attribute__((__always_inline__))
 #endif
 
+#ifndef __errorattr
+#ifdef __clang__
+#define __errorattr(msg)
+#else
+#define __errorattr(msg) __attribute__((__error__(msg)))
+#endif
+#endif
+
+#ifndef __warnattr
+#ifdef __clang__
+#define __warnattr(msg)
+#else
+#define __warnattr(msg) __attribute__((__warning__(msg)))
+#endif
+#endif
+
+#ifndef __errordecl
+#define __errordecl(name, msg) extern void name(void) __errorattr(msg)
+#endif
+
+#ifndef __wur
+#define __wur __attribute__((__warn_unused_result__))
+#endif
 
 #ifndef __GNUC_PREREQ__
 #define __GNUC_PREREQ__(ma, mi) \
     (__GNUC__ > (ma) || __GNUC__ == (ma) && __GNUC_MINOR__ >= (mi))
+#endif
+
+#if __GNUC_PREREQ__(4, 0)
+#define __hidden   __attribute__((__visibility__("hidden")))
+#define __exported __attribute__((__visibility__("default")))
+#else
+#define __hidden
+#define __exported
 #endif
 
 #ifndef __LONG_LONG_SUPPORTED
@@ -139,5 +172,34 @@
 #ifndef asm
 #define asm __asm
 #endif
+
+#ifdef _BIONIC_NOT_BEFORE_21
+#undef _BIONIC_NOT_BEFORE_21
+#endif
+#define _BIONIC_NOT_BEFORE_21(x) x
+
+#ifndef __LIBC_HIDDEN__
+#define __LIBC_HIDDEN__ __hidden
+#endif
+
+#ifndef __LIBC64_HIDDEN__
+#define __LIBC64_HIDDEN__ __LIBC_HIDDEN__
+#endif
+
+#ifndef __LIBC_ABI_PUBLIC__
+#define __LIBC_ABI_PUBLIC__ __exported
+#endif
+
+#ifndef _DIAGASSERT
+#define _DIAGASSERT(e) ((e) ? (void) 0 : __assert2(__FILE__, __LINE__, __func__, #e))
+#endif
+
+#ifndef __type_fit
+#define __type_fit(t, a) (0 == 0)
+#endif
+
+#define __USE_GNU 1
+#define __USE_BSD 1
+#define __BSD_VISIBLE 1
 
 #endif /* __CRYSTAX_SYS_CDEFS_H_649B3B19BE21490D983FE57C973D2BA8 */

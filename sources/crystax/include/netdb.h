@@ -33,12 +33,19 @@
 #include <crystax/id.h>
 #include <inttypes.h>
 
+#define gethostbyaddr __crystax_google_gethostbyaddr
+#define gethostbyaddr_r __crystax_google_gethostbyaddr_r
 #define setnetgrent __crystax_google_setnetgrent
 #include <crystax/google/netdb.h>
+#undef gethostbyaddr
+#undef gethostbyaddr_r
 #undef setnetgrent
 
 __BEGIN_DECLS
 
+struct hostent * gethostbyaddr(const void *addr, socklen_t len, int af);
+int gethostbyaddr_r(const void *addr, socklen_t len, int af, struct hostent *hp, char *buf,
+                    size_t buflen, struct hostent **result, int *h_errnop);
 int setnetgrent(const char *netgroup);
 
 __END_DECLS

@@ -47,6 +47,6 @@
     long double name ## l (long double x, long double y) { return name((double)x, (double)y); }; \
     WARN_IMPRECISE(name)
 
-BF(lgamma);
 BF(tgamma);
+BF(significand);
 BF2(pow);

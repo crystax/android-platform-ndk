@@ -34,6 +34,22 @@
 
 #define __CRYSTAX_MATH_H_INCLUDED 1
 
+#ifndef __DBL_MANT_DIG__
+#error "__DBL_MANT_DIG__ not defined!"
+#endif
+
+#ifndef __LDBL_MANT_DIG__
+#error "__LDBL_MANT_DIG__ not defined!"
+#endif
+
+#ifndef DBL_MANT_DIG
+#define DBL_MANT_DIG __DBL_MANT_DIG__
+#endif
+
+#ifndef LDBL_MANT_DIG
+#define LDBL_MANT_DIG __LDBL_MANT_DIG__
+#endif
+
 __BEGIN_DECLS
 
 int finite(double x);

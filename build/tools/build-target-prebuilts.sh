@@ -73,10 +73,6 @@ VENDOR_SRC_DIR=$(cd $SRC_DIR/../vendor && pwd)
 BUILDTOOLS=$ANDROID_NDK_ROOT/build/tools
 
 dump "Building platforms and samples..."
-PACKAGE_FLAGS=
-if [ "$PACKAGE_DIR" ]; then
-    PACKAGE_FLAGS="--package-dir=$PACKAGE_DIR"
-fi
 
 if [ -z "$NO_GEN_PLATFORMS" ]; then
     echo "Preparing the build..."
@@ -84,7 +80,7 @@ if [ -z "$NO_GEN_PLATFORMS" ]; then
     if [ ! -z "$GCC_VERSION" ]; then
 	PLATFORMS_BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
     fi
-    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS $PLATFORMS_BUILD_TOOLCHAIN
+    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PLATFORMS_BUILD_TOOLCHAIN
     fail_panic "Could not generate platforms and samples directores!"
 else
     if [ ! -d "$NDK_DIR/platforms" ]; then
@@ -230,8 +226,12 @@ for VERSION in $BOOST_VERSIONS; do
 done
 
 dump "Cleanup sysroot folders..."
-run find $NDK_DIR/platforms -name libcrystax.a -delete
-run find $NDK_DIR/platforms -name libcrystax.so -delete
+run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
+
+if [ -n "$PACKAGE_DIR" ]; then
+    run $BUILDTOOLS/package-platforms.sh --samples --ndk-dir=$NDK_DIR --package-dir=$PACKAGE_DIR
+    fail_panic "Can't package platforms"
+fi
 
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"

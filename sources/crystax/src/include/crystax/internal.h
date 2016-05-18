@@ -45,6 +45,8 @@
 #define FLOCKFILE(fp)   if (__isthreaded) flockfile(fp)
 #define FUNLOCKFILE(fp) if (__isthreaded) funlockfile(fp)
 
+extern int __isthreaded;
+
 extern void __crystax_stdio_thread_lock();
 extern void __crystax_stdio_thread_unlock();
 #define STDIO_THREAD_LOCK()   __crystax_stdio_thread_lock()
@@ -59,26 +61,34 @@ extern void (*__cleanup)(void) __attribute__((__visibility__("hidden")));
 #define NBBY 8
 #endif
 
-#define _pthread_mutex_lock(m)     pthread_mutex_lock(m)
-#define _pthread_mutex_trylock(m)  pthread_mutex_trylock(m)
-#define _pthread_mutex_unlock(m)   pthread_mutex_unlock(m)
-#define _pthread_mutex_destroy(m)  pthread_mutex_destroy(m)
+#define _pthread_getspecific(x)    pthread_getspecific(x)
+#define _pthread_key_create(x, y)  pthread_key_create(x, y)
+#define _pthread_mutex_destroy(x)  pthread_mutex_destroy(x)
+#define _pthread_mutex_lock(x)     pthread_mutex_lock(x)
+#define _pthread_mutex_trylock(x)  pthread_mutex_trylock(x)
+#define _pthread_mutex_unlock(x)   pthread_mutex_unlock(x)
+#define _pthread_once(x, y)        pthread_once(x, y)
+#define _pthread_rwlock_rdlock(x)  pthread_rwlock_rdlock(x)
+#define _pthread_rwlock_unlock(x)  pthread_rwlock_unlock(x)
+#define _pthread_rwlock_wrlock(x)  pthread_rwlock_wrlock(x)
 #define _pthread_self()            pthread_self()
+#define _pthread_setspecific(x, y) pthread_setspecific(x, y)
 
+#define _dup2(fd, fd2) dup2(fd, fd2)
 #define _once(o, f) pthread_once(o, f)
 
-#define _fcntl fcntl
-
 #define _close close
+#define _dirfd dirfd
+#define _fcntl fcntl
 #define _fstat fstat
 #define _getprogname getprogname
 #define _open open
 #define _openat openat
 #define _read read
-#define _write write
-
-#define _dup2(fd, fd2) dup2(fd, fd2)
-
+#define _sigaction sigaction
 #define _sigprocmask sigprocmask
+#define _wait4 wait4
+#define _write write
+#define _writev writev
 
 #endif /* _CRYSTAX_INTERNAL_H_800619B1E3CF4547AD9EEABF49101679 */

@@ -1,1 +1,1 @@
-{"onhost-disabled-os": "darwin"}
+{"onhost-disabled-os": ["darwin", "linux"]}

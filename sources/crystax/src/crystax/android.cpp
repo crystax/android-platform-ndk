@@ -124,7 +124,7 @@ static bool __crystax_init()
     return true;
 }
 
-CRYSTAX_GLOBAL __attribute__((constructor))
+CRYSTAX_HIDDEN
 void __crystax_on_load()
 {
     FRAME_TRACER;
@@ -135,7 +135,7 @@ void __crystax_on_load()
         PANIC("libcrystax initialization failed");
 }
 
-CRYSTAX_GLOBAL __attribute__((destructor))
+CRYSTAX_HIDDEN
 void __crystax_on_unload()
 {
     FRAME_TRACER;

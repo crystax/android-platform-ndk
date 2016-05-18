@@ -424,12 +424,6 @@ g.fixup :mutex_initializer do |f|
     f.puts "#define _SPINLOCK_INITIALIZER PTHREAD_MUTEX_INITIALIZER"
 end
 
-g.fixup :isthreaded do |f|
-    f.puts "#undef  __isthreaded"
-    f.puts "#define __isthreaded __crystax_freebsd___isthreaded"
-    f.puts "#define _thread_autoinit_dummy_decl __crystax_freebsd__thread_autoinit_dummy_decl"
-end
-
 g.fixup :include_stdarg_h do |f|
     f.puts "#include <stdarg.h>"
 end
@@ -484,10 +478,6 @@ end
 
 g.fixup :include_crystax_sys_stdio_h do |f|
     f.puts "#include <crystax/sys/stdio.h>"
-end
-
-g.fixup :include_crystax_sys_stdio_local_h do |f|
-    f.puts "#include <crystax/sys/stdio-local.h>"
 end
 
 g.fixup :include_crystax_sys_stdlib_h do |f|
@@ -596,6 +586,10 @@ g.fixup :long_double_128 do |f|
     f.puts "#if __LDBL_MANT_DIG__ == 113"
 end
 
+g.fixup :long_double_64_or_128 do |f|
+    f.puts "#if __LDBL_MANT_DIG__ == 53 || __LDBL_MANT_DIG__ == 113"
+end
+
 g.fixup :endif do |f|
     f.puts "#endif"
 end
@@ -649,13 +643,65 @@ g.add "contrib/gdtoa/strtordd.c"
 g.add "contrib/gdtoa/strtorf.c"
 g.add "contrib/gdtoa/sum.c"
 g.add "contrib/gdtoa/ulp.c"
+
+# jemalloc
+g.add "contrib/jemalloc/include/jemalloc/internal/arena.h",             noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/atomic.h",            noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/base.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/bitmap.h",            noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/chunk.h",             noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/chunk_dss.h",         noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/chunk_mmap.h",        noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/ckh.h",               noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/ctl.h",               noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/extent.h",            noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/hash.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/huge.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/jemalloc_internal.h", noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/mb.h",                noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/mutex.h",             noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/prng.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/prof.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/ql.h",                noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/qr.h",                noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/quarantine.h",        noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/rb.h",                noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/rtree.h",             noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/size_classes.h",      noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/stats.h",             noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/tcache.h",            noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/tsd.h",               noguard: true
+g.add "contrib/jemalloc/include/jemalloc/internal/util.h",              noguard: true
+g.add "contrib/jemalloc/include/jemalloc/jemalloc.h"
+g.add "contrib/jemalloc/src/arena.c",      warnings: "unused-parameter"
+g.add "contrib/jemalloc/src/atomic.c"
+g.add "contrib/jemalloc/src/base.c"
+g.add "contrib/jemalloc/src/bitmap.c"
+g.add "contrib/jemalloc/src/chunk.c"
+g.add "contrib/jemalloc/src/chunk_dss.c"
+g.add "contrib/jemalloc/src/chunk_mmap.c"
+g.add "contrib/jemalloc/src/ckh.c"
+g.add "contrib/jemalloc/src/ctl.c",        warnings: ["unused-parameter", "unused-but-set-variable"]
+g.add "contrib/jemalloc/src/extent.c"
+g.add "contrib/jemalloc/src/hash.c"
+g.add "contrib/jemalloc/src/huge.c"
+g.add "contrib/jemalloc/src/jemalloc.c",   warnings: ["type-limits", "unused-but-set-variable",
+                                                      "unused-parameter", "attributes"]
+g.add "contrib/jemalloc/src/mb.c"
+g.add "contrib/jemalloc/src/mutex.c"
+g.add "contrib/jemalloc/src/prof.c",       warnings: ["unused-parameter", "sign-compare"]
+g.add "contrib/jemalloc/src/quarantine.c"
+g.add "contrib/jemalloc/src/rtree.c"
+g.add "contrib/jemalloc/src/stats.c"
+g.add "contrib/jemalloc/src/tcache.c"
+g.add "contrib/jemalloc/src/tsd.c",        warnings: "unused-parameter"
+g.add "contrib/jemalloc/src/util.c",       warnings: ["unused-parameter", "sign-compare"]
+
 # libc-vis
 g.add "contrib/libc-vis/vis.c",            warnings: ["pointer-sign", "sign-compare"],
                                            fixup: "define_ctassert"
 g.add "contrib/libc-vis/vis.h"
-# tzcode
-g.add "contrib/tzcode/stdtime/private.h"
-g.add "contrib/tzcode/stdtime/tzfile.h"
+
 # include
 g.add "include/_ctype.h"
 g.add "include/complex.h",                 fixup: "define_complex_h_included",
@@ -663,6 +709,8 @@ g.add "include/complex.h",                 fixup: "define_complex_h_included",
 g.add "include/ctype.h",                   postfixup: "include_crystax_sys_ctype_h"
 g.add "include/db.h"
 g.add "include/err.h"
+g.add "include/fts.h"
+g.add "include/ftw.h"
 g.add "include/iconv.h"
 g.add "include/inttypes.h",                postfixup: "include_crystax_sys_inttypes_h"
 g.add "include/langinfo.h",                postfixup: "include_crystax_sys_langinfo_h"
@@ -671,10 +719,10 @@ g.add "include/locale.h",                  postfixup: "include_crystax_sys_local
 g.add "include/monetary.h",                postfixup: "include_crystax_sys_monetary_h"
 g.add "include/nl_types.h"
 g.add "include/printf.h"
+g.add "include/regex.h"
 g.add "include/runetype.h"
 g.add "include/search.h"
-g.add "include/stdio.h",                   fixup: "include_crystax_sys_stdio_local_h",
-                                           postfixup: ["include_stdarg_h", "include_crystax_sys_stdio_h"]
+g.add "include/stdio.h",                   postfixup: ["include_stdarg_h", "include_crystax_sys_stdio_h"]
 g.add "include/stdlib.h",                  postfixup: "include_crystax_sys_stdlib_h"
 g.add "include/string.h",                  postfixup: "include_crystax_sys_string_h"
 g.add "include/strings.h",                 postfixup: "include_crystax_sys_strings_h"
@@ -682,6 +730,7 @@ g.add "include/sysexits.h"
 g.add "include/tar.h"
 g.add "include/tgmath.h"
 g.add "include/time.h",                    postfixup: "include_crystax_sys_time_h"
+g.add "include/uchar.h"
 g.add "include/wchar.h",                   postfixup: ["include_stdarg_h", "include_crystax_sys_wchar_h"]
 g.add "include/wctype.h",                  postfixup: "include_crystax_sys_wctype_h"
 g.add "include/xlocale/_ctype.h",          noguard: true
@@ -694,22 +743,36 @@ g.add "include/xlocale/_stdlib.h",         noguard: true
 g.add "include/xlocale/_string.h",         noguard: true
 g.add "include/xlocale/_strings.h",        noguard: true
 g.add "include/xlocale/_time.h",           noguard: true
+g.add "include/xlocale/_uchar.h",          noguard: true
 g.add "include/xlocale/_wchar.h",          noguard: true
+
 # libc
+g.add "lib/libc/compat-43/getwd.c"
+g.add "lib/libc/compat-43/killpg.c"
 g.add "lib/libc/gdtoa/_hdtoa.c"
 g.add "lib/libc/gdtoa/_hldtoa.c"
 g.add "lib/libc/gdtoa/_ldtoa.c",           warnings: "uninitialized"
 g.add "lib/libc/gdtoa/glue.c"
 g.add "lib/libc/gdtoa/machdep_ldisd.c",    fixup:    "long_double_64",  postfixup: "endif"
 g.add "lib/libc/gdtoa/machdep_ldisQ.c",    fixup:    "long_double_128", postfixup: "endif"
+g.add "lib/libc/gen/alarm.c"
 g.add "lib/libc/gen/arc4random.c"
+g.add "lib/libc/gen/daemon.c"
 g.add "lib/libc/gen/err.c"
-g.add "lib/libc/gen/fpclassify.c"
-g.add "lib/libc/gen/isinf.c"
+g.add "lib/libc/gen/fnmatch.c"
+g.add "lib/libc/gen/ftok.c"
+g.add "lib/libc/gen/fts.c"
+g.add "lib/libc/gen/ftw.c"
+g.add "lib/libc/gen/gen-private.h"
 g.add "lib/libc/gen/ldexp.c"
 g.add "lib/libc/gen/lockf.c"
+g.add "lib/libc/gen/nftw.c"
+g.add "lib/libc/gen/nice.c"
 g.add "lib/libc/gen/popen.c",              warnings: "clobbered",
                                            fixup:    ["define__execve", "define__wait4"]
+g.add "lib/libc/gen/sleep.c"
+g.add "lib/libc/gen/usleep.c"
+g.add "lib/libc/gen/utime.c"
 # libc db hash
 g.add "lib/libc/db/hash/extern.h"
 g.add "lib/libc/db/hash/hash.c",           warnings: "unused-parameter"
@@ -760,6 +823,8 @@ g.add "lib/libc/include/errlst.h"
 g.add "lib/libc/locale/ascii.c",           warnings: ["sign-compare", "type-limits", "tautological-compare"]
 g.add "lib/libc/locale/big5.c"
 g.add "lib/libc/locale/btowc.c"
+g.add "lib/libc/locale/c16rtomb.c"
+g.add "lib/libc/locale/c32rtomb.c"
 g.add "lib/libc/locale/collate.c",         warnings: ["missing-field-initializers", "pointer-sign", "sign-compare", "unused-parameter"],
                                            fixup:    "collate_rename"
 g.add "lib/libc/locale/collate.h"
@@ -783,6 +848,8 @@ g.add "lib/libc/locale/localeconv.c"
 g.add "lib/libc/locale/mblen.c"
 g.add "lib/libc/locale/mblocal.h"
 g.add "lib/libc/locale/mbrlen.c"
+g.add "lib/libc/locale/mbrtoc16.c"
+g.add "lib/libc/locale/mbrtoc32.c"
 g.add "lib/libc/locale/mbrtowc.c"
 g.add "lib/libc/locale/mbsinit.c"
 g.add "lib/libc/locale/mbsnrtowcs.c"
@@ -823,6 +890,17 @@ g.add "lib/libc/locale/wctype.c",          warnings: "unused-parameter", fixup: 
 g.add "lib/libc/locale/wcwidth.c"
 g.add "lib/libc/locale/xlocale.c",         warnings: "missing-field-initializers"
 g.add "lib/libc/locale/xlocale_private.h"
+# libc net
+g.add "lib/libc/net/ntoh.c"
+# libc regex
+g.add "lib/libc/regex/cname.h"
+g.add "lib/libc/regex/engine.c"
+g.add "lib/libc/regex/regcomp.c",          warnings: ["sign-compare", "maybe-uninitialized"]
+g.add "lib/libc/regex/regerror.c"
+g.add "lib/libc/regex/regex2.h"
+g.add "lib/libc/regex/regexec.c",          warnings: ["sign-compare", "maybe-uninitialized", "unused-but-set-variable"]
+g.add "lib/libc/regex/regfree.c"
+g.add "lib/libc/regex/utils.h"
 # libc stdio
 g.add "lib/libc/stdio/_flock_stub.c",      warnings: "unused-parameter"
 g.add "lib/libc/stdio/asprintf.c"
@@ -834,6 +912,7 @@ g.add "lib/libc/stdio/feof.c"
 g.add "lib/libc/stdio/ferror.c"
 g.add "lib/libc/stdio/fflush.c"
 g.add "lib/libc/stdio/fgetc.c"
+g.add "lib/libc/stdio/fgetln.c",           warnings: "sign-compare"
 g.add "lib/libc/stdio/fgetwc.c",           warnings: "pointer-sign"
 g.add "lib/libc/stdio/fgetws.c",           warnings: "pointer-sign"
 g.add "lib/libc/stdio/fgetpos.c"
@@ -871,12 +950,13 @@ g.add "lib/libc/stdio/getline.c"
 g.add "lib/libc/stdio/gets.c"
 g.add "lib/libc/stdio/getwc.c"
 g.add "lib/libc/stdio/getwchar.c"
-g.add "lib/libc/stdio/glue.h",             fixup:    "include_crystax_sys_stdio_local_h"
-g.add "lib/libc/stdio/local.h",            fixup:    ["include_crystax_sys_stdio_local_h", "include_stdio_h"]
+g.add "lib/libc/stdio/glue.h"
+g.add "lib/libc/stdio/local.h",            fixup:    "include_stdio_h"
 g.add "lib/libc/stdio/makebuf.c"
 g.add "lib/libc/stdio/mktemp.c"
 g.add "lib/libc/stdio/open_memstream.c"
 g.add "lib/libc/stdio/open_wmemstream.c",  warnings: "sign-compare"
+g.add "lib/libc/stdio/perror.c"
 g.add "lib/libc/stdio/printf-pos.c"
 g.add "lib/libc/stdio/printf.c"
 g.add "lib/libc/stdio/printfcommon.h"
@@ -884,13 +964,16 @@ g.add "lib/libc/stdio/printflocal.h"
 g.add "lib/libc/stdio/putc.c"
 g.add "lib/libc/stdio/putchar.c"
 g.add "lib/libc/stdio/puts.c"
+g.add "lib/libc/stdio/putw.c"
 g.add "lib/libc/stdio/putwc.c"
 g.add "lib/libc/stdio/putwchar.c"
 g.add "lib/libc/stdio/refill.c"
+g.add "lib/libc/stdio/remove.c"
 g.add "lib/libc/stdio/rewind.c"
 g.add "lib/libc/stdio/rget.c"
 g.add "lib/libc/stdio/scanf.c"
 g.add "lib/libc/stdio/setbuf.c"
+g.add "lib/libc/stdio/setbuffer.c"
 g.add "lib/libc/stdio/setvbuf.c"
 g.add "lib/libc/stdio/snprintf.c"
 g.add "lib/libc/stdio/sprintf.c"
@@ -898,7 +981,9 @@ g.add "lib/libc/stdio/sscanf.c"
 g.add "lib/libc/stdio/stdio.c"
 g.add "lib/libc/stdio/swprintf.c"
 g.add "lib/libc/stdio/swscanf.c"
+g.add "lib/libc/stdio/tempnam.c"
 g.add "lib/libc/stdio/tmpfile.c"
+g.add "lib/libc/stdio/tmpnam.c"
 g.add "lib/libc/stdio/ungetc.c"
 g.add "lib/libc/stdio/ungetwc.c"
 g.add "lib/libc/stdio/vasprintf.c"
@@ -930,32 +1015,48 @@ g.add "lib/libc/stdio/xprintf_str.c",      warnings: ["pointer-sign", "unused-pa
 g.add "lib/libc/stdio/xprintf_time.c",     warnings: "unused-parameter"
 g.add "lib/libc/stdio/xprintf_vis.c",      warnings: "unused-parameter"
 # libc stdlib
-g.add "lib/libc/stdlib/_Exit.c"
 g.add "lib/libc/stdlib/abs.c"
-g.add "lib/libc/stdlib/atexit.h"
 g.add "lib/libc/stdlib/atof.c"
 g.add "lib/libc/stdlib/atoi.c"
-g.add "lib/libc/stdlib/exit.c",            fixup:    "isthreaded"
+g.add "lib/libc/stdlib/atol.c"
+g.add "lib/libc/stdlib/atoll.c"
+g.add "lib/libc/stdlib/bsearch.c"
+g.add "lib/libc/stdlib/div.c"
+g.add "lib/libc/stdlib/getenv.c"
+g.add "lib/libc/stdlib/getopt_long.c"
 g.add "lib/libc/stdlib/hcreate.c"
+g.add "lib/libc/stdlib/imaxabs.c"
+g.add "lib/libc/stdlib/imaxdiv.c"
 g.add "lib/libc/stdlib/insque.c"
+g.add "lib/libc/stdlib/labs.c"
+g.add "lib/libc/stdlib/ldiv.c"
 g.add "lib/libc/stdlib/llabs.c"
+g.add "lib/libc/stdlib/lldiv.c"
 g.add "lib/libc/stdlib/lsearch.c"
 g.add "lib/libc/stdlib/qsort.c",           warnings: "sign-compare"
 g.add "lib/libc/stdlib/qsort_r.c"
+g.add "lib/libc/stdlib/quick_exit.c"
+g.add "lib/libc/stdlib/random.c"
 g.add "lib/libc/stdlib/reallocf.c"
+g.add "lib/libc/stdlib/realpath.c",        warnings: "sign-compare"
 g.add "lib/libc/stdlib/remque.c"
 g.add "lib/libc/stdlib/strfmon.c"
 g.add "lib/libc/stdlib/strtoimax.c"
 g.add "lib/libc/stdlib/strtol.c"
 g.add "lib/libc/stdlib/strtoll.c"
+g.add "lib/libc/stdlib/strtoq.c"
+g.add "lib/libc/stdlib/strtoul.c"
 g.add "lib/libc/stdlib/strtoull.c"
 g.add "lib/libc/stdlib/strtoumax.c"
+g.add "lib/libc/stdlib/strtouq.c"
+g.add "lib/libc/stdlib/system.c"
 g.add "lib/libc/stdlib/tdelete.c"
 g.add "lib/libc/stdlib/tfind.c"
 g.add "lib/libc/stdlib/tsearch.c"
 g.add "lib/libc/stdlib/twalk.c"
 # libc stdtime
 g.add "lib/libc/stdtime/strftime.c",       fixup:    "include_wctype_h"
+g.add "lib/libc/stdtime/strptime.c",       warnings: "sign-compare"
 g.add "lib/libc/stdtime/timelocal.c"
 g.add "lib/libc/stdtime/timelocal.h"
 # libc string
@@ -963,12 +1064,18 @@ g.add "lib/libc/string/bcmp.c"
 g.add "lib/libc/string/bcopy.c"
 g.add "lib/libc/string/bzero.c"
 g.add "lib/libc/string/ffs.c"
+g.add "lib/libc/string/ffsl.c"
+g.add "lib/libc/string/ffsll.c"
 g.add "lib/libc/string/fls.c"
+g.add "lib/libc/string/flsl.c"
+g.add "lib/libc/string/flsll.c"
 g.add "lib/libc/string/memccpy.c"
 g.add "lib/libc/string/memchr.c"
 g.add "lib/libc/string/memcmp.c"
 g.add "lib/libc/string/memcpy.c"
+g.add "lib/libc/string/memmem.c"
 g.add "lib/libc/string/memmove.c"
+g.add "lib/libc/string/memrchr.c"
 g.add "lib/libc/string/memset.c"
 g.add "lib/libc/string/stpcpy.c"
 g.add "lib/libc/string/stpncpy.c"
@@ -982,7 +1089,9 @@ g.add "lib/libc/string/strcpy.c"
 g.add "lib/libc/string/strcspn.c",         warnings: "sign-compare"
 g.add "lib/libc/string/strdup.c"
 g.add "lib/libc/string/strlcpy.c"
+g.add "lib/libc/string/strlcat.c"
 g.add "lib/libc/string/strlen.c"
+g.add "lib/libc/string/strmode.c"
 g.add "lib/libc/string/strncat.c"
 g.add "lib/libc/string/strncmp.c"
 g.add "lib/libc/string/strncpy.c"
@@ -990,6 +1099,7 @@ g.add "lib/libc/string/strndup.c"
 g.add "lib/libc/string/strnlen.c"
 g.add "lib/libc/string/strpbrk.c"
 g.add "lib/libc/string/strrchr.c"
+g.add "lib/libc/string/strsep.c"
 g.add "lib/libc/string/strspn.c",          warnings: "sign-compare"
 g.add "lib/libc/string/strstr.c"
 g.add "lib/libc/string/strtok.c"
@@ -1030,6 +1140,7 @@ g.add "lib/msun/bsdsrc/b_exp.c"
 g.add "lib/msun/bsdsrc/b_log.c"
 g.add "lib/msun/bsdsrc/b_tgamma.c"
 g.add "lib/msun/bsdsrc/mathimpl.h"
+g.add "lib/msun/ld128/e_lgammal_r.c",      warnings: ["unused-but-set-variable", "unused-variable", "maybe-uninitialized"]
 g.add "lib/msun/ld128/e_rem_pio2l.h",      warnings: ["type-limits", "parentheses"]
 g.add "lib/msun/ld128/invtrig.c",          fixup:    "long_double_128", postfixup: "endif"
 g.add "lib/msun/ld128/invtrig.h"
@@ -1071,16 +1182,24 @@ g.add "lib/msun/src/e_expf.c"
 g.add "lib/msun/src/e_fmod.c"
 g.add "lib/msun/src/e_fmodf.c"
 g.add "lib/msun/src/e_fmodl.c",            warnings: ["sign-compare", "maybe-uninitialized"]
+g.add "lib/msun/src/e_gamma.c"
+g.add "lib/msun/src/e_gamma_r.c"
+g.add "lib/msun/src/e_gammaf.c"
+g.add "lib/msun/src/e_gammaf_r.c"
 g.add "lib/msun/src/e_hypot.c"
 g.add "lib/msun/src/e_hypotf.c"
 g.add "lib/msun/src/e_hypotl.c",           fixup:    "long_double_128", postfixup: "endif"
 g.add "lib/msun/src/e_j0.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_j0f.c"
 g.add "lib/msun/src/e_j1.c",               warnings: "maybe-uninitialized"
+g.add "lib/msun/src/e_j1f.c"
 g.add "lib/msun/src/e_jn.c"
+g.add "lib/msun/src/e_jnf.c",              warnings: "sign-compare"
 g.add "lib/msun/src/e_lgamma.c"
 g.add "lib/msun/src/e_lgamma_r.c",         warnings: "maybe-uninitialized"
 g.add "lib/msun/src/e_lgammaf.c"
 g.add "lib/msun/src/e_lgammaf_r.c",        warnings: ["maybe-uninitialized", "unused-variable"]
+g.add "lib/msun/src/e_lgammal.c"
 g.add "lib/msun/src/e_log.c"
 g.add "lib/msun/src/e_log10.c"
 g.add "lib/msun/src/e_log10f.c"
@@ -1192,9 +1311,6 @@ g.add "lib/msun/src/s_frexpl.c",           fixup:    "long_double_128", postfixu
 g.add "lib/msun/src/s_ilogb.c"
 g.add "lib/msun/src/s_ilogbf.c"
 g.add "lib/msun/src/s_ilogbl.c"
-g.add "lib/msun/src/s_isfinite.c",         warnings: "uninitialized"
-g.add "lib/msun/src/s_isnan.c"
-g.add "lib/msun/src/s_isnormal.c",         warnings: "uninitialized"
 g.add "lib/msun/src/s_llrint.c"
 g.add "lib/msun/src/s_llrintf.c"
 g.add "lib/msun/src/s_llrintl.c"
@@ -1241,6 +1357,8 @@ g.add "lib/msun/src/s_scalbnl.c",          warnings: "parentheses",
                                            fixup:    "long_double_128", postfixup: "endif"
 g.add "lib/msun/src/s_signbit.c",          warnings: "uninitialized"
 g.add "lib/msun/src/s_signgam.c"
+g.add "lib/msun/src/s_significand.c"
+g.add "lib/msun/src/s_significandf.c"
 g.add "lib/msun/src/s_sin.c"
 g.add "lib/msun/src/s_sinf.c"
 g.add "lib/msun/src/s_sinl.c",             fixup:    "long_double_128", postfixup: "endif"

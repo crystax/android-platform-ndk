@@ -31,6 +31,7 @@
 #define __CRYSTAX_SYS__TYPES_H_B94AFA76630A41EC924D80883BAB5389
 
 #include <crystax/id.h>
+#include <android/api-level.h>
 
 #include <machine/_types.h>
 
@@ -72,6 +73,13 @@ typedef __uint64_t __dev_t;
 
 typedef __uint16_t __mode_t;
 
+#ifndef __kernel_long_t
+typedef long __kernel_long_t;
+#endif
+#ifndef __kernel_ulong_t
+typedef unsigned long __kernel_ulong_t;
+#endif
+
 typedef __kernel_pid_t   __pid_t;
 typedef __kernel_uid32_t __uid_t;
 typedef __kernel_gid32_t __gid_t;
@@ -90,6 +98,19 @@ typedef int __nl_item;
 typedef __uint16_t __in_port_t;
 
 typedef __uint16_t __sa_family_t;
+
+typedef __kernel_ino_t __ino_t;
+typedef __kernel_key_t __key_t;
+
+typedef __uint32_t __nlink_t;
+
+#if __ANDROID_API__ < 21
+typedef __kernel_blkcnt_t  __blkcnt_t;
+typedef __kernel_blksize_t __blksize_t;
+#else
+typedef unsigned long      __blkcnt_t;
+typedef unsigned long      __blksize_t;
+#endif
 
 typedef long __pthread_t;
 
@@ -120,5 +141,16 @@ typedef struct {
     __int32_t __private[1];
 #endif
 } __pthread_cond_t;
+
+/* Clang already provides these types as built-ins, but only in C++ mode. */
+#if !defined(__clang__) || !defined(__cplusplus)
+typedef __uint_least16_t __char16_t;
+typedef __uint_least32_t __char32_t;
+#endif
+/* In C++11, char16_t and char32_t are built-in types. */
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define _CHAR16_T_DECLARED
+#define _CHAR32_T_DECLARED
+#endif
 
 #endif /* __CRYSTAX_SYS__TYPES_H_B94AFA76630A41EC924D80883BAB5389 */

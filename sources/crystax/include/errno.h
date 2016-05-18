@@ -62,8 +62,10 @@
 #include <sys/cdefs.h>
 
 #define __errno __crystax_google___errno
+#define __set_errno __crystax_google___set_errno
 #include <crystax/google/errno.h>
 #undef __errno
+#undef __set_errno
 
 #if !defined(__LP64__)
 
@@ -82,6 +84,7 @@
 __BEGIN_DECLS
 
 int *__errno(void);
+long __set_errno(int n);
 
 __END_DECLS
 

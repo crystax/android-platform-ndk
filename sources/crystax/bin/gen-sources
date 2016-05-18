@@ -31,8 +31,9 @@ CWD=$(dirname $0)
 
 $CWD/gen-bsd-sources || exit 1
 
-$CWD/gen-bionic-symbols || exit 1
 $CWD/gen-bionic-sources || exit 1
+
+$CWD/gen-musl-sources || exit 1
 
 $CWD/gen-system-core-headers || exit 1
 

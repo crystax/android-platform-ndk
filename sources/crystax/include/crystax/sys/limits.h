@@ -202,4 +202,6 @@
 #define _POSIX2_SW_DEV              -1  /* software dev utilities not implemented */
 #define _POSIX2_UPE                 -1  /* user portability utilities not implemented */
 
+#define _POSIX_VDISABLE             '\0'
+
 #endif /* __CRYSTAX_INCLUDE_SYS_LIMITS_H_AB5D38F5B8194E07AAFB4280C9468A53 */

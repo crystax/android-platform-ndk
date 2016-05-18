@@ -51,10 +51,11 @@ int ptsname_r(int, char*, size_t);
 int getpt(void);
 int clearenv(void);
 
-static __inline__ int  rand() { return (int)lrand48(); }
-static __inline__ void srand(unsigned int s) { srand48(s); }
-static __inline__ long random() { return lrand48(); }
-static __inline__ void srandom(unsigned long s) { srand48(s); }
+int  rand();
+void srand(unsigned int s);
+
+long random();
+void srandom(unsigned long s);
 
 __END_DECLS
 

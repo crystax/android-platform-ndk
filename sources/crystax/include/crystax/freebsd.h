@@ -110,12 +110,6 @@
 #define __compiler_membar() __asm __volatile(" " : : : "memory")
 #endif
 
-#ifdef __cplusplus
-extern "C"
-#endif
-int __crystax_isthreaded();
-#define __isthreaded __crystax_isthreaded()
-
 #if defined(__clang__)
 #if !__has_extension(c_thread_local)
 #if __has_extension(cxx_thread_local)

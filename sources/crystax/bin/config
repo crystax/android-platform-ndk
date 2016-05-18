@@ -29,20 +29,38 @@
 
 cd $(dirname $0)/.. || exit 1
 
+if [ -z "$CRYSTAX_DEBUG" ]; then
+    CRYSTAX_DEBUG=no
+fi
+
 CRYSTAX_SRCDIR=$(pwd)
+
+default_gcc_version()
+{
+    #local version=$(source $NDK/build/tools/dev-defaults.sh && echo $DEFAULT_GCC_VERSION)
+    local version=4.9
+    if [ -z "$version" ]; then
+        echo "ERROR: Can't detect default GCC version" 1>&2
+        exit 1
+    fi
+    echo $version
+}
 
 REQUEST=
 ABI=
 MULTILIB=
 LIBTYPE=static
-TOOLCHAIN=gcc4.9
 NDK=$(cd ../../ && pwd)
+SOURCE_FILE=
+
+TOOLCHAIN=gcc$(default_gcc_version)
 
 usage()
 {
     echo "Usage: $0 [options]"
     echo ""
     echo "Request (mandatory, should be specified only one of them):"
+    echo "  --default-gcc-version    Print default GCC version"
     echo "  --abis                   Print all ABI variants"
     echo "  --multilibs              Print multilibs variants for specific ABI"
     echo "  --sources                Print all source files"
@@ -65,6 +83,7 @@ usage()
     echo "                           If not specified, default one for ABI will be used"
     echo "  --libtype=static|shared  Type of library to be built [$LIBTYPE]"
     echo "  --toolchain=TOOLCHAIN    Toolchain used to build libcrystax [$TOOLCHAIN]"
+    echo "  --source-file=PATH       If specified, print flags specific to this file"
 }
 
 is_debug_mode()
@@ -89,7 +108,7 @@ multilibs_for_abi()
 {
     local a=$1
     if [ -z "$a" ]; then
-        echo "ERROR: Usage: $0 ABI" 1>&2
+        echo "ERROR: Usage: multilibs_for_abi ABI" 1>&2
         exit 1
     fi
 
@@ -125,7 +144,7 @@ check_abi()
 {
     local abi=$1
     if [ -z "$abi" ]; then
-        echo "ERROR: Usage: $0 ABI" 1>&2
+        echo "ERROR: Usage: check_abi ABI" 1>&2
         exit 1
     fi
 
@@ -143,7 +162,7 @@ check_multilib()
     local abi=$1
     local mlib=$2
     if [ -z "$abi" -o -z "$mlib" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: check_multilib ABI MULTILIB" 1>&2
         exit 1
     fi
 
@@ -156,24 +175,16 @@ check_multilib()
 
 # $1: ABI
 # $2: multilib variant
-# $3: libtype (static or shared)
-sources_for_abi()
+arch_for_abi()
 {
     local a=$1
     local m=$2
-    local t=$3
-    if [ -z "$a" -o -z "$m" -o -z "$t" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB LIBTYPE" 1>&2
+    if [ -z "$a" -o -z "$m" ]; then
+        echo "ERROR: Usage arch_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
 
-    local arch
-
-    find src -name '*.c' -a -not -name 'fenv.c' -print | sort
-
-    find src -name '*.cpp' -print | sort
-
-    arch=""
+    local arch=""
     case $a in
         armeabi*)
             arch=arm
@@ -182,12 +193,12 @@ sources_for_abi()
             arch=arm64
             ;;
         x86)
-            arch=i386
+            arch=x86
             ;;
         x86_64)
             case $m in
                 i386)
-                    arch=i386
+                    arch=x86
                     ;;
                 *)
                     arch=x86_64
@@ -205,42 +216,76 @@ sources_for_abi()
                     arch=mips64
             esac
             ;;
+        *)
+            echo "ERROR: Unsupported ABI: '$a'" 1>&2
+            exit 1
     esac
 
+    echo $arch
+}
+
+# $1: ABI
+# $2: multilib variant
+# $3: libtype (static or shared)
+sources_for_abi()
+{
+    local a=$1
+    local m=$2
+    local t=$3
+    if [ -z "$a" -o -z "$m" -o -z "$t" ]; then
+        echo "ERROR: Usage: sources_for_abi ABI MULTILIB LIBTYPE" 1>&2
+        exit 1
+    fi
+
+    # Own sources
+    find src -name '*.c' \
+        -a -not -name 'fenv.c' \
+        -print | sort
+
+    find src -name '*.cpp' -print | sort
+
+    local arch=$(arch_for_abi $a $m)
     test -n "$arch" && echo "src/math/$arch/fenv.c"
 
-    find gen -name '*.c'   -a -not -name 'mangled-*' -print | sort
-    find gen -name '*.cpp' -a -not -name 'mangled-*' -print | sort
+    # Generated sources
+    find gen -name '*.c' \
+        -a -not -name 'mangled-*' \
+        -a -not -name 'exidx_dynamic.c' \
+        -a -not -name 'exidx_static.c' \
+        -print | sort
 
-    case $a in
-        armeabi*)
-            arch=arm
+    find gen -name '*.cpp' \
+        -a -not -name 'mangled-*' \
+        -a -not -name 'dl_iterate_phdr_static.cpp' \
+        -a -not -name 'libc_init_dynamic.cpp' \
+        -a -not -name 'libc_init_static.cpp' \
+        -a -not -name 'malloc_debug_common.cpp' \
+        -a -not -name 'malloc_debug_dynamic.cpp' \
+        -a -not -name 'malloc_debug_static.cpp' \
+        -print | sort
+
+    case $t in
+        shared)
+            find gen -name 'exidx_dynamic.c' -print
+            find gen -name 'libc_init_dynamic.cpp' -print
+            find gen -name 'malloc_debug_dynamic.cpp' -print
             ;;
-        arm64*)
-            arch=arm64
+        static)
+            find gen -name 'dl_iterate_phdr_static.cpp' -print
+            find gen -name 'exidx_static.c' -print
+            find gen -name 'libc_init_static.cpp' -print
+            find gen -name 'malloc_debug_static.cpp' -print
             ;;
-        x86_64)
-            if [ "$m" = "i386" ]; then
-                arch=x86
-            else
-                arch=x86_64
-            fi
-            ;;
-        mips64)
-            case $m in
-                mips64*)
-                    arch=mips64
-                    ;;
-                *)
-                    arch=mips
-            esac
-            ;;
-        *)
-            arch=$a
     esac
 
+    # Generated assembler sources
     find gen/bionic/libc/arch-$arch -iname '*.s' -a -not -name 'mangled-*' -print | sort
+    if [ "$arch" = "mips64" ]; then
+        find gen/bionic/libc/arch-mips -iname 'setjmp.s' -print
+    fi
+    find gen/bionic/libc/arch-common -iname '*.s' -a -not -name 'mangled-*' -print | sort
 
+    # Objective-C blocks runtime
     find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
 }
 
@@ -252,7 +297,7 @@ arch_flags_for_abi()
     local mlib=$2
 
     if [ -z "$abi" -o -z "$mlib" ]; then
-        echo "ERROR: Usage $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage arch_flags_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
 
@@ -314,17 +359,24 @@ arch_flags_for_abi()
 
 # $1: ABI
 # $2: multilib variant
+# $3: source file (optional)
 common_cflags_for_abi()
 {
-    local abi mlib
-    local flags crystax freebsd bsdarch
+    local abi mlib srcfile
+    local flags crystax freebsd
 
     abi=$1
     mlib=$2
+    srcfile=$3
 
     if [ -z "$abi" -o -z "$mlib" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: common_cflags_for_abi ABI MULTILIB" 1>&2
         exit 1
+    fi
+
+    local srcbasename=""
+    if [ -n "$srcfile" ]; then
+        srcbasename=$(basename $srcfile)
     fi
 
     crystax=$CRYSTAX_SRCDIR
@@ -333,31 +385,81 @@ common_cflags_for_abi()
     systemcore=$CRYSTAX_SRCDIR/gen/systemcore
     cxx=$CRYSTAX_SRCDIR/../cxx-stl/system
 
-    arch_flags_for_abi $abi $mlib
+    local arch=$(arch_for_abi $abi $mlib)
+
+    local archflags=$(arch_flags_for_abi $abi $mlib)
+    case $srcbasename in
+        tls.c)
+            archflags=$(echo $archflags | tr ' ' '\n' | grep -v -e '^-mthumb')
+    esac
+    echo $archflags
 
     echo "-fPIC -DPIC"
     echo "-g -O2"
 
     if is_debug_mode; then
         echo "-D_DEBUG"
+        echo "-DDEBUG"
         echo "-DCRYSTAX_DEBUG=1"
     else
         echo "-DNDEBUG"
     fi
 
-    echo "-D__USE_GNU"
-
     echo "-DCRYSTAX_LOG_DEFINE_SHORT_MACROS=1"
 
+    case $srcfile in
+        gen/bionic/*)
+            echo "-DUSE_JEMALLOC"
+
+            echo "-D_LIBC=1"
+            echo "-DDO_PTHREADS=1"
+
+            # dns
+            echo "-Dres_randomid=__res_randomid"
+            echo "-DANDROID_CHANGES"
+            echo "-DINET6"
+
+            # tzcode
+            echo "-DALL_STATE"
+            echo "-DSTD_INSPIRED"
+            echo "-DTM_GMTOFF=tm_gmtoff"
+            echo '-DTZDIR=\"/system/usr/share/zoneinfo\"'
+            echo "-DUSG_COMPAT=1"
+            echo "-DNO_RUN_TIME_WARNINGS_ABOUT_YEAR_2000_PROBLEMS_THANK_YOU"
+            echo "-Dlint"
+
+            case $arch in
+                arm)
+                    echo "-DCRT_LEGACY_WORKAROUND"
+                    ;;
+            esac
+            ;;
+    esac
+
+    case $srcbasename in
+        libc_init_static.cpp)
+            echo "-DLIBC_STATIC=1"
+            ;;
+    esac
+
     echo "-D_POSIX_SOURCE"
+    echo "-D_BSD_SOURCE"
+    echo "-DREPLACE_GETOPT"
     echo "-DBZ_NO_STDIO"
 
     echo "-D__DBINTERFACE_PRIVATE"
 
+    case $srcbasename in
+        __stack_chk_fail.cpp)
+            echo "-fno-stack-protector"
+            ;;
+    esac
     echo "-ffunction-sections -fdata-sections"
     echo "-fdiagnostics-show-option"
 
     echo "-Wall -Wextra"
+    #echo "-Wunused"
+    #echo "-Wframe-larger-than=2048"
     echo "-Werror"
     if   [ ${TOOLCHAIN##gcc}   != ${TOOLCHAIN} ]; then
         echo "-Wno-pragmas"
@@ -365,19 +467,21 @@ common_cflags_for_abi()
         echo "-Wno-unknown-pragmas"
     fi
 
-    # First, include Bionic and system/core headers, which can override some of public headers
-    echo "-I$bionic/libc/include"
-    echo "-I$bionic/libc"
-    echo "-I$systemcore/include"
-
     echo "-I$crystax/include"
     echo "-I$crystax/src/include"
 
-    echo "-I$crystax/vendor/bzip2"
+    echo "-I$bionic/libc/include"
+    echo "-I$bionic/libc/bionic"
+    echo "-I$bionic/libc/dns/include"
+    echo "-I$bionic/libc/tzcode"
+    echo "-I$bionic/libc/upstream-netbsd/android/include"
+    echo "-I$bionic/libc/upstream-netbsd/lib/libc/include"
+    echo "-I$bionic/libc"
+    echo "-I$systemcore/include"
 
     echo "-I$freebsd/contrib/gdtoa"
+    echo "-I$freebsd/contrib/jemalloc/include"
     echo "-I$freebsd/contrib/libc-vis"
-    echo "-I$freebsd/contrib/tzcode/stdtime"
     echo "-I$freebsd/lib/libc/iconv"
     echo "-I$freebsd/lib/libc/include"
     echo "-I$freebsd/lib/libc/locale"
@@ -390,37 +494,16 @@ common_cflags_for_abi()
         echo "-I$freebsd/lib/msun/ld128"
     fi
 
-    case $abi in
-        armeabi*)
-            bsdarch=arm
-            ;;
+    local bsdarch
+    case $arch in
         x86)
             bsdarch=i386
             ;;
-        mips)
-            bsdarch=mips
-            ;;
         x86_64)
-            case $mlib in
-                x86_64)
-                    bsdarch=amd64
-                    ;;
-                *)
-                    bsdarch=i386
-            esac
+            bsdarch=amd64
             ;;
-        arm64*)
-            bsdarch=arm64
-            ;;
-        mips64)
-            case $mlib in
-                mips64*)
-                    bsdarch=mips64
-                    ;;
-                *)
-                    bsdarch=mips
-            esac
-            ;;
+        *)
+            bsdarch=$arch
     esac
 
     if [ -n "$bsdarch" ]; then
@@ -432,41 +515,47 @@ common_cflags_for_abi()
 
 # $1: ABI
 # $2: multilib variant
+# $3: source file (optional)
 cflags_for_abi()
 {
     local a=$1
     local m=$2
+    local s=$3
     if [ -z "$a" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: cflags_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
 
     echo "-std=c11"
-    common_cflags_for_abi $a $m
+    common_cflags_for_abi $a $m $s
 }
 
 # $1: ABI
 # $2: multilib variant
+# $3: source file (optional)
 cxxflags_for_abi()
 {
     local a=$1
     local m=$2
+    local s=$3
     if [ -z "$a" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: cxxflags_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
     echo "-std=c++11 -fuse-cxa-atexit -fno-exceptions -fno-rtti"
-    common_cflags_for_abi $a $m
+    common_cflags_for_abi $a $m $s
 }
 
 # $1: ABI
 # $2: multilib variant
+# $3: source file (optional)
 asmflags_for_abi()
 {
     local a=$1
     local m=$2
+    local s=$3
     if [ -z "$a" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: asmflags_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
 
@@ -475,37 +564,15 @@ asmflags_for_abi()
     arch_flags_for_abi $a $m
     echo "-O2"
 
-    local arch
-    case $a in
-        armeabi*)
-            arch=arm
+    local arch=$(arch_for_abi $a $m)
+    case $arch in
+        arm|x86|mips)
+            echo "-DPLATFORM_SDK_VERSION=9"
             ;;
-        arm64*)
-            arch=arm64
+        arm64|x86_64|mips64)
+            echo "-DPLATFORM_SDK_VERSION=21"
             ;;
-        x86_64)
-            case $m in
-                i386)
-                    arch=x86
-                    ;;
-                *)
-                    arch=x86_64
-            esac
-            ;;
-        mips64)
-            case $m in
-                mips64*)
-                    arch=mips64
-                    ;;
-                *)
-                    arch=mips
-            esac
-            ;;
-        *)
-            arch=$a
     esac
-
-    echo "-D__set_errno_internal=__crystax_set_errno_internal"
 
     echo "-I$bionic/libc/arch-$arch/include"
     echo "-I$bionic/libc"
@@ -518,32 +585,25 @@ ldflags_for_abi()
     local a=$1
     local m=$2
     if [ -z "$2" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB" 1>&2
+        echo "ERROR: Usage: ldflags_for_abi ABI MULTILIB" 1>&2
         exit 1
     fi
 
-    if [ "$a" = "armeabi-v7a" -o "$a" = "armeabi-v7a-hard" ]; then
-        echo "-Wl,--fix-cortex-a8"
-    fi
-
-    if [ "$a" = "armeabi-v7a-hard" ]; then
-        # This is needed to link with crtbegin_so.o/crtend_so.o, compiled with soft float ABI
-        # Please note this is dangerous option and it's easy to miss real
-        # mismatch when it enabled.
-        # Unfortunately, right now we just have no other option beside this one.
-        # TODO: build crtbegin_so.o/crtend_so.o with proper float ABI.
-        echo "-Wl,--no-warn-mismatch"
-    fi
+    case $a in
+        armeabi-v7a*)
+            echo "-Wl,--fix-cortex-a8"
+            ;;
+    esac
 
     echo "-Wl,--no-undefined"
     echo "-Wl,-z,noexecstack"
-    # Android dynamic linker don't support DF_1_INTERPOSE and DF_1_NODELETE ELF flags
+    echo "-Wl,-z,relro"
+    echo "-Wl,-z,now"
+    # Android dynamic linker doesn't support DF_1_INTERPOSE and DF_1_NODELETE ELF flags
     #echo "-Wl,-z,interpose"
     #echo "-Wl,-z,nodelete"
 
     echo "-Wl,-Bstatic,-lgcc"
-    echo "-Wl,-Bdynamic,-lc"
-    echo "-Wl,-Bdynamic,-ldl"
 }
 
 # $1: ABI
@@ -553,7 +613,7 @@ libpath_for_abi()
     local a=$1
     local m=$2
     if [ -z "$a" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB"
+        echo "ERROR: Usage: libpath_for_abi ABI MULTILIB"
         exit 1
     fi
 
@@ -649,7 +709,7 @@ sysroot_libpath_for_abi()
     local a=$1
     local m=$2
     if [ -z "$a" -o -z "$m" ]; then
-        echo "ERROR: Usage: $0 ABI MULTILIB"
+        echo "ERROR: Usage: sysroot_libpath_for_abi ABI MULTILIB"
         exit 1
     fi
 
@@ -747,7 +807,7 @@ set_toolchain()
 {
     local newval=$1
     case $newval in
-        gcc4.8|gcc4.9|clang3.4|clang3.5)
+        gcc*|clang*)
             TOOLCHAIN=$newval
             ;;
         *)
@@ -755,6 +815,25 @@ set_toolchain()
             usage 1>&2
             exit 1
     esac
+}
+
+set_source_file()
+{
+    local newval=$1
+    if [ -z "$newval" ]; then
+        echo "ERROR: Empty value passed to set_source_file" 1>&2
+        exit 1
+    fi
+    if [ ! -f $newval ]; then
+        echo "ERROR: Wrong source file path: $newval" 1>&2
+        exit 1
+    fi
+    if [ -n "$SOURCE_FILE" -a "$SOURCE_FILE" != "$newval" ]; then
+        echo "ERROR: 'source' specified twice (first: $SOURCE_FILE)" 1>&2
+        usage 1>&2
+        exit 1
+    fi
+    SOURCE_FILE=$newval
 }
 
 while [ "x$1" != "x" ]; do
@@ -765,7 +844,8 @@ while [ "x$1" != "x" ]; do
             usage
             exit 0
             ;;
-        --abis|--multilibs|--sources|--abiflags|--cflags|--c++flags|--asmflags|--ldflags|--libpath|--sysroot-libpath)
+        --abis|--multilibs|--sources|--abiflags|--cflags|--c++flags|--asmflags|\
+            --ldflags|--libpath|--sysroot-libpath|--default-gcc-version)
             set_request $(expr "x$arg" : "^x--\(.*\)$")
             ;;
         --abi)
@@ -773,35 +853,42 @@ while [ "x$1" != "x" ]; do
             shift
             ;;
         --abi=*)
-            set_abi $(expr "x$arg" : "^x--abi=\(.*\)$")
+            set_abi $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
             ;;
         --multilib)
             set_multilib $1
             shift
             ;;
         --multilib=*)
-            set_multilib $(expr "x$arg" : "^x--multilib=\(.*\)$")
+            set_multilib $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
             ;;
         --ndk)
             set_ndkdir $1
             shift
             ;;
         --ndk=*)
-            set_ndkdir $(expr "x$arg" : "^x--ndk=\(.*\)$")
+            set_ndkdir $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
             ;;
         --libtype)
             set_libtype $1
             shift
             ;;
         --libtype=*)
-            set_libtype $(expr "x$arg" : "^x--libtype=\(.*\)$")
+            set_libtype $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
             ;;
         --toolchain)
             set_toolchain $1
             shift
             ;;
         --toolchain=*)
-            set_toolchain $(expr "x$arg" : "^x--toolchain=\(.*\)$")
+            set_toolchain $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
+            ;;
+        --source-file)
+            set_source_file $1
+            shift
+            ;;
+        --source-file=*)
+            set_source_file $(expr "x$arg" : "^x--[^=]*=\(.*\)$")
             ;;
         *)
             echo "ERROR: Unknown option: $arg" 1>&2
@@ -816,7 +903,7 @@ if [ -z "$REQUEST" ]; then
     exit 1
 fi
 
-if [ -z "$ABI" -a "$REQUEST" != "abis" ]; then
+if [ -z "$ABI" -a "$REQUEST" != "abis" -a "$REQUEST" != "default-gcc-version" ]; then
     echo "ERROR: ABI not specified" 1>&2
     usage 1>&2
     exit 1
@@ -828,7 +915,13 @@ if [ "$REQUEST" = "abis" -a -n "$ABI" ]; then
     exit 1
 fi
 
-if [ -z "$MULTILIB" -a "$REQUEST" != "abis" -a "$REQUEST" != "multilibs" ]; then
+if [ "$REQUEST" = "default-gcc-version" -a -n "$ABI" ]; then
+    echo "ERROR: Parameter --abi=ABI shouldn't be specified when requesting default GCC version" 1>&2
+    usage 1>&2
+    exit 1
+fi
+
+if [ -z "$MULTILIB" -a "$REQUEST" != "default-gcc-version" -a "$REQUEST" != "abis" -a "$REQUEST" != "multilibs" ]; then
     all_multilibs=$(multilibs_for_abi $ABI)
     if [ $(echo $all_multilibs | wc -w) -gt 1 ]; then
         MULTILIB=$(echo $all_multilibs | tr ' ' '\n' | head -n 1)
@@ -853,6 +946,9 @@ if [ "$REQUEST" = "abiflags" ]; then
 fi
 
 case $REQUEST in
+    default-gcc-version)
+        default_gcc_version
+        ;;
     abis)
         all_abis
         ;;
@@ -866,13 +962,13 @@ case $REQUEST in
         arch_flags_for_abi $ABI $MULTILIB
         ;;
     cflags)
-        cflags_for_abi $ABI $MULTILIB
+        cflags_for_abi $ABI $MULTILIB $SOURCE_FILE
         ;;
     c++flags)
-        cxxflags_for_abi $ABI $MULTILIB
+        cxxflags_for_abi $ABI $MULTILIB $SOURCE_FILE
         ;;
     asmflags)
-        asmflags_for_abi $ABI $MULTILIB
+        asmflags_for_abi $ABI $MULTILIB $SOURCE_FILE
         ;;
     ldflags)
         ldflags_for_abi $ABI $MULTILIB

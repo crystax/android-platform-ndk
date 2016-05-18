@@ -35,7 +35,16 @@
 
 __BEGIN_DECLS
 
+#if __POSIX_VISIBLE >= 200112 || __XPG_VISIBLE
+
+struct group *getgrent();
+void setgrent();
+void endgrent();
+
 int getgrgid_r(gid_t, struct group *, char *, size_t, struct group **);
+int getgrnam_r(const char *, struct group *, char *, size_t, struct group **);
+
+#endif /* __POSIX_VISIBLE >= 200112 || __XPG_VISIBLE */
 
 __END_DECLS
 
