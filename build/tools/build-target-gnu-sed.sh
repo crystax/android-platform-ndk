@@ -130,7 +130,7 @@ build_gnu_sed_for_abi ()
     run mkdir -p $NDK_DIR/prebuilt/android-$ARCH/posix/bin
     fail_panic "Can't create $ABI install folder"
 
-    run cp -f $OUTDIR/sed $NDK_DIR/prebuilt/android-$ARCH/posix/bin/
+    run cp -f $OUTDIR/install/bin/sed $NDK_DIR/prebuilt/android-$ARCH/posix/bin/
     fail_panic "Can't install $ABI GNU sed"
 }
 
