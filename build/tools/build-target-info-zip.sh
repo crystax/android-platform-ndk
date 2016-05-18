@@ -130,7 +130,7 @@ build_info_zip_for_abi ()
     run mkdir -p $NDK_DIR/prebuilt/android-$ARCH/posix/bin
     fail_panic "Can't create $ABI install folder"
 
-    run cp -f $OUTDIR/zip $NDK_DIR/prebuilt/android-$ARCH/posix/bin/
+    run cp -f $OUTDIR/install/bin/zip $NDK_DIR/prebuilt/android-$ARCH/posix/bin/
     fail_panic "Can't install $ABI Info-ZIP"
 }
 

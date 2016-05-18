@@ -37,6 +37,7 @@
 #include <crystax/private.h>
 #include <crystax/localeimpl.h>
 #include <crystax/fenvimpl.h>
+#include <crystax/pthread_workqueue_impl.h>
 
 #include <stdlib.h>
 #include <pthread.h>
@@ -118,6 +119,7 @@ static bool __crystax_init()
 
     NEXT_MODULE_INIT(locale);
     NEXT_MODULE_INIT(fenv);
+    NEXT_MODULE_INIT(pthread_workqueue);
 
 #undef NEXT_MODULE_INIT
 

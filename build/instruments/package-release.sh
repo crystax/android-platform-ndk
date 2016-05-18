@@ -562,13 +562,13 @@ if [ -z "$PREBUILT_NDK" ]; then
             continue
         fi
 
-        unpack_prebuilt android-bash-$ABI
-        unpack_prebuilt android-gnu-coreutils-$ABI
-        unpack_prebuilt android-gnu-grep-$ABI
-        unpack_prebuilt android-gnu-sed-$ABI
-        unpack_prebuilt android-gnu-tar-$ABI
-        unpack_prebuilt android-info-zip-$ABI
-        unpack_prebuilt android-info-unzip-$ABI
+        unpack_prebuilt android-bash-$ABI "$REFERENCE"
+        unpack_prebuilt android-gnu-coreutils-$ABI "$REFERENCE"
+        unpack_prebuilt android-gnu-grep-$ABI "$REFERENCE"
+        unpack_prebuilt android-gnu-sed-$ABI "$REFERENCE"
+        unpack_prebuilt android-gnu-tar-$ABI "$REFERENCE"
+        unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
+        unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"
     done
 fi
 

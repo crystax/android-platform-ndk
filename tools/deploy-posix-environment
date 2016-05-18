@@ -1,0 +1,247 @@
+#!/usr/bin/env bash
+
+error()
+{
+    echo "*** ERROR: $@" 1>&2
+}
+
+HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
+case $HOST_OS in
+    linux|darwin)
+        ;;
+    *)
+        error "Host OS '$HOST_OS' is not supported"
+        exit 1
+esac
+
+HOST_ARCH=$(uname -m)
+case $HOST_ARCH in
+    x86_64)
+        ;;
+    *)
+        error "Host CPU architecture '$HOST_ARCH' is not supported"
+        exit 1
+esac
+
+NDK=$(cd $(dirname $0)/.. && pwd)
+DEPLOY_ROOT=/data/local/tmp/posix
+ANDROID_SERIAL=
+
+usage()
+{
+    echo "Usage: $0 [options]"
+    echo ""
+    echo "Optional parameters:"
+    echo ""
+    echo "  -h,--help                  Show this screen and exit"
+    echo ""
+    echo "  -s,--device-id=ID          Device ID to deploy to [autodetect]"
+    echo "  -r,--root=PATH             Deploy to this root folder on device"
+    echo "                             [$DEPLOY_ROOT]"
+    echo ""
+}
+
+while [ -n "$1" ]; do
+    arg="$1"
+    shift
+    argval=$(expr "x$arg" : "^x[^=]*=\(.*\)$")
+    case $arg in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -s|--device-id)
+            ANDROID_SERIAL="$1"
+            shift
+            ;;
+        --device-id=*)
+            ANDROID_SERIAL="$argval"
+            ;;
+        -r|--root)
+            DEPLOY_ROOT="$1"
+            shift
+            ;;
+        --root=*)
+            DEPLOY_ROOT="$argval"
+            ;;
+        -*)
+            error "Unknown option: '$arg'"
+            usage 1>&2
+            exit 1
+            ;;
+        *)
+            usage 1>&2
+            exit 1
+    esac
+done
+
+if [ -z "$ANDROID_SERIAL" ]; then
+    ANDROID_SERIAL=$(adb devices | grep '^[^\s][^\s]*\s\s*device$' | head -n 1 | cut -f 1)
+    if [ -z "$ANDROID_SERIAL" ]; then
+        error "Can't detect Android device for deploy"
+        exit 1
+    fi
+    echo "=== Auto-detected Android device '$ANDROID_SERIAL'"
+fi
+export ANDROID_SERIAL
+
+run()
+{
+    echo "## COMMAND: $@"
+    "$@"
+}
+
+device_abi()
+{
+    adb shell getprop ro.product.cpu.abi | sed 's,[[:cntrl:]]*,,g'
+}
+
+adb_shell()
+{
+    run adb shell "$@"
+}
+
+adb_push()
+{
+    run adb push "$@"
+}
+
+DEVABI=$(device_abi)
+if [ -z "$DEVABI" ]; then
+    error "Can't detect main ABI for device '$ANDROID_SERIAL'"
+    exit 1
+fi
+
+case $DEVABI in
+    armeabi-v7a)
+        DEVARCH=arm
+        ;;
+    arm64*)
+        DEVARCH=arm64
+        ;;
+    x86|x86_64|mips|mips64)
+        DEVARCH=$DEVABI
+        ;;
+    *)
+        error "Unsupported device CPU ABI: '$DEVABI'"
+        exit 1
+esac
+
+case $DEVARCH in
+    arm)
+        TCPREFIX=arm-linux-androideabi
+        ;;
+    arm64)
+        TCPREFIX=aarch64-linux-android
+        ;;
+    mips)
+        TCPREFIX=mipsel-linux-android
+        ;;
+    mips64)
+        TCPREFIX=mips64el-linux-android
+        ;;
+    x86)
+        TCPREFIX=i686-linux-android
+        ;;
+    x86_64)
+        TCPREFIX=x86_64-linux-android
+        ;;
+esac
+
+case $DEVARCH in
+    x86|x86_64)
+        TCNAME=$DEVARCH
+        ;;
+    *)
+        TCNAME=$TCPREFIX
+esac
+
+case $DEVABI in
+    armeabi*)
+        ABI=armeabi-v7a-hard
+        ;;
+    *)
+        ABI=$DEVABI
+esac
+
+STRIP=$NDK/toolchains/${TCNAME}-6/prebuilt/${HOST_OS}-${HOST_ARCH}/bin/${TCPREFIX}-strip
+if [ ! -x "$STRIP" ]; then
+    error "No 'strip' tool found for CPU architecture '$DEVARCH'"
+    exit 1
+fi
+
+BINS="        \
+    bash      \
+    coreutils \
+    grep      \
+    sed       \
+    tar       \
+    unzip     \
+    zip       \
+    "
+
+RTAG=$(uuidgen | sed 's,-,,g')
+
+trap "rm -f /tmp/*.$RTAG" EXIT INT QUIT ABRT TERM
+
+adb_shell mkdir -p $DEPLOY_ROOT/bin/ || exit 1
+adb_shell chmod 0755 $DEPLOY_ROOT/bin/ || exit 1
+adb_shell mkdir -p $DEPLOY_ROOT/lib/ || exit 1
+adb_shell chmod 0755 $DEPLOY_ROOT/lib/ || exit 1
+adb_shell mkdir -p $DEPLOY_ROOT/tmp/ || exit 1
+adb_shell chmod 0777 $DEPLOY_ROOT/tmp/ || exit 1
+
+LIBCRYSTAX_STRIPPED=/tmp/libcrystax.so.$RTAG
+run cp -f $NDK/sources/crystax/libs/$ABI/libcrystax.so $LIBCRYSTAX_STRIPPED || exit 1
+run $STRIP $LIBCRYSTAX_STRIPPED || exit 1
+adb_push $LIBCRYSTAX_STRIPPED $DEPLOY_ROOT/lib/libcrystax.so || exit 1
+adb_shell chmod 0644 $DEPLOY_ROOT/lib/libcrystax.so || exit 1
+rm -f $LIBCRYSTAX_STRIPPED
+
+for f in $BINS; do
+    STRIPPED=/tmp/$f.$RTAG
+    run cp -f $NDK/prebuilt/android-$DEVARCH/posix/bin/$f $STRIPPED || exit 1
+    $STRIP $STRIPPED || exit 1
+    adb_push $STRIPPED $DEPLOY_ROOT/bin/$f || exit 1
+    adb_shell chmod 0755 $DEPLOY_ROOT/bin/$f || exit 1
+    rm -f $STRIPPED
+done
+
+MKCOREUTILS=/tmp/mkcoreutils.$RTAG
+echo "cd $DEPLOY_ROOT/bin/ || exit 1" >$MKCOREUTILS
+for u in $(cat $NDK/tools/coreutils.txt); do
+    echo "rm -f $u || exit 1" >>$MKCOREUTILS
+    echo "ln -s coreutils $u || exit 1" >>$MKCOREUTILS
+done
+adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils
+adb_shell "HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/bash $DEPLOY_ROOT/tmp/mkcoreutils" || exit 1
+adb_shell rm -f $DEPLOY_ROOT/mkcoreutils
+
+BASH_PROFILE=/tmp/bash_profile.$RTAG
+cat >$BASH_PROFILE <<EOF
+umask 0022
+
+alias mv='mv -i'
+alias cp='cp -i'
+alias ll='ls --color=auto -FAl'
+alias tf='tail -F'
+
+if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
+    echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
+    echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
+    exit 1
+fi
+
+TMP=\$HOME/tmp
+TMPDIR=\$TMP
+export TMP TMPDIR
+
+LD_LIBRARY_PATH=\$HOME/lib
+export LD_LIBRARY_PATH
+
+PATH=\$HOME/bin:\$PATH
+export PATH
+EOF
+
+adb_push $BASH_PROFILE $DEPLOY_ROOT/.bash_profile
+rm -f $BASH_PROFILE
