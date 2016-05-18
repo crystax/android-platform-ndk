@@ -31,7 +31,6 @@
 
 #include <crystax/private.h>
 #include <crystax/atomic.h>
-#include <crystax/bionic.h>
 
 #include <sys/system_properties.h>
 
@@ -47,12 +46,9 @@ int crystax_device_type()
     int type = __crystax_atomic_fetch(&devtype);
     if (type < 0)
     {
-        typedef int (*syspropget_t)(const char *, char *);
-
         char brand[PROP_VALUE_MAX + 1];
 
-        syspropget_t syspropget = (syspropget_t)__crystax_bionic_symbol(__CRYSTAX_BIONIC_SYMBOL___SYSTEM_PROPERTY_GET, 1);
-        if (!syspropget || syspropget("ro.product.brand", brand) <= 0)
+        if (__system_property_get("ro.product.brand", brand) <= 0)
             type = CRYSTAX_DEVICE_TYPE_UNKNOWN;
         else if (memcmp(brand, generic, strlen(generic)) == 0)
             type = CRYSTAX_DEVICE_TYPE_EMULATOR;

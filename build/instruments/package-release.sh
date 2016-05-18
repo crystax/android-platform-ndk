@@ -556,6 +556,20 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
         unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
     done
+
+    for ABI in $ABIS; do
+        if [ "$ABI" = "armeabi" -o "$ABI" = "armeabi-v7a" ]; then
+            continue
+        fi
+
+        unpack_prebuilt android-bash-$ABI
+        unpack_prebuilt android-gnu-coreutils-$ABI
+        unpack_prebuilt android-gnu-grep-$ABI
+        unpack_prebuilt android-gnu-sed-$ABI
+        unpack_prebuilt android-gnu-tar-$ABI
+        unpack_prebuilt android-info-zip-$ABI
+        unpack_prebuilt android-info-unzip-$ABI
+    done
 fi
 
 RELEASE_VERSION=${RELEASE_PREFIX%%-b*}

@@ -29,19 +29,28 @@
 
 MYDIR := $(dir $(firstword $(MAKEFILE_LIST)))
 
+override MTARGET := crystax
+
 ifeq (,$(strip $(NDK)))
 NDK := $(realpath $(MYDIR)/../..)
 endif
 
-ifeq (,$(strip $(TVS)))
-TVS := gcc4.9
+CCONF := $(MYDIR)/bin/config --ndk=$(NDK)
+
+DEFAULT_GCC_VERSION := $(shell $(CCONF) --default-gcc-version)
+ifeq (,$(DEFAULT_GCC_VERSION))
+$(error Can not detect default GCC version!)
 endif
+
+ifeq (,$(strip $(TVS)))
+TVS := gcc$(DEFAULT_GCC_VERSION)
+endif
+
+CCONF := $(CCONF) --toolchain=$(TVS)
 
 MAKEPRG := $(MAKE) --no-print-directory
 
 GENSOURCES := $(MYDIR)/bin/gen-sources
-
-CCONF := $(MYDIR)/bin/config --ndk=$(NDK) --toolchain=$(TVS)
 
 empty :=
 space := $(empty) $(empty)
@@ -98,14 +107,14 @@ define cctype
 $(if $(filter clang%,$(1)),clang,gcc)
 endef
 
-# $1: Toolchain version
+# $1: Toolchain version (optional)
 define is-gcc
-$(if $(filter gcc,$(call cctype,$(1))),yes)
+$(if $(filter gcc,$(call cctype,$(or $(strip $(1)),$(TVS)))),yes)
 endef
 
-# $2: Toolchain version
+# $2: Toolchain version (optional)
 define is-clang
-$(if $(filter clang,$(call cctype,$(1))),yes)
+$(if $(filter clang,$(call cctype,$(or $(strip $(1)),$(TVS)))),yes)
 endef
 
 # $1: ABI
@@ -213,7 +222,7 @@ $(strip $(if $(and $(strip $(1)),$(strip $(2)),$(strip $(3))),\
             $(abspath $(NDK)/toolchains/llvm-$(call clang-version,$(2))/prebuilt/$(host-os)-$(host-arch)/bin/$(strip $(3)))\
             $(if $(filter clang clang++,$(3)),\
                 -target $(call llvm-tripple,$(1))\
-                -gcc-toolchain $(call gcc-toolchain,$(1),4.9)\
+                -gcc-toolchain $(call gcc-toolchain,$(1),$(DEFAULT_GCC_VERSION))\
             )\
         )\
     ),\
@@ -229,21 +238,21 @@ $(call cached,var-tc-bin-$(1)-$(2)-$(3),tc-bin-impl,$(1),$(2),$(3))
 endef
 
 # $1: ABI
-# $2: Toolchain version
+# $2: Toolchain version (optional)
 define cc
-$(call tc-bin,$(1),$(2),$(if $(call is-gcc,$(2)),gcc,clang))
+$(call tc-bin,$(1),$(or $(strip $(2)),$(TVS)),$(if $(call is-gcc,$(or $(strip $(2)),$(TVS))),gcc,clang))
 endef
 
 # $1: ABI
-# $2: Toolchain version
+# $2: Toolchain version (optional)
 define c++
-$(call tc-bin,$(1),$(2),$(if $(call is-gcc,$(2)),g++,clang++))
+$(call tc-bin,$(1),$(or $(strip $(2)),$(TVS)),$(if $(call is-gcc,$(or $(strip $(2)),$(TVS))),g++,clang++))
 endef
 
 # $1: ABI
-# $2: Toolchain version
+# $2: Toolchain version (optional)
 define ar
-$(call tc-bin,$(1),$(2),$(if $(call is-gcc,$(2)),ar,llvm-ar))
+$(call tc-bin,$(1),$(or $(strip $(2)),$(TVS)),$(if $(call is-gcc,$(or $(strip $(2)),$(TVS))),ar,llvm-ar))
 endef
 
 # $1: ABI
@@ -340,52 +349,119 @@ define target
 $(abspath $(MYDIR)/$(shell $(CCONF) --libpath --abi=$(strip $(2)) $(if $(strip $(3)),--multilib=$(strip $(3))))/$(call targetname,$(1)))
 endef
 
-# $1: ABI
-# $2: multilib variant (optional)
+define static-libraries
+endef
+
+# $1: name
+# $2: ABI
+# $3: multilib variant
+define static-library
+$(call objdir,$(2),$(3))/lib$(1).a
+endef
+
+define stubs
+dl bionic
+endef
+
+# $1: stub name
+# $2: ABI
+# $3: multilib variant (optional)
+define stub
+$(abspath $(MYDIR)/$(shell $(CCONF) --libpath --abi=$(strip $(2)) $(if $(strip $(3)),--multilib=$(strip $(3))))/stubs/lib$(1)stub.so)
+endef
+
+# $1: stub name
+define stub-symbols
+$(strip $(or \
+    $(if $(filter dl,$(1)),\
+        dl_iterate_phdr      \
+        dl_unwind_find_exidx \
+        dladdr               \
+        dlclose              \
+        dlerror              \
+        dlopen               \
+        dlsym                \
+    ),\
+    $(if $(filter bionic,$(1)),\
+        __crystax_bionic_stub \
+    ),\
+    $(error Unknown stub: '$(1)')\
+))
+endef
+
+# $1: stub name
+define stub-soname
+$(if $(filter bionic,$(1)),libc.so,lib$(1).so)
+endef
+
+# $1: library name
+# $2: type (shared or static)
+# $3: ABI
+# $4: multilib variant (optional)
 define sources-impl
-$(shell $(CCONF) --sources --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
+$(strip $(or \
+    $(if $(filter $(MTARGET),$(1)),\
+        $(shell $(CCONF) --sources --abi=$(strip $(3)) --libtype=$(strip $(2)) \
+            $(if $(strip $(4)),--multilib=$(strip $(4)))) \
+    ),\
+    $(error Unknown library: '$(1)')\
+))
 endef
 
-# $1: ABI
-# $2: multilib variant (optional)
+# $1: library name
+# $2: type (shared or static)
+# $3: ABI
+# $4: multilib variant (optional)
 define sources
-$(call cached,var-sources-$(1)-$(2),sources-impl,$(1),$(2))
+$(call cached,var-sources-$(1)-$(2)-$(3)-$(4),sources-impl,$(1),$(2),$(3),$(4))
 endef
 
-# $1: ABI
-# $2: multilib variant (optional)
-define cflags-impl
-$(shell $(CCONF) --cflags --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
-endef
-
-# $1: ABI
-# $2: multilib variant (optional)
+# $1: library name
+# $2: ABI
+# $3: multilib variant (optional)
+# $4: source file (optional)
 define cflags
-$(call cached,var-cflags-$(1)-$(2),cflags-impl,$(1),$(2))
+$(strip $(or \
+    $(if $(filter $(MTARGET),$(1)),\
+        $(shell $(strip $(CCONF) --cflags --abi=$(strip $(2)) \
+            $(if $(strip $(3)),--multilib=$(strip $(3))) \
+            $(if $(strip $(4)),--source-file=$(strip $(4))) \
+        ))\
+    ),\
+    $(call abiflags,$(2),$(3))\
+))
 endef
 
-# $1: ABI
-# $2: multilib variant (optional)
-define c++flags-impl
-$(shell $(CCONF) --c++flags --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
-endef
-
-# $1: ABI
-# $2: multilib variant (optional)
+# $1: library name
+# $2: ABI
+# $3: multilib variant (optional)
+# $4: source file (optional)
 define c++flags
-$(call cached,var-c++flags-$(1)-$(2),c++flags-impl,$(1),$(2))
+$(strip $(or \
+    $(if $(filter $(MTARGET),$(1)),\
+        $(shell $(CCONF) --c++flags --abi=$(strip $(2)) \
+            $(if $(strip $(3)),--multilib=$(strip $(3))) \
+            $(if $(strip $(4)),--source-file=$(strip $(4))) \
+        )\
+    ),\
+    $(call abiflags,$(2),$(3))\
+))
 endef
 
-# $1: ABI
-# $2: multilib variant (optional)
-define asmflags-impl
-$(shell $(CCONF) --asmflags --abi=$(strip $(1)) $(if $(strip $(2)),--multilib=$(strip $(2))))
-endef
-
-# $1: ABI
-# $2: multilib variant (optional)
+# $1: library name
+# $2: ABI
+# $3: multilib variant (optional)
+# $4: source file (optional)
 define asmflags
-$(call cached,var-asmflags-$(1)-$(2),asmflags-impl,$(1),$(2))
+$(strip $(or \
+    $(if $(filter $(MTARGET),$(1)),\
+        $(shell $(CCONF) --asmflags --abi=$(strip $(2)) \
+            $(if $(strip $(3)),--multilib=$(strip $(3))) \
+            $(if $(strip $(4)),--source-file=$(strip $(4))) \
+        )\
+    ),\
+    $(call abiflags,$(2),$(3))\
+))
 endef
 
 # $1: ABI
@@ -418,6 +494,7 @@ endef
 
 # $1: ABI
 # $2: multilib variant
+# $3: library name (optional)
 define objdir
 $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
     $(objroot)/$(strip $(or \
@@ -426,32 +503,42 @@ $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
         $(if $(filter armeabi-v7a-hard,$(1)),armv7-a$(if $(filter arm,$(2)),,-$(2))-hard),\
         $(if $(filter arm64-v8a x86 x86_64 mips mips64,$(1)),$(2)),\
         $(error Unsupported ABI: '$(1)')\
-    )),\
-    $(error Usage: call objdir,abi,multilib)\
+    ))$(if $(strip $(3)),/$(strip $(3))),\
+    $(error Usage: call objdir,abi,multilib,libname)\
 ))
 endef
 
-# $1: type (shared or static)
-# $2: ABI
-# $3: multilib variant
+# $1: library name
+# $2: type (shared or static)
+# $3: ABI
+# $4: multilib variant
 define objfiles-impl
 $(strip \
-    $(addprefix $(call objdir,$(2),$(3))/,\
-        $(foreach __f,$(call sources,$(2),$(3)),$(call objfile,$(__f)))\
+    $(addprefix $(call objdir,$(3),$(4),$(1))/,\
+        $(foreach __f,$(call sources,$(1),$(2),$(3),$(4)),$(call objfile,$(__f)))\
     )\
 )
 endef
 
-# $1: type (shared or static)
-# $2: ABI
-# $3: multilib variant
+# $1: library name
+# $2: type (shared or static)
+# $3: ABI
+# $4: multilib variant
 define objfiles
-$(call cached,var-objfiles-$(1)-$(2)-$(3),objfiles-impl,$(1),$(2),$(3))
+$(call cached,var-objfiles-$(1)-$(2)-$(3)-$(4),objfiles-impl,$(1),$(2),$(3),$(4))
 endef
 
 # $1: source file
 define objfile
 $(addsuffix .o,$(subst $(abspath $(MYDIR))/,,$(abspath $(1))))
+endef
+
+# $1: library name
+# $2: ABI
+# $3: multilib variant
+# $4: source file
+define full-objfile-path
+$(call objdir,$(2),$(3),$(1))/$(call objfile,$(4))
 endef
 
 # $1: source file
@@ -472,24 +559,30 @@ endef
 define compiler-for
 $(strip $(if $(and $(strip $(1)),$(strip $(2))),\
     $(or \
-        $(if $(filter C ASM,$(call source-file-language,$(2))),$(call cc,$(1),$(TVS))),\
-        $(if $(filter C++,$(call source-file-language,$(2))),$(call c++,$(1),$(TVS))),\
+        $(if $(filter C ASM,$(call source-file-language,$(2))),$(call cc,$(1))),\
+        $(if $(filter C++,$(call source-file-language,$(2))),$(call c++,$(1))),\
         $(error Unknown source file language for '$(2)': '$(call source-file-language,$(2))')\
     ),\
     $(error Usage: call compiler-for,source-file)\
 ))
 endef
 
-# $1: ABI
-# $2: multilib variant
-# $3: source file
+# $1: library name
+# $2: ABI
+# $3: multilib variant
+# $4: source file
 define compiler-flags
 $(strip $(or \
-    $(if $(filter C,  $(call source-file-language,$(3))),$(call cflags,$(1),$(2))),\
-    $(if $(filter C++,$(call source-file-language,$(3))),$(call c++flags,$(1),$(2))),\
-    $(if $(filter ASM,$(call source-file-language,$(3))),$(call asmflags,$(1),$(2))),\
-    $(error Could not detect compiler flags for '$(3)')\
+    $(if $(filter C,  $(call source-file-language,$(4))),$(call cflags,$(1),$(2),$(3),$(4))),\
+    $(if $(filter C++,$(call source-file-language,$(4))),$(call c++flags,$(1),$(2),$(3),$(4))),\
+    $(if $(filter ASM,$(call source-file-language,$(4))),$(call asmflags,$(1),$(2),$(3),$(4))),\
+    $(error Could not detect compiler flags for '$(4)')\
 ))
+endef
+
+# $1: Toolchain version (optional)
+define ar-flags
+crs$(if $(call is-gcc,$(1)),D)
 endef
 
 # $1: ABI
@@ -530,17 +623,22 @@ define additional-dependencies
 $(filter-out %.d,$(MAKEFILE_LIST)) $(firstword $(CCONF))
 endef
 
-# $1: ABI
-# $2: multilib variant
-# $3: source file
+# $1: library name
+# $2: ABI
+# $3: multilib variant
+# $4: source file
 define add-objfile-rule
-$$(call objdir,$(1),$(2))/$$(call objfile,$(3)): $$(abspath $(3)) $$(additional-dependencies)
-	@echo "CC $(1) [$(2)] $(3)"
+$$(call full-objfile-path,$(1),$(2),$(3),$(4)): $$(abspath $(4)) $$(additional-dependencies)
+	$$(eval __lnam := $(1))
+	$$(eval __abi  := $(2))
+	$$(eval __mlib := $(3))
+	$$(eval __srcf := $(4))
+	@echo "CC $$(__abi) [$$(__mlib)] $$(__srcf)"
 	@mkdir -p $$(dir $$@)
-	$$(hide)$$(call compiler-for,$(1),$$<) \
+	$$(hide)$$(call compiler-for,$$(__abi),$$<) \
 		-MD -MP -MF $$(patsubst %.o,%.d,$$@) \
-		$$(call compiler-flags,$(1),$(2),$(3)) \
-		--sysroot=$$(call sysroot,$(1)) \
+		$$(call compiler-flags,$$(__lnam),$$(__abi),$$(__mlib),$$(__srcf)) \
+		--sysroot=$$(call sysroot,$$(__abi)) \
 		-c -o $$@ $$<
 endef
 
@@ -548,21 +646,49 @@ endef
 # $2: ABI
 # $3: multilib variant
 define add-target-rule
-$$(call target,$(1),$(2),$(3)): $$(call objfiles,$(1),$(2),$(3)) $$(additional-dependencies)
-	@echo "$(if $(filter static,$(1)),AR,LD) $(2) [$(3)] $$(notdir $$@)"
+$$(call target,$(1),$(2),$(3)): $$(strip \
+		$$(call objfiles,$$(MTARGET),$(1),$(2),$(3)) \
+		$$(foreach __static_lib,$$(call static-libraries),\
+			$$(call static-library,$$(__static_lib),$(2),$(3)) \
+		)\
+		$$(if $$(filter shared,$(1)),\
+			$$(foreach __stub,$$(call stubs),\
+				$$(call stub,$$(__stub),$(2),$(3)) \
+			)\
+		)\
+		$$(additional-dependencies))
+	$$(eval __type := $(1))
+	$$(eval __abi  := $(2))
+	$$(eval __mlib := $(3))
+	$$(eval __objfiles := $$(call objfiles,$$(MTARGET),$$(__type),$$(__abi),$$(__mlib)))
+	$$(eval __crtbegin_objfile := $$(filter %/crtbegin_so.o,$$(__objfiles)))
+	$$(eval __crtbrand_objfile := $$(filter %/crtbrand.o,$$(__objfiles)))
+	$$(eval __crtend_objfile   := $$(filter %/crtend_so.o,$$(__objfiles)))
+	$$(eval __common_objfiles := $$(filter-out $$(addprefix %/,crtbegin_so.o crtbrand.o crtend_so.o),$$(__objfiles)))
+	$$(foreach __static_lib,$$(call static-libraries),\
+		$$(eval __common_objfiles += $$(call objfiles,$$(__static_lib),static,$$(__abi),$$(__mlib)))\
+	)
+	@echo "$$(if $$(filter static,$$(__type)),AR,LD) $$(__abi) [$$(__mlib)] $$(notdir $$@)"
 	@mkdir -p $$(dir $$@)
 	@rm -f $$@
-	$$(hide)$(strip $(if $(filter static,$(1)),\
-		$$(call ar,$(2),$$(TVS)) crs$$(if $$(call is-gcc,$$(TVS)),D) $$@ \
-			$$(filter-out $$(MAKEFILE_LIST),$$^),\
-		$$(call c++,$(2),$$(TVS)) \
-			$$(call abiflags,$(2),$(3)) \
-			$$(call linker-options,$(2),$$@) \
-			-L$$(call sysroot-libdir,$(2),$(3)) \
-			$$(call linker-crtfile,$(2),$(3),crtbegin_so.o) \
-			$$(call objfiles,$(1),$(2),$(3)) \
-			$$(call ldflags,$(2),$(3)) \
-			$$(call linker-crtfile,$(2),$(3),crtend_so.o) \
+	$$(hide)$$(strip $$(if $$(filter static,$$(__type)),\
+		$$(call ar,$$(__abi)) \
+			$$(call ar-flags) \
+			$$@ \
+			$$(__common_objfiles) \
+			,\
+		$$(call c++,$$(__abi)) \
+			$$(call abiflags,$$(__abi),$$(__mlib)) \
+			$$(call linker-options,$$(__abi),$$@) \
+			$$(__crtbegin_objfile) \
+			$$(__crtbrand_objfile) \
+			$$(__common_objfiles) \
+			$$(__crtend_objfile) \
+			$$(call ldflags,$$(__abi),$$(__mlib)) \
+			$$(foreach __stub,$$(call stubs),\
+				-L$$(dir $$(call stub,$$(__stub),$(2),$(3))) \
+				-Wl,-Bdynamic,-l$$(patsubst lib%.so,%,$$(notdir $$(call stub,$$(__stub),$(2),$(3)))) \
+			)\
 			-o $$@ \
 	))
 
@@ -571,6 +697,46 @@ all: $$(call target,$(1),$(2),$(3))
 
 .PHONY: $(1)-$(2)
 $(1)-$(2): $$(call target,$(1),$(2),$(3))
+
+endef
+
+# $1: library name
+# $2: ABI
+# $3: multilib variant
+define add-static-library-rule
+$$(call static-library,$(1),$(2),$(3)): $$(call objfiles,$(1),static,$(2),$(3)) $$(additional-dependencies)
+	$$(eval __name := $(1))
+	$$(eval __abi  := $(2))
+	$$(eval __mlib := $(3))
+	@echo "AR $$(__abi) [$$(__mlib)] $$(notdir $$@)"
+	@mkdir -p $$(dir $$@)
+	@rm -f $$@
+	$$(hide)$$(call ar,$$(__abi)) $$(call ar-flags) $$@ \
+		$$(call objfiles,$$(__name),static,$$(__abi),$$(__mlib))
+endef
+
+# $1: stub name
+# $2: ABI
+# $3: multilib variant
+define add-stub-rule
+
+$$(call stub,$(1),$(2),$(3)): $$(call objdir,$(2),$(3),$(1)stub)/stub.c
+	@echo "ST $(2) [$(3)] $$(notdir $$@)"
+	@mkdir -p $$(dir $$@)
+	$$(hide)$$(call cc,$(2)) \
+		$$(call abiflags,$(2),$(3)) \
+		-Wl,-shared,-Bsymbolic \
+		-Wl,-soname,$$(call stub-soname,$(1)) \
+		-nostdlib \
+		-o $$@ $$< \
+		-Wl,--exclude-libs,libgcc.a
+
+$$(call objdir,$(2),$(3),$(1)stub)/stub.c: $$(additional-dependencies)
+	@mkdir -p $$(dir $$@)
+	@rm -f $$@
+	@$$(foreach __sym,$$(call stub-symbols,$(1)),\
+		echo "void $$(__sym)() {}" >>$$@ || exit 1; \
+	)
 
 endef
 
@@ -616,11 +782,23 @@ gen-sources:
 ifeq (yes,$(CRYSTAX_EVAL_RULES))
 $(foreach __abi,$(call abis),\
     $(foreach __mlib,$(call multilibs,$(__abi)),\
+        $(foreach __stub,$(call stubs),\
+            $(eval $(call add-stub-rule,$(__stub),$(__abi),$(__mlib)))\
+        )\
+        $(foreach __libname,$(call static-libraries),\
+            $(eval $(call add-static-library-rule,$(__libname),$(__abi),$(__mlib)))\
+            $(foreach __src,$(call sources,$(__libname),static,$(__abi),$(__mlib)),\
+                $(eval $(call add-objfile-rule,$(__libname),$(__abi),$(__mlib),$(__src)))\
+            )\
+        )\
+        $(foreach __src,\
+            $(sort $(foreach __t,static shared,\
+                $(call sources,$(MTARGET),$(__t),$(__abi),$(__mlib))\
+            )),\
+            $(eval $(call add-objfile-rule,$(MTARGET),$(__abi),$(__mlib),$(__src)))\
+        )\
         $(foreach __t,static shared,\
             $(eval $(call add-target-rule,$(__t),$(__abi),$(__mlib)))\
-        )\
-        $(foreach __src,$(call sources,$(__abi),$(__mlib)),\
-            $(eval $(call add-objfile-rule,$(__abi),$(__mlib),$(__src)))\
         )\
         $(eval sinclude $(call rwildcard,$(call objdir,$(__abi),$(__mlib)),*.d))\
     )\

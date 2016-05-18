@@ -60,6 +60,29 @@
 #define POSIX_FADV_DONTNEED   4
 #define POSIX_FADV_NOREUSE    5
 
+#ifndef O_PATH
+#define O_PATH 010000000
+#endif
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
+#ifndef O_TEXT
+#define O_TEXT 0
+#endif
+
+/* Define O_SEARCH as O_PATH is far from ideal, but we're just following what GLibc and Musl do.
+   Here is some additional information: http://www.openwall.com/lists/musl/2013/02/22/1
+ */
+#ifndef O_SEARCH
+#define O_SEARCH O_PATH
+#endif
+
+#ifndef AT_EACCESS
+#define AT_EACCESS 0x200
+#endif
+
 __BEGIN_DECLS
 
 extern int fallocate64(int, int, off64_t, off64_t);

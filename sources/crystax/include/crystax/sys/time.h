@@ -37,6 +37,7 @@
 
 #include <sys/limits.h>
 #include <signal.h> /* for sigevent */
+#include <sys/time.h>
 
 #ifdef CLOCKS_PER_SEC
 #undef CLOCKS_PER_SEC
@@ -46,7 +47,7 @@
 __BEGIN_DECLS
 
 extern int daylight;
-extern long int timezone;
+extern long timezone;
 
 extern int clock_nanosleep(clockid_t, int, const struct timespec *, struct timespec *);
 

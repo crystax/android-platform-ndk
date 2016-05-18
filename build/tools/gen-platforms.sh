@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011 The Android Open Source Project
+# Copyright (C) 2011, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -422,7 +422,8 @@ gen_shared_lib ()
     $COMMAND
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate shared library for: $LIBRARY"
-        dump "See the content of $TMPC for details."
+        dump "See the content of $TMPC and $TMPL for details."
+        cat $TMPL | tail -10
         exit 1
     fi
 
@@ -433,6 +434,14 @@ gen_shared_lib ()
         dump "ERROR: Can't copy shared library for: $LIBRARY"
         dump "target location is: $DSTFILE"
         exit 1
+    fi
+    if [ "$LIBRARY" = "libc.so" ]; then
+        cp -f "$DSTFILE" "$libdir/libbionic.so"
+        if [ $? != 0 ]; then
+            dump "ERROR: Can't copy shared library for: libbionic.so"
+            dump "target location is: $libdir/libbionic.so"
+            exit 1
+        fi
     fi
 
     if [ "$OPTION_DEBUG_LIBS" ]; then
@@ -818,25 +827,23 @@ if [ "$PACKAGE_DIR" ]; then
     fi
 
     for PLATFORM in $PLATFORMS; do
-        PLATFORM_NAME="android-$PLATFORM"
-        make_repo_prop "$DSTDIR/platforms/$PLATFORM_NAME"
-
-        NOTICE="$DSTDIR/platforms/$PLATFORM_NAME/NOTICE"
-        cp "$ANDROID_BUILD_TOP/bionic/libc/NOTICE" $NOTICE
-        echo >> $NOTICE
-        cp "$ANDROID_BUILD_TOP/bionic/libm/NOTICE" $NOTICE
-        echo >> $NOTICE
-        cp "$ANDROID_BUILD_TOP/bionic/libdl/NOTICE" $NOTICE
-        echo >> $NOTICE
-        cp "$ANDROID_BUILD_TOP/bionic/libstdc++/NOTICE" $NOTICE
-
-        mkdir -p "$PACKAGE_DIR"
-        fail_panic "Could not create package directory: $PACKAGE_DIR"
-        ARCHIVE=platform-$PLATFORM.zip
-        dump "Packaging $ARCHIVE"
-        pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR/platforms" "$PLATFORM_NAME"
-        fail_panic "Could not package platform-$PLATFORM"
+        dump "Copy android-$PLATFORM samples"
+        # $SRC/platform-$PLATFORM/samples --> $DST/samples
+        copy_src_directory platforms/android-$PLATFORM/samples samples samples
     done
+
+    # Cleanup generated files in samples
+    rm -rf "$DSTDIR/samples/*/obj"
+    rm -rf "$DSTDIR/samples/*/libs"
+fi
+
+if [ -n "$PACKAGE_DIR" ]; then
+    FLAGS="--package-dir=$PACKAGE_DIR"
+    if [ "$OPTION_SAMPLES" ]; then
+        FLAGS="$FLAGS --samples"
+    fi
+    run $NDK_DIR/build/tools/package-platforms.sh $FLAGS
+    fail_panic "Can't package platforms"
 fi
 
 log "Done !"

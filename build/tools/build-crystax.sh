@@ -126,6 +126,11 @@ for ABI in $ABIS; do
     fi
 done
 
+if [ -n "$BUILT_ABIS" ]; then
+    $NDK_DIR/$CRYSTAX_SUBDIR/bin/check-symbols --abis=$(spaces_to_commas $BUILT_ABIS)
+    fail_panic "Symbols check failed"
+fi
+
 if [ "$PATCH_SYSROOT" = "yes" ]; then
     $NDK_DIR/$CRYSTAX_SUBDIR/bin/patch-sysroot --libraries --fast-copy
     fail_panic "Couldn't patch sysroot with CrystaX libraries"

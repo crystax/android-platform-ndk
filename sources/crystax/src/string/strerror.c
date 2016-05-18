@@ -29,8 +29,6 @@
 
 #include <string.h>
 
-#include <crystax/bionic.h>
-
 char *strerror_l(int e, locale_t l)
 {
     (void)l;

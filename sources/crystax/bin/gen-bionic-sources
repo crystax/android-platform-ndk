@@ -39,15 +39,6 @@ SRCDIR = File.realpath(File.join(TOPDIR, '..', '..', '..', 'bionic'))
 PRIVATEDIR = File.join(TOPDIR, 'gen', 'bionic')
 PUBLICDIR  = File.join(TOPDIR, 'include')
 
-ARCHS = [
-    "arm",
-    "x86",
-    "mips",
-    "arm64",
-    "x86_64",
-    "mips64",
-]
-
 class Generator
     def initialize
         @files = []
@@ -88,8 +79,8 @@ class Generator
             mdst = File.join(options[:public] ? File.join(PUBLICDIR, 'crystax', 'bionic') : PRIVATEDIR, File.dirname(f), "mangled-#{File.basename(f)}")
 
             if options[:public]
-                f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == %w{libc include}
-                f = f.split('/')[3..-1].join('/') if f.split('/')[0..3] == %w{libc kernel uapi linux}
+                f = f.split('/')[2..-1].join('/') if f.split('/')[0..1] == %w[libc include]
+                f = f.split('/')[3..-1].join('/') if f.split('/')[0..2] == %w[libc kernel uapi] && f.split('/')[3] =~ /^(linux|asm-.*)$/
                 dst = File.join(PUBLICDIR, f)
             else
                 dst = File.join(PRIVATEDIR, f)
@@ -143,6 +134,16 @@ class Generator
                     df.puts "#include \"#{File.basename(mdst)}\""
                 end
 
+                fixups = options[:postfixup]
+                fixups = [] if fixups.nil?
+                fixups = [fixups] unless fixups.is_a?(Array)
+                df.puts "" unless fixups.empty?
+                fixups.each do |fxname|
+                    fx = @fixups[fxname.to_s]
+                    raise "No such fixup: '#{fxname}'" if fx.nil?
+                    fx.call(df)
+                end
+
                 df.puts ""
                 df.puts "#endif /* #{guard} */"
             end
@@ -152,32 +153,166 @@ end
 
 g = Generator.new
 
+g.fixup :ifdef_arm do |f|
+    f.puts "#if defined(__arm__)"
+end
+
+g.fixup :ifdef_mips32 do |f|
+    f.puts "#if defined(__mips__) && !defined(__LP64__)"
+end
+
+g.fixup :ifndef_lp64 do |f|
+    f.puts "#if !(defined(__LP64__) || (defined(__x86_64__) && defined(__ILP32__)))"
+end
+
+g.fixup :endif do |f|
+    f.puts "#endif"
+end
+
 g.fixup :redefine_fcntl do |f|
     f.puts "#define fcntl __fcntl64"
 end
 
 # public headers
-g.add "libc/include/machine/timespec.h",   public: true
-g.add "libc/include/netinet/in.h",         public: true
-g.add "libc/include/pwd.h",                public: true
-g.add "libc/include/sched.h",              public: true
-g.add "libc/include/sys/auxv.h",           public: true
-g.add "libc/include/sys/glibc-syscalls.h", public: true
-g.add "libc/include/sys/syscall.h",        public: true
-g.add "libc/include/sys/sysconf.h",        public: true
-g.add "libc/include/sys/sysinfo.h",        public: true
-g.add "libc/include/sys/timerfd.h",        public: true
-g.add "libc/kernel/uapi/linux/sched.h",    public: true
+g.add "libc/include/arpa/inet.h",                       public: true
+g.add "libc/include/arpa/nameser.h",                    public: true
+g.add "libc/include/arpa/nameser_compat.h",             public: true
+g.add "libc/include/dirent.h",                          public: true
+g.add "libc/include/machine/ieee.h",                    public: true
+g.add "libc/include/machine/pthread_types.h",           public: true
+g.add "libc/include/machine/timespec.h",                public: true
+g.add "libc/include/mntent.h",                          public: true
+g.add "libc/include/net/if_ether.h",                    public: true
+g.add "libc/include/netinet/in.h",                      public: true
+g.add "libc/include/netinet/in6.h",                     public: true
+g.add "libc/include/poll.h",                            public: true
+g.add "libc/include/pthread.h",                         public: true
+g.add "libc/include/pty.h",                             public: true
+g.add "libc/include/pwd.h",                             public: true
+g.add "libc/include/resolv.h",                          public: true
+g.add "libc/include/sched.h",                           public: true
+g.add "libc/include/signal.h",                          public: true
+g.add "libc/include/sys/_errdefs.h",                    public: true
+g.add "libc/include/sys/_sigdefs.h",                    public: true
+g.add "libc/include/sys/_sigdefs.h",                    public: true
+g.add "libc/include/sys/auxv.h",                        public: true
+g.add "libc/include/sys/epoll.h",                       public: true
+g.add "libc/include/sys/glibc-syscalls.h",              public: true
+g.add "libc/include/sys/inotify.h",                     public: true
+g.add "libc/include/sys/personality.h",                 public: true
+g.add "libc/include/sys/prctl.h",                       public: true
+g.add "libc/include/sys/resource.h",                    public: true
+g.add "libc/include/sys/select.h",                      public: true
+g.add "libc/include/sys/signal.h",                      public: true
+g.add "libc/include/sys/signalfd.h",                    public: true
+g.add "libc/include/sys/stat.h",                        public: true
+g.add "libc/include/sys/statvfs.h",                     public: true
+g.add "libc/include/sys/syscall.h",                     public: true
+g.add "libc/include/sys/sysconf.h",                     public: true
+g.add "libc/include/sys/sysinfo.h",                     public: true
+g.add "libc/include/sys/time.h",                        public: true
+g.add "libc/include/sys/timerfd.h",                     public: true
+g.add "libc/include/sys/xattr.h",                       public: true
+g.add "libc/include/unistd.h",                          public: true
+g.add "libc/kernel/uapi/asm-arm/asm/auxvec.h",          public: true
+g.add "libc/kernel/uapi/asm-arm/asm/bitsperlong.h",     public: true
+g.add "libc/kernel/uapi/asm-arm/asm/posix_types.h",     public: true
+g.add "libc/kernel/uapi/asm-arm/asm/resource.h",        public: true
+g.add "libc/kernel/uapi/asm-arm/asm/siginfo.h",         public: true
+g.add "libc/kernel/uapi/asm-arm/asm/signal.h",          public: true
+g.add "libc/kernel/uapi/asm-arm/asm/unistd.h",          public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/auxvec.h",        public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/bitsperlong.h",   public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/posix_types.h",   public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/resource.h",      public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/siginfo.h",       public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/signal.h",        public: true
+g.add "libc/kernel/uapi/asm-arm64/asm/unistd.h",        public: true
+g.add "libc/kernel/uapi/asm-generic/auxvec.h",          public: true
+g.add "libc/kernel/uapi/asm-generic/bitsperlong.h",     public: true
+g.add "libc/kernel/uapi/asm-generic/posix_types.h",     public: true
+g.add "libc/kernel/uapi/asm-generic/siginfo.h",         public: true
+g.add "libc/kernel/uapi/asm-generic/signal-defs.h",     public: true
+g.add "libc/kernel/uapi/asm-generic/signal.h",          public: true
+g.add "libc/kernel/uapi/asm-generic/unistd.h",          public: true
+g.add "libc/kernel/uapi/asm-mips/asm/auxvec.h",         public: true
+g.add "libc/kernel/uapi/asm-mips/asm/bitsperlong.h",    public: true
+g.add "libc/kernel/uapi/asm-mips/asm/posix_types.h",    public: true
+g.add "libc/kernel/uapi/asm-mips/asm/resource.h",       public: true
+g.add "libc/kernel/uapi/asm-mips/asm/siginfo.h",        public: true
+g.add "libc/kernel/uapi/asm-mips/asm/signal.h",         public: true
+g.add "libc/kernel/uapi/asm-mips/asm/unistd.h",         public: true
+g.add "libc/kernel/uapi/asm-x86/asm/auxvec.h",          public: true
+g.add "libc/kernel/uapi/asm-x86/asm/bitsperlong.h",     public: true
+g.add "libc/kernel/uapi/asm-x86/asm/posix_types.h",     public: true
+g.add "libc/kernel/uapi/asm-x86/asm/posix_types_32.h",  public: true
+g.add "libc/kernel/uapi/asm-x86/asm/posix_types_64.h",  public: true
+g.add "libc/kernel/uapi/asm-x86/asm/posix_types_x32.h", public: true
+g.add "libc/kernel/uapi/asm-x86/asm/resource.h",        public: true
+g.add "libc/kernel/uapi/asm-x86/asm/siginfo.h",         public: true
+g.add "libc/kernel/uapi/asm-x86/asm/signal.h",          public: true
+g.add "libc/kernel/uapi/asm-x86/asm/unistd.h",          public: true
+g.add "libc/kernel/uapi/linux/auxvec.h",                public: true
+g.add "libc/kernel/uapi/linux/in6.h",                   public: true
+g.add "libc/kernel/uapi/linux/inotify.h",               public: true
+g.add "libc/kernel/uapi/linux/libc-compat.h",           public: true
+g.add "libc/kernel/uapi/linux/personality.h",           public: true
+g.add "libc/kernel/uapi/linux/posix_types.h",           public: true
+g.add "libc/kernel/uapi/linux/prctl.h",                 public: true
+g.add "libc/kernel/uapi/linux/resource.h",              public: true
+g.add "libc/kernel/uapi/linux/sched.h",                 public: true
+g.add "libc/kernel/uapi/linux/signal.h",                public: true
+g.add "libc/kernel/uapi/linux/signalfd.h",              public: true
+g.add "libc/kernel/uapi/linux/time.h",                  public: true
+g.add "libc/kernel/uapi/linux/unistd.h",                public: true
+g.add "libc/kernel/uapi/linux/xattr.h",                 public: true
 
-# common headers
-g.add "libc/include/machine/posix_limits.h"
+# common private headers
+g.add "libc/arch-common/bionic/__dso_handle.h"
+g.add "libc/arch-common/bionic/__dso_handle_so.h"
+g.add "libc/arch-common/bionic/atexit.h"
+g.add "libc/arch-x86/bionic/__stack_chk_fail_local.h"
+g.add "libc/arch-x86/bionic/atexit.h"
+g.add "libc/bionic/jemalloc.h"
+g.add "libc/bionic/libc_init_common.h"
+g.add "libc/bionic/malloc_debug_common.h"
+g.add "libc/bionic/time64_config.h"
+g.add "libc/include/android/set_abort_message.h"
+g.add "libc/include/stdatomic.h"
+g.add "libc/include/sys/_system_properties.h"
+g.add "libc/include/sys/auxv.h"
+g.add "libc/include/sys/system_properties.h"
+g.add "libc/kernel/uapi/linux/futex.h"
 g.add "libc/private/ErrnoRestorer.h"
+g.add "libc/private/KernelArgumentBlock.h"
+g.add "libc/private/ScopedPthreadMutexLocker.h"
 g.add "libc/private/ScopedReaddir.h"
 g.add "libc/private/ThreadLocalBuffer.h"
 g.add "libc/private/bionic_asm.h"
+g.add "libc/private/bionic_auxv.h"
+g.add "libc/private/bionic_config.h"
+g.add "libc/private/bionic_constants.h"
+g.add "libc/private/bionic_futex.h"
+g.add "libc/private/bionic_lock.h"
 g.add "libc/private/bionic_macros.h"
+g.add "libc/private/bionic_page.h"
+g.add "libc/private/bionic_prctl.h"
+g.add "libc/private/bionic_ssp.h"
+g.add "libc/private/bionic_string_utils.h"
+g.add "libc/private/bionic_systrace.h"
+g.add "libc/private/bionic_time_conversions.h"
+g.add "libc/private/bionic_tls.h"
+g.add "libc/private/kernel_sigset_t.h"
 g.add "libc/private/libc_events.h"
 g.add "libc/private/libc_logging.h"
+g.add "libc/private/thread_private.h"
+g.add "libc/stdlib/atexit.h"
+g.add "libc/upstream-netbsd/android/include/extern.h"
+g.add "libc/upstream-netbsd/android/include/fd_setsize.h"
+g.add "libc/upstream-netbsd/android/include/port_after.h"
+g.add "libc/upstream-netbsd/android/include/port_before.h"
+g.add "libc/upstream-netbsd/android/include/rand48.h"
+g.add "libc/upstream-netbsd/android/include/sys/sha1.h"
 
 # include/machine/asm.h
 g.add "libc/arch-arm/include/machine/asm.h"
@@ -186,6 +321,221 @@ g.add "libc/arch-mips/include/machine/asm.h"
 g.add "libc/arch-mips64/include/machine/asm.h"
 g.add "libc/arch-x86/include/machine/asm.h"
 g.add "libc/arch-x86_64/include/machine/asm.h"
+
+# common sources
+g.add "libc/arch-arm/bionic/__aeabi.c",       fixup: "ifdef_arm", postfixup: "endif"
+g.add "libc/arch-arm/bionic/exidx_dynamic.c", fixup: "ifdef_arm", postfixup: "endif"
+g.add "libc/arch-arm/bionic/exidx_static.c",  fixup: "ifdef_arm", postfixup: "endif"
+g.add "libc/arch-arm/bionic/libgcc_compat.c", fixup: "ifdef_arm", postfixup: "endif"
+g.add "libc/arch-common/bionic/crtbegin_so.c"
+g.add "libc/arch-common/bionic/crtbrand.S"
+g.add "libc/arch-common/bionic/crtend_so.S"
+g.add "libc/bionic/__cxa_guard.cpp"
+g.add "libc/bionic/__cxa_pure_virtual.cpp"
+g.add "libc/bionic/bionic_systrace.cpp"
+g.add "libc/bionic/bionic_time_conversions.cpp"
+g.add "libc/bionic/dl_iterate_phdr_static.cpp"
+g.add "libc/bionic/jemalloc_wrapper.cpp"
+g.add "libc/bionic/lfs64_support.cpp"
+g.add "libc/bionic/libc_init_common.cpp"
+g.add "libc/bionic/libc_init_dynamic.cpp"
+g.add "libc/bionic/libc_init_static.cpp"
+g.add "libc/bionic/libc_logging.cpp"
+g.add "libc/bionic/libgen.cpp"
+g.add "libc/bionic/malloc_debug_common.cpp"
+g.add "libc/bionic/malloc_debug_dynamic.cpp"
+g.add "libc/bionic/malloc_debug_static.cpp"
+g.add "libc/bionic/new.cpp"
+g.add "libc/bionic/sys_siglist.c"
+g.add "libc/bionic/sys_signame.c"
+g.add "libc/bionic/system_properties.cpp"
+g.add "libc/bionic/system_properties_compat.c"
+g.add "libc/bionic/thread_private.cpp"
+g.add "libc/bionic/time64.c",                 fixup: "ifndef_lp64", postfixup: "endif"
+g.add "libc/stdlib/exit.c"
+g.add "libc/upstream-netbsd/common/lib/libc/hash/sha1/sha1.c"
+g.add "libc/upstream-netbsd/lib/libc/stdlib/_rand48.c"
+
+# dns
+g.add "libc/dns/include/hostent.h"
+g.add "libc/dns/include/resolv_cache.h"
+g.add "libc/dns/include/resolv_netid.h"
+g.add "libc/dns/include/resolv_private.h"
+g.add "libc/dns/include/resolv_static.h"
+g.add "libc/dns/nameser/ns_name.c"
+g.add "libc/dns/nameser/ns_netint.c"
+g.add "libc/dns/nameser/ns_parse.c"
+g.add "libc/dns/nameser/ns_print.c"
+g.add "libc/dns/nameser/ns_samedomain.c"
+g.add "libc/dns/nameser/ns_ttl.c"
+g.add "libc/dns/net/base64.c"
+g.add "libc/dns/net/getaddrinfo.c"
+g.add "libc/dns/net/gethnamaddr.c"
+g.add "libc/dns/net/getnameinfo.c"
+g.add "libc/dns/net/getservbyname.c"
+g.add "libc/dns/net/getservbyport.c"
+g.add "libc/dns/net/getservent.c"
+g.add "libc/dns/net/nsdispatch.c"
+g.add "libc/dns/net/servent.h"
+g.add "libc/dns/net/services.h"
+g.add "libc/dns/net/sethostent.c"
+g.add "libc/dns/resolv/herror.c"
+g.add "libc/dns/resolv/res_cache.c"
+g.add "libc/dns/resolv/res_comp.c"
+g.add "libc/dns/resolv/res_data.c"
+g.add "libc/dns/resolv/res_debug.c"
+g.add "libc/dns/resolv/res_debug.h"
+g.add "libc/dns/resolv/res_init.c"
+g.add "libc/dns/resolv/res_mkquery.c"
+g.add "libc/dns/resolv/res_private.h"
+g.add "libc/dns/resolv/res_query.c"
+g.add "libc/dns/resolv/res_send.c"
+g.add "libc/dns/resolv/res_state.c"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/assertions.h"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/dst.h"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/eventlib.h"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/heap.h"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/list.h"
+g.add "libc/upstream-netbsd/lib/libc/include/isc/memcluster.h"
+g.add "libc/upstream-netbsd/lib/libc/include/resolv_mt.h"
+g.add "libc/upstream-netbsd/lib/libc/isc/ev_streams.c"
+g.add "libc/upstream-netbsd/lib/libc/isc/ev_timers.c"
+g.add "libc/upstream-netbsd/lib/libc/isc/eventlib_p.h"
+g.add "libc/upstream-netbsd/lib/libc/resolv/mtctxres.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_addr.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_lnaof.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_makeaddr.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_netof.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_network.c"
+g.add "libc/upstream-openbsd/lib/libc/net/inet_ntoa.c"
+g.add "libc/upstream-openbsd/lib/libc/net/res_random.c"
+
+# pty
+g.add "libc/bionic/pty.cpp"
+
+# vdso
+g.add "libc/bionic/vdso.cpp"
+
+# tls
+g.add "libc/arch-arm/syscalls/__set_tls.S"
+g.add "libc/arch-arm64/bionic/__set_tls.c"
+g.add "libc/arch-mips/syscalls/__set_tls.S"
+g.add "libc/arch-mips64/syscalls/__set_tls.S"
+g.add "libc/arch-x86/bionic/__set_tls.c"
+g.add "libc/arch-x86/syscalls/__set_thread_area.S"
+g.add "libc/arch-x86_64/bionic/__set_tls.c"
+g.add "libc/arch-x86_64/syscalls/__arch_prctl.S"
+g.add "libc/kernel/uapi/asm-x86/asm/ldt.h"
+g.add "libc/private/__get_tls.h"
+
+# tzcode
+g.add "libc/tzcode/asctime.c"
+g.add "libc/tzcode/difftime.c"
+g.add "libc/tzcode/localtime.c"
+g.add "libc/tzcode/private.h"
+g.add "libc/tzcode/tzfile.h"
+
+# accept
+g.add "libc/arch-arm/syscalls/__accept4.S"
+g.add "libc/arch-arm64/syscalls/__accept4.S"
+g.add "libc/arch-mips/syscalls/__accept4.S"
+g.add "libc/arch-mips64/syscalls/__accept4.S"
+g.add "libc/arch-x86/syscalls/__accept4.S"
+g.add "libc/arch-x86_64/syscalls/__accept4.S"
+
+# access
+g.add "libc/bionic/access.cpp"
+
+# acct
+g.add "libc/arch-arm/syscalls/acct.S"
+g.add "libc/arch-arm64/syscalls/acct.S"
+g.add "libc/arch-mips/syscalls/acct.S"
+g.add "libc/arch-mips64/syscalls/acct.S"
+g.add "libc/arch-x86/syscalls/acct.S"
+g.add "libc/arch-x86_64/syscalls/acct.S"
+
+# __assert
+g.add "libc/bionic/assert.cpp"
+
+# atexit
+g.add "libc/stdlib/atexit.c"
+g.add "libc/arch-arm/bionic/atexit_legacy.c", fixup: "ifdef_arm", postfixup: "endif"
+
+# bind
+g.add "libc/arch-arm/syscalls/bind.S"
+g.add "libc/arch-arm64/syscalls/bind.S"
+g.add "libc/arch-mips/syscalls/bind.S"
+g.add "libc/arch-mips64/syscalls/bind.S"
+g.add "libc/arch-x86/syscalls/bind.S"
+g.add "libc/arch-x86_64/syscalls/bind.S"
+
+# bindresvport
+g.add "libc/bionic/bindresvport.c"
+
+# __bionic_clone
+g.add "libc/arch-arm/bionic/__bionic_clone.S"
+g.add "libc/arch-arm64/bionic/__bionic_clone.S"
+g.add "libc/arch-mips/bionic/__bionic_clone.S"
+g.add "libc/arch-mips64/bionic/__bionic_clone.S"
+g.add "libc/arch-x86/bionic/__bionic_clone.S"
+g.add "libc/arch-x86_64/bionic/__bionic_clone.S"
+
+# __brk
+g.add "libc/arch-arm/syscalls/__brk.S"
+g.add "libc/arch-arm64/syscalls/__brk.S"
+g.add "libc/arch-mips/syscalls/__brk.S"
+g.add "libc/arch-mips64/syscalls/__brk.S"
+g.add "libc/arch-x86/syscalls/__brk.S"
+g.add "libc/arch-x86_64/syscalls/__brk.S"
+
+# cacheflush
+g.add "libc/arch-arm/syscalls/cacheflush.S"
+g.add "libc/arch-mips/bionic/cacheflush.cpp", fixup: "ifdef_mips32", postfixup: "endif"
+g.add "libc/arch-mips/syscalls/_flush_cache.S"
+
+# capget
+g.add "libc/arch-arm/syscalls/capget.S"
+g.add "libc/arch-arm64/syscalls/capget.S"
+g.add "libc/arch-mips/syscalls/capget.S"
+g.add "libc/arch-mips64/syscalls/capget.S"
+g.add "libc/arch-x86/syscalls/capget.S"
+g.add "libc/arch-x86_64/syscalls/capget.S"
+
+# capset
+g.add "libc/arch-arm/syscalls/capset.S"
+g.add "libc/arch-arm64/syscalls/capset.S"
+g.add "libc/arch-mips/syscalls/capset.S"
+g.add "libc/arch-mips64/syscalls/capset.S"
+g.add "libc/arch-x86/syscalls/capset.S"
+g.add "libc/arch-x86_64/syscalls/capset.S"
+
+# chdir
+g.add "libc/arch-arm/syscalls/chdir.S"
+g.add "libc/arch-arm64/syscalls/chdir.S"
+g.add "libc/arch-mips/syscalls/chdir.S"
+g.add "libc/arch-mips64/syscalls/chdir.S"
+g.add "libc/arch-x86/syscalls/chdir.S"
+g.add "libc/arch-x86_64/syscalls/chdir.S"
+
+# chmod
+g.add "libc/bionic/chmod.cpp"
+
+# chown
+g.add "libc/bionic/chown.cpp"
+
+# chroot
+g.add "libc/arch-arm/syscalls/chroot.S"
+g.add "libc/arch-arm64/syscalls/chroot.S"
+g.add "libc/arch-mips/syscalls/chroot.S"
+g.add "libc/arch-mips64/syscalls/chroot.S"
+g.add "libc/arch-x86/syscalls/chroot.S"
+g.add "libc/arch-x86_64/syscalls/chroot.S"
+
+# clearenv
+g.add "libc/bionic/clearenv.cpp"
+
+# clock
+g.add "libc/bionic/clock.cpp"
 
 # clock_getcpuclockid
 g.add "libc/bionic/clock_getcpuclockid.cpp"
@@ -198,6 +548,14 @@ g.add "libc/arch-mips64/syscalls/clock_getres.S"
 g.add "libc/arch-x86/syscalls/clock_getres.S"
 g.add "libc/arch-x86_64/syscalls/clock_getres.S"
 
+# clock_gettime
+g.add "libc/arch-arm/syscalls/clock_gettime.S"
+g.add "libc/arch-arm64/syscalls/__clock_gettime.S"
+g.add "libc/arch-mips/syscalls/clock_gettime.S"
+g.add "libc/arch-mips64/syscalls/clock_gettime.S"
+g.add "libc/arch-x86/syscalls/__clock_gettime.S"
+g.add "libc/arch-x86_64/syscalls/__clock_gettime.S"
+
 # clock_nanosleep
 g.add "libc/arch-arm/syscalls/___clock_nanosleep.S"
 g.add "libc/arch-arm64/syscalls/___clock_nanosleep.S"
@@ -206,6 +564,108 @@ g.add "libc/arch-mips64/syscalls/___clock_nanosleep.S"
 g.add "libc/arch-x86/syscalls/___clock_nanosleep.S"
 g.add "libc/arch-x86_64/syscalls/___clock_nanosleep.S"
 g.add "libc/bionic/clock_nanosleep.cpp"
+
+# clock_settime
+g.add "libc/arch-arm/syscalls/clock_settime.S"
+g.add "libc/arch-arm64/syscalls/clock_settime.S"
+g.add "libc/arch-mips/syscalls/clock_settime.S"
+g.add "libc/arch-mips64/syscalls/clock_settime.S"
+g.add "libc/arch-x86/syscalls/clock_settime.S"
+g.add "libc/arch-x86_64/syscalls/clock_settime.S"
+
+# close
+g.add "libc/bionic/close.cpp"
+g.add "libc/arch-arm/syscalls/___close.S"
+g.add "libc/arch-arm64/syscalls/___close.S"
+g.add "libc/arch-mips/syscalls/___close.S"
+g.add "libc/arch-mips64/syscalls/___close.S"
+g.add "libc/arch-x86/syscalls/___close.S"
+g.add "libc/arch-x86_64/syscalls/___close.S"
+
+# __cmsg_nxthdr
+g.add "libc/bionic/__cmsg_nxthdr.cpp"
+
+# connect
+g.add "libc/arch-arm/syscalls/__connect.S"
+g.add "libc/arch-arm64/syscalls/__connect.S"
+g.add "libc/arch-mips/syscalls/__connect.S"
+g.add "libc/arch-mips64/syscalls/__connect.S"
+g.add "libc/arch-x86/syscalls/__connect.S"
+g.add "libc/arch-x86_64/syscalls/__connect.S"
+
+# delete_module
+g.add "libc/arch-arm/syscalls/delete_module.S"
+g.add "libc/arch-arm64/syscalls/delete_module.S"
+g.add "libc/arch-mips/syscalls/delete_module.S"
+g.add "libc/arch-mips64/syscalls/delete_module.S"
+g.add "libc/arch-x86/syscalls/delete_module.S"
+g.add "libc/arch-x86_64/syscalls/delete_module.S"
+
+# dirent functions: opendir/closedir/telldir/etc
+g.add "libc/bionic/dirent.cpp"
+
+# drand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/drand48.c"
+
+# dup
+g.add "libc/arch-arm/syscalls/dup.S"
+g.add "libc/arch-arm64/syscalls/dup.S"
+g.add "libc/arch-mips/syscalls/dup.S"
+g.add "libc/arch-mips64/syscalls/dup.S"
+g.add "libc/arch-x86/syscalls/dup.S"
+g.add "libc/arch-x86_64/syscalls/dup.S"
+
+# dup2
+g.add "libc/bionic/dup2.cpp"
+
+# dup3
+g.add "libc/arch-arm/syscalls/dup3.S"
+g.add "libc/arch-arm64/syscalls/dup3.S"
+g.add "libc/arch-mips/syscalls/dup3.S"
+g.add "libc/arch-mips64/syscalls/dup3.S"
+g.add "libc/arch-x86/syscalls/dup3.S"
+g.add "libc/arch-x86_64/syscalls/dup3.S"
+
+# epoll_create
+g.add "libc/arch-arm/syscalls/epoll_create1.S"
+g.add "libc/arch-arm64/syscalls/epoll_create1.S"
+g.add "libc/arch-mips/syscalls/epoll_create1.S"
+g.add "libc/arch-mips64/syscalls/epoll_create1.S"
+g.add "libc/arch-x86/syscalls/epoll_create1.S"
+g.add "libc/arch-x86_64/syscalls/epoll_create1.S"
+g.add "libc/bionic/epoll_create.cpp"
+
+# epoll_ctl
+g.add "libc/arch-arm/syscalls/epoll_ctl.S"
+g.add "libc/arch-arm64/syscalls/epoll_ctl.S"
+g.add "libc/arch-mips/syscalls/epoll_ctl.S"
+g.add "libc/arch-mips64/syscalls/epoll_ctl.S"
+g.add "libc/arch-x86/syscalls/epoll_ctl.S"
+g.add "libc/arch-x86_64/syscalls/epoll_ctl.S"
+
+# epoll_pwait
+g.add "libc/arch-arm/syscalls/__epoll_pwait.S"
+g.add "libc/arch-arm64/syscalls/__epoll_pwait.S"
+g.add "libc/arch-mips/syscalls/__epoll_pwait.S"
+g.add "libc/arch-mips64/syscalls/__epoll_pwait.S"
+g.add "libc/arch-x86/syscalls/__epoll_pwait.S"
+g.add "libc/arch-x86_64/syscalls/__epoll_pwait.S"
+g.add "libc/bionic/epoll_pwait.cpp"
+
+# epoll_wait
+g.add "libc/bionic/epoll_wait.cpp"
+
+# erand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/erand48.c"
+
+# __errno
+g.add "libc/bionic/__errno.cpp"
+
+# ether_aton
+g.add "libc/bionic/ether_aton.c"
+
+# ether_ntoa
+g.add "libc/bionic/ether_ntoa.c"
 
 # eventfd
 g.add "libc/arch-arm/syscalls/eventfd.S"
@@ -216,6 +676,50 @@ g.add "libc/arch-x86/syscalls/eventfd.S"
 g.add "libc/arch-x86_64/syscalls/eventfd.S"
 g.add "libc/bionic/eventfd_read.cpp"
 g.add "libc/bionic/eventfd_write.cpp"
+
+# exec
+g.add "libc/upstream-openbsd/lib/libc/gen/exec.c"
+
+# execve
+g.add "libc/arch-arm/syscalls/execve.S"
+g.add "libc/arch-arm64/syscalls/execve.S"
+g.add "libc/arch-mips/syscalls/execve.S"
+g.add "libc/arch-mips64/syscalls/execve.S"
+g.add "libc/arch-x86/syscalls/execve.S"
+g.add "libc/arch-x86_64/syscalls/execve.S"
+
+# __exit
+g.add "libc/arch-arm/syscalls/__exit.S"
+g.add "libc/arch-arm64/syscalls/__exit.S"
+g.add "libc/arch-mips/syscalls/__exit.S"
+g.add "libc/arch-mips64/syscalls/__exit.S"
+g.add "libc/arch-x86/syscalls/__exit.S"
+g.add "libc/arch-x86_64/syscalls/__exit.S"
+
+# _exit
+g.add "libc/arch-arm/syscalls/_exit.S"
+g.add "libc/arch-arm64/syscalls/_exit.S"
+g.add "libc/arch-mips/syscalls/_exit.S"
+g.add "libc/arch-mips64/syscalls/_exit.S"
+g.add "libc/arch-x86/syscalls/_exit.S"
+g.add "libc/arch-x86_64/syscalls/_exit.S"
+
+# _exit_with_stack_teardown
+g.add "libc/arch-arm/bionic/_exit_with_stack_teardown.S"
+g.add "libc/arch-arm64/bionic/_exit_with_stack_teardown.S"
+g.add "libc/arch-mips/bionic/_exit_with_stack_teardown.S"
+g.add "libc/arch-mips64/bionic/_exit_with_stack_teardown.S"
+g.add "libc/arch-x86/bionic/_exit_with_stack_teardown.S"
+g.add "libc/arch-x86_64/bionic/_exit_with_stack_teardown.S"
+
+# faccessat
+g.add "libc/arch-arm/syscalls/___faccessat.S"
+g.add "libc/arch-arm64/syscalls/___faccessat.S"
+g.add "libc/arch-mips/syscalls/___faccessat.S"
+g.add "libc/arch-mips64/syscalls/___faccessat.S"
+g.add "libc/arch-x86/syscalls/___faccessat.S"
+g.add "libc/arch-x86_64/syscalls/___faccessat.S"
+g.add "libc/bionic/faccessat.cpp"
 
 # fadvise
 g.add "libc/arch-arm/syscalls/__arm_fadvise64_64.S"
@@ -233,6 +737,48 @@ g.add "libc/arch-mips64/syscalls/fallocate.S"
 g.add "libc/arch-x86/syscalls/fallocate64.S"
 g.add "libc/arch-x86_64/syscalls/fallocate.S"
 
+# fchdir
+g.add "libc/arch-arm/syscalls/fchdir.S"
+g.add "libc/arch-arm64/syscalls/fchdir.S"
+g.add "libc/arch-mips/syscalls/fchdir.S"
+g.add "libc/arch-mips64/syscalls/fchdir.S"
+g.add "libc/arch-x86/syscalls/fchdir.S"
+g.add "libc/arch-x86_64/syscalls/fchdir.S"
+
+# fchmod
+g.add "libc/arch-arm/syscalls/___fchmod.S"
+g.add "libc/arch-arm64/syscalls/___fchmod.S"
+g.add "libc/arch-mips/syscalls/___fchmod.S"
+g.add "libc/arch-mips64/syscalls/___fchmod.S"
+g.add "libc/arch-x86/syscalls/___fchmod.S"
+g.add "libc/arch-x86_64/syscalls/___fchmod.S"
+g.add "libc/bionic/fchmod.cpp"
+
+# fchmodat
+g.add "libc/arch-arm/syscalls/___fchmodat.S"
+g.add "libc/arch-arm64/syscalls/___fchmodat.S"
+g.add "libc/arch-mips/syscalls/___fchmodat.S"
+g.add "libc/arch-mips64/syscalls/___fchmodat.S"
+g.add "libc/arch-x86/syscalls/___fchmodat.S"
+g.add "libc/arch-x86_64/syscalls/___fchmodat.S"
+g.add "libc/bionic/fchmodat.cpp"
+
+# fchown
+g.add "libc/arch-arm/syscalls/fchown.S"
+g.add "libc/arch-arm64/syscalls/fchown.S"
+g.add "libc/arch-mips/syscalls/fchown.S"
+g.add "libc/arch-mips64/syscalls/fchown.S"
+g.add "libc/arch-x86/syscalls/fchown.S"
+g.add "libc/arch-x86_64/syscalls/fchown.S"
+
+# fchownat
+g.add "libc/arch-arm/syscalls/fchownat.S"
+g.add "libc/arch-arm64/syscalls/fchownat.S"
+g.add "libc/arch-mips/syscalls/fchownat.S"
+g.add "libc/arch-mips64/syscalls/fchownat.S"
+g.add "libc/arch-x86/syscalls/fchownat.S"
+g.add "libc/arch-x86_64/syscalls/fchownat.S"
+
 # fcntl/__fcntl64
 g.add "libc/arch-arm/syscalls/__fcntl64.S"
 g.add "libc/arch-arm64/syscalls/fcntl.S",    fixup: "redefine_fcntl"
@@ -241,11 +787,528 @@ g.add "libc/arch-mips64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 g.add "libc/arch-x86/syscalls/__fcntl64.S"
 g.add "libc/arch-x86_64/syscalls/fcntl.S",   fixup: "redefine_fcntl"
 
+# __FD_XXX_chk
+g.add "libc/bionic/__FD_chk.cpp"
+
+# fdatasync
+g.add "libc/arch-arm/syscalls/fdatasync.S"
+g.add "libc/arch-arm64/syscalls/fdatasync.S"
+g.add "libc/arch-mips/syscalls/fdatasync.S"
+g.add "libc/arch-mips64/syscalls/fdatasync.S"
+g.add "libc/arch-x86/syscalls/fdatasync.S"
+g.add "libc/arch-x86_64/syscalls/fdatasync.S"
+
+# __fgets_chk
+g.add "libc/bionic/__fgets_chk.cpp"
+
+# fgetxattr
+g.add "libc/arch-arm/syscalls/___fgetxattr.S"
+g.add "libc/arch-arm64/syscalls/___fgetxattr.S"
+g.add "libc/arch-mips/syscalls/___fgetxattr.S"
+g.add "libc/arch-mips64/syscalls/___fgetxattr.S"
+g.add "libc/arch-x86/syscalls/___fgetxattr.S"
+g.add "libc/arch-x86_64/syscalls/___fgetxattr.S"
+g.add "libc/bionic/fgetxattr.cpp"
+
+# flistxattr
+g.add "libc/arch-arm/syscalls/___flistxattr.S"
+g.add "libc/arch-arm64/syscalls/___flistxattr.S"
+g.add "libc/arch-mips/syscalls/___flistxattr.S"
+g.add "libc/arch-mips64/syscalls/___flistxattr.S"
+g.add "libc/arch-x86/syscalls/___flistxattr.S"
+g.add "libc/arch-x86_64/syscalls/___flistxattr.S"
+g.add "libc/bionic/flistxattr.cpp"
+
+# flock
+g.add "libc/arch-arm/syscalls/flock.S"
+g.add "libc/arch-arm64/syscalls/flock.S"
+g.add "libc/arch-mips/syscalls/flock.S"
+g.add "libc/arch-mips64/syscalls/flock.S"
+g.add "libc/arch-x86/syscalls/flock.S"
+g.add "libc/arch-x86_64/syscalls/flock.S"
+
+# fork
+g.add "libc/bionic/fork.cpp"
+
+# fpathconf/pathconf
+g.add "libc/bionic/pathconf.cpp"
+
+# fpclassify
+g.add "libc/bionic/fpclassify.cpp"
+
+# fremovexattr
+g.add "libc/arch-arm/syscalls/fremovexattr.S"
+g.add "libc/arch-arm64/syscalls/fremovexattr.S"
+g.add "libc/arch-mips/syscalls/fremovexattr.S"
+g.add "libc/arch-mips64/syscalls/fremovexattr.S"
+g.add "libc/arch-x86/syscalls/fremovexattr.S"
+g.add "libc/arch-x86_64/syscalls/fremovexattr.S"
+
+# fsetxattr
+g.add "libc/arch-arm/syscalls/___fsetxattr.S"
+g.add "libc/arch-arm64/syscalls/___fsetxattr.S"
+g.add "libc/arch-mips/syscalls/___fsetxattr.S"
+g.add "libc/arch-mips64/syscalls/___fsetxattr.S"
+g.add "libc/arch-x86/syscalls/___fsetxattr.S"
+g.add "libc/arch-x86_64/syscalls/___fsetxattr.S"
+g.add "libc/bionic/fsetxattr.cpp"
+
+# fstat/fstat64/fstatat/fstatat64
+g.add "libc/arch-arm/syscalls/fstat64.S"
+g.add "libc/arch-arm/syscalls/fstatat64.S"
+g.add "libc/arch-arm64/syscalls/fstat64.S"
+g.add "libc/arch-arm64/syscalls/fstatat64.S"
+g.add "libc/arch-mips/syscalls/fstat64.S"
+g.add "libc/arch-mips/syscalls/fstatat64.S"
+g.add "libc/arch-mips64/bionic/stat.cpp"
+g.add "libc/arch-x86/syscalls/fstat64.S"
+g.add "libc/arch-x86/syscalls/fstatat64.S"
+g.add "libc/arch-x86_64/syscalls/fstat64.S"
+g.add "libc/arch-x86_64/syscalls/fstatat64.S"
+
+# fstatfs/fstatfs64/statfs/statfs64
+g.add "libc/arch-arm/syscalls/__fstatfs64.S"
+g.add "libc/arch-arm/syscalls/__statfs64.S"
+g.add "libc/arch-arm64/syscalls/__fstatfs.S"
+g.add "libc/arch-arm64/syscalls/__statfs.S"
+g.add "libc/arch-mips/syscalls/__fstatfs64.S"
+g.add "libc/arch-mips/syscalls/__statfs64.S"
+g.add "libc/arch-mips64/syscalls/__fstatfs.S"
+g.add "libc/arch-mips64/syscalls/__statfs.S"
+g.add "libc/arch-x86/syscalls/__fstatfs64.S"
+g.add "libc/arch-x86/syscalls/__statfs64.S"
+g.add "libc/arch-x86_64/syscalls/__fstatfs.S"
+g.add "libc/arch-x86_64/syscalls/__statfs.S"
+g.add "libc/bionic/statvfs.cpp"
+
+# fsync
+g.add "libc/arch-arm/syscalls/fsync.S"
+g.add "libc/arch-arm64/syscalls/fsync.S"
+g.add "libc/arch-mips/syscalls/fsync.S"
+g.add "libc/arch-mips64/syscalls/fsync.S"
+g.add "libc/arch-x86/syscalls/fsync.S"
+g.add "libc/arch-x86_64/syscalls/fsync.S"
+
+# ftruncate/ftruncate64
+g.add "libc/arch-arm/syscalls/ftruncate64.S"
+g.add "libc/arch-arm64/syscalls/ftruncate.S"
+g.add "libc/arch-mips/syscalls/ftruncate64.S"
+g.add "libc/arch-mips64/syscalls/ftruncate.S"
+g.add "libc/arch-x86/syscalls/ftruncate64.S"
+g.add "libc/arch-x86_64/syscalls/ftruncate.S"
+g.add "libc/bionic/ftruncate.cpp"
+
+# futimens
+g.add "libc/bionic/futimens.cpp"
+
+# getauxval
+g.add "libc/bionic/getauxval.cpp"
+
+# getcwd
+g.add "libc/arch-arm/syscalls/__getcwd.S"
+g.add "libc/arch-arm64/syscalls/__getcwd.S"
+g.add "libc/arch-mips/syscalls/__getcwd.S"
+g.add "libc/arch-mips64/syscalls/__getcwd.S"
+g.add "libc/arch-x86/syscalls/__getcwd.S"
+g.add "libc/arch-x86_64/syscalls/__getcwd.S"
+g.add "libc/bionic/getcwd.cpp"
+
+# __getdents64
+g.add "libc/arch-arm/syscalls/__getdents64.S"
+g.add "libc/arch-arm64/syscalls/__getdents64.S"
+g.add "libc/arch-mips/syscalls/__getdents64.S"
+g.add "libc/arch-mips64/syscalls/__getdents64.S"
+g.add "libc/arch-x86/syscalls/__getdents64.S"
+g.add "libc/arch-x86_64/syscalls/__getdents64.S"
+
+# getegid
+g.add "libc/arch-arm/syscalls/getegid.S"
+g.add "libc/arch-arm64/syscalls/getegid.S"
+g.add "libc/arch-mips/syscalls/getegid.S"
+g.add "libc/arch-mips64/syscalls/getegid.S"
+g.add "libc/arch-x86/syscalls/getegid.S"
+g.add "libc/arch-x86_64/syscalls/getegid.S"
+
+# getentropy
+g.add "libc/bionic/getentropy_linux.c"
+
+# geteuid
+g.add "libc/arch-arm/syscalls/geteuid.S"
+g.add "libc/arch-arm64/syscalls/geteuid.S"
+g.add "libc/arch-mips/syscalls/geteuid.S"
+g.add "libc/arch-mips64/syscalls/geteuid.S"
+g.add "libc/arch-x86/syscalls/geteuid.S"
+g.add "libc/arch-x86_64/syscalls/geteuid.S"
+
+# getgid
+g.add "libc/arch-arm/syscalls/getgid.S"
+g.add "libc/arch-arm64/syscalls/getgid.S"
+g.add "libc/arch-mips/syscalls/getgid.S"
+g.add "libc/arch-mips64/syscalls/getgid.S"
+g.add "libc/arch-x86/syscalls/getgid.S"
+g.add "libc/arch-x86_64/syscalls/getgid.S"
+
+# getgroups
+g.add "libc/arch-arm/syscalls/getgroups.S"
+g.add "libc/arch-arm64/syscalls/getgroups.S"
+g.add "libc/arch-mips/syscalls/getgroups.S"
+g.add "libc/arch-mips64/syscalls/getgroups.S"
+g.add "libc/arch-x86/syscalls/getgroups.S"
+g.add "libc/arch-x86_64/syscalls/getgroups.S"
+
+# gethostname
+g.add "libc/bionic/gethostname.cpp"
+
+# getitimer
+g.add "libc/arch-arm/syscalls/getitimer.S"
+g.add "libc/arch-arm64/syscalls/getitimer.S"
+g.add "libc/arch-mips/syscalls/getitimer.S"
+g.add "libc/arch-mips64/syscalls/getitimer.S"
+g.add "libc/arch-x86/syscalls/getitimer.S"
+g.add "libc/arch-x86_64/syscalls/getitimer.S"
+
+# getpeername
+g.add "libc/arch-arm/syscalls/getpeername.S"
+g.add "libc/arch-arm64/syscalls/getpeername.S"
+g.add "libc/arch-mips/syscalls/getpeername.S"
+g.add "libc/arch-mips64/syscalls/getpeername.S"
+g.add "libc/arch-x86/syscalls/getpeername.S"
+g.add "libc/arch-x86_64/syscalls/getpeername.S"
+
+# getpgid
+g.add "libc/arch-arm/syscalls/getpgid.S"
+g.add "libc/arch-arm64/syscalls/getpgid.S"
+g.add "libc/arch-mips/syscalls/getpgid.S"
+g.add "libc/arch-mips64/syscalls/getpgid.S"
+g.add "libc/arch-x86/syscalls/getpgid.S"
+g.add "libc/arch-x86_64/syscalls/getpgid.S"
+
+# getpgrp
+g.add "libc/bionic/getpgrp.cpp"
+
+# getpid
+g.add "libc/arch-arm/syscalls/__getpid.S"
+g.add "libc/arch-arm64/syscalls/__getpid.S"
+g.add "libc/arch-mips/syscalls/__getpid.S"
+g.add "libc/arch-mips64/syscalls/__getpid.S"
+g.add "libc/arch-x86/syscalls/__getpid.S"
+g.add "libc/arch-x86_64/syscalls/__getpid.S"
+g.add "libc/bionic/getpid.cpp"
+
+# getppid
+g.add "libc/arch-arm/syscalls/getppid.S"
+g.add "libc/arch-arm64/syscalls/getppid.S"
+g.add "libc/arch-mips/syscalls/getppid.S"
+g.add "libc/arch-mips64/syscalls/getppid.S"
+g.add "libc/arch-x86/syscalls/getppid.S"
+g.add "libc/arch-x86_64/syscalls/getppid.S"
+
+# getpriority
+g.add "libc/arch-arm/syscalls/__getpriority.S"
+g.add "libc/arch-arm64/syscalls/__getpriority.S"
+g.add "libc/arch-mips/syscalls/__getpriority.S"
+g.add "libc/arch-mips64/syscalls/__getpriority.S"
+g.add "libc/arch-x86/syscalls/__getpriority.S"
+g.add "libc/arch-x86_64/syscalls/__getpriority.S"
+g.add "libc/bionic/getpriority.c"
+
 # getpwnam/getpwuid
 g.add "libc/bionic/stubs.cpp"
 
+# getresgid
+g.add "libc/arch-arm/syscalls/getresgid.S"
+g.add "libc/arch-arm64/syscalls/getresgid.S"
+g.add "libc/arch-mips/syscalls/getresgid.S"
+g.add "libc/arch-mips64/syscalls/getresgid.S"
+g.add "libc/arch-x86/syscalls/getresgid.S"
+g.add "libc/arch-x86_64/syscalls/getresgid.S"
+
+# getresuid
+g.add "libc/arch-arm/syscalls/getresuid.S"
+g.add "libc/arch-arm64/syscalls/getresuid.S"
+g.add "libc/arch-mips/syscalls/getresuid.S"
+g.add "libc/arch-mips64/syscalls/getresuid.S"
+g.add "libc/arch-x86/syscalls/getresuid.S"
+g.add "libc/arch-x86_64/syscalls/getresuid.S"
+
+# getrlimit
+g.add "libc/arch-arm/syscalls/getrlimit.S"
+g.add "libc/arch-arm64/syscalls/getrlimit.S"
+g.add "libc/arch-mips/syscalls/getrlimit.S"
+g.add "libc/arch-mips64/syscalls/getrlimit.S"
+g.add "libc/arch-x86/syscalls/getrlimit.S"
+g.add "libc/arch-x86_64/syscalls/getrlimit.S"
+
+# getrusage
+g.add "libc/arch-arm/syscalls/getrusage.S"
+g.add "libc/arch-arm64/syscalls/getrusage.S"
+g.add "libc/arch-mips/syscalls/getrusage.S"
+g.add "libc/arch-mips64/syscalls/getrusage.S"
+g.add "libc/arch-x86/syscalls/getrusage.S"
+g.add "libc/arch-x86_64/syscalls/getrusage.S"
+
+# getsid
+g.add "libc/arch-arm/syscalls/getsid.S"
+g.add "libc/arch-arm64/syscalls/getsid.S"
+g.add "libc/arch-mips/syscalls/getsid.S"
+g.add "libc/arch-mips64/syscalls/getsid.S"
+g.add "libc/arch-x86/syscalls/getsid.S"
+g.add "libc/arch-x86_64/syscalls/getsid.S"
+
+# getsockname
+g.add "libc/arch-arm/syscalls/getsockname.S"
+g.add "libc/arch-arm64/syscalls/getsockname.S"
+g.add "libc/arch-mips/syscalls/getsockname.S"
+g.add "libc/arch-mips64/syscalls/getsockname.S"
+g.add "libc/arch-x86/syscalls/getsockname.S"
+g.add "libc/arch-x86_64/syscalls/getsockname.S"
+
+# getsockopt
+g.add "libc/arch-arm/syscalls/getsockopt.S"
+g.add "libc/arch-arm64/syscalls/getsockopt.S"
+g.add "libc/arch-mips/syscalls/getsockopt.S"
+g.add "libc/arch-mips64/syscalls/getsockopt.S"
+g.add "libc/arch-x86/syscalls/getsockopt.S"
+g.add "libc/arch-x86_64/syscalls/getsockopt.S"
+
+# gettid
+g.add "libc/bionic/gettid.cpp"
+
+# gettimeofday
+g.add "libc/arch-arm/syscalls/gettimeofday.S"
+g.add "libc/arch-arm64/syscalls/__gettimeofday.S"
+g.add "libc/arch-mips/syscalls/gettimeofday.S"
+g.add "libc/arch-mips64/syscalls/gettimeofday.S"
+g.add "libc/arch-x86/syscalls/__gettimeofday.S"
+g.add "libc/arch-x86_64/syscalls/__gettimeofday.S"
+
+# getuid
+g.add "libc/arch-arm/syscalls/getuid.S"
+g.add "libc/arch-arm64/syscalls/getuid.S"
+g.add "libc/arch-mips/syscalls/getuid.S"
+g.add "libc/arch-mips64/syscalls/getuid.S"
+g.add "libc/arch-x86/syscalls/getuid.S"
+g.add "libc/arch-x86_64/syscalls/getuid.S"
+
+# getxattr
+g.add "libc/arch-arm/syscalls/getxattr.S"
+g.add "libc/arch-arm64/syscalls/getxattr.S"
+g.add "libc/arch-mips/syscalls/getxattr.S"
+g.add "libc/arch-mips64/syscalls/getxattr.S"
+g.add "libc/arch-x86/syscalls/getxattr.S"
+g.add "libc/arch-x86_64/syscalls/getxattr.S"
+
+# if_indextoname
+g.add "libc/bionic/if_indextoname.c"
+
+# if_nametoindex
+g.add "libc/bionic/if_nametoindex.c"
+
+# inet_nsap_ntoa
+g.add "libc/upstream-netbsd/lib/libc/inet/nsap_addr.c"
+
+# inet_ntop
+g.add "libc/upstream-openbsd/lib/libc/net/inet_ntop.c"
+
+# inet_pton
+g.add "libc/upstream-openbsd/lib/libc/net/inet_pton.c"
+
+# init_module
+g.add "libc/arch-arm/syscalls/init_module.S"
+g.add "libc/arch-arm64/syscalls/init_module.S"
+g.add "libc/arch-mips/syscalls/init_module.S"
+g.add "libc/arch-mips64/syscalls/init_module.S"
+g.add "libc/arch-x86/syscalls/init_module.S"
+g.add "libc/arch-x86_64/syscalls/init_module.S"
+
+# initgroups
+g.add "libc/bionic/initgroups.c"
+
+# inotify_add_watch
+g.add "libc/arch-arm/syscalls/inotify_add_watch.S"
+g.add "libc/arch-arm64/syscalls/inotify_add_watch.S"
+g.add "libc/arch-mips/syscalls/inotify_add_watch.S"
+g.add "libc/arch-mips64/syscalls/inotify_add_watch.S"
+g.add "libc/arch-x86/syscalls/inotify_add_watch.S"
+g.add "libc/arch-x86_64/syscalls/inotify_add_watch.S"
+
+# inotify_init
+g.add "libc/arch-arm/syscalls/inotify_init1.S"
+g.add "libc/arch-arm64/syscalls/inotify_init1.S"
+g.add "libc/arch-mips/syscalls/inotify_init1.S"
+g.add "libc/arch-mips64/syscalls/inotify_init1.S"
+g.add "libc/arch-x86/syscalls/inotify_init1.S"
+g.add "libc/arch-x86_64/syscalls/inotify_init1.S"
+g.add "libc/bionic/inotify_init.cpp"
+
+# inotify_rm_watch
+g.add "libc/arch-arm/syscalls/inotify_rm_watch.S"
+g.add "libc/arch-arm64/syscalls/inotify_rm_watch.S"
+g.add "libc/arch-mips/syscalls/inotify_rm_watch.S"
+g.add "libc/arch-mips64/syscalls/inotify_rm_watch.S"
+g.add "libc/arch-x86/syscalls/inotify_rm_watch.S"
+g.add "libc/arch-x86_64/syscalls/inotify_rm_watch.S"
+
+# ioctl
+g.add "libc/arch-arm/syscalls/__ioctl.S"
+g.add "libc/arch-arm64/syscalls/__ioctl.S"
+g.add "libc/arch-mips/syscalls/__ioctl.S"
+g.add "libc/arch-mips64/syscalls/__ioctl.S"
+g.add "libc/arch-x86/syscalls/__ioctl.S"
+g.add "libc/arch-x86_64/syscalls/__ioctl.S"
+g.add "libc/bionic/ioctl.c"
+
+# isatty
+g.add "libc/bionic/isatty.c"
+
+# jrand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/jrand48.c"
+
+# kill
+g.add "libc/arch-arm/syscalls/kill.S"
+g.add "libc/arch-arm64/syscalls/kill.S"
+g.add "libc/arch-mips/syscalls/kill.S"
+g.add "libc/arch-mips64/syscalls/kill.S"
+g.add "libc/arch-x86/syscalls/kill.S"
+g.add "libc/arch-x86_64/syscalls/kill.S"
+
+# klogctl
+g.add "libc/arch-arm/syscalls/klogctl.S"
+g.add "libc/arch-arm64/syscalls/klogctl.S"
+g.add "libc/arch-mips/syscalls/klogctl.S"
+g.add "libc/arch-mips64/syscalls/klogctl.S"
+g.add "libc/arch-x86/syscalls/klogctl.S"
+g.add "libc/arch-x86_64/syscalls/klogctl.S"
+
+# lchown
+g.add "libc/bionic/lchown.cpp"
+
+# lgetxattr
+g.add "libc/arch-arm/syscalls/lgetxattr.S"
+g.add "libc/arch-arm64/syscalls/lgetxattr.S"
+g.add "libc/arch-mips/syscalls/lgetxattr.S"
+g.add "libc/arch-mips64/syscalls/lgetxattr.S"
+g.add "libc/arch-x86/syscalls/lgetxattr.S"
+g.add "libc/arch-x86_64/syscalls/lgetxattr.S"
+
+# __libc_current_sigrtmax
+g.add "libc/bionic/__libc_current_sigrtmax.cpp"
+
+# __libc_current_sigrtmin
+g.add "libc/bionic/__libc_current_sigrtmin.cpp"
+
+# link
+g.add "libc/bionic/link.cpp"
+
+# linkat
+g.add "libc/arch-arm/syscalls/linkat.S"
+g.add "libc/arch-arm64/syscalls/linkat.S"
+g.add "libc/arch-mips/syscalls/linkat.S"
+g.add "libc/arch-mips64/syscalls/linkat.S"
+g.add "libc/arch-x86/syscalls/linkat.S"
+g.add "libc/arch-x86_64/syscalls/linkat.S"
+
+# listen
+g.add "libc/arch-arm/syscalls/listen.S"
+g.add "libc/arch-arm64/syscalls/listen.S"
+g.add "libc/arch-mips/syscalls/listen.S"
+g.add "libc/arch-mips64/syscalls/listen.S"
+g.add "libc/arch-x86/syscalls/listen.S"
+g.add "libc/arch-x86_64/syscalls/listen.S"
+
+# listxattr
+g.add "libc/arch-arm/syscalls/listxattr.S"
+g.add "libc/arch-arm64/syscalls/listxattr.S"
+g.add "libc/arch-mips/syscalls/listxattr.S"
+g.add "libc/arch-mips64/syscalls/listxattr.S"
+g.add "libc/arch-x86/syscalls/listxattr.S"
+g.add "libc/arch-x86_64/syscalls/listxattr.S"
+
+# llistxattr
+g.add "libc/arch-arm/syscalls/llistxattr.S"
+g.add "libc/arch-arm64/syscalls/llistxattr.S"
+g.add "libc/arch-mips/syscalls/llistxattr.S"
+g.add "libc/arch-mips64/syscalls/llistxattr.S"
+g.add "libc/arch-x86/syscalls/llistxattr.S"
+g.add "libc/arch-x86_64/syscalls/llistxattr.S"
+
+# __llseek
+g.add "libc/arch-arm/syscalls/__llseek.S"
+g.add "libc/arch-mips/syscalls/__llseek.S"
+g.add "libc/arch-x86/syscalls/__llseek.S"
+
+# lrand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/lrand48.c"
+
+# lremovexattr
+g.add "libc/arch-arm/syscalls/lremovexattr.S"
+g.add "libc/arch-arm64/syscalls/lremovexattr.S"
+g.add "libc/arch-mips/syscalls/lremovexattr.S"
+g.add "libc/arch-mips64/syscalls/lremovexattr.S"
+g.add "libc/arch-x86/syscalls/lremovexattr.S"
+g.add "libc/arch-x86_64/syscalls/lremovexattr.S"
+
+# lseek
+g.add "libc/arch-arm/syscalls/lseek.S"
+g.add "libc/arch-arm64/syscalls/lseek.S"
+g.add "libc/arch-mips/syscalls/lseek.S"
+g.add "libc/arch-mips64/syscalls/lseek.S"
+g.add "libc/arch-x86/syscalls/lseek.S"
+g.add "libc/arch-x86_64/syscalls/lseek.S"
+
+# lsetxattr
+g.add "libc/arch-arm/syscalls/lsetxattr.S"
+g.add "libc/arch-arm64/syscalls/lsetxattr.S"
+g.add "libc/arch-mips/syscalls/lsetxattr.S"
+g.add "libc/arch-mips64/syscalls/lsetxattr.S"
+g.add "libc/arch-x86/syscalls/lsetxattr.S"
+g.add "libc/arch-x86_64/syscalls/lsetxattr.S"
+
+# lstat/lstat64
+g.add "libc/bionic/lstat.cpp"
+
+# madvise
+g.add "libc/arch-arm/syscalls/madvise.S"
+g.add "libc/arch-arm64/syscalls/madvise.S"
+g.add "libc/arch-mips/syscalls/madvise.S"
+g.add "libc/arch-mips64/syscalls/madvise.S"
+g.add "libc/arch-x86/syscalls/madvise.S"
+g.add "libc/arch-x86_64/syscalls/madvise.S"
+
+# __memcpy_chk
+g.add "libc/bionic/__memcpy_chk.cpp"
+
+# __memmove_chk
+g.add "libc/bionic/__memmove_chk.cpp"
+
+# __memset_chk
+g.add "libc/bionic/__memset_chk.cpp"
+
+# mempcpy
+g.add "libc/bionic/mempcpy.cpp"
+
+# mincore
+g.add "libc/arch-arm/syscalls/mincore.S"
+g.add "libc/arch-arm64/syscalls/mincore.S"
+g.add "libc/arch-mips/syscalls/mincore.S"
+g.add "libc/arch-mips64/syscalls/mincore.S"
+g.add "libc/arch-x86/syscalls/mincore.S"
+g.add "libc/arch-x86_64/syscalls/mincore.S"
+
+# mkdir/mkdirat
+g.add "libc/arch-arm/syscalls/mkdirat.S"
+g.add "libc/arch-arm64/syscalls/mkdirat.S"
+g.add "libc/arch-mips/syscalls/mkdirat.S"
+g.add "libc/arch-mips64/syscalls/mkdirat.S"
+g.add "libc/arch-x86/syscalls/mkdirat.S"
+g.add "libc/arch-x86_64/syscalls/mkdirat.S"
+g.add "libc/bionic/mkdir.cpp"
+
 # mkfifo
 g.add "libc/bionic/mkfifo.cpp"
+
+# mknod
+g.add "libc/bionic/mknod.cpp"
 
 # mknodat
 g.add "libc/arch-arm/syscalls/mknodat.S"
@@ -255,6 +1318,14 @@ g.add "libc/arch-mips64/syscalls/mknodat.S"
 g.add "libc/arch-x86/syscalls/mknodat.S"
 g.add "libc/arch-x86_64/syscalls/mknodat.S"
 
+# mlock
+g.add "libc/arch-arm/syscalls/mlock.S"
+g.add "libc/arch-arm64/syscalls/mlock.S"
+g.add "libc/arch-mips/syscalls/mlock.S"
+g.add "libc/arch-mips64/syscalls/mlock.S"
+g.add "libc/arch-x86/syscalls/mlock.S"
+g.add "libc/arch-x86_64/syscalls/mlock.S"
+
 # mlockall
 g.add "libc/arch-arm/syscalls/mlockall.S"
 g.add "libc/arch-arm64/syscalls/mlockall.S"
@@ -262,6 +1333,58 @@ g.add "libc/arch-mips/syscalls/mlockall.S"
 g.add "libc/arch-mips64/syscalls/mlockall.S"
 g.add "libc/arch-x86/syscalls/mlockall.S"
 g.add "libc/arch-x86_64/syscalls/mlockall.S"
+
+# mmap/mmap64
+g.add "libc/arch-arm/syscalls/__mmap2.S"
+g.add "libc/arch-arm64/syscalls/mmap.S"
+g.add "libc/arch-mips/syscalls/__mmap2.S"
+g.add "libc/arch-mips64/syscalls/mmap.S"
+g.add "libc/arch-x86/syscalls/__mmap2.S"
+g.add "libc/arch-x86_64/syscalls/mmap.S"
+g.add "libc/bionic/mmap.cpp"
+
+# mount
+g.add "libc/arch-arm/syscalls/mount.S"
+g.add "libc/arch-arm64/syscalls/mount.S"
+g.add "libc/arch-mips/syscalls/mount.S"
+g.add "libc/arch-mips64/syscalls/mount.S"
+g.add "libc/arch-x86/syscalls/mount.S"
+g.add "libc/arch-x86_64/syscalls/mount.S"
+
+# mprotect
+g.add "libc/arch-arm/syscalls/mprotect.S"
+g.add "libc/arch-arm64/syscalls/mprotect.S"
+g.add "libc/arch-mips/syscalls/mprotect.S"
+g.add "libc/arch-mips64/syscalls/mprotect.S"
+g.add "libc/arch-x86/syscalls/mprotect.S"
+g.add "libc/arch-x86_64/syscalls/mprotect.S"
+
+# mrand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/mrand48.c"
+
+# mremap
+g.add "libc/arch-arm/syscalls/mremap.S"
+g.add "libc/arch-arm64/syscalls/mremap.S"
+g.add "libc/arch-mips/syscalls/mremap.S"
+g.add "libc/arch-mips64/syscalls/mremap.S"
+g.add "libc/arch-x86/syscalls/mremap.S"
+g.add "libc/arch-x86_64/syscalls/mremap.S"
+
+# msync
+g.add "libc/arch-arm/syscalls/msync.S"
+g.add "libc/arch-arm64/syscalls/msync.S"
+g.add "libc/arch-mips/syscalls/msync.S"
+g.add "libc/arch-mips64/syscalls/msync.S"
+g.add "libc/arch-x86/syscalls/msync.S"
+g.add "libc/arch-x86_64/syscalls/msync.S"
+
+# munlock
+g.add "libc/arch-arm/syscalls/munlock.S"
+g.add "libc/arch-arm64/syscalls/munlock.S"
+g.add "libc/arch-mips/syscalls/munlock.S"
+g.add "libc/arch-mips64/syscalls/munlock.S"
+g.add "libc/arch-x86/syscalls/munlock.S"
+g.add "libc/arch-x86_64/syscalls/munlock.S"
 
 # munlockall
 g.add "libc/arch-arm/syscalls/munlockall.S"
@@ -271,6 +1394,48 @@ g.add "libc/arch-mips64/syscalls/munlockall.S"
 g.add "libc/arch-x86/syscalls/munlockall.S"
 g.add "libc/arch-x86_64/syscalls/munlockall.S"
 
+# munmap
+g.add "libc/arch-arm/syscalls/munmap.S"
+g.add "libc/arch-arm64/syscalls/munmap.S"
+g.add "libc/arch-mips/syscalls/munmap.S"
+g.add "libc/arch-mips64/syscalls/munmap.S"
+g.add "libc/arch-x86/syscalls/munmap.S"
+g.add "libc/arch-x86_64/syscalls/munmap.S"
+
+# nanosleep
+g.add "libc/arch-arm/syscalls/nanosleep.S"
+g.add "libc/arch-arm64/syscalls/nanosleep.S"
+g.add "libc/arch-mips/syscalls/nanosleep.S"
+g.add "libc/arch-mips64/syscalls/nanosleep.S"
+g.add "libc/arch-x86/syscalls/nanosleep.S"
+g.add "libc/arch-x86_64/syscalls/nanosleep.S"
+
+# nrand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/nrand48.c"
+
+# open
+g.add "libc/arch-arm/syscalls/__openat.S"
+g.add "libc/arch-arm64/syscalls/__openat.S"
+g.add "libc/arch-mips/syscalls/__openat.S"
+g.add "libc/arch-mips64/syscalls/__openat.S"
+g.add "libc/arch-x86/syscalls/__openat.S"
+g.add "libc/arch-x86_64/syscalls/__openat.S"
+g.add "libc/bionic/open.cpp"
+
+# pause
+g.add "libc/bionic/pause.cpp"
+
+# personality
+g.add "libc/arch-arm/syscalls/personality.S"
+g.add "libc/arch-arm64/syscalls/personality.S"
+g.add "libc/arch-mips/syscalls/personality.S"
+g.add "libc/arch-mips64/syscalls/personality.S"
+g.add "libc/arch-x86/syscalls/personality.S"
+g.add "libc/arch-x86_64/syscalls/personality.S"
+
+# pipe
+g.add "libc/bionic/pipe.cpp"
+
 # pipe2
 g.add "libc/arch-arm/syscalls/pipe2.S"
 g.add "libc/arch-arm64/syscalls/pipe2.S"
@@ -279,8 +1444,250 @@ g.add "libc/arch-mips64/syscalls/pipe2.S"
 g.add "libc/arch-x86/syscalls/pipe2.S"
 g.add "libc/arch-x86_64/syscalls/pipe2.S"
 
+# poll
+g.add "libc/arch-arm/syscalls/__ppoll.S"
+g.add "libc/arch-arm64/syscalls/__ppoll.S"
+g.add "libc/arch-mips/syscalls/__ppoll.S"
+g.add "libc/arch-mips64/syscalls/__ppoll.S"
+g.add "libc/arch-x86/syscalls/__ppoll.S"
+g.add "libc/arch-x86_64/syscalls/__ppoll.S"
+g.add "libc/bionic/poll.cpp"
+
 # posix_madvise
 g.add "libc/bionic/posix_madvise.cpp"
+
+# prctl
+g.add "libc/arch-arm/syscalls/prctl.S"
+g.add "libc/arch-arm64/syscalls/prctl.S"
+g.add "libc/arch-mips/syscalls/prctl.S"
+g.add "libc/arch-mips64/syscalls/prctl.S"
+g.add "libc/arch-x86/syscalls/prctl.S"
+g.add "libc/arch-x86_64/syscalls/prctl.S"
+
+# pread64
+g.add "libc/arch-arm/syscalls/pread64.S"
+g.add "libc/arch-arm64/syscalls/pread64.S"
+g.add "libc/arch-mips/syscalls/pread64.S"
+g.add "libc/arch-mips64/syscalls/pread64.S"
+g.add "libc/arch-x86/syscalls/pread64.S"
+g.add "libc/arch-x86_64/syscalls/pread64.S"
+
+# prlimit/prlimit64
+g.add "libc/arch-arm/syscalls/prlimit64.S"
+g.add "libc/arch-arm64/syscalls/prlimit64.S"
+g.add "libc/arch-mips/syscalls/prlimit64.S"
+g.add "libc/arch-mips64/syscalls/prlimit64.S"
+g.add "libc/arch-x86/syscalls/prlimit64.S"
+g.add "libc/arch-x86_64/syscalls/prlimit64.S"
+
+# __pselect6
+g.add "libc/arch-arm/syscalls/__pselect6.S"
+g.add "libc/arch-arm64/syscalls/__pselect6.S"
+g.add "libc/arch-mips/syscalls/__pselect6.S"
+g.add "libc/arch-mips64/syscalls/__pselect6.S"
+g.add "libc/arch-x86/syscalls/__pselect6.S"
+g.add "libc/arch-x86_64/syscalls/__pselect6.S"
+
+# psignal/psiginfo
+g.add "libc/upstream-netbsd/lib/libc/gen/psignal.c"
+
+# pthread
+g.add "libc/arch-common/bionic/pthread_atfork.h"
+g.add "libc/bionic/__cxa_thread_atexit_impl.cpp"
+g.add "libc/bionic/clone.cpp"
+g.add "libc/bionic/pthread_atfork.cpp"
+g.add "libc/bionic/pthread_attr.cpp"
+g.add "libc/bionic/pthread_cond.cpp"
+g.add "libc/bionic/pthread_create.cpp"
+g.add "libc/bionic/pthread_detach.cpp"
+g.add "libc/bionic/pthread_equal.cpp"
+g.add "libc/bionic/pthread_exit.cpp"
+g.add "libc/bionic/pthread_getcpuclockid.cpp"
+g.add "libc/bionic/pthread_getschedparam.cpp"
+g.add "libc/bionic/pthread_gettid_np.cpp"
+g.add "libc/bionic/pthread_internal.cpp"
+g.add "libc/bionic/pthread_internal.h"
+g.add "libc/bionic/pthread_join.cpp"
+g.add "libc/bionic/pthread_key.cpp"
+g.add "libc/bionic/pthread_kill.cpp"
+g.add "libc/bionic/pthread_mutex.cpp"
+g.add "libc/bionic/pthread_once.cpp"
+g.add "libc/bionic/pthread_rwlock.cpp"
+g.add "libc/bionic/pthread_self.cpp"
+g.add "libc/bionic/pthread_setname_np.cpp"
+g.add "libc/bionic/pthread_setschedparam.cpp"
+g.add "libc/bionic/pthread_sigmask.cpp"
+
+# ptrace
+g.add "libc/arch-arm/syscalls/__ptrace.S"
+g.add "libc/arch-arm64/syscalls/__ptrace.S"
+g.add "libc/arch-mips/syscalls/__ptrace.S"
+g.add "libc/arch-mips64/syscalls/__ptrace.S"
+g.add "libc/arch-x86/syscalls/__ptrace.S"
+g.add "libc/arch-x86_64/syscalls/__ptrace.S"
+g.add "libc/bionic/ptrace.cpp"
+
+# pututline
+g.add "libc/bionic/pututline.c"
+
+# pwrite64
+g.add "libc/arch-arm/syscalls/pwrite64.S"
+g.add "libc/arch-arm64/syscalls/pwrite64.S"
+g.add "libc/arch-mips/syscalls/pwrite64.S"
+g.add "libc/arch-mips64/syscalls/pwrite64.S"
+g.add "libc/arch-x86/syscalls/pwrite64.S"
+g.add "libc/arch-x86_64/syscalls/pwrite64.S"
+
+# raise
+g.add "libc/bionic/raise.cpp"
+
+# rand/srand
+g.add "libc/bionic/rand.cpp"
+
+# read
+g.add "libc/arch-arm/syscalls/read.S"
+g.add "libc/arch-arm64/syscalls/read.S"
+g.add "libc/arch-mips/syscalls/read.S"
+g.add "libc/arch-mips64/syscalls/read.S"
+g.add "libc/arch-x86/syscalls/read.S"
+g.add "libc/arch-x86_64/syscalls/read.S"
+
+# __read_chk
+g.add "libc/bionic/__read_chk.cpp"
+
+# readahead
+g.add "libc/arch-arm/syscalls/readahead.S"
+g.add "libc/arch-arm64/syscalls/readahead.S"
+g.add "libc/arch-mips/syscalls/readahead.S"
+g.add "libc/arch-mips64/syscalls/readahead.S"
+g.add "libc/arch-x86/syscalls/readahead.S"
+g.add "libc/arch-x86_64/syscalls/readahead.S"
+
+# readlink
+g.add "libc/bionic/readlink.cpp"
+
+# readlinkat
+g.add "libc/arch-arm/syscalls/readlinkat.S"
+g.add "libc/arch-arm64/syscalls/readlinkat.S"
+g.add "libc/arch-mips/syscalls/readlinkat.S"
+g.add "libc/arch-mips64/syscalls/readlinkat.S"
+g.add "libc/arch-x86/syscalls/readlinkat.S"
+g.add "libc/arch-x86_64/syscalls/readlinkat.S"
+
+# readv
+g.add "libc/arch-arm/syscalls/readv.S"
+g.add "libc/arch-arm64/syscalls/readv.S"
+g.add "libc/arch-mips/syscalls/readv.S"
+g.add "libc/arch-mips64/syscalls/readv.S"
+g.add "libc/arch-x86/syscalls/readv.S"
+g.add "libc/arch-x86_64/syscalls/readv.S"
+
+# reboot
+g.add "libc/arch-arm/syscalls/__reboot.S"
+g.add "libc/arch-arm64/syscalls/__reboot.S"
+g.add "libc/arch-mips/syscalls/__reboot.S"
+g.add "libc/arch-mips64/syscalls/__reboot.S"
+g.add "libc/arch-x86/syscalls/__reboot.S"
+g.add "libc/arch-x86_64/syscalls/__reboot.S"
+g.add "libc/bionic/reboot.cpp"
+
+# recv
+g.add "libc/bionic/recv.cpp"
+
+# __recvfrom_chk
+g.add "libc/bionic/__recvfrom_chk.cpp"
+
+# recvfrom
+g.add "libc/arch-arm/syscalls/recvfrom.S"
+g.add "libc/arch-arm64/syscalls/recvfrom.S"
+g.add "libc/arch-mips/syscalls/recvfrom.S"
+g.add "libc/arch-mips64/syscalls/recvfrom.S"
+g.add "libc/arch-x86/syscalls/recvfrom.S"
+g.add "libc/arch-x86_64/syscalls/recvfrom.S"
+
+# recvmmsg
+g.add "libc/arch-arm/syscalls/recvmmsg.S"
+g.add "libc/arch-arm64/syscalls/recvmmsg.S"
+g.add "libc/arch-mips/syscalls/recvmmsg.S"
+g.add "libc/arch-mips64/syscalls/recvmmsg.S"
+g.add "libc/arch-x86/syscalls/recvmmsg.S"
+g.add "libc/arch-x86_64/syscalls/recvmmsg.S"
+
+# recvmsg
+g.add "libc/arch-arm/syscalls/recvmsg.S"
+g.add "libc/arch-arm64/syscalls/recvmsg.S"
+g.add "libc/arch-mips/syscalls/recvmsg.S"
+g.add "libc/arch-mips64/syscalls/recvmsg.S"
+g.add "libc/arch-x86/syscalls/recvmsg.S"
+g.add "libc/arch-x86_64/syscalls/recvmsg.S"
+
+# removexattr
+g.add "libc/arch-arm/syscalls/removexattr.S"
+g.add "libc/arch-arm64/syscalls/removexattr.S"
+g.add "libc/arch-mips/syscalls/removexattr.S"
+g.add "libc/arch-mips64/syscalls/removexattr.S"
+g.add "libc/arch-x86/syscalls/removexattr.S"
+g.add "libc/arch-x86_64/syscalls/removexattr.S"
+
+# rename
+g.add "libc/bionic/rename.cpp"
+
+# renameat
+g.add "libc/arch-arm/syscalls/renameat.S"
+g.add "libc/arch-arm64/syscalls/renameat.S"
+g.add "libc/arch-mips/syscalls/renameat.S"
+g.add "libc/arch-mips64/syscalls/renameat.S"
+g.add "libc/arch-x86/syscalls/renameat.S"
+g.add "libc/arch-x86_64/syscalls/renameat.S"
+
+# rmdir
+g.add "libc/bionic/rmdir.cpp"
+
+# __rt_sigaction
+g.add "libc/arch-arm/syscalls/__rt_sigaction.S"
+g.add "libc/arch-arm64/syscalls/__rt_sigaction.S"
+g.add "libc/arch-mips/syscalls/__rt_sigaction.S"
+g.add "libc/arch-mips64/syscalls/__rt_sigaction.S"
+g.add "libc/arch-x86/syscalls/__rt_sigaction.S"
+g.add "libc/arch-x86_64/syscalls/__rt_sigaction.S"
+
+# __rt_sigpending
+g.add "libc/arch-arm/syscalls/__rt_sigpending.S"
+g.add "libc/arch-arm64/syscalls/__rt_sigpending.S"
+g.add "libc/arch-mips/syscalls/__rt_sigpending.S"
+g.add "libc/arch-mips64/syscalls/__rt_sigpending.S"
+g.add "libc/arch-x86/syscalls/__rt_sigpending.S"
+g.add "libc/arch-x86_64/syscalls/__rt_sigpending.S"
+
+# __rt_sigprocmask
+g.add "libc/arch-arm/syscalls/__rt_sigprocmask.S"
+g.add "libc/arch-arm64/syscalls/__rt_sigprocmask.S"
+g.add "libc/arch-mips/syscalls/__rt_sigprocmask.S"
+g.add "libc/arch-mips64/syscalls/__rt_sigprocmask.S"
+g.add "libc/arch-x86/syscalls/__rt_sigprocmask.S"
+g.add "libc/arch-x86_64/syscalls/__rt_sigprocmask.S"
+
+# __rt_sigsuspend
+g.add "libc/arch-arm/syscalls/__rt_sigsuspend.S"
+g.add "libc/arch-arm64/syscalls/__rt_sigsuspend.S"
+g.add "libc/arch-mips/syscalls/__rt_sigsuspend.S"
+g.add "libc/arch-mips64/syscalls/__rt_sigsuspend.S"
+g.add "libc/arch-x86/syscalls/__rt_sigsuspend.S"
+g.add "libc/arch-x86_64/syscalls/__rt_sigsuspend.S"
+
+# __rt_sigtimedwait
+g.add "libc/arch-arm/syscalls/__rt_sigtimedwait.S"
+g.add "libc/arch-arm64/syscalls/__rt_sigtimedwait.S"
+g.add "libc/arch-mips/syscalls/__rt_sigtimedwait.S"
+g.add "libc/arch-mips64/syscalls/__rt_sigtimedwait.S"
+g.add "libc/arch-x86/syscalls/__rt_sigtimedwait.S"
+g.add "libc/arch-x86_64/syscalls/__rt_sigtimedwait.S"
+
+# sbrk
+g.add "libc/bionic/brk.cpp"
+
+# scandir
+g.add "libc/bionic/scandir.cpp"
 
 # sched_getaffinity
 g.add "libc/arch-arm/syscalls/__sched_getaffinity.S"
@@ -300,11 +1707,51 @@ g.add "libc/arch-mips64/syscalls/__getcpu.S"
 g.add "libc/arch-x86/syscalls/__getcpu.S"
 g.add "libc/arch-x86_64/syscalls/__getcpu.S"
 
+# sched_get_priority_max
+g.add "libc/arch-arm/syscalls/sched_get_priority_max.S"
+g.add "libc/arch-arm64/syscalls/sched_get_priority_max.S"
+g.add "libc/arch-mips/syscalls/sched_get_priority_max.S"
+g.add "libc/arch-mips64/syscalls/sched_get_priority_max.S"
+g.add "libc/arch-x86/syscalls/sched_get_priority_max.S"
+g.add "libc/arch-x86_64/syscalls/sched_get_priority_max.S"
+
+# sched_get_priority_min
+g.add "libc/arch-arm/syscalls/sched_get_priority_min.S"
+g.add "libc/arch-arm64/syscalls/sched_get_priority_min.S"
+g.add "libc/arch-mips/syscalls/sched_get_priority_min.S"
+g.add "libc/arch-mips64/syscalls/sched_get_priority_min.S"
+g.add "libc/arch-x86/syscalls/sched_get_priority_min.S"
+g.add "libc/arch-x86_64/syscalls/sched_get_priority_min.S"
+
+# sched_getparam
+g.add "libc/arch-arm/syscalls/sched_getparam.S"
+g.add "libc/arch-arm64/syscalls/sched_getparam.S"
+g.add "libc/arch-mips/syscalls/sched_getparam.S"
+g.add "libc/arch-mips64/syscalls/sched_getparam.S"
+g.add "libc/arch-x86/syscalls/sched_getparam.S"
+g.add "libc/arch-x86_64/syscalls/sched_getparam.S"
+
+# sched_getscheduler
+g.add "libc/arch-arm/syscalls/sched_getscheduler.S"
+g.add "libc/arch-arm64/syscalls/sched_getscheduler.S"
+g.add "libc/arch-mips/syscalls/sched_getscheduler.S"
+g.add "libc/arch-mips64/syscalls/sched_getscheduler.S"
+g.add "libc/arch-x86/syscalls/sched_getscheduler.S"
+g.add "libc/arch-x86_64/syscalls/sched_getscheduler.S"
+
 # sched_cpualloc
 g.add "libc/bionic/sched_cpualloc.c"
 
 # sched_cpucount
 g.add "libc/bionic/sched_cpucount.c"
+
+# sched_rr_get_interval
+g.add "libc/arch-arm/syscalls/sched_rr_get_interval.S"
+g.add "libc/arch-arm64/syscalls/sched_rr_get_interval.S"
+g.add "libc/arch-mips/syscalls/sched_rr_get_interval.S"
+g.add "libc/arch-mips64/syscalls/sched_rr_get_interval.S"
+g.add "libc/arch-x86/syscalls/sched_rr_get_interval.S"
+g.add "libc/arch-x86_64/syscalls/sched_rr_get_interval.S"
 
 # sched_setaffinity
 g.add "libc/arch-arm/syscalls/sched_setaffinity.S"
@@ -314,9 +1761,462 @@ g.add "libc/arch-mips64/syscalls/sched_setaffinity.S"
 g.add "libc/arch-x86/syscalls/sched_setaffinity.S"
 g.add "libc/arch-x86_64/syscalls/sched_setaffinity.S"
 
+# sched_setparam
+g.add "libc/arch-arm/syscalls/sched_setparam.S"
+g.add "libc/arch-arm64/syscalls/sched_setparam.S"
+g.add "libc/arch-mips/syscalls/sched_setparam.S"
+g.add "libc/arch-mips64/syscalls/sched_setparam.S"
+g.add "libc/arch-x86/syscalls/sched_setparam.S"
+g.add "libc/arch-x86_64/syscalls/sched_setparam.S"
+
+# sched_setscheduler
+g.add "libc/arch-arm/syscalls/sched_setscheduler.S"
+g.add "libc/arch-arm64/syscalls/sched_setscheduler.S"
+g.add "libc/arch-mips/syscalls/sched_setscheduler.S"
+g.add "libc/arch-mips64/syscalls/sched_setscheduler.S"
+g.add "libc/arch-x86/syscalls/sched_setscheduler.S"
+g.add "libc/arch-x86_64/syscalls/sched_setscheduler.S"
+
+# sched_yield
+g.add "libc/arch-arm/syscalls/sched_yield.S"
+g.add "libc/arch-arm64/syscalls/sched_yield.S"
+g.add "libc/arch-mips/syscalls/sched_yield.S"
+g.add "libc/arch-mips64/syscalls/sched_yield.S"
+g.add "libc/arch-x86/syscalls/sched_yield.S"
+g.add "libc/arch-x86_64/syscalls/sched_yield.S"
+
+# seed48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/seed48.c"
+
+# semaphore
+g.add "libc/bionic/semaphore.cpp"
+
+# send
+g.add "libc/bionic/send.cpp"
+
+# sendfile/sendfile64
+g.add "libc/arch-arm/syscalls/sendfile.S"
+g.add "libc/arch-arm/syscalls/sendfile64.S"
+g.add "libc/arch-arm64/syscalls/sendfile.S"
+g.add "libc/arch-mips/syscalls/sendfile.S"
+g.add "libc/arch-mips/syscalls/sendfile64.S"
+g.add "libc/arch-mips64/syscalls/sendfile.S"
+g.add "libc/arch-x86/syscalls/sendfile.S"
+g.add "libc/arch-x86/syscalls/sendfile64.S"
+g.add "libc/arch-x86_64/syscalls/sendfile.S"
+
+# sendmmsg
+g.add "libc/arch-arm/syscalls/sendmmsg.S"
+g.add "libc/arch-arm64/syscalls/sendmmsg.S"
+g.add "libc/arch-mips/syscalls/sendmmsg.S"
+g.add "libc/arch-mips64/syscalls/sendmmsg.S"
+g.add "libc/arch-x86/syscalls/sendmmsg.S"
+g.add "libc/arch-x86_64/syscalls/sendmmsg.S"
+
+# sendmsg
+g.add "libc/arch-arm/syscalls/sendmsg.S"
+g.add "libc/arch-arm64/syscalls/sendmsg.S"
+g.add "libc/arch-mips/syscalls/sendmsg.S"
+g.add "libc/arch-mips64/syscalls/sendmsg.S"
+g.add "libc/arch-x86/syscalls/sendmsg.S"
+g.add "libc/arch-x86_64/syscalls/sendmsg.S"
+
+# sendto
+g.add "libc/arch-arm/syscalls/sendto.S"
+g.add "libc/arch-arm64/syscalls/sendto.S"
+g.add "libc/arch-mips/syscalls/sendto.S"
+g.add "libc/arch-mips64/syscalls/sendto.S"
+g.add "libc/arch-x86/syscalls/sendto.S"
+g.add "libc/arch-x86_64/syscalls/sendto.S"
+
+# __set_errno
+g.add "libc/bionic/__set_errno.cpp"
+
+# __set_tid_address
+g.add "libc/arch-arm/syscalls/__set_tid_address.S"
+g.add "libc/arch-arm64/syscalls/__set_tid_address.S"
+g.add "libc/arch-mips/syscalls/__set_tid_address.S"
+g.add "libc/arch-mips64/syscalls/__set_tid_address.S"
+g.add "libc/arch-x86/syscalls/__set_tid_address.S"
+g.add "libc/arch-x86_64/syscalls/__set_tid_address.S"
+
+# setegid
+g.add "libc/bionic/setegid.cpp"
+
+# seteuid
+g.add "libc/bionic/seteuid.cpp"
+
+# setfsgid
+g.add "libc/arch-arm/syscalls/setfsgid.S"
+g.add "libc/arch-arm64/syscalls/setfsgid.S"
+g.add "libc/arch-mips/syscalls/setfsgid.S"
+g.add "libc/arch-mips64/syscalls/setfsgid.S"
+g.add "libc/arch-x86/syscalls/setfsgid.S"
+g.add "libc/arch-x86_64/syscalls/setfsgid.S"
+
+# setfsuid
+g.add "libc/arch-arm/syscalls/setfsuid.S"
+g.add "libc/arch-arm64/syscalls/setfsuid.S"
+g.add "libc/arch-mips/syscalls/setfsuid.S"
+g.add "libc/arch-mips64/syscalls/setfsuid.S"
+g.add "libc/arch-x86/syscalls/setfsuid.S"
+g.add "libc/arch-x86_64/syscalls/setfsuid.S"
+
+# setgid
+g.add "libc/arch-arm/syscalls/setgid.S"
+g.add "libc/arch-arm64/syscalls/setgid.S"
+g.add "libc/arch-mips/syscalls/setgid.S"
+g.add "libc/arch-mips64/syscalls/setgid.S"
+g.add "libc/arch-x86/syscalls/setgid.S"
+g.add "libc/arch-x86_64/syscalls/setgid.S"
+
+# setgroups
+g.add "libc/arch-arm/syscalls/setgroups.S"
+g.add "libc/arch-arm64/syscalls/setgroups.S"
+g.add "libc/arch-mips/syscalls/setgroups.S"
+g.add "libc/arch-mips64/syscalls/setgroups.S"
+g.add "libc/arch-x86/syscalls/setgroups.S"
+g.add "libc/arch-x86_64/syscalls/setgroups.S"
+
+# setitimer
+g.add "libc/arch-arm/syscalls/setitimer.S"
+g.add "libc/arch-arm64/syscalls/setitimer.S"
+g.add "libc/arch-mips/syscalls/setitimer.S"
+g.add "libc/arch-mips64/syscalls/setitimer.S"
+g.add "libc/arch-x86/syscalls/setitimer.S"
+g.add "libc/arch-x86_64/syscalls/setitimer.S"
+
+# setmntent
+g.add "libc/bionic/mntent.cpp"
+
+# setns
+g.add "libc/arch-arm/syscalls/setns.S"
+g.add "libc/arch-arm64/syscalls/setns.S"
+g.add "libc/arch-mips/syscalls/setns.S"
+g.add "libc/arch-mips64/syscalls/setns.S"
+g.add "libc/arch-x86/syscalls/setns.S"
+g.add "libc/arch-x86_64/syscalls/setns.S"
+
+# setpgid
+g.add "libc/arch-arm/syscalls/setpgid.S"
+g.add "libc/arch-arm64/syscalls/setpgid.S"
+g.add "libc/arch-mips/syscalls/setpgid.S"
+g.add "libc/arch-mips64/syscalls/setpgid.S"
+g.add "libc/arch-x86/syscalls/setpgid.S"
+g.add "libc/arch-x86_64/syscalls/setpgid.S"
+
+# setpgrp
+g.add "libc/bionic/setpgrp.cpp"
+
+# setpriority
+g.add "libc/arch-arm/syscalls/setpriority.S"
+g.add "libc/arch-arm64/syscalls/setpriority.S"
+g.add "libc/arch-mips/syscalls/setpriority.S"
+g.add "libc/arch-mips64/syscalls/setpriority.S"
+g.add "libc/arch-x86/syscalls/setpriority.S"
+g.add "libc/arch-x86_64/syscalls/setpriority.S"
+
+# setregid
+g.add "libc/arch-arm/syscalls/setregid.S"
+g.add "libc/arch-arm64/syscalls/setregid.S"
+g.add "libc/arch-mips/syscalls/setregid.S"
+g.add "libc/arch-mips64/syscalls/setregid.S"
+g.add "libc/arch-x86/syscalls/setregid.S"
+g.add "libc/arch-x86_64/syscalls/setregid.S"
+
+# setresgid
+g.add "libc/arch-arm/syscalls/setresgid.S"
+g.add "libc/arch-arm64/syscalls/setresgid.S"
+g.add "libc/arch-mips/syscalls/setresgid.S"
+g.add "libc/arch-mips64/syscalls/setresgid.S"
+g.add "libc/arch-x86/syscalls/setresgid.S"
+g.add "libc/arch-x86_64/syscalls/setresgid.S"
+
+# setresuid
+g.add "libc/arch-arm/syscalls/setresuid.S"
+g.add "libc/arch-arm64/syscalls/setresuid.S"
+g.add "libc/arch-mips/syscalls/setresuid.S"
+g.add "libc/arch-mips64/syscalls/setresuid.S"
+g.add "libc/arch-x86/syscalls/setresuid.S"
+g.add "libc/arch-x86_64/syscalls/setresuid.S"
+
+# setreuid
+g.add "libc/arch-arm/syscalls/setreuid.S"
+g.add "libc/arch-arm64/syscalls/setreuid.S"
+g.add "libc/arch-mips/syscalls/setreuid.S"
+g.add "libc/arch-mips64/syscalls/setreuid.S"
+g.add "libc/arch-x86/syscalls/setreuid.S"
+g.add "libc/arch-x86_64/syscalls/setreuid.S"
+
+# setrlimit
+g.add "libc/arch-arm/syscalls/setrlimit.S"
+g.add "libc/arch-arm64/syscalls/setrlimit.S"
+g.add "libc/arch-mips/syscalls/setrlimit.S"
+g.add "libc/arch-mips64/syscalls/setrlimit.S"
+g.add "libc/arch-x86/syscalls/setrlimit.S"
+g.add "libc/arch-x86_64/syscalls/setrlimit.S"
+
+# setsid
+g.add "libc/arch-arm/syscalls/setsid.S"
+g.add "libc/arch-arm64/syscalls/setsid.S"
+g.add "libc/arch-mips/syscalls/setsid.S"
+g.add "libc/arch-mips64/syscalls/setsid.S"
+g.add "libc/arch-x86/syscalls/setsid.S"
+g.add "libc/arch-x86_64/syscalls/setsid.S"
+
+# setsockopt
+g.add "libc/arch-arm/syscalls/setsockopt.S"
+g.add "libc/arch-arm64/syscalls/setsockopt.S"
+g.add "libc/arch-mips/syscalls/setsockopt.S"
+g.add "libc/arch-mips64/syscalls/setsockopt.S"
+g.add "libc/arch-x86/syscalls/setsockopt.S"
+g.add "libc/arch-x86_64/syscalls/setsockopt.S"
+
+# settimeofday
+g.add "libc/arch-arm/syscalls/settimeofday.S"
+g.add "libc/arch-arm64/syscalls/settimeofday.S"
+g.add "libc/arch-mips/syscalls/settimeofday.S"
+g.add "libc/arch-mips64/syscalls/settimeofday.S"
+g.add "libc/arch-x86/syscalls/settimeofday.S"
+g.add "libc/arch-x86_64/syscalls/settimeofday.S"
+
+# setuid
+g.add "libc/arch-arm/syscalls/setuid.S"
+g.add "libc/arch-arm64/syscalls/setuid.S"
+g.add "libc/arch-mips/syscalls/setuid.S"
+g.add "libc/arch-mips64/syscalls/setuid.S"
+g.add "libc/arch-x86/syscalls/setuid.S"
+g.add "libc/arch-x86_64/syscalls/setuid.S"
+
+# setxattr
+g.add "libc/arch-arm/syscalls/setxattr.S"
+g.add "libc/arch-arm64/syscalls/setxattr.S"
+g.add "libc/arch-mips/syscalls/setxattr.S"
+g.add "libc/arch-mips64/syscalls/setxattr.S"
+g.add "libc/arch-x86/syscalls/setxattr.S"
+g.add "libc/arch-x86_64/syscalls/setxattr.S"
+
+# shutdown
+g.add "libc/arch-arm/syscalls/shutdown.S"
+g.add "libc/arch-arm64/syscalls/shutdown.S"
+g.add "libc/arch-mips/syscalls/shutdown.S"
+g.add "libc/arch-mips64/syscalls/shutdown.S"
+g.add "libc/arch-x86/syscalls/shutdown.S"
+g.add "libc/arch-x86_64/syscalls/shutdown.S"
+
+# sigaction
+g.add "libc/arch-arm/bionic/__restore.S"
+g.add "libc/arch-arm/syscalls/__sigaction.S"
+g.add "libc/arch-mips/syscalls/__sigaction.S"
+g.add "libc/arch-x86/bionic/__restore.S"
+g.add "libc/arch-x86/syscalls/__sigaction.S"
+g.add "libc/arch-x86_64/bionic/__restore_rt.S"
+g.add "libc/bionic/sigaction.cpp"
+
+# sigaltstack
+g.add "libc/arch-arm/syscalls/sigaltstack.S"
+g.add "libc/arch-arm64/syscalls/sigaltstack.S"
+g.add "libc/arch-mips/syscalls/sigaltstack.S"
+g.add "libc/arch-mips64/syscalls/sigaltstack.S"
+g.add "libc/arch-x86/syscalls/sigaltstack.S"
+g.add "libc/arch-x86_64/syscalls/sigaltstack.S"
+
+# sigaddset
+g.add "libc/bionic/sigaddset.cpp"
+
+# sigblock
+g.add "libc/bionic/sigblock.c"
+
+# sigdelset
+g.add "libc/bionic/sigdelset.cpp"
+
+# sigemptyset
+g.add "libc/bionic/sigemptyset.cpp"
+
+# sigfillset
+g.add "libc/bionic/sigfillset.cpp"
+
+# siginterrupt
+g.add "libc/bionic/siginterrupt.c"
+
+# sigismember
+g.add "libc/bionic/sigismember.cpp"
+
+# siglongjmp/sigsetjmp/longjmp/setjmp
+g.add "libc/arch-arm/bionic/setjmp.S"
+g.add "libc/arch-arm64/bionic/setjmp.S"
+g.add "libc/arch-mips/bionic/setjmp.S"
+g.add "libc/arch-x86/bionic/setjmp.S"
+g.add "libc/arch-x86_64/bionic/setjmp.S"
+
+# signal
+g.add "libc/bionic/signal.cpp"
+
+# signalfd
+g.add "libc/arch-arm/syscalls/__signalfd4.S"
+g.add "libc/arch-arm64/syscalls/__signalfd4.S"
+g.add "libc/arch-mips/syscalls/__signalfd4.S"
+g.add "libc/arch-mips64/syscalls/__signalfd4.S"
+g.add "libc/arch-x86/syscalls/__signalfd4.S"
+g.add "libc/arch-x86_64/syscalls/__signalfd4.S"
+g.add "libc/bionic/signalfd.cpp"
+
+# sigpending
+g.add "libc/bionic/sigpending.cpp"
+
+# sigprocmask
+g.add "libc/bionic/sigprocmask.cpp"
+
+# sigsetmask
+g.add "libc/bionic/sigsetmask.c"
+
+# sigsuspend
+g.add "libc/bionic/sigsuspend.cpp"
+
+# sigwait
+g.add "libc/bionic/sigwait.cpp"
+
+# socket
+g.add "libc/arch-arm/syscalls/__socket.S"
+g.add "libc/arch-arm64/syscalls/__socket.S"
+g.add "libc/arch-mips/syscalls/__socket.S"
+g.add "libc/arch-mips64/syscalls/__socket.S"
+g.add "libc/arch-x86/syscalls/__socket.S"
+g.add "libc/arch-x86_64/syscalls/__socket.S"
+
+# socketpair
+g.add "libc/arch-arm/syscalls/socketpair.S"
+g.add "libc/arch-arm64/syscalls/socketpair.S"
+g.add "libc/arch-mips/syscalls/socketpair.S"
+g.add "libc/arch-mips64/syscalls/socketpair.S"
+g.add "libc/arch-x86/syscalls/socketpair.S"
+g.add "libc/arch-x86_64/syscalls/socketpair.S"
+
+# splice
+g.add "libc/arch-arm/syscalls/splice.S"
+g.add "libc/arch-arm64/syscalls/splice.S"
+g.add "libc/arch-mips/syscalls/splice.S"
+g.add "libc/arch-mips64/syscalls/splice.S"
+g.add "libc/arch-x86/syscalls/splice.S"
+g.add "libc/arch-x86_64/syscalls/splice.S"
+
+# srand48
+g.add "libc/upstream-netbsd/lib/libc/stdlib/srand48.c"
+
+# __stack_chk_fail
+g.add "libc/bionic/__stack_chk_fail.cpp"
+
+# __stpcpy_chk
+g.add "libc/bionic/__stpcpy_chk.cpp"
+
+# __stpncpy_chk/__stpncpy_chk2
+g.add "libc/bionic/__stpncpy_chk.cpp"
+
+# __strcat_chk
+g.add "libc/bionic/__strcat_chk.cpp"
+
+# __strchr_chk
+g.add "libc/bionic/__strchr_chk.cpp"
+
+# __strcpy_chk
+g.add "libc/bionic/__strcpy_chk.cpp"
+
+# __strlcat_chk
+g.add "libc/bionic/__strlcat_chk.cpp"
+
+# __strlcpy_chk
+g.add "libc/bionic/__strlcpy_chk.cpp"
+
+# __strlen_chk
+g.add "libc/bionic/__strlen_chk.cpp"
+
+# __strncat_chk
+g.add "libc/bionic/__strncat_chk.cpp"
+
+# __strncpy_chk
+g.add "libc/bionic/__strncpy_chk.cpp"
+
+# __strrchr_chk
+g.add "libc/bionic/__strrchr_chk.cpp"
+
+# stat
+g.add "libc/bionic/stat.cpp"
+
+# strerror
+g.add "libc/bionic/strerror.cpp"
+g.add "libc/bionic/strerror_r.cpp"
+
+# strsignal
+g.add "libc/bionic/strsignal.cpp"
+
+# symlink
+g.add "libc/bionic/symlink.cpp"
+
+# symlinkat
+g.add "libc/arch-arm/syscalls/symlinkat.S"
+g.add "libc/arch-arm64/syscalls/symlinkat.S"
+g.add "libc/arch-mips/syscalls/symlinkat.S"
+g.add "libc/arch-mips64/syscalls/symlinkat.S"
+g.add "libc/arch-x86/syscalls/symlinkat.S"
+g.add "libc/arch-x86_64/syscalls/symlinkat.S"
+
+# sync
+g.add "libc/arch-arm/syscalls/sync.S"
+g.add "libc/arch-arm64/syscalls/sync.S"
+g.add "libc/arch-mips/syscalls/sync.S"
+g.add "libc/arch-mips64/syscalls/sync.S"
+g.add "libc/arch-x86/syscalls/sync.S"
+g.add "libc/arch-x86_64/syscalls/sync.S"
+
+# syscall
+g.add "libc/arch-arm/bionic/syscall.S"
+g.add "libc/arch-arm64/bionic/syscall.S"
+g.add "libc/arch-mips/bionic/syscall.S"
+g.add "libc/arch-mips64/bionic/syscall.S"
+g.add "libc/arch-x86/bionic/syscall.S"
+g.add "libc/arch-x86_64/bionic/syscall.S"
+
 # sysconf
 g.add "libc/bionic/sysconf.cpp"
 g.add "libc/bionic/sysinfo.cpp"
+
+# sysinfo
+g.add "libc/arch-arm/syscalls/sysinfo.S"
+g.add "libc/arch-arm64/syscalls/sysinfo.S"
+g.add "libc/arch-mips/syscalls/sysinfo.S"
+g.add "libc/arch-mips64/syscalls/sysinfo.S"
+g.add "libc/arch-x86/syscalls/sysinfo.S"
+g.add "libc/arch-x86_64/syscalls/sysinfo.S"
+
+# syslog
+g.add "libc/bionic/syslog.cpp"
+
+# swapoff
+g.add "libc/arch-arm/syscalls/swapoff.S"
+g.add "libc/arch-arm64/syscalls/swapoff.S"
+g.add "libc/arch-mips/syscalls/swapoff.S"
+g.add "libc/arch-mips64/syscalls/swapoff.S"
+g.add "libc/arch-x86/syscalls/swapoff.S"
+g.add "libc/arch-x86_64/syscalls/swapoff.S"
+
+# swapon
+g.add "libc/arch-arm/syscalls/swapon.S"
+g.add "libc/arch-arm64/syscalls/swapon.S"
+g.add "libc/arch-mips/syscalls/swapon.S"
+g.add "libc/arch-mips64/syscalls/swapon.S"
+g.add "libc/arch-x86/syscalls/swapon.S"
+g.add "libc/arch-x86_64/syscalls/swapon.S"
+
+# tdestroy
+g.add "libc/bionic/tdestroy.cpp"
+
+# tee
+g.add "libc/arch-arm/syscalls/tee.S"
+g.add "libc/arch-arm64/syscalls/tee.S"
+g.add "libc/arch-mips/syscalls/tee.S"
+g.add "libc/arch-mips64/syscalls/tee.S"
+g.add "libc/arch-x86/syscalls/tee.S"
+g.add "libc/arch-x86_64/syscalls/tee.S"
 
 # termios
 g.add "libc/bionic/termios.cpp"
@@ -328,6 +2228,52 @@ g.add "libc/arch-mips/syscalls/tgkill.S"
 g.add "libc/arch-mips64/syscalls/tgkill.S"
 g.add "libc/arch-x86/syscalls/tgkill.S"
 g.add "libc/arch-x86_64/syscalls/tgkill.S"
+
+# time
+g.add "libc/upstream-openbsd/lib/libc/gen/time.c"
+
+# timer_create/timer_delete/timer_getoverrun/timer_gettime/timer_settime
+g.add "libc/bionic/posix_timers.cpp"
+
+# __timer_create
+g.add "libc/arch-arm/syscalls/__timer_create.S"
+g.add "libc/arch-arm64/syscalls/__timer_create.S"
+g.add "libc/arch-mips/syscalls/__timer_create.S"
+g.add "libc/arch-mips64/syscalls/__timer_create.S"
+g.add "libc/arch-x86/syscalls/__timer_create.S"
+g.add "libc/arch-x86_64/syscalls/__timer_create.S"
+
+# __timer_delete
+g.add "libc/arch-arm/syscalls/__timer_delete.S"
+g.add "libc/arch-arm64/syscalls/__timer_delete.S"
+g.add "libc/arch-mips/syscalls/__timer_delete.S"
+g.add "libc/arch-mips64/syscalls/__timer_delete.S"
+g.add "libc/arch-x86/syscalls/__timer_delete.S"
+g.add "libc/arch-x86_64/syscalls/__timer_delete.S"
+
+# __timer_getoverrun
+g.add "libc/arch-arm/syscalls/__timer_getoverrun.S"
+g.add "libc/arch-arm64/syscalls/__timer_getoverrun.S"
+g.add "libc/arch-mips/syscalls/__timer_getoverrun.S"
+g.add "libc/arch-mips64/syscalls/__timer_getoverrun.S"
+g.add "libc/arch-x86/syscalls/__timer_getoverrun.S"
+g.add "libc/arch-x86_64/syscalls/__timer_getoverrun.S"
+
+# __timer_gettime
+g.add "libc/arch-arm/syscalls/__timer_gettime.S"
+g.add "libc/arch-arm64/syscalls/__timer_gettime.S"
+g.add "libc/arch-mips/syscalls/__timer_gettime.S"
+g.add "libc/arch-mips64/syscalls/__timer_gettime.S"
+g.add "libc/arch-x86/syscalls/__timer_gettime.S"
+g.add "libc/arch-x86_64/syscalls/__timer_gettime.S"
+
+# __timer_settime
+g.add "libc/arch-arm/syscalls/__timer_settime.S"
+g.add "libc/arch-arm64/syscalls/__timer_settime.S"
+g.add "libc/arch-mips/syscalls/__timer_settime.S"
+g.add "libc/arch-mips64/syscalls/__timer_settime.S"
+g.add "libc/arch-x86/syscalls/__timer_settime.S"
+g.add "libc/arch-x86_64/syscalls/__timer_settime.S"
 
 # timerfd_create
 g.add "libc/arch-arm/syscalls/timerfd_create.S"
@@ -352,5 +2298,153 @@ g.add "libc/arch-mips/syscalls/timerfd_settime.S"
 g.add "libc/arch-mips64/syscalls/timerfd_settime.S"
 g.add "libc/arch-x86/syscalls/timerfd_settime.S"
 g.add "libc/arch-x86_64/syscalls/timerfd_settime.S"
+
+# times
+g.add "libc/arch-arm/syscalls/times.S"
+g.add "libc/arch-arm64/syscalls/times.S"
+g.add "libc/arch-mips/syscalls/times.S"
+g.add "libc/arch-mips64/syscalls/times.S"
+g.add "libc/arch-x86/syscalls/times.S"
+g.add "libc/arch-x86_64/syscalls/times.S"
+
+# truncate
+g.add "libc/arch-arm/syscalls/truncate.S"
+g.add "libc/arch-arm64/syscalls/truncate.S"
+g.add "libc/arch-mips/syscalls/truncate.S"
+g.add "libc/arch-mips64/syscalls/truncate.S"
+g.add "libc/arch-x86/syscalls/truncate.S"
+g.add "libc/arch-x86_64/syscalls/truncate.S"
+
+# truncate64
+g.add "libc/arch-arm/syscalls/truncate64.S"
+g.add "libc/arch-arm64/syscalls/truncate.S"
+g.add "libc/arch-mips/syscalls/truncate64.S"
+g.add "libc/arch-mips64/syscalls/truncate.S"
+g.add "libc/arch-x86/syscalls/truncate64.S"
+g.add "libc/arch-x86_64/syscalls/truncate.S"
+
+# umask
+g.add "libc/arch-arm/syscalls/umask.S"
+g.add "libc/arch-arm64/syscalls/umask.S"
+g.add "libc/arch-mips/syscalls/umask.S"
+g.add "libc/arch-mips64/syscalls/umask.S"
+g.add "libc/arch-x86/syscalls/umask.S"
+g.add "libc/arch-x86_64/syscalls/umask.S"
+
+# __umask_chk
+g.add "libc/bionic/__umask_chk.cpp"
+
+# umount
+g.add "libc/bionic/umount.cpp"
+
+# umount2
+g.add "libc/arch-arm/syscalls/umount2.S"
+g.add "libc/arch-arm64/syscalls/umount2.S"
+g.add "libc/arch-mips/syscalls/umount2.S"
+g.add "libc/arch-mips64/syscalls/umount2.S"
+g.add "libc/arch-x86/syscalls/umount2.S"
+g.add "libc/arch-x86_64/syscalls/umount2.S"
+
+# uname
+g.add "libc/arch-arm/syscalls/uname.S"
+g.add "libc/arch-arm64/syscalls/uname.S"
+g.add "libc/arch-mips/syscalls/uname.S"
+g.add "libc/arch-mips64/syscalls/uname.S"
+g.add "libc/arch-x86/syscalls/uname.S"
+g.add "libc/arch-x86_64/syscalls/uname.S"
+
+# unlink
+g.add "libc/bionic/unlink.cpp"
+
+# unlinkat
+g.add "libc/arch-arm/syscalls/unlinkat.S"
+g.add "libc/arch-arm64/syscalls/unlinkat.S"
+g.add "libc/arch-mips/syscalls/unlinkat.S"
+g.add "libc/arch-mips64/syscalls/unlinkat.S"
+g.add "libc/arch-x86/syscalls/unlinkat.S"
+g.add "libc/arch-x86_64/syscalls/unlinkat.S"
+
+# unshare
+g.add "libc/arch-arm/syscalls/unshare.S"
+g.add "libc/arch-arm64/syscalls/unshare.S"
+g.add "libc/arch-mips/syscalls/unshare.S"
+g.add "libc/arch-mips64/syscalls/unshare.S"
+g.add "libc/arch-x86/syscalls/unshare.S"
+g.add "libc/arch-x86_64/syscalls/unshare.S"
+
+# utimensat
+g.add "libc/arch-arm/syscalls/utimensat.S"
+g.add "libc/arch-arm64/syscalls/utimensat.S"
+g.add "libc/arch-mips/syscalls/utimensat.S"
+g.add "libc/arch-mips64/syscalls/utimensat.S"
+g.add "libc/arch-x86/syscalls/utimensat.S"
+g.add "libc/arch-x86_64/syscalls/utimensat.S"
+
+# utimes
+g.add "libc/bionic/utimes.cpp"
+
+# utmpname
+g.add "libc/upstream-netbsd/lib/libc/gen/utmp.c"
+
+# vfork
+g.add "libc/arch-arm/bionic/vfork.S"
+g.add "libc/arch-arm64/bionic/vfork.S"
+g.add "libc/arch-mips/bionic/vfork.S"
+g.add "libc/arch-mips64/bionic/vfork.S"
+g.add "libc/arch-x86/bionic/vfork.S"
+g.add "libc/arch-x86_64/bionic/vfork.S"
+
+# vmsplice
+g.add "libc/arch-arm/syscalls/vmsplice.S"
+g.add "libc/arch-arm64/syscalls/vmsplice.S"
+g.add "libc/arch-mips/syscalls/vmsplice.S"
+g.add "libc/arch-mips64/syscalls/vmsplice.S"
+g.add "libc/arch-x86/syscalls/vmsplice.S"
+g.add "libc/arch-x86_64/syscalls/vmsplice.S"
+
+# __vsnprintf_chk
+g.add "libc/bionic/__vsnprintf_chk.cpp"
+
+# __vsprintf_chk/__sprintf_chk
+g.add "libc/bionic/__vsprintf_chk.cpp"
+
+# wait4
+g.add "libc/arch-arm/syscalls/wait4.S"
+g.add "libc/arch-arm64/syscalls/wait4.S"
+g.add "libc/arch-mips/syscalls/wait4.S"
+g.add "libc/arch-mips64/syscalls/wait4.S"
+g.add "libc/arch-x86/syscalls/wait4.S"
+g.add "libc/arch-x86_64/syscalls/wait4.S"
+
+# waitpid
+g.add "libc/arch-arm/syscalls/__waitid.S"
+g.add "libc/arch-arm64/syscalls/__waitid.S"
+g.add "libc/arch-mips/syscalls/__waitid.S"
+g.add "libc/arch-mips64/syscalls/__waitid.S"
+g.add "libc/arch-x86/syscalls/__waitid.S"
+g.add "libc/arch-x86_64/syscalls/__waitid.S"
+g.add "libc/bionic/wait.cpp"
+
+# wmempcpy
+g.add "libc/bionic/wmempcpy.cpp"
+
+# __write_chk
+g.add "libc/bionic/__write_chk.cpp"
+
+# write
+g.add "libc/arch-arm/syscalls/write.S"
+g.add "libc/arch-arm64/syscalls/write.S"
+g.add "libc/arch-mips/syscalls/write.S"
+g.add "libc/arch-mips64/syscalls/write.S"
+g.add "libc/arch-x86/syscalls/write.S"
+g.add "libc/arch-x86_64/syscalls/write.S"
+
+# writev
+g.add "libc/arch-arm/syscalls/writev.S"
+g.add "libc/arch-arm64/syscalls/writev.S"
+g.add "libc/arch-mips/syscalls/writev.S"
+g.add "libc/arch-mips64/syscalls/writev.S"
+g.add "libc/arch-x86/syscalls/writev.S"
+g.add "libc/arch-x86_64/syscalls/writev.S"
 
 g.generate

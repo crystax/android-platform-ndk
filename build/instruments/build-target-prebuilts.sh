@@ -73,10 +73,6 @@ VENDOR_SRC_DIR=$(cd $SRC_DIR/../vendor && pwd)
 BUILDTOOLS=$ANDROID_NDK_ROOT/build/instruments
 
 dump "Building platforms and samples..."
-PACKAGE_FLAGS=
-if [ "$PACKAGE_DIR" ]; then
-    PACKAGE_FLAGS="--package-dir=$PACKAGE_DIR"
-fi
 
 if [ -z "$NO_GEN_PLATFORMS" ]; then
     echo "Preparing the build..."
@@ -84,7 +80,7 @@ if [ -z "$NO_GEN_PLATFORMS" ]; then
     if [ ! -z "$GCC_VERSION" ]; then
 	PLATFORMS_BUILD_TOOLCHAIN="--gcc-version=$GCC_VERSION"
     fi
-    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PACKAGE_FLAGS $PLATFORMS_BUILD_TOOLCHAIN
+    run $BUILDTOOLS/gen-platforms.sh --samples --fast-copy --dst-dir=$NDK_DIR --ndk-dir=$NDK_DIR --arch=$(spaces_to_commas $ARCHS) $PLATFORMS_BUILD_TOOLCHAIN
     fail_panic "Could not generate platforms and samples directores!"
 else
     if [ ! -d "$NDK_DIR/platforms" ]; then
@@ -131,6 +127,34 @@ ABIS=$(convert_archs_to_abis $ARCHS)
 dump "Building $ABIS libcrystax binaries..."
 run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
+
+dump "Building $ABIS Bash..."
+run $BUILDTOOLS/build-target-bash.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/bash
+fail_panic "Could not build Bash"
+
+dump "Building $ABIS GNU coreutils..."
+run $BUILDTOOLS/build-target-coreutils.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/coreutils
+fail_panic "Could not build GNU coreutils"
+
+dump "Building $ABIS GNU grep..."
+run $BUILDTOOLS/build-target-gnu-grep.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-grep
+fail_panic "Could not build GNU grep"
+
+dump "Building $ABIS GNU sed..."
+run $BUILDTOOLS/build-target-gnu-sed.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-sed
+fail_panic "Could not build GNU sed"
+
+dump "Building $ABIS GNU tar..."
+run $BUILDTOOLS/build-target-gnu-tar.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-tar
+fail_panic "Could not build GNU tar"
+
+dump "Building $ABIS Info-ZIP..."
+run $BUILDTOOLS/build-target-info-zip.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/info-zip
+fail_panic "Could not build Info-ZIP"
+
+dump "Building $ABIS Info-UNZIP..."
+run $BUILDTOOLS/build-target-info-unzip.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/info-unzip
+fail_panic "Could not build Info-UNZIP"
 
 dump "Building $ABIS compiler-rt binaries..."
 run $BUILDTOOLS/build-compiler-rt.sh --abis="$ABIS" $FLAGS --src-dir="$SRC_DIR/llvm-$DEFAULT_LLVM_VERSION/compiler-rt" $BUILD_TOOLCHAIN --llvm-version=$DEFAULT_LLVM_VERSION
@@ -230,8 +254,12 @@ for VERSION in $BOOST_VERSIONS; do
 done
 
 dump "Cleanup sysroot folders..."
-run find $NDK_DIR/platforms -name libcrystax.a -delete
-run find $NDK_DIR/platforms -name libcrystax.so -delete
+run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
+
+if [ -n "$PACKAGE_DIR" ]; then
+    run $BUILDTOOLS/package-platforms.sh --samples --ndk-dir=$NDK_DIR --package-dir=$PACKAGE_DIR
+    fail_panic "Can't package platforms"
+fi
 
 if [ "$PACKAGE_DIR" ]; then
     dump "Done, see $PACKAGE_DIR"

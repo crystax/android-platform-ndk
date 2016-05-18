@@ -89,16 +89,22 @@ for HEADER in $HEADERS; do
     # Skip internal headers
     [[ ${HEADER} == "_ctype.h"    ]] && continue
     [[ ${HEADER} == "ieeefp.h"    ]] && continue
+    [[ ${HEADER##asm-arm/}           != $HEADER ]] && continue
+    [[ ${HEADER##asm-arm64/}         != $HEADER ]] && continue
+    [[ ${HEADER##asm-generic/}       != $HEADER ]] && continue
+    [[ ${HEADER##asm-mips/}          != $HEADER ]] && continue
+    [[ ${HEADER##asm-x86/}           != $HEADER ]] && continue
+    [[ ${HEADER##asm/}               != $HEADER ]] && continue
+    [[ ${HEADER##blocks-runtime/}    != $HEADER ]] && continue
     [[ ${HEADER##crystax/arm64/}     != $HEADER ]] && continue
     [[ ${HEADER##crystax/bionic/}    != $HEADER ]] && continue
     [[ ${HEADER##crystax/details/}   != $HEADER ]] && continue
     [[ ${HEADER##crystax/dlmalloc/}  != $HEADER ]] && continue
     [[ ${HEADER##crystax/freebsd/}   != $HEADER ]] && continue
+    [[ ${HEADER##crystax/libkqueue/} != $HEADER ]] && continue
+    [[ ${HEADER##crystax/libpwq/}    != $HEADER ]] && continue
     [[ ${HEADER##crystax/mips64/}    != $HEADER ]] && continue
     [[ ${HEADER##crystax/sys/}       != $HEADER ]] && continue
-    [[ ${HEADER##crystax/libpwq/}    != $HEADER ]] && continue
-    [[ ${HEADER##crystax/libkqueue/} != $HEADER ]] && continue
-    [[ ${HEADER##blocks-runtime/}    != $HEADER ]] && continue
     [[ ${HEADER##linux/}             != $HEADER ]] && continue
     [[ ${HEADER##machine/}           != $HEADER ]] && continue
     [[ ${HEADER##sys/_}              != $HEADER ]] && continue

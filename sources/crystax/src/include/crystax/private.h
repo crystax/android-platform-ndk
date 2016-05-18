@@ -36,8 +36,10 @@
 
 #ifdef __cplusplus
 #   define CRYSTAX_GLOBAL extern "C" __attribute__ ((visibility ("default")))
+#   define CRYSTAX_HIDDEN extern "C" __attribute__ ((visibility ("hidden")))
 #else
 #   define CRYSTAX_GLOBAL __attribute__ ((visibility ("default")))
+#   define CRYSTAX_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 #define CRYSTAX_LOCAL  __attribute__ ((visibility ("hidden")))
 

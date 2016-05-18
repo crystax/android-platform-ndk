@@ -157,22 +157,12 @@ typedef __pthread_cond_t pthread_cond_t;
 #define _PTHREAD_COND_T_DECLARED
 #endif
 
-#if __ANDROID_API__ < 21
-typedef __kernel_blkcnt_t  blkcnt_t;
-typedef __kernel_blksize_t blksize_t;
-#else
-typedef unsigned long      blkcnt_t;
-typedef unsigned long      blksize_t;
-#endif
+typedef __blkcnt_t  blkcnt_t;
+typedef __blksize_t blksize_t;
 
-typedef __kernel_ino_t     ino_t;
-typedef __kernel_key_t     key_t;
-
-#if __ANDROID_API__ < 21
-typedef __kernel_nlink_t   nlink_t;
-#else
-typedef __uint32_t         nlink_t;
-#endif
+typedef __ino_t     ino_t;
+typedef __key_t     key_t;
+typedef __nlink_t   nlink_t;
 
 #ifdef __BSD_VISIBLE
 typedef unsigned char  u_char;

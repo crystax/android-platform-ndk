@@ -35,14 +35,7 @@
 #define ELAST ENOTRECOVERABLE
 #endif
 
-int __crystax_isthreaded()
-{
-    return 1;
-}
-
 int const __hidden_sys_nerr = ELAST;
-
-int __crystax_freebsd__thread_autoinit_dummy_decl = 0;
 
 static pthread_mutex_t __crystax_stdio_thread_lock_var = PTHREAD_MUTEX_INITIALIZER;
 

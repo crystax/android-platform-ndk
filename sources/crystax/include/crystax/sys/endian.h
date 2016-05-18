@@ -73,6 +73,10 @@
 #define letoh32(x) ((uint32_t)(x))
 #define letoh64(x) ((uint64_t)(x))
 
+#define ntohs(x) bswap16(x)
+#define htons(x) bswap16(x)
+#define ntohl(x) bswap32(x)
+#define htonl(x) bswap32(x)
 #define ntohq(x) bswap64(x)
 #define htonq(x) bswap64(x)
 #endif /* _BYTE_ORDER */
@@ -86,6 +90,10 @@
 #define letoh32(x) bswap32(x)
 #define letoh64(x) bswap64(x)
 
+#define ntohs(x) ((uint16_t)(x))
+#define htons(x) ((uint16_t)(x))
+#define ntohl(x) ((uint32_t)(x))
+#define htonl(x) ((uint32_t)(x))
 #define ntohq(x) ((uint64_t)(x))
 #define htonq(x) ((uint64_t)(x))
 #endif /* _BYTE_ORDER */

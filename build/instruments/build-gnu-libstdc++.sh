@@ -158,11 +158,11 @@ build_gnustl_for_abi ()
     SYSROOT=$NDK_DIR/$(get_default_platform_sysroot_for_arch $ARCH)
     LDIR=$SYSROOT"/usr/"$(get_default_libdir_for_arch $ARCH)
     # Sanity check
-    if [ ! -f "$LDIR/libc.a" ]; then
-	echo "ERROR: Empty sysroot! you probably need to run gen-platforms.sh before this script."
-	exit 1
+    if [ ! -f "$LDIR/libcrystax.a" ]; then
+        echo "ERROR: Empty sysroot! you probably need to run gen-platforms.sh before this script."
+        exit 1
     fi
-    if [ ! -f "$LDIR/libc.so" ]; then
+    if [ ! -f "$LDIR/libcrystax.so" ]; then
         echo "ERROR: Sysroot misses shared libraries! you probably need to run gen-platforms.sh"
         echo "*without* the --minimal flag before running this script."
         exit 1

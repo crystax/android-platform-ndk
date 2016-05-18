@@ -27,10 +27,9 @@
  * or implied, of CrystaX.
  */
 
-#include <stdlib.h>
-#include <crystax/private.h>
+#include <sys/auxv.h>
 
 int issetugid()
 {
-    PANIC("issetugid() not implemented!!!");
+    return 0;
 }

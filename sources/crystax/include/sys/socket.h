@@ -41,6 +41,7 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 #include <linux/socket.h>
+#include <fcntl.h>
 
 __BEGIN_DECLS
 
@@ -50,6 +51,9 @@ __BEGIN_DECLS
 #define SOCK_RDM         4
 #define SOCK_SEQPACKET   5
 #define SOCK_PACKET      10
+
+#define SOCK_CLOEXEC O_CLOEXEC
+#define SOCK_NONBLOCK O_NONBLOCK
 
 #ifdef __i386__
 # define __socketcall __attribute__((__cdecl__))
@@ -75,8 +79,8 @@ __socketcall int getsockopt(int, int, int, void *, socklen_t *);
 __socketcall int sendmsg(int, const struct msghdr *, unsigned int);
 __socketcall int recvmsg(int, struct msghdr *, unsigned int);
 
-ssize_t  send(int, const void *, size_t, unsigned int);
-ssize_t  recv(int, void *, size_t, unsigned int);
+ssize_t  send(int, const void *, size_t, int);
+ssize_t  recv(int, void *, size_t, int);
 
 __socketcall ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *, socklen_t);
 __socketcall ssize_t recvfrom(int, void *, size_t, unsigned int, const struct sockaddr *, socklen_t *);
