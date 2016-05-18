@@ -1299,7 +1299,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-libs-${ABI}.tar.xz"
+        PACKAGE_NAME="python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}-binaries-${ABI}.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? -eq 0 ]; then
