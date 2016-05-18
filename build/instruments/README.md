@@ -50,7 +50,7 @@ build/core
 Contains the main NDK build system used when `ndk-build`. Relies heavily on GNU
 Make 3.81+ but isn't used by any of the scripts described here.
 
-build/tools
+build/instruments
 -----------
 
 Contains all the dev-scripts that are described in this document. More on this
@@ -250,7 +250,7 @@ libgcc.a)
 
 To do that, use:
 
-    $NDK/build/tools/gen-platforms.sh --minimal
+    $NDK/build/instruments/gen-platforms.sh --minimal
 
 This will populate $NDK/platforms/ with just the files necessary to rebuild the
 toolchains. Note that without the --minimal option, the script will fail without
@@ -264,9 +264,9 @@ For example, to rebuild the arm and x86 prebuilt toolchain binaries in the
 current NDK directory (which can be handy if you want to later use them to
 rebuild other target prebuilts or run tests), do:
 
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK \
+    $NDK/build/instruments/build-gcc.sh /tmp/ndk-$USER/src $NDK \
         arm-linux-androideabi-4.8
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK x86-4.8
+    $NDK/build/instruments/build-gcc.sh /tmp/ndk-$USER/src $NDK x86-4.8
 
 Here, we assume you're using the master-ndk branch as described in the previous
 section.
@@ -283,10 +283,10 @@ You need to be on Linux to build the Windows binaries, using the "mingw32"
 cross-toolchain (install it with "apt-get install mingw32" on Ubuntu). To do so
 use the "--mingw" option, as in:
 
-    $NDK/build/tools/build-gcc.sh --mingw \
+    $NDK/build/instruments/build-gcc.sh --mingw \
         /tmp/ndk-$USER/src $NDK arm-linux-androideabi-4.8
 
-    $NDK/build/tools/build-gcc.sh --mingw \
+    $NDK/build/instruments/build-gcc.sh --mingw \
         /tmp/ndk-$USER/src $NDK x86-4.8
 
 The corresponding binaries are installed under
@@ -338,9 +338,9 @@ The prebuilt binary is placed under $NDK/toolchains/$NAME/prebuilt/gdbserver in
 the final NDK installation. You can generate with `build-gdbserver.sh` and takes
 the same parameters than `build-gcc.sh`. So one can do:
 
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK \
+    $NDK/build/instruments/build-gcc.sh /tmp/ndk-$USER/src $NDK \
         arm-linux-androideabi-4.8
-    $NDK/build/tools/build-gcc.sh /tmp/ndk-$USER/src $NDK x86-4.8
+    $NDK/build/instruments/build-gcc.sh /tmp/ndk-$USER/src $NDK x86-4.8
 
 
 III.3. Generating C++ runtime prebuilt binaries:
@@ -362,8 +362,8 @@ Note that:
 
 An example usage would be:
 
-    $NDK/build/tools/build-llvm-libc++.sh
-    $NDK/build/tools/build-gnu-libstdc++.sh /tmp/ndk-$USER/src
+    $NDK/build/instruments/build-llvm-libc++.sh
+    $NDK/build/instruments/build-gnu-libstdc++.sh /tmp/ndk-$USER/src
 
 Note that generating such binaries can take a few minutes. You can follow the
 build by using the --verbose option to display what's going on.
@@ -385,7 +385,7 @@ The `build-ndk-stack.sh` script can be used to rebuild the `ndk-stack` helper
 host program. See docs/NDK-STACK.html for a usage description.  To build it,
 just do:
 
-    $NDK/build/tools/build-ndk-stack.sh
+    $NDK/build/instruments/build-ndk-stack.sh
 
 IV.2.: Building `ndk-depends`:
 -----------------------------
@@ -439,7 +439,7 @@ These contain everything needed by a typical NDK user, including:
 You need to have a directory containing prebuilt tarballs, as described in the
 previous section. You can use it as:
 
-    $NDK/build/tools/package-release.sh \
+    $NDK/build/instruments/package-release.sh \
         --release=<name> \
         --systems=<list> \
         --arch=<list> \

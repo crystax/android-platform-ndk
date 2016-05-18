@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2015 The Android Open Source Project
+# Copyright (C) 2011, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -427,7 +427,7 @@ gen_shared_lib ()
     echo "## COMMAND: $COMMAND" > $TMPL
     $COMMAND 1>>$TMPL 2>&1
     if [ $? != 0 ] ; then
-        dump "ERROR: Can't generate shared library for: $LIBNAME"
+        dump "ERROR: Can't generate shared library for: $LIBRARY"
         dump "See the content of $TMPC and $TMPL for details."
         cat $TMPL | tail -10
         exit 1
@@ -437,9 +437,17 @@ gen_shared_lib ()
     local libdir=$(dirname "$DSTFILE")
     mkdir -p "$libdir" && rm -f "$DSTFILE" && cp -f $TMPO "$DSTFILE"
     if [ $? != 0 ] ; then
-        dump "ERROR: Can't copy shared library for: $LIBNAME"
+        dump "ERROR: Can't copy shared library for: $LIBRARY"
         dump "target location is: $DSTFILE"
         exit 1
+    fi
+    if [ "$LIBRARY" = "libc.so" ]; then
+        cp -f "$DSTFILE" "$libdir/libbionic.so"
+        if [ $? != 0 ]; then
+            dump "ERROR: Can't copy shared library for: libbionic.so"
+            dump "target location is: $libdir/libbionic.so"
+            exit 1
+        fi
     fi
 
     if [ "$OPTION_DEBUG_LIBS" ]; then
@@ -853,21 +861,13 @@ if [ "$OPTION_SAMPLES" ] ; then
     rm -rf "$DSTDIR/samples/*/libs"
 fi
 
-if [ "$PACKAGE_DIR" ]; then
-    mkdir -p "$PACKAGE_DIR"
-    fail_panic "Could not create package directory: $PACKAGE_DIR"
-    ARCHIVE=platforms.tar.xz
-    dump "Packaging $ARCHIVE"
-    pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "platforms"
-    fail_panic "Could not package platforms"
-    cache_package "$PACKAGE_DIR" "$ARCHIVE"
+if [ -n "$PACKAGE_DIR" ]; then
+    FLAGS="--package-dir=$PACKAGE_DIR"
     if [ "$OPTION_SAMPLES" ]; then
-        ARCHIVE=samples.tar.xz
-        dump "Packaging $ARCHIVE"
-        pack_archive "$PACKAGE_DIR/$ARCHIVE" "$DSTDIR" "samples"
-        fail_panic "Could not package samples"
-        cache_package "$PACKAGE_DIR" "$ARCHIVE"
+        FLAGS="$FLAGS --samples"
     fi
+    run $NDK_DIR/build/instruments/package-platforms.sh $FLAGS
+    fail_panic "Can't package platforms"
 fi
 
 log "Done !"

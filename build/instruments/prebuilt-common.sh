@@ -12,7 +12,7 @@ export LC_ALL=C
 if [ -z "$NDK_BUILDTOOLS_PATH" ]; then
     NDK_BUILDTOOLS_PATH=$(dirname $0)
     if [ ! -f "$NDK_BUILDTOOLS_PATH/prebuilt-common.sh" ]; then
-        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to \$NDK/build/tools"
+        echo "INTERNAL ERROR: Please define NDK_BUILDTOOLS_PATH to point to \$NDK/build/instruments"
         exit 1
     fi
 fi
@@ -1052,7 +1052,7 @@ prepare_abi_configure_build ()
             ;;
         *)
             echo "ERROR: Unsupported HOST_TAG: $HOST_TAG"
-            echo "Please update 'prepare_host_flags' in build/tools/prebuilt-common.sh"
+            echo "Please update 'prepare_host_flags' in build/instruments/prebuilt-common.sh"
             ;;
     esac
 }
