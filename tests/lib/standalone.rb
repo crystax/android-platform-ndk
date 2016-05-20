@@ -28,11 +28,14 @@
 require 'open3'
 
 require_relative 'log'
+require_relative 'mro'
 
 class StandaloneTests
     attr_reader :type
 
     def initialize(ndk, options = {})
+        @type = :standalone
+
         @ndk = ndk
         @options = options
 
@@ -104,27 +107,28 @@ class StandaloneTests
     end
     private :run_cmd
 
-    def variants
+    def variants(cxxstdlib = nil)
         v = ""
         v << " #{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
+        v << " w/ #{cxxstdlib}" unless cxxstdlib.nil?
         v
     end
     private :variants
 
-    def tmpdir(abi)
-        File.join(@outdir, abi)
+    def tmpdir(abi, cxxstdlib)
+        File.join(@outdir, abi, cxxstdlib)
     end
     private :tmpdir
 
-    def toolchain_dir(abi)
-        File.join(tmpdir(abi), 'toolchain', @toolchain_version)
+    def toolchain_dir(abi, cxxstdlib)
+        File.join(tmpdir(abi, cxxstdlib), 'toolchain', @toolchain_version)
     end
     private :toolchain_dir
 
-    def create_toolchain(abi)
-        log_notice "STA create [#{abi}]#{variants}"
+    def create_toolchain(abi, cxxstdlib)
+        log_notice "STA create [#{abi}]#{variants(cxxstdlib)}"
 
-        FileUtils.rm_rf toolchain_dir(abi)
+        FileUtils.rm_rf toolchain_dir(abi, cxxstdlib)
 
         case abi
         when /^armeabi/
@@ -154,20 +158,37 @@ class StandaloneTests
         script = File.join(@ndk, 'build', 'tools', 'make-standalone-toolchain.sh')
         raise "No #!/bin/bash in make-standalone-toolchain.sh" if File.read(script).split("\n").first != "#!/bin/bash"
 
+        case cxxstdlib
+        when /^gnu/
+            stl = 'gnustl'
+        when /^llvm/
+            stl = 'libc++'
+        else
+            raise "Unsupported C++ Standard Library: '#{cxxstdlib}'"
+        end
+
         args = [script]
         args << "--verbose"
-        args << "--install-dir=#{toolchain_dir(abi)}"
+        args << "--install-dir=#{toolchain_dir(abi, cxxstdlib)}"
         args << "--abis=#{abi}"
+        args << "--stl=#{stl}"
         args << "--platform=android-#{apilevel}"
         args << "--toolchain=#{toolchain}"
 
         run_cmd args.join(' ')
+
+        MRO.dump event: "standalone-create-success", path: toolchain_dir(abi, cxxstdlib), abi: abi, cxxstdlib: cxxstdlib
+    rescue => e
+        log_info "ERROR: #{e.message}"
+        log_notice "   ---> FAILURE: STANDALONE TOOLCHAIN CREATION [#{abi}]#{variants(cxxstdlib)}"
+        MRO.dump event: "standalone-create-failed", path: toolchain_dir(abi, cxxstdlib), abi: abi, cxxstdlib: cxxstdlib
+        raise
     end
     private :create_toolchain
 
-    def cleanup(abi)
-        log_info "## CLEANUP: #{tmpdir(abi)}"
-        FileUtils.rm_rf tmpdir(abi)
+    def cleanup(abi, cxxstdlib)
+        log_info "## CLEANUP: #{tmpdir(abi, cxxstdlib)}"
+        FileUtils.rm_rf tmpdir(abi, cxxstdlib)
     end
     private :cleanup
 
@@ -178,13 +199,16 @@ class StandaloneTests
             # gcc-4.8 doesn't support 64-bit ABIs
             next if @toolchain_version == 'gcc4.8' && ['arm64-v8a', 'x86_64', 'mips64'].include?(abi)
 
-            begin
-                create_toolchain(abi)
-            rescue
-                raise unless @options[:keep_going]
-                fails += 1
-            else
-                cleanup(abi)
+            %w[gnu-libstdc++ llvm-libc++].each do |cxxstdlib|
+                begin
+                    create_toolchain(abi, cxxstdlib)
+                rescue => err
+                    log_error "ERROR: #{err.message}"
+                    raise unless @options[:keep_going]
+                    fails += 1
+                else
+                    cleanup(abi, cxxstdlib)
+                end
             end
         end
 
