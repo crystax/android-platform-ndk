@@ -1,1 +1,1 @@
-APP_ABI := all32
+APP_ABI := all

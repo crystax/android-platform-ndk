@@ -118,15 +118,8 @@ int main(int argc, char *argv[]) {
   printf("Testing for API level %d\n", __ANDROID_API__);
   if (check_wait_call("wait", check_wait, CHILD_EXIT_CODE + 0) < 0 ||
       check_wait_call("waitpid", check_waitpid, CHILD_EXIT_CODE + 1) < 0 ||
-      check_wait_call("wait3", check_wait3, CHILD_EXIT_CODE + 2) < 0
-#if !__CRYSTAX__ || !__i386__ || !STATIC
-      /* We know wait4() failed in static executable on x86 emulator,
-       * so temporarily disable this test for such case.
-       * See https://tracker.crystax.net/issues/757 for details.
-       */
-      || check_wait_call("wait4", check_wait4, CHILD_EXIT_CODE + 3) < 0
-#endif
-      ) {
+      check_wait_call("wait3", check_wait3, CHILD_EXIT_CODE + 2) < 0 ||
+      check_wait_call("wait4", check_wait4, CHILD_EXIT_CODE + 3) < 0) {
     return 1;
   }
 
