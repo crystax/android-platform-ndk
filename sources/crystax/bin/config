@@ -454,6 +454,12 @@ common_cflags_for_abi()
     echo "-ffunction-sections -fdata-sections"
     echo "-fdiagnostics-show-option"
 
+    # This is to workaround GCC "(long)fn -> lfn" optimization bug.
+    # See https://android-review.googlesource.com/#/c/96345/ for details.
+    echo "-fno-builtin-rint"
+    echo "-fno-builtin-rintf"
+    echo "-fno-builtin-rintl"
+
     echo "-Wall -Wextra"
     #echo "-Wunused"
     #echo "-Wframe-larger-than=2048"
