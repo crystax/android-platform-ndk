@@ -35,5 +35,6 @@
 
 #define _PATH_ESDB "/usr/share/i18n/esdb"
 #define _PATH_I18NMODULE "/usr/lib/i18n"
+#define _PATH_CSMAPPER "/usr/share/i18n/csmapper"
 
 #endif /* __CRYSTAX_INCLUDE_PATHS_H_E878DBAABFC54703A4EA827D8C3E5893 */
