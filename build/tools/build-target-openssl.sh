@@ -65,22 +65,19 @@ extract_parameters "$@"
 
 OPENSSL_SRCDIR=$(echo $PARAMETERS | sed 1q)
 if [ -z "$OPENSSL_SRCDIR" ]; then
-    echo "ERROR: Please provide the path to the OpenSSL source tree. See --help"
-    exit 1
+    panic "Please provide the path to the OpenSSL source tree. See --help"
 fi
 
 if [ ! -d "$OPENSSL_SRCDIR" ]; then
-    echo "ERROR: No such directory: '$OPENSSL_SRCDIR'"
-    exit 1
+    panic "No such directory: '$OPENSSL_SRCDIR'"
 fi
 
 OPENSSL_SRCDIR=$(cd $OPENSSL_SRCDIR && pwd)
 OPENSSL_SRC_VERSION=\
-$(cat $OPENSSL_SRCDIR/crypto/opensslv.h | sed -n 's/#[ \t]*define[ \t]*OPENSSL_VERSION_TEXT[ \t]*"OpenSSL[ \t]*\([A-Za-z0-9\.]*\)[A-Za-z0-9 \.]*"/\1/p')
+$(cat $OPENSSL_SRCDIR/crypto/opensslv.h | sed -n 's/#[ \t]*define[ \t]*OPENSSL_VERSION_TEXT[ \t]*"OpenSSL[ \t]*\([0-9\.]*\)[A-Za-z0-9 \.]*"/\1/p')
 
 if [ -z "$OPENSSL_SRC_VERSION" ]; then
-    echo "ERROR: Can't detect OpenSSL version." 1>&2
-    exit 1
+    panic "Can't detect OpenSSL version."
 fi
 
 OPENSSL_DSTDIR=$NDK_DIR/$OPENSSL_SUBDIR/$OPENSSL_SRC_VERSION
@@ -121,8 +118,7 @@ build_openssl_for_abi ()
             ARCH=$ABI
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local HOST
@@ -146,8 +142,7 @@ build_openssl_for_abi ()
             HOST=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local APILEVEL
@@ -159,8 +154,7 @@ build_openssl_for_abi ()
             APILEVEL=21
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local TOOLCHAIN
@@ -185,8 +179,7 @@ build_openssl_for_abi ()
             TOOLCHAIN=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     case $ABI in
@@ -311,8 +304,7 @@ build_openssl_for_abi ()
             OPENSSL_TARGET=linux-generic64
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "ERROR: Unknown ABI: '$ABI'"
     esac
     local OPENSSL_OPTIONS='shared zlib-dynamic no-hw no-dso -DOPENSSL_NO_DEPRECATED'
 
@@ -347,7 +339,7 @@ build_openssl_for_abi ()
     if [ "$OPENSSL_HEADERS_INSTALLED" != "yes" ]; then
         log "Install OpenSSL headers into $OPENSSL_HEADERS_DSTDIR"
         run rm -Rf $OPENSSL_HEADERS_DSTDIR && run mkdir -p $OPENSSL_HEADERS_DSTDIR
-	fail_panic "Can't create directory: $OPENSSL_HEADERS_DSTDIR"
+        fail_panic "Can't create directory: $OPENSSL_HEADERS_DSTDIR"
         {
             echo '#if defined(__ARM_ARCH_5TE__)'
             echo '#include "opensslconf_armeabi.h"'
