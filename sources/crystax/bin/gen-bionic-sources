@@ -157,8 +157,24 @@ g.fixup :ifdef_arm do |f|
     f.puts "#if defined(__arm__)"
 end
 
+g.fixup :ifdef_aarch64 do |f|
+    f.puts "#if defined(__aarch64__)"
+end
+
+g.fixup :ifdef_mips do |f|
+    f.puts "#if defined(__mips__)"
+end
+
 g.fixup :ifdef_mips32 do |f|
     f.puts "#if defined(__mips__) && !defined(__LP64__)"
+end
+
+g.fixup :ifdef_i386 do |f|
+    f.puts "#if defined(__i386__)"
+end
+
+g.fixup :ifdef_x86_64 do |f|
+    f.puts "#if defined(__x86_64__)"
 end
 
 g.fixup :ifndef_lp64 do |f|
@@ -409,6 +425,14 @@ g.add "libc/upstream-openbsd/lib/libc/net/inet_netof.c"
 g.add "libc/upstream-openbsd/lib/libc/net/inet_network.c"
 g.add "libc/upstream-openbsd/lib/libc/net/inet_ntoa.c"
 g.add "libc/upstream-openbsd/lib/libc/net/res_random.c"
+
+# fenv
+g.add "libm/amd64/fenv.c", fixup: "ifdef_x86_64", postfixup: "endif"
+g.add "libm/arm/fenv.c",   fixup: "ifdef_arm", postfixup: "endif"
+g.add "libm/arm64/fenv.c", fixup: "ifdef_aarch64", postfixup: "endif"
+g.add "libm/i387/fenv.c",  fixup: "ifdef_i386", postfixup: "endif"
+g.add "libm/i387/npx.h"
+g.add "libm/mips/fenv.c",  fixup: "ifdef_mips", postfixup: "endif"
 
 # pty
 g.add "libc/bionic/pty.cpp"

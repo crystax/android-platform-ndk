@@ -238,14 +238,8 @@ sources_for_abi()
     fi
 
     # Own sources
-    find src -name '*.c' \
-        -a -not -name 'fenv.c' \
-        -print | sort
-
+    find src -name '*.c'   -print | sort
     find src -name '*.cpp' -print | sort
-
-    local arch=$(arch_for_abi $a $m)
-    test -n "$arch" && echo "src/math/$arch/fenv.c"
 
     # Generated sources
     find gen -name '*.c' \
@@ -277,6 +271,8 @@ sources_for_abi()
             find gen -name 'malloc_debug_static.cpp' -print
             ;;
     esac
+
+    local arch=$(arch_for_abi $a $m)
 
     # Generated assembler sources
     find gen/bionic/libc/arch-$arch -iname '*.s' -a -not -name 'mangled-*' -print | sort
@@ -390,6 +386,7 @@ common_cflags_for_abi()
     local archflags=$(arch_flags_for_abi $abi $mlib)
     case $srcbasename in
         tls.c)
+            # These files can't be compiled in Thumb mode
             archflags=$(echo $archflags | tr ' ' '\n' | grep -v -e '^-mthumb')
     esac
     echo $archflags
