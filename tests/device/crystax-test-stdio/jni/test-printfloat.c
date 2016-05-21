@@ -116,12 +116,7 @@ main(int argc, char *argv[])
 	testfmt("nan", "%e", NAN);
 	testfmt("NAN", "%F", NAN);
 	testfmt("nan", "%g", NAN);
-#if !__ANDROID__
-    /* Temporarily disable this test since it's broken.
-     * See https://tracker.crystax.net/issues/817.
-     */
 	testfmt("NAN", "%LE", (long double)NAN);
-#endif
 #if !__APPLE__ || defined(__MAC_10_8)
 	testfmt("  nan", "%05e", NAN);
 #endif
