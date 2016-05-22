@@ -423,6 +423,7 @@ common_cflags_for_abi()
             echo '-DTZDIR=\"/system/usr/share/zoneinfo\"'
             echo "-DUSG_COMPAT=1"
             echo "-DNO_RUN_TIME_WARNINGS_ABOUT_YEAR_2000_PROBLEMS_THANK_YOU"
+            echo "-DTM_ZONE=tm_zone"
             echo "-Dlint"
 
             case $arch in
