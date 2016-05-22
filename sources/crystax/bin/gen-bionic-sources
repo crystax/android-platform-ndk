@@ -2085,6 +2085,9 @@ g.add "libc/arch-x86/syscalls/__signalfd4.S"
 g.add "libc/arch-x86_64/syscalls/__signalfd4.S"
 g.add "libc/bionic/signalfd.cpp"
 
+# significandl
+g.add "libm/significandl.c"
+
 # sigpending
 g.add "libc/bionic/sigpending.cpp"
 

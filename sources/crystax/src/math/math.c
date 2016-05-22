@@ -48,5 +48,4 @@
     WARN_IMPRECISE(name)
 
 BF(tgamma);
-BF(significand);
 BF2(pow);
