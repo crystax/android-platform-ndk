@@ -149,17 +149,22 @@ if [ -n "$LLVM_VERSION_EXTRACT" ]; then
         if [ "$LLVM_VERSION" != "$LLVM_VERSION_EXTRACT" ]; then
             echo "Conflict llvm-version: --llvm-version=$LLVM_VERSION and as implied by --toolchain=$TOOLCHAIN_NAME"
             exit 1
-	fi
+        fi
     fi
     TOOLCHAIN_NAME=$NEW_TOOLCHAIN_NAME
+elif [ -z "$LLVM_VERSION" ]; then
+    LLVM_VERSION=$DEFAULT_LLVM_VERSION
+fi
+
+if [ -z "$LLVM_VERSION" ]; then
+    echo "*** Can't detect LLVM version" 1>&2
+    exit 1
 fi
 
 # Check PLATFORM
 if [ -z "$PLATFORM" ] ; then
     case $ARCH in
-        arm) PLATFORM=android-3
-            ;;
-        x86|mips)
+        arm|x86|mips)
             PLATFORM=android-9
             ;;
         arm64|x86_64|mips64)
@@ -536,7 +541,7 @@ copy_libobjc2_libs_for_abi()
     local LABI
     local LIB
 
-    for LIB in libobjc.a libobjc.so libobjcxx.so; do
+    for LIB in libobjc.so; do
         case $ABI in
             armeabi*)
                 copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
@@ -745,7 +750,6 @@ copy_stl_common_headers () {
             #copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
             copy_directory "$LIBCXX_DIR/../llvm-libc++abi/libcxxabi/include" "$ABI_STL_INCLUDE/../../llvm-libc++abi/include"
             copy_abi_headers llvm-libc++abi cxxabi.h libunwind.h unwind.h
-            fi
             ;;
     esac
 }
