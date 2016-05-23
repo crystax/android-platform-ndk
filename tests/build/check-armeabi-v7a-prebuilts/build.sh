@@ -216,7 +216,17 @@ check_armv7_elf_binary ()
     fi
 }
 
-. $NDK/build/tools/dev-defaults.sh
+export ANDROID_NDK_ROOT=$NDK
+
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
+. $NDK/build/instruments/prebuilt-common.sh
+
+if [ -n "$APP_ABI" ]; then
+    if [ "$(convert_abi_to_arch $APP_ABI)" != "arm" ]; then
+        echo "Skipping ARM only test"
+        exit 0
+    fi
+fi
 
 ARM_TOOLCHAIN_NAME=$(get_default_toolchain_name_for_arch arm)
 ARM_TOOLCHAIN_PREFIX=$(get_default_toolchain_prefix_for_arch arm)
@@ -289,9 +299,8 @@ fi
 
 ARMv7_ABIS="armeabi-v7a armeabi-v7a-hard"
 for ABI in $ARMv7_ABIS; do
-
     for VERSION in $DEFAULT_GCC_VERSION_LIST; do
-        GNUSTL_LIBS=$NDK/sources/cxx-stl/gnu-libstdc++/$VERSION/libs/$ABI
+        GNUSTL_LIBS=$NDK/sources/cxx-stl/gnu-libstdc++/4.9/libs/$ABI
         check_armv7_elf_binary $GNUSTL_LIBS/libsupc++.a
         check_armv7_elf_binary $GNUSTL_LIBS/libgnustl_shared.so
         check_armv7_elf_binary $GNUSTL_LIBS/libgnustl_static.a

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012, 2014 The Android Open Source Project
+# Copyright (C) 2012, 2014, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@
 PROGNAME=$(basename "$0")
 PROGDIR=$(dirname "$0")
 NDK_ROOT=$(cd "$PROGDIR/../.." && pwd)
-NDK_BUILDTOOLS_PATH=$NDK_ROOT/build/tools
-. $NDK_ROOT/build/tools/prebuilt-common.sh
+NDK_BUILDTOOLS_PATH=$NDK_ROOT/build/instruments
+. $NDK_ROOT/build/instruments/prebuilt-common.sh
 
 panic () {
     echo "ERROR: $@" >&2; exit 1

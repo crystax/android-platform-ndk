@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016 CrystaX.
+ * Copyright (c) 2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -29,6 +29,7 @@
 
 #include <sys/wait.h>
 
-pid_t wait3(int* status, int options, struct rusage* rusage) {
+pid_t  wait3(int *status, int options, struct rusage *rusage)
+{
     return wait4(-1, status, options, rusage);
 }

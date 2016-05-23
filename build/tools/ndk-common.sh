@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014, 2015, 2016 The Android Open Source Project
+# Copyright (C) 2009 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,17 +20,9 @@
 # Get current script name into PROGNAME
 PROGNAME=`basename $0`
 
-# Set package cache directory
-NDK_CACHE_DIR="/var/tmp/ndk-cache-$USER" 
-if [ ! -d "$NDK_CACHE_DIR" ]; then
-    mkdir -p "$NDK_CACHE_DIR"
-    if [ $? != 0 ]; then
-        echo "Failed to create cache dir $NDK_CACHE_DIR"
-        exit 1
-    fi
+if [ -z "$TMPDIR" ]; then
+    export TMPDIR=/tmp/ndk-$USER
 fi
-
-export TMPDIR=/tmp/ndk-$USER
 
 OS=`uname -s`
 if [ "$OS" == "Darwin" -a -z "$MACOSX_DEPLOYMENT_TARGET" ]; then
@@ -80,11 +72,13 @@ fi
 
 if [ ! -d $ANDROID_NDK_ROOT ] ; then
     echo "ERROR: Your ANDROID_NDK_ROOT variable does not point to a directory."
+    echo "ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT"
     exit 1
 fi
 
 if [ ! -f $ANDROID_NDK_ROOT/build/tools/ndk-common.sh ] ; then
-    echo "ERROR: Your ANDROID_NDK_ROOT variable does not point to a valid directory."
+    echo "ERROR: Your ANDROID_NDK_ROOT does not contain a valid NDK build system."
+    echo "ANDROID_NDK_ROOT=$ANDROID_NDK_ROOT"
     exit 1
 fi
 
@@ -167,9 +161,6 @@ run ()
         echo "## SKIP COMMAND: $@"
     elif [ "$VERBOSE" = "yes" ] ; then
         echo "## COMMAND: $@"
-        if [ -n "$TMPLOG" ] ; then
-            echo "## COMMAND: $@" >> $TMPLOG
-        fi
         "$@" 2>&1
     else
         if [ -n "$TMPLOG" ] ; then
@@ -254,8 +245,8 @@ case "$HOST_OS" in
         ;;
 esac
 
-#log "HOST_OS=$HOST_OS"
-#log "HOST_EXE=$HOST_EXE"
+log "HOST_OS=$HOST_OS"
+log "HOST_EXE=$HOST_EXE"
 
 ## Now find the host architecture. This must correspond to the bitness of
 ## the binaries we're going to run with this NDK. Certain platforms allow
@@ -307,7 +298,7 @@ case "$HOST_OS-$HOST_ARCH" in
     ;;
 esac
 
-#log "HOST_ARCH=$HOST_ARCH"
+log "HOST_ARCH=$HOST_ARCH"
 
 # at this point, the supported values for HOST_ARCH are:
 #   x86
@@ -348,7 +339,7 @@ compute_host_tag ()
             HOST_TAG="windows"
             ;;
     esac
-    #log "HOST_TAG=$HOST_TAG"
+    log "HOST_TAG=$HOST_TAG"
 }
 
 compute_host_tag
@@ -364,20 +355,12 @@ case "$HOST_OS" in
         ;;
     windows|cygwin)
         HOST_NUM_CPUS=$NUMBER_OF_PROCESSORS
-        if [ -z "$HOST_NUM_CPUS" ]; then
-            # In case we're running shell from Cygwin SSH, we have no $NUMBER_OF_PROCESSORS
-            # In such case detect it in another way
-            HOST_NUM_CPUS=`cmd /c "echo %NUMBER_OF_PROCESSORS%" 2>/dev/null | tr -d '\r'`
-        fi
         ;;
     *)  # let's play safe here
         HOST_NUM_CPUS=1
 esac
 
-test -z "$HOST_NUM_CPUS" && HOST_NUM_CPUS=1
-test $HOST_NUM_CPUS -lt 1 && HOST_NUM_CPUS=1
-
-#log "HOST_NUM_CPUS=$HOST_NUM_CPUS"
+log "HOST_NUM_CPUS=$HOST_NUM_CPUS"
 
 # If BUILD_NUM_CPUS is not already defined in your environment,
 # define it as the double of HOST_NUM_CPUS. This is used to
@@ -387,7 +370,7 @@ if [ -z "$BUILD_NUM_CPUS" ] ; then
     BUILD_NUM_CPUS=`expr $HOST_NUM_CPUS \* 2`
 fi
 
-#log "BUILD_NUM_CPUS=$BUILD_NUM_CPUS"
+log "BUILD_NUM_CPUS=$BUILD_NUM_CPUS"
 
 
 ##  HOST TOOLCHAIN SUPPORT
@@ -719,49 +702,6 @@ relpath ()
     echo "$relative"
 }
 
-# Unpack a given archive
-#
-# $1: archive file path
-# $2: optional target directory (current one if omitted)
-#
-unpack_archive ()
-{
-    local ARCHIVE="$1"
-    local DIR=${2-.}
-    local RESULT TARFLAGS ZIPFLAGS
-    mkdir -p "$DIR"
-    TARFLAGS="xpf"
-    # todo: zuav: ZIPFLAGS="-qo"
-    ZIPFLAGS="q"
-    case "$ARCHIVE" in
-        *.zip)
-            (cd $DIR && run unzip $ZIPFLAGS "$ARCHIVE")
-            ;;
-        *.tar)
-            run tar $TARFLAGS "$ARCHIVE" -C $DIR
-            ;;
-        *.tar.gz)
-            run tar z$TARFLAGS "$ARCHIVE" -C $DIR
-            ;;
-        *.tar.bz2)
-            find_pbzip2
-            if [ -n "$PBZIP2" ] ; then
-                run tar --use-compress-prog=pbzip2 -$TARFLAGS "$ARCHIVE" -C $DIR
-            else
-                run tar j$TARFLAGS "$ARCHIVE" -C $DIR
-            fi
-            # remove ._* files by MacOSX to preserve resource forks we don't need
-            find $DIR -name "\._*" -exec rm {} \;
-            ;;
-        *.tar.xz)
-            run tar J$TARFLAGS "$ARCHIVE" -C $DIR
-            ;;
-        *)
-            panic "Cannot unpack archive with unknown extension: $ARCHIVE"
-            ;;
-    esac
-}
-
 # Pack a given archive
 #
 # $1: archive file path (including extension)
@@ -783,31 +723,24 @@ pack_archive ()
         ARCHIVE="`pwd`/$ARCHIVE"
     fi
     mkdir -p `dirname $ARCHIVE`
-    TARFLAGS="cf"
-    ZIPFLAGS="-9qr"
+
+    TARFLAGS="--exclude='*.py[cod]' --exclude='*.swp' --exclude=.git --exclude=.gitignore -cf"
+    ZIPFLAGS="-x *.git* -x *.pyc -x *.pyo -9qr"
     # Ensure symlinks are stored as is in zip files. for toolchains
     # this can save up to 7 MB in the size of the final archive
     #ZIPFLAGS="$ZIPFLAGS --symlinks"
     case "$ARCHIVE" in
         *.zip)
+            rm -f $ARCHIVE
             (cd $SRCDIR && run zip $ZIPFLAGS "$ARCHIVE" $SRCFILES)
-            ;;
-        *.tar)
-            (cd $SRCDIR && run tar $TARFLAGS "$ARCHIVE" $SRCFILES)
-            ;;
-        *.tar.gz)
-            (cd $SRCDIR && run tar z$TARFLAGS "$ARCHIVE" $SRCFILES)
             ;;
         *.tar.bz2)
             find_pbzip2
             if [ -n "$PBZIP2" ] ; then
-                (cd $SRCDIR && run tar --use-compress-prog=pbzip2 -$TARFLAGS "$ARCHIVE" $SRCFILES)
+                (cd $SRCDIR && run tar --use-compress-prog=pbzip2 $TARFLAGS "$ARCHIVE" $SRCFILES)
             else
-                (cd $SRCDIR && run tar j$TARFLAGS "$ARCHIVE" $SRCFILES)
+                (cd $SRCDIR && run tar -j $TARFLAGS "$ARCHIVE" $SRCFILES)
             fi
-            ;;
-        *.tar.xz)
-            (cd $SRCDIR && run tar J$TARFLAGS "$ARCHIVE" $SRCFILES)
             ;;
         *)
             panic "Unsupported archive format: $ARCHIVE"
@@ -881,13 +814,10 @@ copy_file_list ()
     if [ ! -d "$SRCDIR" ] ; then
         panic "Cant' copy from non-directory: $SRCDIR"
     fi
-    # todo zuav: check for number of arguments?
-    #log "Copying file: $@"
-    log "Copying file: $1 $2 $3 ..."
+    log "Copying file: $@"
     log "  from $SRCDIR"
     log "  to $DSTDIR"
-
-    mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | tr ' ' '\n' | tar cf - -T -)) | (tar xf - -C "$DSTDIR")
+    mkdir -p "$DSTDIR" && (cd "$SRCDIR" && (echo $@ | tr ' ' '\n' | tar hcf - -T -)) | (tar xf - -C "$DSTDIR")
     fail_panic "Cannot copy files to directory: $DSTDIR"
 }
 
@@ -935,85 +865,6 @@ rotate_log ()
         fi
 
         ver=$prev
-    done
-}
-
-# Copy a given package to the cache directory
-#
-# $1: package dir
-# $2: archive file name
-cache_package ()
-{
-    local package_dir=$1
-    local archive=$2
-    log "Copying $package_dir/$archive to cache dir $NDK_CACHE_DIR."
-    cp "$package_dir/$archive" "$NDK_CACHE_DIR"
-    fail_panic "Could not cache package: $archive"
-}
-
-# Copy a given cached package if found to the given package directory
-# NB
-#    This function will exit a script on succes!
-#
-# $1: package dir
-# $2: archive file name
-# $3: optional, can be anything, prevents exit
-try_cached_package ()
-{
-    local package_dir=$1
-    local archive=$2
-
-    if [ "$package_dir" -a -e "$NDK_CACHE_DIR/$archive" ]; then
-        dump "Found cached package: $NDK_CACHE_DIR/$archive"
-        mkdir -p "$package_dir"
-        cp "$NDK_CACHE_DIR/$archive" "$package_dir"
-        fail_panic "Could not copy $archive from cache directory."
-        if [ -n "$3" ]; then
-            return 0
-        else
-            log "Done"
-            exit 0
-        fi
-    fi
-
-    return 1
-}
-
-# check that every member of the specified list is a member
-# of the second list
-#
-# $1: list of strings separated by blanks
-# $2: list of standard (permitted) values separated by blanks
-# $3: error message, optional
-check_list_values ()
-{
-    #echo "1: $1"
-    #echo "2: $2"
-    #echo "3: $3"
-
-    local list=$1
-    local standard_list=$2
-    local err_msg="bad value"
-
-    if [ -n "$3" ]; then
-        err_msg=$3
-    fi
-
-    local val=
-    local defval=
-    local good=
-    local defsys=
-    for val in $list ; do 
-        good=""
-        for defval in $standard_list ; do
-            if [ "$val" = "$defval" ] ; then
-                good="yes"
-                break
-            fi
-        done
-        if [ "$good" != "yes" ] ; then
-            panic "$err_msg: $val"
-        fi
     done
 }
 

@@ -20,7 +20,7 @@ fi
 
 # Now ensure that all files were installed to all supported ABIs
 ANDROID_NDK_ROOT=$NDK
-NDK_BUILDTOOLS_PATH=$NDK/build/tools
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
 source $NDK_BUILDTOOLS_PATH/prebuilt-common.sh
 MISSING=
 for ABI in $ABIS; do

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2014 The Android Open Source Project
+# Copyright (C) 2014, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,9 +54,9 @@
 
 PROGDIR=`dirname $0`
 NDK=`cd $PROGDIR/../.. && pwd`
-NDK_BUILDTOOLS_PATH=$NDK/build/tools
-. $NDK/build/tools/ndk-common.sh
-. $NDK/build/tools/prebuilt-common.sh
+NDK_BUILDTOOLS_PATH=$NDK/build/instruments
+. $NDK/build/instruments/ndk-common.sh
+. $NDK/build/instruments/prebuilt-common.sh
 
 TAGS=$HOST_TAG
 
@@ -127,14 +127,14 @@ make_standalone ()
     local LLVM_VERSION=$5
 
     echo "(cd $NDK && \
-     ./build/tools/make-standalone-toolchain.sh \
+     ./build/instruments/make-standalone-toolchain.sh \
         --platform=android-$API \
         --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
         --llvm-version=$LLVM_VERSION \
         --toolchain=$(get_toolchain_name_for_arch $ARCH $GCC_VERSION) \
         --system=$TAG)"
     (cd $NDK && \
-     ./build/tools/make-standalone-toolchain.sh \
+     ./build/instruments/make-standalone-toolchain.sh \
         --platform=android-$API \
         --install-dir=$(standalone_path $TAG $API $ARCH $GCC_VERSION) \
         --llvm-version=$LLVM_VERSION \

@@ -17,27 +17,43 @@
 """Interface to NDK build information."""
 import os
 import re
-import subprocess
+import sys
+
+import util
 
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 NDK_ROOT = os.path.realpath(os.path.join(THIS_DIR, '..'))
 
 
-def get_build_var(test_dir, var_name):
-    makefile = os.path.join(NDK_ROOT, 'build/core/build-local.mk')
-    cmd = ['make', '--no-print-dir', '-f', makefile, '-C', test_dir,
-           'DUMP_{}'.format(var_name)]
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    out, _ = p.communicate()
-    if p.returncode != 0:
-        raise RuntimeError('Could not get build variable')
-    return out.strip().split('\n')[-1]
+def get_host_tag():
+    if sys.platform.startswith('linux'):
+        return 'linux-x86_64'
+    elif sys.platform == 'darwin':
+        return 'darwin-x86_64'
+    elif sys.platform == 'win32':
+        host_tag = 'windows-x86_64'
+        test_path = os.path.join(os.environ['NDK'], 'prebuilt', host_tag)
+        if not os.path.exists(test_path):
+            host_tag = 'windows'
+        return host_tag
+
+
+def get_tool(tool):
+    ext = ''
+    if sys.platform == 'win32':
+        ext = '.exe'
+
+    host_tag = get_host_tag()
+    prebuilt_path = os.path.join(os.environ['NDK'], 'prebuilt', host_tag)
+    return os.path.join(prebuilt_path, 'bin', tool) + ext
 
 
 def build(build_flags):
-    ndk_build_path = os.path.join(NDK_ROOT, 'ndk-build')
-    return subprocess.call([ndk_build_path] + build_flags)
+    ndk_build_path = os.path.join(os.environ['NDK'], 'ndk-build')
+    if os.name == 'nt':
+        ndk_build_path += '.cmd'
+    return util.call_output([ndk_build_path] + build_flags)
 
 
 def expand_app_abi(abi):

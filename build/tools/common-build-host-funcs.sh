@@ -77,6 +77,7 @@ bh_tag_to_os ()
         linux-*) RET="linux";;
         darwin-*) RET="darwin";;
         windows|windows-*) RET="windows";;
+        *) echo "ERROR: Unknown tag $1" >&2; echo "INVALID"; exit 1;;
     esac
     echo $RET
 }
@@ -89,9 +90,12 @@ bh_tag_to_arch ()
     local RET
     case $1 in
         *-arm) RET=arm;;
+        *-arm64) RET=arm64;;
         *-mips) RET=mips;;
+        *-mips64) RET=mips64;;
         windows|*-x86) RET=x86;;
         *-x86_64) RET=x86_64;;
+        *) echo "ERROR: Unknown tag $1" >&2; echo "INVALID"; exit 1;;
     esac
     echo $RET
 }
@@ -104,7 +108,8 @@ bh_tag_to_bits ()
     local RET
     case $1 in
         windows|*-x86|*-arm|*-mips) RET=32;;
-        *-x86_64) RET=64;;
+        *-x86_64|*-arm64|*-mips64) RET=64;;
+        *) echo "ERROR: Unknown tag $1" >&2; echo "INVALID"; exit 1;;
     esac
     echo $RET
 }
@@ -123,8 +128,12 @@ bh_tag_to_config_triplet ()
         windows|windows-x86) RET=i586-pc-mingw32msvc;;
         windows-x86_64) RET=x86_64-w64-mingw32;;
         android-arm) RET=arm-linux-androideabi;;
+        android-arm64) RET=aarch64-linux-android;;
         android-x86) RET=i686-linux-android;;
+        android-x86_64) RET=x86_64-linux-android;;
         android-mips) RET=mipsel-linux-android;;
+        android-mips64) RET=mips64el-linux-android;;
+        *) echo "ERROR: Unknown tag $1" >&2; echo "INVALID"; exit 1;;
     esac
     echo "$RET"
 }
@@ -132,11 +141,14 @@ bh_tag_to_config_triplet ()
 
 bh_set_build_tag ()
 {
+  SAVED_OPTIONS=$(set +o)
+  set -e
   BH_BUILD_OS=$(bh_tag_to_os $1)
   BH_BUILD_ARCH=$(bh_tag_to_arch $1)
   BH_BUILD_BITS=$(bh_tag_to_bits $1)
   BH_BUILD_TAG=$BH_BUILD_OS-$BH_BUILD_ARCH
   BH_BUILD_CONFIG=$(bh_tag_to_config_triplet $1)
+  eval "$SAVED_OPTIONS"
 }
 
 # Set default BH_BUILD macros.
@@ -144,20 +156,26 @@ bh_set_build_tag $HOST_TAG
 
 bh_set_host_tag ()
 {
+  SAVED_OPTIONS=$(set +o)
+  set -e
   BH_HOST_OS=$(bh_tag_to_os $1)
   BH_HOST_ARCH=$(bh_tag_to_arch $1)
   BH_HOST_BITS=$(bh_tag_to_bits $1)
   BH_HOST_TAG=$BH_HOST_OS-$BH_HOST_ARCH
   BH_HOST_CONFIG=$(bh_tag_to_config_triplet $1)
+  eval "$SAVED_OPTIONS"
 }
 
 bh_set_target_tag ()
 {
+  SAVED_OPTIONS=$(set +o)
+  set -e
   BH_TARGET_OS=$(bh_tag_to_os $1)
   BH_TARGET_ARCH=$(bh_tag_to_arch $1)
   BH_TARGET_BITS=$(bh_tag_to_bits $1)
   BH_TARGET_TAG=$BH_TARGET_OS-$BH_TARGET_ARCH
   BH_TARGET_CONFIG=$(bh_tag_to_config_triplet $1)
+  eval "$SAVED_OPTIONS"
 }
 
 bh_sort_systems_build_first ()
@@ -763,37 +781,16 @@ bh_register_options ()
     fi
 }
 
-# Execute a given command if the corresponding timestamp hasn't been touched
+# Execute a given command.
 #
 # NOTE: The command is run in its own sub-shell to avoid environment
 #        contamination.
 #
-# $1: timestamps name
-# $2+: command
-bh_stamps_do ()
+# $@: command
+bh_do ()
 {
-    local STAMP_NAME=$1
-    shift
-    if [ ! -f "$BH_STAMPS_DIR/$STAMP_NAME" ]; then
-        ("$@")
-        fail_panic
-        mkdir -p "$BH_STAMPS_DIR" && touch "$BH_STAMPS_DIR/$STAMP_NAME"
-    fi
-}
-
-# Return host tag with only translation that windows-x86 -> windows
-#
-# $1: host system tag
-install_dir_from_host_tag ()
-{
-    case $1 in
-        windows-x86)
-            echo "windows"
-            ;;
-        *)
-            echo "$1"
-            ;;
-    esac
+    ("$@")
+    fail_panic
 }
 
 # Return the build install directory of a given Python version
@@ -805,7 +802,7 @@ install_dir_from_host_tag ()
 #  python_ndk_install_dir with nothing.
 python_build_install_dir ()
 {
-    echo "$BH_BUILD_DIR/install/prebuilt/$(install_dir_from_host_tag $1)"
+    echo "$BH_BUILD_DIR/$1/install/host-tools"
 }
 
 # Same as python_build_install_dir, but for the final NDK installation
@@ -814,5 +811,5 @@ python_build_install_dir ()
 # $1: host system tag
 python_ndk_install_dir ()
 {
-    echo "prebuilt/$(install_dir_from_host_tag $1)"
+    echo "host-tools"
 }

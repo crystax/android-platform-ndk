@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2011, Ethan Rublee
+# Copyright (c) 2010-2011, 2016, Ethan Rublee
 # Copyright (c) 2011-2014, Andrey Kamaev
 # Copyright (c) 2015-2016, Dmitry Moskalchuk
 # All rights reserved.
@@ -406,9 +406,11 @@ endif()
 # android NDK layout
 if( BUILD_WITH_ANDROID_NDK )
  set( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK}/toolchains" )
+ set( ANDROID_NDK_TOOLCHAINS_BUILD_CORE_PATH "${ANDROID_NDK}/build/core/toolchains" )
  set( ANDROID_NDK_TOOLCHAINS_SUBPATH  "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME}" )
  set( ANDROID_NDK_TOOLCHAINS_SUBPATH2 "/prebuilt/${ANDROID_NDK_HOST_SYSTEM_NAME2}" )
  get_filename_component( ANDROID_NDK_TOOLCHAINS_PATH "${ANDROID_NDK_TOOLCHAINS_PATH}" ABSOLUTE )
+ get_filename_component( ANDROID_NDK_TOOLCHAINS_BUILD_CORE_PATH "${ANDROID_NDK_TOOLCHAINS_BUILD_CORE_PATH}" ABSOLUTE )
 
  # try to detect change of NDK
  if( CMAKE_AR )
@@ -608,7 +610,7 @@ if( BUILD_WITH_ANDROID_NDK )
   string(REGEX REPLACE "^gcc" "" __androidToolchainVersion ${__androidToolchainVersion} )
   set( ANDROID_TOOLCHAIN_NAME "${ANDROID_TOOLCHAIN_BUILD_NAME}-${__androidToolchainVersion}")
  endif()
- if( ANDROID_TOOLCHAIN_NAME AND EXISTS "${ANDROID_NDK_TOOLCHAINS_PATH}/${ANDROID_TOOLCHAIN_NAME}/" )
+ if( ANDROID_TOOLCHAIN_NAME AND EXISTS "${ANDROID_NDK_TOOLCHAINS_BUILD_CORE_PATH}/${ANDROID_TOOLCHAIN_NAME}/" )
   # do not go through all toolchains if we know the name
   set( __availableToolchainsLst "${ANDROID_TOOLCHAIN_NAME}" )
   __GLOB_NDK_TOOLCHAINS( __availableToolchains __availableToolchainsLst "${ANDROID_NDK_TOOLCHAINS_SUBPATH}" )

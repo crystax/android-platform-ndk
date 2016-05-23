@@ -1,1 +1,1 @@
-{"broken-toolchain-version": ["clang3.6", "clang3.7", "clang3.8"]}
+{"broken-toolchain-version": ["clang3.6", "clang3.7", "clang3.8", "gcc6"]}

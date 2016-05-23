@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2011, 2015 The Android Open Source Project
+# Copyright (C) 2011, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,10 +55,9 @@ extract_platforms_from ()
 TMPC=$TMPDIR/tmp/tests/tmp-platform.c
 TMPO=$TMPDIR/tmp/tests/tmp-platform.o
 TMPE=$TMPDIR/tmp/tests/tmp-platform$EXE
-TMPL=$TMPDIR/tmp/tests/tmp-platform.log
 
 SRCDIR="../development/ndk"
-DSTDIR="$ANDROID_NDK_ROOT"
+DSTDIR="$TMPDIR"
 
 ARCHS="$DEFAULT_ARCHS"
 PLATFORMS=`extract_platforms_from "$SRCDIR"`
@@ -68,7 +67,6 @@ OPTION_HELP=no
 OPTION_PLATFORMS=
 OPTION_SRCDIR=
 OPTION_DSTDIR=
-OPTION_SAMPLES=
 OPTION_FAST_COPY=
 OPTION_MINIMAL=
 OPTION_ARCH=
@@ -77,6 +75,7 @@ OPTION_DEBUG_LIBS=
 OPTION_OVERLAY=
 OPTION_GCC_VERSION="default"
 OPTION_LLVM_VERSION=$DEFAULT_LLVM_VERSION
+OPTION_CASE_INSENSITIVE=no
 PACKAGE_DIR=
 
 VERBOSE=no
@@ -107,9 +106,6 @@ for opt do
   --abi=*)  # We still support this for backwards-compatibility
     OPTION_ABI=$optarg
     ;;
-  --samples)
-    OPTION_SAMPLES=yes
-    ;;
   --fast-copy)
     OPTION_FAST_COPY=yes
     ;;
@@ -131,6 +127,9 @@ for opt do
   --llvm-version=*)
     OPTION_LLVM_VERSION=$optarg
     ;;
+  --case-insensitive)
+    OPTION_CASE_INSENSITIVE=yes
+    ;;
   *)
     echo "unknown option '$opt', use --help"
     exit 1
@@ -150,9 +149,8 @@ if [ $OPTION_HELP = "yes" ] ; then
     echo "  --ndk-dir=<path>      Use toolchains from this NDK directory [$NDK_DIR]"
     echo "  --platform=<list>     List of API levels [$PLATFORMS]"
     echo "  --arch=<list>         List of CPU architectures [$ARCHS]"
-    echo "  --minimal             Ignore samples, symlinks and generated shared libs."
+    echo "  --minimal             Ignore symlinks and generated shared libs."
     echo "  --fast-copy           Don't create symlinks, copy files instead"
-    echo "  --samples             Also generate samples directories."
     echo "  --package-dir=<path>  Package platforms archive in specific path."
     echo "  --debug-libs          Also generate C source file for generated libraries."
     echo ""
@@ -248,16 +246,7 @@ for PLATFORM in $PLATFORMS; do
 done
 
 if [ "$OPTION_MINIMAL" ]; then
-    OPTION_SAMPLES=
     OPTION_FAST_COPY=yes
-fi
-
-if [ -z "$OPTION_FAST_COPY" ]; then
-    realpath --version 2>/dev/null | grep -iq gnu
-    if [ $? -ne 0 ]; then
-        log "GNU realpath not available (coreutils not installed?); force --fast-copy mode"
-        OPTION_FAST_COPY=yes
-    fi
 fi
 
 BAD_ARCHS=
@@ -280,7 +269,7 @@ fi
 
 # $1: source directory (relative to $SRCDIR)
 # $2: destination directory (relative to $DSTDIR)
-# $3: description of directory contents (e.g. "sysroot" or "samples")
+# $3: description of directory contents (e.g. "sysroot")
 copy_src_directory ()
 {
     local SDIR="$SRCDIR/$1"
@@ -381,7 +370,7 @@ get_default_compiler_for_arch()
     fi
 
     for TAG in $HOST_TAG $HOST_TAG32; do
-        TOOLCHAIN_PREFIX="$NDK_DIR/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)"
+        TOOLCHAIN_PREFIX="$ANDROID_BUILD_TOP/prebuilts/ndk/current/$(get_toolchain_binprefix_for_arch $ARCH $GCC_VERSION $TAG)"
         TOOLCHAIN_PREFIX=${TOOLCHAIN_PREFIX%-}
         CC="$TOOLCHAIN_PREFIX-gcc"
         if [ -f "$CC" ]; then
@@ -403,6 +392,7 @@ get_default_compiler_for_arch()
 # $3: variables list
 # $4: destination file
 # $5: compiler command
+# $6: version script (optional)
 gen_shared_lib ()
 {
     local LIBRARY=$1
@@ -410,6 +400,7 @@ gen_shared_lib ()
     local VARS="$3"
     local DSTFILE="$4"
     local CC="$5"
+    local VERSION_SCRIPT="$6"
 
     # Now generate a small C source file that contains similarly-named stubs
     echo "/* Auto-generated file, do not edit */" > $TMPC
@@ -423,9 +414,12 @@ gen_shared_lib ()
 
     # Build it with our cross-compiler. It will complain about conflicting
     # types for built-in functions, so just shut it up.
-    COMMAND="$CC -Wl,-shared,-Bsymbolic -Wl,-soname,$LIBRARY -nostdlib -o $TMPO $TMPC -Wl,--exclude-libs,libgcc.a"
-    echo "## COMMAND: $COMMAND" > $TMPL
-    $COMMAND 1>>$TMPL 2>&1
+    COMMAND="$CC -Wl,-shared,-Bsymbolic -Wl,-soname,$LIBRARY -nostdlib -o $TMPO $TMPC -Wl,--exclude-libs,libgcc.a -w"
+    if [ -n "$VERSION_SCRIPT" ]; then
+      COMMAND="$COMMAND -Wl,--version-script=$VERSION_SCRIPT -Wl,--no-undefined-version"
+    fi
+    echo "## COMMAND: $COMMAND"
+    $COMMAND
     if [ $? != 0 ] ; then
         dump "ERROR: Can't generate shared library for: $LIBRARY"
         dump "See the content of $TMPC and $TMPL for details."
@@ -494,9 +488,14 @@ gen_shared_libraries ()
         vars=$(remove_unwanted_variable_symbols $ARCH $LIB $vars)
         numfuncs=$(echo $funcs | wc -w)
         numvars=$(echo $vars | wc -w)
+        version_script=""
+
+        if [ -f "$SYMDIR/$LIB.versions.txt" ]; then
+          version_script="$SYMDIR/$LIB.versions.txt"
+        fi
         log "Generating $ARCH shared library for $LIB ($numfuncs functions + $numvars variables)"
 
-        gen_shared_lib $LIB "$funcs" "$vars" "$DSTDIR/$LIB" "$CC"
+        gen_shared_lib $LIB "$funcs" "$vars" "$DSTDIR/$LIB" "$CC" "$version_script"
     done
 }
 
@@ -531,11 +530,9 @@ gen_crt_objects ()
     CRTBRAND_S=$DST_DIR/crtbrand.s
     log "Generating platform $API crtbrand assembly code: $CRTBRAND_S"
     (cd "$COMMON_SRC_DIR" && mkdir -p `dirname $CRTBRAND_S` && $CC -DPLATFORM_SDK_VERSION=$API -fpic -S -o - crtbrand.c | \
-        sed -e '/\.note\.ABI-tag/s/progbits/note/' > "$CRTBRAND_S") 1>>$TMPL 2>&1
+        sed -e '/\.note\.ABI-tag/s/progbits/note/' > "$CRTBRAND_S")
     if [ $? != 0 ]; then
         dump "ERROR: Could not generate $CRTBRAND_S from $COMMON_SRC_DIR/crtbrand.c"
-        dump "Please see the content of $TMPL for details!"
-        cat $TMPL | tail -10
         exit 1
     fi
 
@@ -570,11 +567,9 @@ gen_crt_objects ()
                  -I$SRCDIR/../../bionic/libc/arch-common/bionic \
                  -I$SRCDIR/../../bionic/libc/arch-$ARCH/include \
                  -DPLATFORM_SDK_VERSION=$API \
-                 -O2 -fpic -Wl,-r -nostdlib -o "$DST_DIR/$DST_FILE" $SRC_FILE) 1>>$TMPL 2>&1
+                 -O2 -fpic -Wl,-r -nostdlib -o "$DST_DIR/$DST_FILE" $SRC_FILE)
         if [ $? != 0 ]; then
             dump "ERROR: Could not generate $DST_FILE from $SRC_DIR/$SRC_FILE"
-            dump "Please see the content of $TMPL for details!"
-            cat $TMPL | tail -10
             exit 1
         fi
         if [ ! -s "$DST_DIR/crtbegin_static.o" ]; then
@@ -631,7 +626,7 @@ generate_api_level ()
 EOF
 }
 
-# Copy platform sysroot and samples into your destination
+# Copy platform sysroot into your destination
 #
 
 # if $SRC/android-$PLATFORM/arch-$ARCH exists
@@ -825,30 +820,11 @@ for ARCH in $ARCHS; do
     done
 done
 
-CRYSTAX_OPTIONS=
-if [ "$OPTION_FAST_COPY" = "yes" ]; then
-    CRYSTAX_OPTIONS="$CRYSTAX_OPTIONS --fast-copy"
-fi
-CRYSTAX_OPTIONS="$CRYSTAX_OPTIONS --headers"
-$NDK_DIR/$CRYSTAX_SUBDIR/bin/patch-sysroot $CRYSTAX_OPTIONS
-fail_panic "Couldn't generate libcrystax headers"
-
-#
-# $SRC/android-$PLATFORM/samples --> $DST/samples
-#
-if [ "$OPTION_SAMPLES" ] ; then
-    # Copy platform samples and generic samples into your destination
-    #
-    # $SRC/samples/ --> $DST/samples/
-    # $SRC/android-$PLATFORM/samples/ --> $DST/samples
-    #
-    dump "Copying generic samples"
-    if [ -z "$OPTION_OVERLAY" ]; then
-        for d in `cat $DSTDIR/samples/.gitignore | tr -d '/' | tr '\n' ' '`; do
-            rm -rf $DSTDIR/samples/$d
-        done
+if [ "$PACKAGE_DIR" ]; then
+    # Remove "duplicate" files for case-insensitive platforms.
+    if [ "$OPTION_CASE_INSENSITIVE" = "yes" ]; then
+        find "$DSTDIR/platforms" | sort -f | uniq -di | xargs rm
     fi
-    copy_src_directory  samples samples samples
 
     for PLATFORM in $PLATFORMS; do
         dump "Copy android-$PLATFORM samples"

@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2010, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +29,12 @@ make scripts."
 TOOLCHAIN_NAME=
 register_var_option "--toolchain=<name>" TOOLCHAIN_NAME "Specify toolchain name"
 
-LLVM_VERSION=
-register_var_option "--llvm-version=<ver>" LLVM_VERSION "Specify LLVM version"
+USE_LLVM=no
+do_option_use_llvm ()
+{
+    USE_LLVM=yes
+}
+register_option "--use-llvm" do_option_use_llvm "Use LLVM."
 
 STL=gnustl
 register_var_option "--stl=<name>" STL "Specify C++ STL"
@@ -48,13 +51,6 @@ NDK_DIR=`dirname $NDK_DIR`
 NDK_DIR=`dirname $NDK_DIR`
 register_var_option "--ndk-dir=<path>" NDK_DIR "Take source files from NDK at <path>"
 
-if [ -d "$NDK_DIR/prebuilt/$HOST_TAG" ]; then
-  SYSTEM=$HOST_TAG
-else
-  SYSTEM=$HOST_TAG32
-fi
-register_var_option "--system=<name>" SYSTEM "Specify host system"
-
 PACKAGE_DIR=$TMPDIR
 register_var_option "--package-dir=<path>" PACKAGE_DIR "Place package file in <path>"
 
@@ -62,7 +58,7 @@ INSTALL_DIR=
 register_var_option "--install-dir=<path>" INSTALL_DIR "Don't create package, install files to <path> instead."
 
 PLATFORM=
-register_option "--platform=<name>" do_platform "Specify target Android platform/API level." "android-3"
+register_option "--platform=<name>" do_platform "Specify target Android platform/API level." "android-9"
 do_platform () {
     PLATFORM=$1;
     if [ "$PLATFORM" = "android-L" ]; then
@@ -138,8 +134,9 @@ if [ -z "$TOOLCHAIN_NAME" ]; then
 fi
 
 # Detect LLVM version from toolchain name with *clang*
-LLVM_VERSION_EXTRACT=$(echo "$TOOLCHAIN_NAME" | grep 'clang[0-9]\.[0-9]$' | sed -e 's/.*-clang//')
-if [ -n "$LLVM_VERSION_EXTRACT" ]; then
+TOOLCHAIN_LLVM=$(echo "$TOOLCHAIN_NAME" | grep clang)
+if [ -n "$TOOLCHAIN_LLVM" ]; then
+    USE_LLVM=yes
     DEFAULT_GCC_VERSION=$(get_default_gcc_version_for_arch $ARCH)
     NEW_TOOLCHAIN_NAME=${TOOLCHAIN_NAME%-clang${LLVM_VERSION_EXTRACT}}-${DEFAULT_GCC_VERSION}
     if [ -z "$LLVM_VERSION" ]; then
@@ -182,12 +179,24 @@ if [ ! -d "$NDK_DIR/platforms/$PLATFORM" ] ; then
     exit 1
 fi
 
+if [ -d "$NDK_DIR/prebuilt/$HOST_TAG" ]; then
+    SYSTEM=$HOST_TAG
+else
+    SYSTEM=$HOST_TAG32
+fi
+
 # Check toolchain name
-TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME"
+TOOLCHAIN_PATH="$NDK_DIR/toolchains/$TOOLCHAIN_NAME/prebuilt/$SYSTEM"
 if [ ! -d "$TOOLCHAIN_PATH" ] ; then
-    echo "Invalid toolchain name: $TOOLCHAIN_NAME"
+    echo "Could not find toolchain: $TOOLCHAIN_PATH"
     echo "Please use --toolchain=<name> with the name of a toolchain supported by the source NDK."
-    echo "Try one of: " `(cd "$NDK_DIR/toolchains" && ls)`
+    echo "Try one of: "
+    for tc in $(cd "$NDK_DIR/toolchains" && ls); do
+        if [ "$tc" != "llvm" ]; then
+            echo $tc
+            echo $tc | sed 's/-4.9$/-clang/'
+        fi
+    done
     exit 1
 fi
 
@@ -221,19 +230,13 @@ if [ ! -d "$SRC_SYSROOT_INC" -o ! -d "$SRC_SYSROOT_LIB" ] ; then
 fi
 
 # Check that we have any prebuilts GCC toolchain here
-if [ ! -d "$TOOLCHAIN_PATH/prebuilt" ]; then
+if [ ! -d "$TOOLCHAIN_PATH" ]; then
     echo "Toolchain is missing prebuilt files: $TOOLCHAIN_NAME"
     echo "You must point to a valid NDK release package!"
     exit 1
 fi
 
-if [ ! -d "$TOOLCHAIN_PATH/prebuilt/$SYSTEM" ] ; then
-    echo "Host system '$SYSTEM' is not supported by the source NDK!"
-    echo "Try --system=<name> with one of: " `(cd $TOOLCHAIN_PATH/prebuilt && ls) | grep -v gdbserver`
-    exit 1
-fi
-
-TOOLCHAIN_PATH="$TOOLCHAIN_PATH/prebuilt/$SYSTEM"
+TOOLCHAIN_PATH="$TOOLCHAIN_PATH"
 TOOLCHAIN_GCC=$TOOLCHAIN_PATH/bin/$ABI_CONFIGURE_TARGET-gcc
 
 if [ ! -f "$TOOLCHAIN_GCC" ] ; then
@@ -241,21 +244,15 @@ if [ ! -f "$TOOLCHAIN_GCC" ] ; then
     exit 1
 fi
 
-if [ -n "$LLVM_VERSION" ]; then
-    LLVM_TOOLCHAIN_PATH="$NDK_DIR/toolchains/llvm-$LLVM_VERSION"
+if [ "$USE_LLVM" = "yes" ]; then
+    LLVM_TOOLCHAIN_PATH="$NDK_DIR/toolchains/llvm/prebuilt/$SYSTEM"
     # Check that we have any prebuilts LLVM toolchain here
-    if [ ! -d "$LLVM_TOOLCHAIN_PATH/prebuilt" ] ; then
+    if [ ! -d "$LLVM_TOOLCHAIN_PATH" ] ; then
         echo "LLVM Toolchain is missing prebuilt files"
         echo "You must point to a valid NDK release package!"
         exit 1
     fi
-
-    if [ ! -d "$LLVM_TOOLCHAIN_PATH/prebuilt/$SYSTEM" ] ; then
-        echo "Host system '$SYSTEM' is not supported by the source NDK!"
-        echo "Try --system=<name> with one of: " `(cd $LLVM_TOOLCHAIN_PATH/prebuilt && ls)`
-        exit 1
-    fi
-    LLVM_TOOLCHAIN_PATH="$LLVM_TOOLCHAIN_PATH/prebuilt/$SYSTEM"
+    LLVM_TOOLCHAIN_PATH="$LLVM_TOOLCHAIN_PATH"
 fi
 
 # Get GCC_BASE_VERSION.  Note that GCC_BASE_VERSION may be slightly different from GCC_VERSION.
@@ -265,7 +262,7 @@ LIBGCC_BASE_PATH=${LIBGCC_PATH%/*}         # base path of libgcc.a
 GCC_BASE_VERSION=${LIBGCC_BASE_PATH##*/}   # stuff after the last /
 
 # Create temporary directory
-TMPDIR=$NDK_TMPDIR/standalone/$TOOLCHAIN_NAME
+TMPDIR=`mktemp -d $NDK_TMPDIR/ndk.XXXXXXX`
 
 dump "Copying prebuilt binaries..."
 # Now copy the GCC toolchain prebuilt binaries
@@ -289,7 +286,7 @@ fi
 
 # Clang stuff
 
-if [ -n "$LLVM_VERSION" ]; then
+if [ "$USE_LLVM" = "yes" ]; then
   # Copy the clang/llvm toolchain prebuilt binaries
   copy_directory "$LLVM_TOOLCHAIN_PATH" "$TMPDIR"
 
@@ -300,9 +297,10 @@ if [ -n "$LLVM_VERSION" ]; then
   # "++" tells clang to compile in C++ mode
   LLVM_TARGET=
   case "$ARCH" in
-      arm) # NOte: -target may change by clang based on the
-           #        presence of subsequent -march=armv7-a and/or -mthumb
-          LLVM_TARGET=armv5te-none-linux-androideabi
+      arm)
+          # Note: -target may change by clang based on the presence of
+          # subsequent -march=armv5te and/or -mthumb.
+          LLVM_TARGET=armv7a-none-linux-androideabi
           TOOLCHAIN_PREFIX=$DEFAULT_ARCH_TOOLCHAIN_PREFIX_arm
           ;;
       x86)
@@ -328,6 +326,14 @@ if [ -n "$LLVM_VERSION" ]; then
       *)
         dump "ERROR: Unsupported NDK architecture $ARCH!"
   esac
+
+  # We need to copy clang and clang++ to some other named binary because clang
+  # and clang++ are going to be the shell scripts with the prefilled target. We
+  # have the version info available, and that's a typical alternate name (and is
+  # what we historically used).
+  LLVM_VERSION=$(cat $LLVM_TOOLCHAIN_PATH/AndroidVersion.txt | \
+      egrep -o '[[:digit:]]+\.[[:digit:]]')
+
   # Need to remove '.' from LLVM_VERSION when constructing new clang name,
   # otherwise clang3.3++ may still compile *.c code as C, not C++, which
   # is not consistent with g++
@@ -401,9 +407,8 @@ fi
 dump "Copying sysroot headers and libraries..."
 # Copy the sysroot under $TMPDIR/sysroot. The toolchain was built to
 # expect the sysroot files to be placed there!
-run copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
-run copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
-
+copy_directory_nolinks "$SRC_SYSROOT_INC" "$TMPDIR/sysroot/usr/include"
+copy_directory_nolinks "$SRC_SYSROOT_LIB" "$TMPDIR/sysroot/usr/lib"
 case "$ARCH" in
 # x86_64 and mips* toolchain are built multilib.
     x86_64)
@@ -715,15 +720,23 @@ done
 GNUSTL_DIR=$NDK_DIR/$GNUSTL_SUBDIR/$GCC_VERSION
 GNUSTL_LIBS=$GNUSTL_DIR/libs
 
+STLPORT_DIR=$NDK_DIR/$STLPORT_SUBDIR
+STLPORT_LIBS=$STLPORT_DIR/libs
+
 LIBCXX_DIR=$NDK_DIR/$LIBCXX_SUBDIR
-LIBCXX_LIBS=$LIBCXX_DIR/$LLVM_VERSION/libs
+LIBCXX_LIBS=$LIBCXX_DIR/libs
+LIBCXX_SUPPORT_LIB=libc++abi
 
 SUPPORT_DIR=$NDK_DIR/$SUPPORT_SUBDIR
 
 COMPILER_RT_DIR=$NDK_DIR/$COMPILER_RT_SUBDIR
 COMPILER_RT_LIBS=$COMPILER_RT_DIR/libs
 
-dump "Copying c++ runtime headers and libraries..."
+if [ "$STL" = "libcxx" -o "$STL" = "libc++" ]; then
+    dump "Copying c++ runtime headers and libraries (with $LIBCXX_SUPPORT_LIB)..."
+else
+    dump "Copying c++ runtime headers and libraries..."
+fi
 
 ABI_STL="$TMPDIR/$ABI_CONFIGURE_TARGET"
 ABI_STL_INCLUDE="$TMPDIR/include/c++/$GCC_BASE_VERSION"
@@ -746,10 +759,30 @@ copy_stl_common_headers () {
             copy_directory "$GNUSTL_DIR/include" "$ABI_STL_INCLUDE"
             ;;
         libcxx|libc++)
+<<<<<<< HEAD
             copy_directory "$LIBCXX_DIR/$LLVM_VERSION/libcxx/include" "$ABI_STL_INCLUDE"
             #copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
             copy_directory "$LIBCXX_DIR/../llvm-libc++abi/libcxxabi/include" "$ABI_STL_INCLUDE/../../llvm-libc++abi/include"
             copy_abi_headers llvm-libc++abi cxxabi.h libunwind.h unwind.h
+=======
+            copy_directory "$LIBCXX_DIR/libcxx/include" "$ABI_STL_INCLUDE"
+            copy_directory "$SUPPORT_DIR/include" "$ABI_STL_INCLUDE"
+            if [ "$LIBCXX_SUPPORT_LIB" = "gabi++" ]; then
+                copy_directory "$STLPORT_DIR/../gabi++/include" "$ABI_STL_INCLUDE/../../gabi++/include"
+                copy_abi_headers gabi++ cxxabi.h unwind.h unwind-arm.h unwind-itanium.h gabixx_config.h
+            elif [ "$LIBCXX_SUPPORT_LIB" = "libc++abi" ]; then
+                copy_directory "$LIBCXX_DIR/../llvm-libc++abi/libcxxabi/include" "$ABI_STL_INCLUDE/../../llvm-libc++abi/include"
+                copy_abi_headers llvm-libc++abi cxxabi.h __cxxabi_config.h libunwind.h unwind.h
+            else
+                dump "ERROR: Unknown libc++ support lib: $LIBCXX_SUPPORT_LIB"
+                exit 1
+            fi
+>>>>>>> google-merge-r11
+            ;;
+        stlport)
+            copy_directory "$STLPORT_DIR/stlport" "$ABI_STL_INCLUDE"
+            copy_directory "$STLPORT_DIR/../gabi++/include" "$ABI_STL_INCLUDE/../../gabi++/include"
+            copy_abi_headers gabi++ cxxabi.h unwind.h unwind-arm.h unwind-itanium.h gabixx_config.h
             ;;
     esac
 }
@@ -788,6 +821,10 @@ copy_stl_libs () {
             copy_file_list "$LIBCXX_LIBS/$ABI_SRC_DIR" "$ABI_STL/lib/$DEST_DIR" "libc++_shared.so"
             cp -p "$LIBCXX_LIBS/$ABI_SRC_DIR/libc++_static.a" "$ABI_STL/lib/$DEST_DIR/libstdc++.a"
             ;;
+        stlport)
+            copy_file_list "$STLPORT_LIBS/$ABI_SRC_DIR" "$ABI_STL/lib/$DEST_DIR" "libstlport_shared.so"
+            cp -p "$STLPORT_LIBS/$ABI_SRC_DIR/libstlport_static.a" "$ABI_STL/lib/$DEST_DIR/libstdc++.a"
+            ;;
         *)
             dump "ERROR: Unsupported STL: $STL"
             exit 1
@@ -806,21 +843,16 @@ copy_stl_libs_for_abi () {
 
     case $ABI in
         armeabi)
-            copy_stl_libs armeabi           "bits"                "bits"
-            copy_stl_libs armeabi           "thumb/bits"          "bits"       "/thumb"
+            copy_stl_libs armeabi          "bits"                "bits"
+            copy_stl_libs armeabi          "thumb/bits"          "bits"       "/thumb"
             ;;
         armeabi-v7a)
-            copy_stl_libs armeabi-v7a       "armv7-a/bits"        "bits"       "armv7-a"
-            copy_stl_libs armeabi-v7a       "armv7-a/thumb/bits"  "bits"       "armv7-a/thumb"
+            copy_stl_libs armeabi-v7a      "armv7-a/bits"        "bits"       "armv7-a"
+            copy_stl_libs armeabi-v7a      "armv7-a/thumb/bits"  "bits"       "armv7-a/thumb"
             ;;
         armeabi-v7a-hard)
-            if [ "$STL" = "gnustl" ]; then
-                copy_stl_libs armeabi-v7a-hard "armv7-a/hard/bits"        "bits"  "armv7-a/hard"        "."
-                copy_stl_libs armeabi-v7a-hard "armv7-a/thumb/hard/bits"  "bits"  "armv7-a/thumb/hard"  "thumb"
-            else
-                copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/hard"        "."
-                copy_stl_libs armeabi-v7a-hard ""                         ""      "armv7-a/thumb/hard"  "thumb"
-            fi
+            copy_stl_libs armeabi-v7a-hard ""                    ""           "armv7-a/hard"       "."
+            copy_stl_libs armeabi-v7a-hard ""                    ""           "armv7-a/thumb/hard" "thumb"
             ;;
         x86_64)
             if [ "$STL" = "gnustl" ]; then
@@ -837,7 +869,6 @@ copy_stl_libs_for_abi () {
                 copy_stl_libs mips64       "32/mips-r2/bits"     "32/mips-r2/bits"  "../libr2"     "libr2"
                 copy_stl_libs mips64       "32/mips-r6/bits"     "32/mips-r6/bits"  "../libr6"     "libr6"
                 copy_stl_libs mips64       "bits"                "bits"             "../lib64"     "lib64"
-                copy_stl_libs mips64       "mips64-r2/bits"      "mips64-r2/bits"   "../lib64r2"   "lib64r2"
             else
                 copy_stl_libs mips64       ""                    ""                 "../lib64"     "."
             fi
@@ -873,7 +904,7 @@ if [ -n "$INSTALL_DIR" ] ; then
         copy_directory "$TMPDIR" "$INSTALL_DIR"
     fi
 else
-    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.xz"
+    PACKAGE_FILE="$PACKAGE_DIR/$TOOLCHAIN_NAME.tar.bz2"
     dump "Creating package file: $PACKAGE_FILE"
     pack_archive "$PACKAGE_FILE" "`dirname $TMPDIR`" "$TOOLCHAIN_NAME"
     fail_panic "Could not create tarball from $TMPDIR"

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -39,7 +39,7 @@
 
 __BEGIN_DECLS
 
-pid_t wait3(int *status, int options, struct rusage *rusage);
+extern pid_t  wait3(int *status, int options, struct rusage *rusage);
 
 __END_DECLS
 

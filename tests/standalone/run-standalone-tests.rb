@@ -4,7 +4,7 @@
 # platforms and architectures.
 #
 #
-# Copyright (c) 2014, 2015 CrystaX.
+# Copyright (c) 2014, 2015, 2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -179,12 +179,12 @@ class Toolchain
     log =
 
     $ndk_data.llvm_versions.each do |llvm_ver|
-      cmd = "./build/tools/make-standalone-toolchain.sh"      +
-            " --platform=android-#{apilev}"                   +
-            " --install-dir=#{@install_dir_base}-#{llvm_ver}" +
-            " --llvm-version=#{llvm_ver}"                     +
-            " --stl=#{stl}"                                   +
-            " --toolchain=#{@name}"                           +
+      cmd = "./build/instruments/make-standalone-toolchain.sh" +
+            " --platform=android-#{apilev}"                    +
+            " --install-dir=#{@install_dir_base}-#{llvm_ver}"  +
+            " --llvm-version=#{llvm_ver}"                      +
+            " --stl=#{stl}"                                    +
+            " --toolchain=#{@name}"                            +
             " --system=#{$ndk_data.tag}"
       File.open($ndk_data.log_file, "a") do |log|
         log.puts "############################################"

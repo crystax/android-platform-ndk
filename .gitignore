@@ -11,6 +11,7 @@ packages/
 toolchains/*/prebuilt/
 /ndk-stack*
 /ndk-depends*
+/host-tools/
 prebuilt/android-arm/
 prebuilt/android-arm64/
 prebuilt/android-mips/

@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2009, 2014, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -410,6 +410,7 @@ modules-LOCALS := \
     DISABLE_NO_EXECUTE \
     DISABLE_RELRO \
     DISABLE_FORMAT_STRING_CHECKS \
+    DISABLE_FATAL_LINKER_WARNINGS \
     EXPORT_CFLAGS \
     EXPORT_CONLYFLAGS \
     EXPORT_CPPFLAGS \
@@ -1514,16 +1515,17 @@ $(strip $(foreach __opt,$(1),\
 endef
 
 # Put platforms include option to the end of list, ensuring CrystaX include option going right before that
+# We use subst function here to workaround the fact that '-isystem /some/path' is 2 words while '-I/some/path' is one.
 define interpose-crystax-headers
 $(strip \
-    $(filter-out $(call extract-platforms-include,$(1)),$(1)) \
+    $(filter-out $(call extract-platforms-include,$(subst -isystem ,-I,$(1))),$(subst -isystem ,-I,$(1))) \
     $(eval __libcrystax_incpath := $(crystax-dir)/include)\
     $(if $(wildcard $(__libcrystax_incpath)),\
         -I$(__libcrystax_incpath),\
         $(call __ndk_info,Could not find libcrystax headers: $(call pretty-dir,$(__libcrystax_incpath)) (broken NDK?))\
         $(call __ndk_error,Aborting)\
     )\
-    $(call extract-platforms-include,$(1))\
+    $(subst -I,-isystem ,$(call extract-platforms-include,$(subst -isystem ,-I,$(1))))\
 )
 endef
 
@@ -1721,7 +1723,7 @@ _FLAGS := $$($$(my)CFLAGS) \
           $$(LOCAL_CONLYFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CONLYFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _TEXT := Compile $$(call get-src-file-text,$1)
@@ -1745,7 +1747,7 @@ _OBJ:=$$(LOCAL_OBJS_DIR:%/=%)/$(2)
 _FLAGS := $$(call host-c-includes,$$(LOCAL_C_INCLUDES) $$(LOCAL_PATH)) \
           $$(LOCAL_ASMFLAGS) \
           $$(NDK_APP_ASMFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           $$(if $$(filter x86_64, $$(TARGET_ARCH_ABI)), -f elf64, -f elf32 -m x86)
 
 _TEXT := Assemble $$(call get-src-file-text,$1)
@@ -1821,7 +1823,7 @@ _FLAGS := $$($$(my)CFLAGS) \
           $$(LOCAL_CFLAGS) \
           $$(LOCAL_OBJCFLAGS) \
           $$(NDK_APP_CFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _TEXT := "Compile $$(call get-src-file-text,$1)"
@@ -1861,7 +1863,7 @@ _FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _CC   := $$(NDK_CCACHE) $$($$(my)CXX)
@@ -1903,7 +1905,7 @@ _FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -c \
 
 _CC   := $$(NDK_CCACHE) $$($$(my)CXX)
@@ -1951,7 +1953,7 @@ _CPP_FLAGS := $$($$(my)CXXFLAGS) \
           $$(NDK_APP_CFLAGS) \
           $$(NDK_APP_CPPFLAGS) \
           $$(NDK_APP_CXXFLAGS) \
-          $$(call host-c-includes,$$($(my)C_INCLUDES)) \
+          -isystem $$(call host-path,$$(SYSROOT_INC)/usr/include) \
           -fno-rtti \
           -c \
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2009, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2009, 2014, 2015, 2016 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +35,10 @@ endif
 # NOTE: If NDK_TOOLCHAIN is defined, we're going to use it.
 #
 ifndef NDK_TOOLCHAIN
+    # This is a sorted list of toolchains that support the given ABI. For older
+    # NDKs this was a bit more complicated, but now we just have the GCC and the
+    # Clang toolchains with GCC being first (named "*-4.9", whereas clang is
+    # "*-clang").
     TARGET_TOOLCHAIN_LIST := $(strip $(sort $(NDK_ABI.$(TARGET_ARCH_ABI).toolchains)))
 
     # Filter out the Clang toolchain, so that we can keep GCC as the default
@@ -53,6 +57,8 @@ ifndef NDK_TOOLCHAIN
 
     TARGET_TOOLCHAIN := $(filter %-$(DEFAULT_GCC_VERSION),$(TARGET_TOOLCHAIN_LIST))
 
+    # If NDK_TOOLCHAIN_VERSION is defined, we replace the toolchain version
+    # suffix with it.
     ifdef NDK_TOOLCHAIN_VERSION
         # Replace "gcc" with default gcc version
         ifeq ($(NDK_TOOLCHAIN_VERSION),gcc)
@@ -79,9 +85,6 @@ ifndef NDK_TOOLCHAIN
         TARGET_TOOLCHAIN_BASE := $(subst $(space),-,$(call chop,$(subst -,$(space),$(TARGET_TOOLCHAIN))))
         # if TARGET_TOOLCHAIN_BASE is llvm, remove clang from NDK_TOOLCHAIN_VERSION
         VERSION := $(NDK_TOOLCHAIN_VERSION)
-        ifeq ($(TARGET_TOOLCHAIN_BASE),llvm)
-            VERSION := $(subst clang,,$(NDK_TOOLCHAIN_VERSION))
-        endif
         TARGET_TOOLCHAIN := $(TARGET_TOOLCHAIN_BASE)-$(VERSION)
         $(call ndk_log,Using target toolchain '$(TARGET_TOOLCHAIN)' for '$(TARGET_ARCH_ABI)' ABI (through NDK_TOOLCHAIN_VERSION))
     else
@@ -117,11 +120,8 @@ TARGET_PREBUILT_SHARED_LIBRARIES :=
 TOOLCHAIN_NAME   := $(TARGET_TOOLCHAIN)
 TOOLCHAIN_VERSION := $(call last,$(subst -,$(space),$(TARGET_TOOLCHAIN)))
 
-# Define the root path of the toolchain in the NDK tree.
-TOOLCHAIN_ROOT   := $(NDK_ROOT)/toolchains/$(TOOLCHAIN_NAME)
-
 # Define the root path where toolchain prebuilts are stored
-TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(TOOLCHAIN_ROOT))
+TOOLCHAIN_PREBUILT_ROOT := $(call get-toolchain-root,$(TOOLCHAIN_NAME))
 
 # Do the same for TOOLCHAIN_PREFIX. Note that we must chop the version
 # number from the toolchain name, e.g. arm-eabi-4.4.0 -> path/bin/arm-eabi-

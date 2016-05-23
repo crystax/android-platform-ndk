@@ -6,7 +6,7 @@ if [ -z "$NDK" ]; then
     NDK=$(cd ../../.. && pwd)
 fi
 
-. $NDK/build/tools/dev-defaults.sh
+. $NDK/build/instruments/dev-defaults.sh
 
 HOST_OS=$(uname -s | tr '[A-Z]' '[a-z]')
 

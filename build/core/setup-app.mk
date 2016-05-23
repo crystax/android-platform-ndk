@@ -46,12 +46,10 @@ $(call __ndk_warning,WARNING: android-L is renamed as android-21)
 TARGET_PLATFORM := android-21
 endif
 
-
 # The ABI(s) to use
 NDK_APP_ABI := $(subst $(comma),$(space),$(strip $(NDK_APP_ABI)))
 ifndef NDK_APP_ABI
-    # the default ABI for now is armeabi
-    NDK_APP_ABI := armeabi
+    NDK_APP_ABI := $(NDK_DEFAULT_ABIS)
 endif
 
 NDK_ABI_FILTER := $(strip $(NDK_ABI_FILTER))
@@ -148,8 +146,7 @@ endif
 
 # Renderscript
 
-RENDERSCRIPT_TOOLCHAIN_ROOT   := $(NDK_ROOT)/toolchains/renderscript
-RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT := $(call host-prebuilt-tag,$(RENDERSCRIPT_TOOLCHAIN_ROOT))
+RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT := $(call get-toolchain-root,renderscript)
 RENDERSCRIPT_TOOLCHAIN_PREFIX := $(RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT)/bin/
 RENDERSCRIPT_TOOLCHAIN_HEADER := $(RENDERSCRIPT_TOOLCHAIN_PREBUILT_ROOT)/lib/clang/3.5/include
 
