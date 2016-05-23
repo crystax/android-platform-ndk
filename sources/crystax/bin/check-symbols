@@ -108,7 +108,6 @@ SKIP="$SKIP                \
     _tolower               \
     _toupper               \
     dlmalloc_usable_size   \
-    get_malloc_leak_info   \
     "
 
 SKIP_arm="                 \

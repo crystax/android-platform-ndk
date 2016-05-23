@@ -19,7 +19,6 @@ include/blocks-runtime/
 include/bzlib.h
 include/complex.h
 include/crystax/bionic/
-include/crystax/dlmalloc/
 include/crystax/freebsd/
 include/crystax/libkqueue/
 include/crystax/libpwq/
