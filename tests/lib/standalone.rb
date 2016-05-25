@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -155,7 +155,7 @@ class StandaloneTests
 
         toolchain << "-#{@toolchain_version.sub(/^gcc-?/, '')}"
 
-        script = File.join(@ndk, 'build', 'tools', 'make-standalone-toolchain.sh')
+        script = File.join(@ndk, 'build', 'instruments', 'make-standalone-toolchain.sh')
         raise "No #!/bin/bash in make-standalone-toolchain.sh" if File.read(script).split("\n").first != "#!/bin/bash"
 
         case cxxstdlib
