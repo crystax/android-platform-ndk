@@ -261,6 +261,7 @@ dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
 
 if [ -n "$PACKAGE_DIR" ]; then
+    dump "Packaging platforms and samples..."
     run $BUILDTOOLS/package-platforms.sh --samples --ndk-dir=$NDK_DIR --package-dir=$PACKAGE_DIR
     fail_panic "Can't package platforms"
 fi
