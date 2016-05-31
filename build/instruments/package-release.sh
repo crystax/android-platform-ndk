@@ -496,6 +496,9 @@ if [ -z "$PREBUILT_NDK" ]; then
 
     unpack_prebuilt sqlite3-build-files "$REFERENCE"
     unpack_prebuilt sqlite3-headers "$REFERENCE"
+    for VERSION in $OPENSSL_VERSIONS; do
+        unpack_prebuilt openssl-${VERSION}-headers "$REFERENCE"
+    done
     for VERSION in $PYTHON_VERSIONS; do
         unpack_prebuilt python${VERSION}-headers "$REFERENCE"
     done
@@ -530,6 +533,9 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt gnustep-objc2-libs-$ABI "$REFERENCE"
         unpack_prebuilt cocotron-$ABI "$REFERENCE"
         unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
+        for VERSION in $OPENSSL_VERSIONS; do
+            unpack_prebuilt openssl-${VERSION}-binaries-$ABI "$REFERENCE"
+        done
         for VERSION in $PYTHON_VERSIONS; do
             unpack_prebuilt python${VERSION}-binaries-$ABI "$REFERENCE"
         done
@@ -656,6 +662,13 @@ for SYSTEM in $SYSTEMS; do
         copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
         for SQLITE3_ABI in $PREBUILT_ABIS; do
             copy_prebuilt "$SQLITE3_SUBDIR/libs/$SQLITE3_ABI" "$SQLITE3_SUBDIR/libs"
+        done
+
+        for VERSION in $OPENSSL_VERSIONS; do
+            copy_prebuilt "$OPENSSL_SUBDIR/$VERSION/include" "$OPENSSL_SUBDIR/$VERSION"
+            for OPENSSL_ABI in $PREBUILT_ABIS; do
+                copy_prebuilt "$OPENSSL_SUBDIR/libs/$OPENSSL_ABI" "$OPENSSL_SUBDIR/libs"
+            done
         done
 
         for VERSION in $PYTHON_VERSIONS; do

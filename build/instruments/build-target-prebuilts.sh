@@ -128,6 +128,10 @@ dump "Building $ABIS libcrystax binaries..."
 run $BUILDTOOLS/build-crystax.sh --abis="$ABIS" --patch-sysroot $FLAGS
 fail_panic "Could not build libcrystax!"
 
+dump "Building $ABIS OpenSSL..."
+run $BUILDTOOLS/build-target-openssl.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/openssl
+fail_panic "Could not build OpenSSL"
+
 dump "Building $ABIS Bash..."
 run $BUILDTOOLS/build-target-bash.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/bash
 fail_panic "Could not build Bash"
