@@ -59,28 +59,26 @@ register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary bui
 ABIS=$PREBUILT_ABIS
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
+register_try64_option
 register_jobs_option
 
 extract_parameters "$@"
 
 OPENSSL_SRCDIR=$(echo $PARAMETERS | sed 1q)
 if [ -z "$OPENSSL_SRCDIR" ]; then
-    echo "ERROR: Please provide the path to the OpenSSL source tree. See --help"
-    exit 1
+    panic "Please provide the path to the OpenSSL source tree. See --help"
 fi
 
 if [ ! -d "$OPENSSL_SRCDIR" ]; then
-    echo "ERROR: No such directory: '$OPENSSL_SRCDIR'"
-    exit 1
+    panic "No such directory: '$OPENSSL_SRCDIR'"
 fi
 
 OPENSSL_SRCDIR=$(cd $OPENSSL_SRCDIR && pwd)
 OPENSSL_SRC_VERSION=\
-$(cat $OPENSSL_SRCDIR/crypto/opensslv.h | sed -n 's/#[ \t]*define[ \t]*OPENSSL_VERSION_TEXT[ \t]*"OpenSSL[ \t]*\([A-Za-z0-9\.]*\)[A-Za-z0-9 \.]*"/\1/p')
+$(cat $OPENSSL_SRCDIR/crypto/opensslv.h | sed -n 's/#[ \t]*define[ \t]*OPENSSL_VERSION_TEXT[ \t]*"OpenSSL[ \t]*\([0-9\.]*[A-Za-z]\?\)[A-Za-z0-9 \.]*"/\1/p')
 
 if [ -z "$OPENSSL_SRC_VERSION" ]; then
-    echo "ERROR: Can't detect OpenSSL version." 1>&2
-    exit 1
+    panic "Can't detect OpenSSL version."
 fi
 
 OPENSSL_DSTDIR=$NDK_DIR/$OPENSSL_SUBDIR/$OPENSSL_SRC_VERSION
@@ -121,8 +119,7 @@ build_openssl_for_abi ()
             ARCH=$ABI
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local HOST
@@ -146,8 +143,7 @@ build_openssl_for_abi ()
             HOST=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local APILEVEL
@@ -159,8 +155,7 @@ build_openssl_for_abi ()
             APILEVEL=21
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     local TOOLCHAIN
@@ -185,8 +180,7 @@ build_openssl_for_abi ()
             TOOLCHAIN=mips64el-linux-android
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "Unknown ABI: '$ABI'"
     esac
 
     case $ABI in
@@ -257,7 +251,6 @@ build_openssl_for_abi ()
         echo 'else'
         echo '    ARGS="$MY_CFLAGS $ARGS"'
         echo 'fi'
-        echo 'set -x'
         echo "exec $TCPREFIX/bin/${HOST}-gcc --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH \$ARGS"
     } >$MY_GCC
     fail_panic "Can't create gcc wrapper"
@@ -280,11 +273,12 @@ build_openssl_for_abi ()
         echo '        cp -fpH $OPENSSL_SOURCE/crypto/opensslconf.h ./crypto'
         echo '    elif [ "$F" = "./crypto/cryptlib.h" ]; then'
         echo '        cp -fpH $OPENSSL_SOURCE/crypto/cryptlib.h ./crypto'
+        echo '    elif [ "$F" = "./Makefile.org" ]; then'
+        echo '        cp -fpH $OPENSSL_SOURCE/Makefile.org .'
         echo '    else'
         echo '        ln -s $OPENSSL_SOURCE/$F $F'
         echo '    fi'
         echo 'done'
-        echo 'rm -rf engines'
     } >$OBJTREE_WRAPPER
     fail_panic "Can't create OpenSSL objtree wrapper"
     chmod +x $OBJTREE_WRAPPER
@@ -302,19 +296,21 @@ build_openssl_for_abi ()
             OPENSSL_TARGET=linux-armv4
             ;;
         arm64-v8a)
-            OPENSSL_TARGET=linux-generic64
+            OPENSSL_TARGET=linux-aarch64
             ;;
         mips)
+            # Looks like asm code in OpenSSL doesn't support MIPS32r6
             OPENSSL_TARGET=linux-generic32
             ;;
         mips64)
+            # Looks like asm code in OpenSSL doesn't support MIPS64r6
             OPENSSL_TARGET=linux-generic64
             ;;
         *)
-            echo "ERROR: Unknown ABI: '$ABI'" 1>&2
-            exit 1
+            panic "ERROR: Unknown ABI: '$ABI'"
     esac
-    local OPENSSL_OPTIONS='shared zlib-dynamic no-hw no-dso -DOPENSSL_NO_DEPRECATED'
+
+    local OPENSSL_OPTIONS='shared zlib-dynamic -DOPENSSL_NO_DEPRECATED'
 
     # script for build
     local BUILD_WRAPPER=$BUILDDIR/build.sh
@@ -325,10 +321,11 @@ build_openssl_for_abi ()
         echo 'cd $DIR_HERE'
         echo './mkobjtree.sh'
         echo 'cd objtree'
+        echo "perl -p -i -e 's/^(install:.*)\\binstall_docs\\b(.*)$/\$1 \$2/g' Makefile.org"
         echo "perl ./Configure --openssldir=/system/etc/security --prefix=/pkg --cross-compile-prefix=\"${HOST}-\" $OPENSSL_OPTIONS $OPENSSL_TARGET"
         echo "perl -p -i -e 's/^(#\\s*define\\s+ENGINESDIR\\s+).*$/\$1NULL/g' crypto/opensslconf.h"
         echo "perl -p -i -e 's/^(#\\s*define\\s+X509_CERT_DIR\\s+OPENSSLDIR\\s+).*$/\$1\"\\/cacerts\"/g' crypto/cryptlib.h"
-        echo 'make'
+        echo "make -j$NUM_JOBS"
         echo "make INSTALL_PREFIX=$BUILDDIR/install install"
     } >$BUILD_WRAPPER
     fail_panic "Can't create OpenSSL build wrapper"
@@ -347,7 +344,7 @@ build_openssl_for_abi ()
     if [ "$OPENSSL_HEADERS_INSTALLED" != "yes" ]; then
         log "Install OpenSSL headers into $OPENSSL_HEADERS_DSTDIR"
         run rm -Rf $OPENSSL_HEADERS_DSTDIR && run mkdir -p $OPENSSL_HEADERS_DSTDIR
-	fail_panic "Can't create directory: $OPENSSL_HEADERS_DSTDIR"
+        fail_panic "Can't create directory: $OPENSSL_HEADERS_DSTDIR"
         {
             echo '#if defined(__ARM_ARCH_5TE__)'
             echo '#include "opensslconf_armeabi.h"'
@@ -388,9 +385,154 @@ build_openssl_for_abi ()
       $BUILDDIR/install/pkg/lib/libssl.so \
       $OPENSSL_DSTDIR/libs/$ABI
     fail_panic "Can't install OpenSSL binaries"
+
+    log "Build openssl tool for $ABI"
+    local BUILDDIR_OPENSSL_TOOL="$BUILDDIR/tool"
+    local OBJDIR_OPENSSL_TOOL="$BUILDDIR_OPENSSL_TOOL/obj/local/$ABI"
+    run mkdir -p $BUILDDIR_OPENSSL_TOOL/jni
+    fail_panic "Can't create directory: $BUILDDIR_OPENSSL_TOOL/jni"
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := openssl'
+        echo "MY_OPENSSL_SRC_ROOT := $OPENSSL_SRCDIR"
+        echo 'LOCAL_CFLAGS := -DMONOLITH -DOPENSSL_NO_DEPRECATED'
+        echo 'LOCAL_C_INCLUDES := $(MY_OPENSSL_SRC_ROOT)'
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/app_rand.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/apps.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/asn1pars.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ca.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ciphers.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/cms.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/crl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/crl2p7.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dgst.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dh.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dhparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/dsaparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ec.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ecparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/enc.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/engine.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/errstr.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/gendh.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/gendsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/genpkey.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/genrsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/nseq.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ocsp.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/openssl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/passwd.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs12.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs7.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkcs8.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkey.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkeyparam.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/pkeyutl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/prime.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rand.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/req.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rsa.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/rsautl.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_cb.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_client.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_server.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_socket.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/s_time.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/sess_id.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/smime.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/speed.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/spkac.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/srp.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/ts.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/verify.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/version.c \'
+        echo '  $(MY_OPENSSL_SRC_ROOT)/apps/x509.c'
+        echo ''
+        echo 'LOCAL_STATIC_LIBRARIES := openssl_static opencrypto_static'
+        echo 'include $(BUILD_EXECUTABLE)'
+        echo "\$(call import-module,openssl/$OPENSSL_SRC_VERSION)"
+    } >$BUILDDIR_OPENSSL_TOOL/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_OPENSSL_TOOL/jni/Android.mk"
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL APP_LIBCRYSTAX=static -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build build openssl tool for $ABI"
+
+    local OPENSSL_INSTALLDIR_BIN="$OPENSSL_DSTDIR/bin/$ABI"
+    run mkdir -p $OPENSSL_INSTALLDIR_BIN
+    fail_panic "Can't create directory: $OPENSSL_INSTALLDIR_BIN"
+
+    log "Install openssl tool in $OPENSSL_INSTALLDIR_BIN"
+    run cp -p -T "$OBJDIR_OPENSSL_TOOL/openssl" "$OPENSSL_INSTALLDIR_BIN/openssl"
+    fail_panic "Can't install openssl tool in $OPENSSL_INSTALLDIR_BIN"
 }
 
+
+if [ -n "$PACKAGE_DIR" ]; then
+    PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-headers.tar.xz"
+    echo "Look for: $PACKAGE_NAME"
+    try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+    if [ $? -eq 0 ]; then
+        OPENSSL_HEADERS_NEED_PACKAGE=no
+    else
+        OPENSSL_HEADERS_NEED_PACKAGE=yes
+    fi
+fi
+
+BUILT_ABIS=""
 for ABI in $ABIS; do
-    build_openssl_for_abi $ABI "$BUILD_DIR/$ABI"
+    DO_BUILD_PACKAGE="yes"
+    if [ -n "$PACKAGE_DIR" ]; then
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-binaries-${ABI}.tar.xz"
+        echo "Look for: $PACKAGE_NAME"
+        try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
+        if [ $? -eq 0 ]; then
+            if [ "$OPENSSL_HEADERS_NEED_PACKAGE" = "yes" -a -z "$BUILT_ABIS" ]; then
+                BUILT_ABIS="$BUILT_ABIS $ABI"
+            else
+                DO_BUILD_PACKAGE="no"
+            fi
+        else
+            BUILT_ABIS="$BUILT_ABIS $ABI"
+        fi
+    fi
+    if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
+        build_openssl_for_abi $ABI "$BUILD_DIR/$ABI"
+    fi
 done
+
+if [ -n "$PACKAGE_DIR" ]; then
+    if [ "$OPENSSL_HEADERS_NEED_PACKAGE" = "yes" ]; then
+        FILES="$OPENSSL_SUBDIR/${OPENSSL_SRC_VERSION}/include"
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-headers.tar.xz"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package openssl headers"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    fi
+
+    for ABI in $BUILT_ABIS; do
+        FILES=""
+        for SUBDIR in libs/$ABI bin/$ABI; do
+            FILES="$FILES $OPENSSL_SUBDIR/${OPENSSL_SRC_VERSION}/$SUBDIR"
+        done
+        PACKAGE_NAME="openssl-${OPENSSL_SRC_VERSION}-binaries-${ABI}.tar.xz"
+        PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
+        dump "Packaging: $PACKAGE"
+        pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
+        fail_panic "Can't package openssl $ABI binaries"
+        cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
+    done
+fi
+
+if [ -z "$OPTION_BUILD_DIR" ]; then
+    log "Cleaning up..."
+    rm -rf $BUILD_DIR
+else
+    log "Don't forget to cleanup: $BUILD_DIR"
+fi
+
 log "Done!"

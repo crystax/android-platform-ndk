@@ -137,14 +137,6 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Can't create build directory: $BUILD_DIR"
 
-OPENSSL_HOME=''
-if [ -n "$DEFAULT_OPENSSL_VERSION" ]; then
-    if [ -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/Android.mk" \
-         -a -f "$NDK_DIR/$OPENSSL_SUBDIR/$DEFAULT_OPENSSL_VERSION/include/openssl/opensslconf.h" ]; then
-        OPENSSL_HOME="openssl/$DEFAULT_OPENSSL_VERSION"
-    fi
-fi
-
 
 # $1: target directory
 generate_python_interpreter_wrapper ()
@@ -195,11 +187,8 @@ build_python_for_abi ()
     local PYBIN_INSTALLDIR_MODULES="$PYBIN_INSTALLDIR/modules"
     local PYBIN_INSTALLDIR_STATIC_LIBS="$PYTHON_DSTDIR/static/libs/$ABI"
     local PYBIN_INSTALLDIR_STATIC_BIN="$PYTHON_DSTDIR/static/bin/$ABI"
-    if [ -n "$OPENSSL_HOME" ]; then
-        log "Building python$PYTHON_ABI for $ABI (with OpenSSL-$DEFAULT_OPENSSL_VERSION)"
-    else
-        log "Building python$PYTHON_ABI for $ABI (without OpenSSL support)"
-    fi
+
+    log "Building python$PYTHON_ABI for $ABI"
 
 # Step 1: configure
     local BUILDDIR_CONFIG="$BUILDDIR/config"
@@ -875,69 +864,65 @@ build_python_for_abi ()
     fi
 
 # _ssl
-    if [ -n "$OPENSSL_HOME" ]; then
-        local BUILDDIR_SSL="$BUILDDIR/ssl"
-        local OBJDIR_SSL="$BUILDDIR_SSL/obj/local/$ABI"
+    local BUILDDIR_SSL="$BUILDDIR/ssl"
+    local OBJDIR_SSL="$BUILDDIR_SSL/obj/local/$ABI"
 
-        run mkdir -p "$BUILDDIR_SSL/jni"
-        fail_panic "Can't create directory: $BUILDDIR_SSL/jni"
+    run mkdir -p "$BUILDDIR_SSL/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SSL/jni"
 
-        {
-            echo 'LOCAL_PATH := $(call my-dir)'
-            echo 'include $(CLEAR_VARS)'
-            echo 'LOCAL_MODULE := _ssl'
-            echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
-            echo 'LOCAL_SRC_FILES := \'
-            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
-            echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_static opencrypto_static'
-            echo 'include $(BUILD_SHARED_LIBRARY)'
-            echo "\$(call import-module,python/$PYTHON_ABI)"
-            echo "\$(call import-module,$OPENSSL_HOME)"
-        } >$BUILDDIR_SSL/jni/Android.mk
-        fail_panic "Can't generate $BUILDDIR_SSL/jni/Android.mk"
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo 'LOCAL_MODULE := _ssl'
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
+        echo 'LOCAL_STATIC_LIBRARIES := python_shared openssl_static opencrypto_static'
+        echo 'include $(BUILD_SHARED_LIBRARY)'
+        echo "\$(call import-module,python/$PYTHON_ABI)"
+        echo "\$(call import-module,openssl/$DEFAULT_OPENSSL_VERSION)"
+    } >$BUILDDIR_SSL/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SSL/jni/Android.mk"
 
-        run $NDK_DIR/ndk-build -C $BUILDDIR_SSL -j$NUM_JOBS APP_ABI=$ABI V=1
-        fail_panic "Can't build python$PYTHON_ABI-$ABI module '_ssl'"
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SSL -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI module '_ssl'"
 
-        log "Install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
-        run cp -p -T $OBJDIR_SSL/lib_ssl.so $PYBIN_INSTALLDIR_MODULES/_ssl.so
-        fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
-    fi
+    log "Install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
+    run cp -p -T $OBJDIR_SSL/lib_ssl.so $PYBIN_INSTALLDIR_MODULES/_ssl.so
+    fail_panic "Can't install python$PYTHON_ABI-$ABI module '_ssl' in $PYBIN_INSTALLDIR_MODULES"
 
 # _ssl static
-    if [ -n "$OPENSSL_HOME" ]; then
-        local BUILDDIR_SSL_STATIC="$BUILDDIR/ssl-static"
-        local OBJDIR_SSL_STATIC="$BUILDDIR_SSL_STATIC/obj/local/$ABI"
+    local BUILDDIR_SSL_STATIC="$BUILDDIR/ssl-static"
+    local OBJDIR_SSL_STATIC="$BUILDDIR_SSL_STATIC/obj/local/$ABI"
 
-        run mkdir -p "$BUILDDIR_SSL_STATIC/jni"
-        fail_panic "Can't create directory: $BUILDDIR_SSL_STATIC/jni"
+    run mkdir -p "$BUILDDIR_SSL_STATIC/jni"
+    fail_panic "Can't create directory: $BUILDDIR_SSL_STATIC/jni"
 
-        {
-            echo 'LOCAL_PATH := $(call my-dir)'
-            echo 'include $(CLEAR_VARS)'
-            echo "LOCAL_MODULE := python${PYTHON_ABI}__ssl"
-            echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
-            echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
-            echo 'LOCAL_SRC_FILES := \'
-            echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
-            echo 'LOCAL_STATIC_LIBRARIES := openssl_static'
-            echo 'include $(BUILD_STATIC_LIBRARY)'
-            echo "\$(call import-module,$OPENSSL_HOME)"
-        } >$BUILDDIR_SSL_STATIC/jni/Android.mk
-        fail_panic "Can't generate $BUILDDIR_SSL_STATIC/jni/Android.mk"
+    {
+        echo 'LOCAL_PATH := $(call my-dir)'
+        echo 'include $(CLEAR_VARS)'
+        echo "LOCAL_MODULE := python${PYTHON_ABI}__ssl"
+        echo "LOCAL_C_INCLUDES := $PYTHON_DSTDIR/include/python"
+        echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
+        echo 'LOCAL_SRC_FILES := \'
+        echo '  $(MY_PYTHON_SRC_ROOT)/Modules/_ssl.c'
+        echo 'LOCAL_STATIC_LIBRARIES := openssl_static'
+        echo 'include $(BUILD_STATIC_LIBRARY)'
+        echo "\$(call import-module,openssl/$DEFAULT_OPENSSL_VERSION)"
+    } >$BUILDDIR_SSL_STATIC/jni/Android.mk
+    fail_panic "Can't generate $BUILDDIR_SSL_STATIC/jni/Android.mk"
 
-        run $NDK_DIR/ndk-build -C $BUILDDIR_SSL_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
-        fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_ssl'"
+    run $NDK_DIR/ndk-build -C $BUILDDIR_SSL_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1
+    fail_panic "Can't build python$PYTHON_ABI-$ABI static module '_ssl'"
 
-        log "Install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
-        run cp -fpH "$OBJDIR_SSL_STATIC/libpython${PYTHON_ABI}__ssl.a" $PYBIN_INSTALLDIR_STATIC_LIBS
-        fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    log "Install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
+    run cp -fpH "$OBJDIR_SSL_STATIC/libpython${PYTHON_ABI}__ssl.a" $PYBIN_INSTALLDIR_STATIC_LIBS
+    fail_panic "Can't install python$PYTHON_ABI-$ABI static module '_ssl' in $PYBIN_INSTALLDIR_STATIC_LIBS"
 
-        if [ "$PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED" != "yes" ]; then
-            generate_python_module_header _ssl $PYTHON_DSTDIR/include/frozen
-            PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED=yes
-            export PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED
-        fi
+    if [ "$PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED" != "yes" ]; then
+        generate_python_module_header _ssl $PYTHON_DSTDIR/include/frozen
+        PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED=yes
+        export PYTHON_MODULE_SSL_STATIC_HEADERS_INSTALLED
     fi
 
 # _sqlite3
@@ -1226,9 +1211,7 @@ build_python_for_abi ()
         echo 'LOCAL_PATH := $(call my-dir)'
         echo 'include $(CLEAR_VARS)'
         echo 'LOCAL_MODULE := python'
-        if [ -n "$OPENSSL_HOME" ]; then
-            echo 'LOCAL_CFLAGS := -DNDK_HAVE_OPENSSL_SUPPORT'
-        fi
+        echo ''
         echo "MY_PYTHON_SRC_ROOT := $PYTHON_SRCDIR"
         echo 'LOCAL_SRC_FILES := \'
         echo '  interpreter.c python-stdlib.c \'
@@ -1249,9 +1232,7 @@ build_python_for_abi ()
         echo '  python_module__ctypes \'
         echo '  python_module__multiprocessing \'
         echo '  python_module__socket \'
-        if [ -n "$OPENSSL_HOME" ]; then
-            echo '  python_module__ssl openssl_static opencrypto_static \'
-        fi
+        echo '  python_module__ssl openssl_static opencrypto_static \'
         echo '  python_module__sqlite3 sqlite3_static \'
         echo '  python_module_pyexpat \'
         echo '  python_module_select \'
@@ -1264,10 +1245,8 @@ build_python_for_abi ()
         echo "\$(call import-module,python/$PYTHON_ABI/frozen/_ctypes)"
         echo "\$(call import-module,python/$PYTHON_ABI/frozen/_multiprocessing)"
         echo "\$(call import-module,python/$PYTHON_ABI/frozen/_socket)"
-        if [ -n "$OPENSSL_HOME" ]; then
-            echo "\$(call import-module,python/$PYTHON_ABI/frozen/_ssl)"
-            echo "\$(call import-module,$OPENSSL_HOME)"
-        fi
+        echo "\$(call import-module,python/$PYTHON_ABI/frozen/_ssl)"
+        echo "\$(call import-module,openssl/$DEFAULT_OPENSSL_VERSION)"
         echo "\$(call import-module,python/$PYTHON_ABI/frozen/_sqlite3)"
         echo "\$(call import-module,sqlite/3)"
         echo "\$(call import-module,python/$PYTHON_ABI/frozen/pyexpat)"
@@ -1337,7 +1316,7 @@ if [ -n "$PACKAGE_DIR" ]; then
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         dump "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"
-        fail_panic "Can't package python $ABI libs"
+        fail_panic "Can't package python $ABI binaries"
         cache_package "$PACKAGE_DIR" "$PACKAGE_NAME"
     done
 fi

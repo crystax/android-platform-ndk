@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2016 CrystaX.
+# Copyright (c) 2011-2015 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
