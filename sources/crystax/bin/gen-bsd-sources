@@ -78,6 +78,7 @@ class Generator
             @public = lambda do
                 return false unless header?
                 return true if path == "contrib/bzip2/bzlib.h"
+                return true if path == "contrib/libc-vis/vis.h"
                 return true if path == "lib/msun/src/math.h"
                 return true if path == "lib/msun/src/fenv-softfloat.h"
                 return true if path =~ /^(include|sys)\b/
@@ -89,6 +90,7 @@ class Generator
         def dstpath
             @dstpath = lambda do
                 return "bzlib.h" if header? && path == "contrib/bzip2/bzlib.h"
+                return "vis.h"   if header? && path == "contrib/libc-vis/vis.h"
                 return "math.h"  if header? && path == "lib/msun/src/math.h"
                 return File.join("crystax/freebsd", path) if header? && path == "lib/msun/src/fenv-softfloat.h"
                 if header? && !sarch.nil? && path.split('/')[0..2] == ['sys', sarch, 'include']
