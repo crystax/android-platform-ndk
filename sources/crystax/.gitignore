@@ -109,6 +109,7 @@ include/sys/sysconf.h
 include/sys/sysinfo.h
 include/sys/time.h
 include/sys/timerfd.h
+include/sys/uio.h
 include/sys/xattr.h
 include/sysexits.h
 include/tar.h

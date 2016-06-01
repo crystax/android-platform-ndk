@@ -228,6 +228,7 @@ g.add "libc/include/sys/sysconf.h",                     public: true
 g.add "libc/include/sys/sysinfo.h",                     public: true
 g.add "libc/include/sys/time.h",                        public: true
 g.add "libc/include/sys/timerfd.h",                     public: true
+g.add "libc/include/sys/uio.h",                         public: true
 g.add "libc/include/sys/xattr.h",                       public: true
 g.add "libc/include/unistd.h",                          public: true
 g.add "libc/kernel/uapi/asm-arm/asm/auxvec.h",          public: true
