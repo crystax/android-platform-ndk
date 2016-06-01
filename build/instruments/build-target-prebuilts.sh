@@ -257,6 +257,10 @@ dump "Building $ABIS Info-UNZIP..."
 run $BUILDTOOLS/build-target-info-unzip.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/info-unzip
 fail_panic "Could not build Info-UNZIP"
 
+dump "Building $ABIS OpenSSH..."
+run $BUILDTOOLS/build-target-openssh.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/openssh
+fail_panic "Could not build OpenSSH"
+
 dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
 

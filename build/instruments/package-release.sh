@@ -576,6 +576,10 @@ if [ -z "$PREBUILT_NDK" ]; then
         unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
         unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"
     done
+
+    for ABI in $ABIS; do
+        unpack_prebuilt android-openssh-$ABI "$REFERENCE"
+    done
 fi
 
 RELEASE_VERSION=${RELEASE_PREFIX%%-b*}
