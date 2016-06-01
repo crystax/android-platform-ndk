@@ -41,6 +41,8 @@
 #undef gethostbyaddr_r
 #undef setnetgrent
 
+#include <getrrsetbyname.h>
+
 __BEGIN_DECLS
 
 struct hostent * gethostbyaddr(const void *addr, socklen_t len, int af);
