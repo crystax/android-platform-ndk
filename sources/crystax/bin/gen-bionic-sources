@@ -1478,6 +1478,9 @@ g.add "libc/arch-x86/syscalls/__ppoll.S"
 g.add "libc/arch-x86_64/syscalls/__ppoll.S"
 g.add "libc/bionic/poll.cpp"
 
+# __poll_chk
+g.add "libc/bionic/__poll_chk.cpp"
+
 # posix_madvise
 g.add "libc/bionic/posix_madvise.cpp"
 
