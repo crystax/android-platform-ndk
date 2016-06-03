@@ -23,8 +23,20 @@ case $HOST_ARCH in
         exit 1
 esac
 
+SED=
+for sed in gsed sed; do
+    $sed --version 2>/dev/null | head -n 1 | grep -q GNU || continue
+    SED=$sed
+    break
+done
+if [ -z "$SED" ]; then
+    error "No GNU sed found!"
+    exit 1
+fi
+
 NDK=$(cd $(dirname $0)/.. && pwd)
 DEPLOY_ROOT=/data/local/tmp/posix
+SSHD_PORT=10022
 ANDROID_SERIAL=
 
 usage()
@@ -38,6 +50,9 @@ usage()
     echo "  -s,--device-id=ID          Device ID to deploy to [autodetect]"
     echo "  -r,--root=PATH             Deploy to this root folder on device"
     echo "                             [$DEPLOY_ROOT]"
+    echo "  -p,--sshd-port=PORT        Port for SSH to listen for [$SSHD_PORT]"
+    echo "  -n,--ndk=PATH              Path to the NDK"
+    echo "                             [$NDK]"
     echo ""
 }
 
@@ -64,6 +79,20 @@ while [ -n "$1" ]; do
         --root=*)
             DEPLOY_ROOT="$argval"
             ;;
+        -p|--sshd-port)
+            SSHD_PORT="$1"
+            shift
+            ;;
+        --sshd-port=*)
+            SSHD_PORT="$argval"
+            ;;
+        -n|--ndk)
+            NDK="$1"
+            shift
+            ;;
+        --ndk=*)
+            NDK="$argval"
+            ;;
         -*)
             error "Unknown option: '$arg'"
             usage 1>&2
@@ -74,6 +103,18 @@ while [ -n "$1" ]; do
             exit 1
     esac
 done
+
+if [ -z "$NDK" -o -z "$DEPLOY_ROOT" -o -z "$SSHD_PORT" ]; then
+    usage 1>&2
+    exit 1
+fi
+
+echo $SSHD_PORT | grep -q '^[1-9][0-9]*$'
+if [ $? -ne 0 ]; then
+    error "Wrong SSHD port value: '$SSHD_PORT'"
+    usage 1>&2
+    exit 1
+fi
 
 if [ -z "$ANDROID_SERIAL" ]; then
     ANDROID_SERIAL=$(adb devices | grep '^[^\s][^\s]*\s\s*device$' | head -n 1 | cut -f 1)
@@ -93,7 +134,7 @@ run()
 
 device_abi()
 {
-    adb shell getprop ro.product.cpu.abi | sed 's,[[:cntrl:]]*,,g'
+    adb shell getprop ro.product.cpu.abi | $SED 's,[[:cntrl:]]*,,g'
 }
 
 adb_shell()
@@ -104,6 +145,29 @@ adb_shell()
 adb_push()
 {
     run adb push "$@"
+}
+
+set_sshd_config_value()
+{
+    local file=$1
+    local name=$2
+    local value=$3
+
+    if [ -z "$file" -o -z "$name" -o -z "$value" ]; then
+        error "Usage: set_sshd_config_value file name value"
+        return 1
+    fi
+
+    local warnstr='# deploy-posix-environment customized settings:'
+    grep -q "^$warnstr$" $file
+    if [ $? -ne 0 ]; then
+        echo "" >>$file || return 1
+        echo "$warnstr" >>$file || return 1
+    fi
+
+    $SED -i "s|^\($name\>.*\)$|#\1|g" $file || return 1
+    echo "$name $value" >>$file || return 1
+    return 0
 }
 
 DEVABI=$(device_abi)
@@ -170,6 +234,16 @@ if [ ! -x "$STRIP" ]; then
     exit 1
 fi
 
+OPENSSH_ROOT="$NDK/packages/openssh"
+
+OPENSSH_VERSION=$(ls -1 $OPENSSH_ROOT/ | sort | uniq | tail -n 1)
+if [ -z "$OPENSSH_VERSION" ]; then
+    error "Can't detect OpenSSH version"
+    exit 1
+fi
+
+OPENSSH_ROOT="$OPENSSH_ROOT/$OPENSSH_VERSION/$ABI"
+
 BINS="        \
     bash      \
     coreutils \
@@ -180,14 +254,14 @@ BINS="        \
     zip       \
     "
 
-RTAG=$(uuidgen | sed 's,-,,g')
+RTAG=$(uuidgen | $SED 's,-,,g')
 
 trap "rm -f /tmp/*.$RTAG" EXIT INT QUIT ABRT TERM
 
-adb_shell mkdir -p $DEPLOY_ROOT/bin/ || exit 1
-adb_shell chmod 0755 $DEPLOY_ROOT/bin/ || exit 1
-adb_shell mkdir -p $DEPLOY_ROOT/lib/ || exit 1
-adb_shell chmod 0755 $DEPLOY_ROOT/lib/ || exit 1
+for d in bin etc lib libexec run sbin; do
+    adb_shell mkdir -p $DEPLOY_ROOT/$d/ || exit 1
+    adb_shell chmod 0755 $DEPLOY_ROOT/$d/ || exit 1
+done
 adb_shell mkdir -p $DEPLOY_ROOT/tmp/ || exit 1
 adb_shell chmod 0777 $DEPLOY_ROOT/tmp/ || exit 1
 
@@ -201,10 +275,47 @@ rm -f $LIBCRYSTAX_STRIPPED
 for f in $BINS; do
     STRIPPED=/tmp/$f.$RTAG
     run cp -f $NDK/prebuilt/android-$DEVARCH/posix/bin/$f $STRIPPED || exit 1
-    $STRIP $STRIPPED || exit 1
+    run $STRIP $STRIPPED || exit 1
     adb_push $STRIPPED $DEPLOY_ROOT/bin/$f || exit 1
     adb_shell chmod 0755 $DEPLOY_ROOT/bin/$f || exit 1
     rm -f $STRIPPED
+done
+
+for f in $OPENSSH_ROOT/bin/* $OPENSSH_ROOT/sbin/* $OPENSSH_ROOT/libexec/*; do
+    STRIPPED=/tmp/$(basename $f).$RTAG
+    run cp -f $f $STRIPPED || exit 1
+    run $STRIP $STRIPPED || exit 1
+    dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
+    adb_shell mkdir -p $(dirname $dstf) || exit 1
+    adb_push $STRIPPED $dstf || exit 1
+    adb_shell chmod 0755 $dstf || exit 1
+    rm -f $STRIPPED
+done
+
+for f in $OPENSSH_ROOT/etc/*; do
+    srcf=/tmp/$(basename $f).$RTAG
+    dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
+    cat $f | $SED "s,\$DEPLOY_ROOT,$DEPLOY_ROOT,g" >$srcf || exit 1
+    case $f in
+        */sshd_config)
+            set_sshd_config_value $srcf Port $SSHD_PORT || exit 1
+            set_sshd_config_value $srcf PasswordAuthentication no || exit 1
+            set_sshd_config_value $srcf UsePrivilegeSeparation no || exit 1
+            set_sshd_config_value $srcf UseDNS no || exit 1
+            set_sshd_config_value $srcf AllowAgentForwarding yes || exit 1
+            set_sshd_config_value $srcf PermitTTY yes || exit 1
+            set_sshd_config_value $srcf AuthorizedKeysFile "$DEPLOY_ROOT/.ssh/authorized_keys" || exit 1
+            set_sshd_config_value $srcf PidFile "$DEPLOY_ROOT/run/sshd.pid" || exit 1
+            #set_sshd_config_value $srcf LogLevel DEBUG3 || exit 1
+            for t in rsa dsa ecdsa ed25519; do
+                HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
+                echo "HostKey $HOST_KEY" >>$srcf || exit 1
+            done
+    esac
+    adb_shell mkdir -p $(dirname $dstf) || exit 1
+    adb_push $srcf $dstf || exit 1
+    adb_shell chmod 0644 $dstf || exit 1
+    rm -f $srcf
 done
 
 MKCOREUTILS=/tmp/mkcoreutils.$RTAG
@@ -219,6 +330,12 @@ adb_shell rm -f $DEPLOY_ROOT/mkcoreutils
 
 BASH_PROFILE=/tmp/bash_profile.$RTAG
 cat >$BASH_PROFILE <<EOF
+if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
+    echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
+    echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
+    exit 1
+fi
+
 umask 0022
 
 alias mv='mv -i'
@@ -226,11 +343,8 @@ alias cp='cp -i'
 alias ll='ls --color=auto -FAl'
 alias tf='tail -F'
 
-if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
-    echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
-    echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
-    exit 1
-fi
+SHELL=\$HOME/bin/bash
+export SHELL
 
 TMP=\$HOME/tmp
 TMPDIR=\$TMP
@@ -241,7 +355,18 @@ export LD_LIBRARY_PATH
 
 PATH=\$HOME/bin:\$PATH
 export PATH
+
+cd \$HOME
 EOF
 
 adb_push $BASH_PROFILE $DEPLOY_ROOT/.bash_profile
 rm -f $BASH_PROFILE
+
+BASH="HOME=$DEPLOY_ROOT $DEPLOY_ROOT/bin/bash --login"
+for t in rsa dsa ecdsa ed25519; do
+    HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
+    adb_shell "$BASH -c 'test -f $HOST_KEY || $DEPLOY_ROOT/bin/ssh-keygen -t $t -N \"\" -f $HOST_KEY'" || exit 1
+done
+
+adb_shell "$BASH -c 'kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null'"
+adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -f $DEPLOY_ROOT/etc/sshd_config'"

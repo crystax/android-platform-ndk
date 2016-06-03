@@ -135,6 +135,12 @@ build_openssh_for_abi ()
     run rm -Rf $INSTALLDIR/share && \
     run rm -Rf $INSTALLDIR/var
     fail_panic "Can't install $ABI OpenSSH"
+
+    local f
+    for f in ssh_config sshd_config; do
+        run sed -i "s,$OUTDIR/install,\$DEPLOY_ROOT,g" $INSTALLDIR/etc/$f
+        fail_panic "Can't process $ABI OpenSSH config file '$f'"
+    done
 }
 
 BUILT_ABIS=""
