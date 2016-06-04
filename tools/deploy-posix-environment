@@ -244,6 +244,15 @@ fi
 
 OPENSSH_ROOT="$OPENSSH_ROOT/$OPENSSH_VERSION/$ABI"
 
+GNU_WHICH_ROOT="$NDK/packages/gnu-which"
+GNU_WHICH_VERSION=$(ls -1 $GNU_WHICH_ROOT/ | sort | uniq | tail -n 1)
+if [ -z "$GNU_WHICH_VERSION" ]; then
+    error "Can't detect GNU which version"
+    exit 1
+fi
+
+GNU_WHICH_ROOT="$GNU_WHICH_ROOT/$GNU_WHICH_VERSION/$ABI"
+
 BINS="        \
     bash      \
     coreutils \
@@ -278,6 +287,17 @@ for f in $BINS; do
     run $STRIP $STRIPPED || exit 1
     adb_push $STRIPPED $DEPLOY_ROOT/bin/$f || exit 1
     adb_shell chmod 0755 $DEPLOY_ROOT/bin/$f || exit 1
+    rm -f $STRIPPED
+done
+
+for f in $GNU_WHICH_ROOT/*; do
+    STRIPPED=/tmp/$(basename $f).$RTAG
+    run cp -f $f $STRIPPED || exit 1
+    run $STRIP $STRIPPED || exit 1
+    dstf=$DEPLOY_ROOT/bin/$(basename $f)
+    adb_shell mkdir -p $(dirname $dstf) || exit 1
+    adb_push $STRIPPED $dstf || exit 1
+    adb_shell chmod 0755 $dstf || exit 1
     rm -f $STRIPPED
 done
 
