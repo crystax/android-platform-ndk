@@ -305,12 +305,12 @@ for f in $OPENSSH_ROOT/etc/*; do
             set_sshd_config_value $srcf AllowAgentForwarding yes || exit 1
             set_sshd_config_value $srcf PermitTTY yes || exit 1
             set_sshd_config_value $srcf AuthorizedKeysFile "$DEPLOY_ROOT/.ssh/authorized_keys" || exit 1
-            set_sshd_config_value $srcf PidFile "$DEPLOY_ROOT/run/sshd.pid" || exit 1
+            #set_sshd_config_value $srcf PidFile "$DEPLOY_ROOT/run/sshd.pid" || exit 1
             #set_sshd_config_value $srcf LogLevel DEBUG3 || exit 1
-            for t in rsa dsa ecdsa ed25519; do
-                HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
-                echo "HostKey $HOST_KEY" >>$srcf || exit 1
-            done
+            #for t in rsa dsa ecdsa ed25519; do
+            #    HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
+            #    echo "HostKey $HOST_KEY" >>$srcf || exit 1
+            #done
     esac
     adb_shell mkdir -p $(dirname $dstf) || exit 1
     adb_push $srcf $dstf || exit 1
@@ -369,4 +369,4 @@ for t in rsa dsa ecdsa ed25519; do
 done
 
 adb_shell "$BASH -c 'kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null'"
-adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -f $DEPLOY_ROOT/etc/sshd_config'"
+adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -x $DEPLOY_ROOT'"
