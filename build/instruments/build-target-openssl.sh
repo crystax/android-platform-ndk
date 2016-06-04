@@ -379,11 +379,13 @@ build_openssl_for_abi ()
     log "Install OpenSSL binaries into $OPENSSL_DSTDIR"
     run rm -Rf $OPENSSL_DSTDIR/libs/$ABI && \
     run mkdir -p $OPENSSL_DSTDIR/libs/$ABI && \
-    run cp -p $BUILDDIR/install/pkg/lib/libcrypto.a \
+    run cp -p \
+      $BUILDDIR/install/pkg/lib/libcrypto.a \
       $BUILDDIR/install/pkg/lib/libcrypto.so \
       $BUILDDIR/install/pkg/lib/libssl.a \
       $BUILDDIR/install/pkg/lib/libssl.so \
-      $OPENSSL_DSTDIR/libs/$ABI
+      $OPENSSL_DSTDIR/libs/$ABI && \
+    run chmod 0644 $OPENSSL_DSTDIR/libs/$ABI/lib*
     fail_panic "Can't install OpenSSL binaries"
 
     log "Build openssl tool for $ABI"
