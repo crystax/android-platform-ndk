@@ -520,24 +520,15 @@ for ABI in $ABIS; do
     done
     unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
     unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
-done
-
-for ABI in $ABIS; do
-    if [ "$ABI" = "armeabi" -o "$ABI" = "armeabi-v7a" ]; then
-        continue
-    fi
 
     unpack_prebuilt android-bash-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-coreutils-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-grep-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-sed-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-tar-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
     unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
     unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"
-done
-
-for ABI in $ABIS; do
-    unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
     unpack_prebuilt android-openssh-$ABI "$REFERENCE"
 done
 

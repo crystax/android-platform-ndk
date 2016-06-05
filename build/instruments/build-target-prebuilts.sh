@@ -234,7 +234,7 @@ run $BUILDTOOLS/build-target-bash.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/bash
 fail_panic "Could not build Bash"
 
 dump "Building $ABIS GNU coreutils..."
-run $BUILDTOOLS/build-target-coreutils.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/coreutils
+run $BUILDTOOLS/build-target-gnu-coreutils.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/coreutils
 fail_panic "Could not build GNU coreutils"
 
 dump "Building $ABIS GNU grep..."

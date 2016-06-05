@@ -42,7 +42,7 @@ By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
 The output will be placed in appropriate sub-directories of
-<ndk>/prebuilt/android-\$ARCH, but you can override this with the --out-dir=<path>
+<ndk>/packages/info-unzip/\$VERSION, but you can override this with the --out-dir=<path>
 
 option.
 "
@@ -57,17 +57,7 @@ BUILD_DIR=
 OPTION_BUILD_DIR=
 register_var_option "--build-dir=<path>" OPTION_BUILD_DIR "Specify temporary build dir"
 
-ABIS=""
-for ABI in $(commas_to_spaces $PREBUILT_ABIS); do
-    case $ABI in
-        armeabi*)
-            ABIS="$ABIS armeabi-v7a-hard"
-            ;;
-        *)
-            ABIS="$ABIS $ABI"
-    esac
-done
-ABIS=$(spaces_to_commas $(echo $ABIS | tr ' ' '\n' | sort | uniq))
+ABIS=$(spaces_to_commas $PREBUILT_ABIS)
 register_var_option "--abis=<list>" ABIS "Specify list of target ABIs"
 
 register_try64_option
@@ -86,7 +76,15 @@ if [ ! -d "$SRCDIR" ]; then
     exit 1
 fi
 
-ABIS=$(commas_to_spaces $ABIS | tr ' ' '\n' | sed 's,^armeabi.*$,armeabi-v7a-hard,' | sort | uniq)
+dump_n "Detecting Info-UNZIP version... "
+INFO_UNZIP_VERSION=$(grep "^ *#define  *UZ_VER_STRING\>" $SRCDIR/unzvers.h 2>/dev/null | sed 's,^ *#define  *UZ_VER_STRING  *"\([^"]*\)".*$,\1,')
+if [ -z "$INFO_UNZIP_VERSION" ]; then
+    echo "*** ERROR: Can't detect Info-UNZIP version!" 1>&2
+    exit 1
+fi
+dump "$INFO_UNZIP_VERSION"
+
+ABIS=$(commas_to_spaces $ABIS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-info-unzip
@@ -103,6 +101,7 @@ build_info_unzip_for_abi ()
 {
     local ABI=$1
     local OUTDIR="$2"
+    local INSTALLDIR="$NDK/packages/info-unzip/$INFO_UNZIP_VERSION/$ABI"
 
     dump "Building $ABI Info-UNZIP"
 
@@ -115,22 +114,10 @@ build_info_unzip_for_abi ()
 
     fail_panic "Couldn't build $ABI Info-UNZIP"
 
-    local ARCH
-    case $ABI in
-        armeabi*)
-            ARCH=arm
-            ;;
-        arm64*)
-            ARCH=arm64
-            ;;
-        *)
-            ARCH=$ABI
-    esac
-
-    run mkdir -p $NDK_DIR/prebuilt/android-$ARCH/posix/bin
+    run mkdir -p $INSTALLDIR/
     fail_panic "Can't create $ABI install folder"
 
-    run cp -f $OUTDIR/install/bin/unzip $NDK_DIR/prebuilt/android-$ARCH/posix/bin/
+    run cp -f $OUTDIR/install/bin/unzip $INSTALLDIR/
     fail_panic "Can't install $ABI Info-UNZIP"
 }
 
@@ -155,17 +142,7 @@ done
 # If needed, package files into tarballs
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
-        case $ABI in
-            armeabi*)
-                ARCH=arm
-                ;;
-            arm64*)
-                ARCH=arm64
-                ;;
-            *)
-                ARCH=$ABI
-        esac
-        FILES="prebuilt/android-$ARCH/posix/bin/unzip"
+        FILES="packages/info-unzip/$INFO_UNZIP_VERSION/$ABI/unzip"
         PACKAGE_NAME="android-info-unzip-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"

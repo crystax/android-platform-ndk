@@ -234,34 +234,19 @@ if [ ! -x "$STRIP" ]; then
     exit 1
 fi
 
-OPENSSH_ROOT="$NDK/packages/openssh"
+detect_package_root()
+{
+    local NAME=$1
 
-OPENSSH_VERSION=$(ls -1 $OPENSSH_ROOT/ | sort | uniq | tail -n 1)
-if [ -z "$OPENSSH_VERSION" ]; then
-    error "Can't detect OpenSSH version"
-    exit 1
-fi
+    local ROOT="$NDK/packages/$NAME"
+    local VERSION=$(ls -1 $ROOT/ | sort | uniq | tail -n 1)
+    if [ -z "$VERSION" ]; then
+        error "Can't detect version of package '$NAME'"
+        return 1
+    fi
 
-OPENSSH_ROOT="$OPENSSH_ROOT/$OPENSSH_VERSION/$ABI"
-
-GNU_WHICH_ROOT="$NDK/packages/gnu-which"
-GNU_WHICH_VERSION=$(ls -1 $GNU_WHICH_ROOT/ | sort | uniq | tail -n 1)
-if [ -z "$GNU_WHICH_VERSION" ]; then
-    error "Can't detect GNU which version"
-    exit 1
-fi
-
-GNU_WHICH_ROOT="$GNU_WHICH_ROOT/$GNU_WHICH_VERSION/$ABI"
-
-BINS="        \
-    bash      \
-    coreutils \
-    grep      \
-    sed       \
-    tar       \
-    unzip     \
-    zip       \
-    "
+    echo "$ROOT/$VERSION/$ABI"
+}
 
 RTAG=$(uuidgen | $SED 's,-,,g')
 
@@ -281,25 +266,32 @@ adb_push $LIBCRYSTAX_STRIPPED $DEPLOY_ROOT/lib/libcrystax.so || exit 1
 adb_shell chmod 0644 $DEPLOY_ROOT/lib/libcrystax.so || exit 1
 rm -f $LIBCRYSTAX_STRIPPED
 
-for f in $BINS; do
-    STRIPPED=/tmp/$f.$RTAG
-    run cp -f $NDK/prebuilt/android-$DEVARCH/posix/bin/$f $STRIPPED || exit 1
-    run $STRIP $STRIPPED || exit 1
-    adb_push $STRIPPED $DEPLOY_ROOT/bin/$f || exit 1
-    adb_shell chmod 0755 $DEPLOY_ROOT/bin/$f || exit 1
-    rm -f $STRIPPED
+for p in \
+        bash \
+        gnu-coreutils \
+        gnu-grep \
+        gnu-sed \
+        gnu-tar \
+        gnu-which \
+        info-zip \
+        info-unzip \
+        ; do
+    PACKAGE_ROOT=$(detect_package_root $p)
+    test -n "$PACKAGE_ROOT" || exit 1
+    for f in $PACKAGE_ROOT/*; do
+        STRIPPED=/tmp/$(basename $f).$RTAG
+        run cp -f $f $STRIPPED || exit 1
+        run $STRIP $STRIPPED || exit 1
+        dstf=$DEPLOY_ROOT/bin/$(basename $f)
+        adb_shell mkdir -p $(dirname $dstf) || exit 1
+        adb_push $STRIPPED $dstf || exit 1
+        adb_shell chmod 0755 $dstf || exit 1
+        rm -f $STRIPPED
+    done
 done
 
-for f in $GNU_WHICH_ROOT/*; do
-    STRIPPED=/tmp/$(basename $f).$RTAG
-    run cp -f $f $STRIPPED || exit 1
-    run $STRIP $STRIPPED || exit 1
-    dstf=$DEPLOY_ROOT/bin/$(basename $f)
-    adb_shell mkdir -p $(dirname $dstf) || exit 1
-    adb_push $STRIPPED $dstf || exit 1
-    adb_shell chmod 0755 $dstf || exit 1
-    rm -f $STRIPPED
-done
+OPENSSH_ROOT=$(detect_package_root openssh)
+test -n "$OPENSSH_ROOT" || exit 1
 
 for f in $OPENSSH_ROOT/bin/* $OPENSSH_ROOT/sbin/* $OPENSSH_ROOT/libexec/*; do
     STRIPPED=/tmp/$(basename $f).$RTAG
