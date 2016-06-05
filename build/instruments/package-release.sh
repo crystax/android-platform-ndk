@@ -38,10 +38,6 @@ register_var_option "--release=<name>" RELEASE "Specify release name"
 PREBUILT_DIR=
 register_var_option "--prebuilt-dir=<path>" PREBUILT_DIR "Specify prebuilt directory"
 
-# a prebuilt NDK archive (.zip file). empty means don't use any
-PREBUILT_NDK=
-register_var_option "--prebuilt-ndk=<file>" PREBUILT_NDK "Specify prebuilt ndk package"
-
 # the list of supported host development systems
 SYSTEMS=$DEFAULT_SYSTEMS
 register_var_option "--systems=<list>" SYSTEMS "Specify host systems"
@@ -180,13 +176,8 @@ done
 
 # Check the prebuilt path
 #
-if [ -n "$PREBUILT_NDK" -a -n "$PREBUILT_DIR" ] ; then
-    echo "ERROR: You cannot use both --prebuilt-ndk and --prebuilt-dir at the same time."
-    exit 1
-fi
-
-if [ -z "$PREBUILT_DIR" -a -z "$PREBUILT_NDK" ] ; then
-    echo "ERROR: You must use one of --prebuilt-dir or --prebuilt-ndk. See --help for details."
+if [ -z "$PREBUILT_DIR" ] ; then
+    echo "ERROR: You haven't specified --prebuilt-dir. See --help for details."
     exit 1
 fi
 
@@ -213,16 +204,6 @@ if [ -n "$PREBUILT_DIR" ] ; then
         echo "ERROR: Your systems list is empty, use --systems=LIST to specify a different one."
         exit 1
     fi
-else
-    if [ ! -f "$PREBUILT_NDK" ] ; then
-        echo "ERROR: the --prebuilt-ndk argument is not a file: $PREBUILT_NDK"
-        exit 1
-    fi
-    # Check that the name ends with the proper host tag
-    HOST_NDK_SUFFIX="$HOST_TAG.zip"
-    echo "$PREBUILT_NDK" | grep -q "$HOST_NDK_SUFFIX"
-    fail_panic "The name of the prebuilt NDK must end in $HOST_NDK_SUFFIX"
-    SYSTEMS=$HOST_TAG
 fi
 
 echo "Architectures: $ARCHS"
@@ -386,16 +367,6 @@ pack_release ()
 
 rm -rf $TMPDIR && mkdir -p $TMPDIR
 
-# Unpack the previous NDK package if any
-if [ -n "$PREBUILT_NDK" ] ; then
-    echo "Unpacking prebuilt toolchains from $PREBUILT_NDK"
-    UNZIP_DIR=$TMPDIR/prev-ndk
-    rm -rf $UNZIP_DIR && mkdir -p $UNZIP_DIR
-    fail_panic "Could not create temporary directory: $UNZIP_DIR"
-    unpack_archive "$PREBUILT_NDK" "$UNZIP_DIR"
-    fail_panic "Could not unzip NDK package $PREBUILT_NDK"
-fi
-
 # first create the reference ndk directory from the git reference
 echo "Creating reference from source files"
 REFERENCE=$TMPDIR/reference && rm -rf $REFERENCE/* &&
@@ -448,24 +419,11 @@ rm -Rf "$LIBPWQ_TESTS_DSTDIR" && mkdir -p "$LIBPWQ_TESTS_DSTDIR" && rsync -aL "$
 fail_panic "Could not copy libpwq tests sources"
 
 # Copy platform and sample files
-if [ "$PREBUILT_DIR" ]; then
-    echo "Unpacking platform files" &&
-    unpack_archive "$PREBUILT_DIR/platforms.tar.xz" "$REFERENCE" &&
-    echo "Unpacking samples files" &&
-    unpack_archive "$PREBUILT_DIR/samples.tar.xz" "$REFERENCE"
-    fail_panic "Could not unpack platform and sample files"
-elif [ "$PREBUILT_NDK" ]; then
-    echo "ERROR: NOT IMPLEMENTED!"
-    exit 1
-else
-    # copy platform and sample files
-    echo "Copying platform and sample files"
-    FLAGS="--src-dir=$DEVELOPMENT_ROOT --dst-dir=$REFERENCE"
-    FLAGS="$FLAGS --platform=$(spaces_to_commas $PLATFORMS)"
-    FLAGS="$FLAGS --arch=$(spaces_to_commas $ARCHS)"
-    $NDK_ROOT_DIR/build/instruments/gen-platforms.sh $FLAGS
-    fail_panic "Could not copy platform files. Aborting."
-fi
+echo "Unpacking platform files" &&
+unpack_archive "$PREBUILT_DIR/platforms.tar.xz" "$REFERENCE" &&
+echo "Unpacking samples files" &&
+unpack_archive "$PREBUILT_DIR/samples.tar.xz" "$REFERENCE"
+fail_panic "Could not unpack platform and sample files"
 
 # Remove the source for host tools to make the final package smaller
 rm -rf $REFERENCE/sources/host-tools
@@ -483,105 +441,105 @@ if [ -d $DEVELOPMENT_ROOT/sources ] ; then
 fi
 
 # Unpack prebuilt Objective-C, C++ runtimes headers and libraries
-if [ -z "$PREBUILT_NDK" ]; then
-    # Unpack gdbserver
-    for ARCH in $ARCHS; do
-        unpack_prebuilt $ARCH-gdbserver "$REFERENCE"
-    done
-    # Unpack Objective-C, C++ runtimes
-    for VERSION in $GCC_VERSION_LIST; do
-        unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
-    done
-    unpack_prebuilt gnustep-objc2-headers "$REFERENCE"
+#
 
-    unpack_prebuilt sqlite3-build-files "$REFERENCE"
-    unpack_prebuilt sqlite3-headers "$REFERENCE"
+# Unpack gdbserver
+for ARCH in $ARCHS; do
+    unpack_prebuilt $ARCH-gdbserver "$REFERENCE"
+done
+# Unpack Objective-C, C++ runtimes
+for VERSION in $GCC_VERSION_LIST; do
+    unpack_prebuilt gnu-libstdc++-headers-$VERSION "$REFERENCE"
+done
+unpack_prebuilt gnustep-objc2-headers "$REFERENCE"
+
+unpack_prebuilt sqlite3-build-files "$REFERENCE"
+unpack_prebuilt sqlite3-headers "$REFERENCE"
+for VERSION in $OPENSSL_VERSIONS; do
+    unpack_prebuilt openssl-${VERSION}-headers "$REFERENCE"
+done
+for VERSION in $PYTHON_VERSIONS; do
+    unpack_prebuilt python${VERSION}-headers "$REFERENCE"
+done
+for VERSION in $LIBPNG_VERSIONS; do
+    unpack_prebuilt libpng-$VERSION-headers "$REFERENCE"
+done
+for VERSION in $LIBJPEG_VERSIONS; do
+    unpack_prebuilt libjpeg-$VERSION-headers "$REFERENCE"
+done
+for VERSION in $LIBJPEGTURBO_VERSIONS; do
+    unpack_prebuilt libjpeg-turbo-$VERSION-headers "$REFERENCE"
+done
+for VERSION in $LIBTIFF_VERSIONS; do
+    unpack_prebuilt libtiff-$VERSION-headers "$REFERENCE"
+done
+for VERSION in $ICU_VERSIONS; do
+    unpack_prebuilt icu-$VERSION-build-files "$REFERENCE"
+    unpack_prebuilt icu-$VERSION-headers "$REFERENCE"
+done
+for VERSION in $BOOST_VERSIONS; do
+    unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
+    unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
+done
+for ABI in $ABIS; do
+    unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
+    for VERSION in $LLVM_VERSION_LIST; do
+        unpack_prebuilt libcxx-libs-$VERSION-$ABI-g "$REFERENCE"
+    done
+    for VERSION in $GCC_VERSION_LIST; do
+        unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
+    done
+    unpack_prebuilt gnustep-objc2-libs-$ABI "$REFERENCE"
+    unpack_prebuilt cocotron-$ABI "$REFERENCE"
+    unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
     for VERSION in $OPENSSL_VERSIONS; do
-        unpack_prebuilt openssl-${VERSION}-headers "$REFERENCE"
+        unpack_prebuilt openssl-${VERSION}-binaries-$ABI "$REFERENCE"
     done
     for VERSION in $PYTHON_VERSIONS; do
-        unpack_prebuilt python${VERSION}-headers "$REFERENCE"
+        unpack_prebuilt python${VERSION}-binaries-$ABI "$REFERENCE"
     done
     for VERSION in $LIBPNG_VERSIONS; do
-        unpack_prebuilt libpng-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
     done
     for VERSION in $LIBJPEG_VERSIONS; do
-        unpack_prebuilt libjpeg-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt libjpeg-$VERSION-libs-$ABI "$REFERENCE"
     done
     for VERSION in $LIBJPEGTURBO_VERSIONS; do
-        unpack_prebuilt libjpeg-turbo-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt libjpeg-turbo-$VERSION-libs-$ABI "$REFERENCE"
     done
     for VERSION in $LIBTIFF_VERSIONS; do
-        unpack_prebuilt libtiff-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt libtiff-$VERSION-libs-$ABI "$REFERENCE"
     done
     for VERSION in $ICU_VERSIONS; do
-        unpack_prebuilt icu-$VERSION-build-files "$REFERENCE"
-        unpack_prebuilt icu-$VERSION-headers "$REFERENCE"
+        unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
     done
     for VERSION in $BOOST_VERSIONS; do
-        unpack_prebuilt boost-$VERSION-build-files "$REFERENCE"
-        unpack_prebuilt boost-$VERSION-headers "$REFERENCE"
+        for STDLIB in $BOOST_CXX_STDLIBS; do
+            unpack_prebuilt boost-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
+        done
     done
-    for ABI in $ABIS; do
-        unpack_prebuilt crystax-libs-$ABI "$REFERENCE"
-        for VERSION in $LLVM_VERSION_LIST; do
-            unpack_prebuilt libcxx-libs-$VERSION-$ABI-g "$REFERENCE"
-        done
-        for VERSION in $GCC_VERSION_LIST; do
-            unpack_prebuilt gnu-libstdc++-libs-$VERSION-$ABI-g "$REFERENCE"
-        done
-        unpack_prebuilt gnustep-objc2-libs-$ABI "$REFERENCE"
-        unpack_prebuilt cocotron-$ABI "$REFERENCE"
-        unpack_prebuilt sqlite3-libs-$ABI "$REFERENCE"
-        for VERSION in $OPENSSL_VERSIONS; do
-            unpack_prebuilt openssl-${VERSION}-binaries-$ABI "$REFERENCE"
-        done
-        for VERSION in $PYTHON_VERSIONS; do
-            unpack_prebuilt python${VERSION}-binaries-$ABI "$REFERENCE"
-        done
-        for VERSION in $LIBPNG_VERSIONS; do
-            unpack_prebuilt libpng-$VERSION-libs-$ABI "$REFERENCE"
-        done
-        for VERSION in $LIBJPEG_VERSIONS; do
-            unpack_prebuilt libjpeg-$VERSION-libs-$ABI "$REFERENCE"
-        done
-        for VERSION in $LIBJPEGTURBO_VERSIONS; do
-            unpack_prebuilt libjpeg-turbo-$VERSION-libs-$ABI "$REFERENCE"
-        done
-        for VERSION in $LIBTIFF_VERSIONS; do
-            unpack_prebuilt libtiff-$VERSION-libs-$ABI "$REFERENCE"
-        done
-        for VERSION in $ICU_VERSIONS; do
-            unpack_prebuilt icu-$VERSION-libs-$ABI "$REFERENCE"
-        done
-        for VERSION in $BOOST_VERSIONS; do
-            for STDLIB in $BOOST_CXX_STDLIBS; do
-                unpack_prebuilt boost-$VERSION-libs-$STDLIB-$ABI "$REFERENCE"
-            done
-        done
-        unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
-        unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
-    done
+    unpack_prebuilt compiler-rt-libs-$ABI "$REFERENCE"
+    unpack_prebuilt libgccunwind-libs-$ABI "$REFERENCE"
+done
 
-    for ABI in $ABIS; do
-        if [ "$ABI" = "armeabi" -o "$ABI" = "armeabi-v7a" ]; then
-            continue
-        fi
+for ABI in $ABIS; do
+    if [ "$ABI" = "armeabi" -o "$ABI" = "armeabi-v7a" ]; then
+        continue
+    fi
 
-        unpack_prebuilt android-bash-$ABI "$REFERENCE"
-        unpack_prebuilt android-gnu-coreutils-$ABI "$REFERENCE"
-        unpack_prebuilt android-gnu-grep-$ABI "$REFERENCE"
-        unpack_prebuilt android-gnu-sed-$ABI "$REFERENCE"
-        unpack_prebuilt android-gnu-tar-$ABI "$REFERENCE"
-        unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
-        unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"
-    done
+    unpack_prebuilt android-bash-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-coreutils-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-grep-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-sed-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-tar-$ABI "$REFERENCE"
+    unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
+    unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"
+done
 
-    for ABI in $ABIS; do
-        unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
-        unpack_prebuilt android-openssh-$ABI "$REFERENCE"
-    done
-fi
+for ABI in $ABIS; do
+    unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
+    unpack_prebuilt android-openssh-$ABI "$REFERENCE"
+done
 
 RELEASE_VERSION=${RELEASE_PREFIX%%-b*}
 # create a release file named 'RELEASE.TXT' containing the release
@@ -629,170 +587,51 @@ for SYSTEM in $SYSTEMS; do
         echo "$RELEASE_VERSION (64-bit)" > $DSTDIR64/RELEASE.TXT
     fi
 
-    if [ "$PREBUILT_NDK" ]; then
-        cd $UNZIP_DIR/android-ndk-* && cp -rP toolchains/* $DSTDIR/toolchains/
-        fail_panic "Could not copy toolchain files from $PREBUILT_NDK"
+    # Unpack toolchains
+    for TC in $TOOLCHAINS; do
+        unpack_prebuilt $TC-$SYSTEM "$DSTDIR" "$DSTDIR64"
+        echo "Removing sysroot for $TC"
+        rm -rf $DSTDIR/toolchains/$TC/prebuilt/$SYSTEM/sysroot
+        rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
+        rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}-x86_64/sysroot
+    done
 
-        if [ -d "$DSTDIR/$CRYSTAX_SUBDIR" ]; then
-            CRYSTAX_ABIS=$PREBUILT_ABIS $UNKNOWN_ABIS
-            for CRYSTAX_ABI in $CRYSTAX_ABIS; do
-                copy_prebuilt "$CRYSTAX_SUBDIR/libs/$CRYSTAX_ABI" "$CRYSTAX_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find CrystaX source tree!"
+    # Unpack clang/llvm
+    for LLVM_VERSION in $LLVM_VERSION_LIST; do
+        # TODO(danalbert): Fix 64-bit Windows LLVM.
+        # This wrongly packages 32-bit Windows LLVM for 64-bit as well, but
+        # the real bug here is that we don't have a 64-bit Windows LLVM.
+        # http://b/22414702
+        LLVM_32=
+        if [ "$SYSTEM" = "windows" -a "$TRY64" = "yes" ]; then
+            LLVM_32=yes
         fi
+        unpack_prebuilt \
+            llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64" $LLVM_32
+    done
 
-        for VERSION in $LLVM_VERSION_LIST; do
-            for STL_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$LIBCXX_SUBDIR/$VERSION/libs/$STL_ABI" "$LIBCXX_SUBDIR/$VERSION/libs"
-            done
-        done
+    rm -rf $DSTDIR/toolchains/*l
+    rm -rf $DSTDIR64/toolchains/*l
 
-        for VERSION in $GCC_VERSION_LIST; do
-            copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/include" "$GNUSTL_SUBDIR/$VERSION/"
-            for STL_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$GNUSTL_SUBDIR/$VERSION/libs/$STL_ABI" "$GNUSTL_SUBDIR/$VERSION/libs"
-            done
-        done
+    # Unpack renderscript tools; http://b/22377128.
+    #echo "WARNING: no renderscript-$SYSTEM tools! http://b/22377128"
+    unpack_prebuilt renderscript-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
-        copy_prebuilt "$GNUSTEP_OBJC2_SUBDIR/include" "$GNUSTEP_OBJC2_SUBDIR/"
-        for OBJC2_ABI in $PREBUILT_ABIS; do
-            copy_prebuilt "$GNUSTEP_OBJC2_SUBDIR/libs/$OBJC2_ABI" "$GNUSTEP_OBJC2_SUBDIR/libs"
-        done
+    # Unpack prebuilt ndk-stack and other host tools
+    unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
+    unpack_prebuilt ndk-depends-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
+    unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
+    unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
+    unpack_prebuilt ndk-python-$SYSTEM "$DSTDIR" "$DSTDIR64"
+    unpack_prebuilt ndk-yasm-$SYSTEM "$DSTDIR" "$DSTDIR64"
 
-        for COCOTRON_ABI in $PREBUILT_ABIS; do
-            copy_prebuilt "$COCOTRON_SUBDIR/frameworks/$COCOTRON_ABI" "$COCOTRON_SUBDIR/frameworks"
-        done
-
-        copy_prebuilt "$SQLITE3_SUBDIR/include" "$SQLITE3_SUBDIR/"
-        for SQLITE3_ABI in $PREBUILT_ABIS; do
-            copy_prebuilt "$SQLITE3_SUBDIR/libs/$SQLITE3_ABI" "$SQLITE3_SUBDIR/libs"
-        done
-
-        for VERSION in $OPENSSL_VERSIONS; do
-            copy_prebuilt "$OPENSSL_SUBDIR/$VERSION/include" "$OPENSSL_SUBDIR/$VERSION"
-            for OPENSSL_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$OPENSSL_SUBDIR/libs/$OPENSSL_ABI" "$OPENSSL_SUBDIR/libs"
-            done
-        done
-
-        for VERSION in $PYTHON_VERSIONS; do
-            copy_prebuilt "$PYTHON_SUBDIR/$VERSION/include" "$PYTHON_SUBDIR/$VERSION/"
-            for PYTHON_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/shared/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/shared"
-                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/bin/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/bin"
-                copy_prebuilt "$PYTHON_SUBDIR/$VERSION/static/libs/$PYTHON_ABI" "$PYTHON_SUBDIR/$VERSION/static/libs"
-            done
-        done
-
-        for VERSION in $LIBPNG_VERSIONS; do
-            copy_prebuilt "$LIBPNG_SUBDIR/$VERSION/include" "$LIBPNG_SUBDIR/$VERSION/"
-            for LIBPNG_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$LIBPNG_SUBDIR/$VERSION/libs/$LIBPNG_ABI" "$LIBPNG_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $LIBJPEG_VERSIONS; do
-            copy_prebuilt "$LIBJPEG_SUBDIR/$VERSION/include" "$LIBJPEG_SUBDIR/$VERSION/"
-            for LIBJPEG_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$LIBJPEG_SUBDIR/$VERSION/libs/$LIBJPEG_ABI" "$LIBJPEG_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $LIBJPEGTURBO_VERSIONS; do
-            copy_prebuilt "$LIBJPEGTURBO_SUBDIR/$VERSION/include" "$LIBJPEGTURBO_SUBDIR/$VERSION/"
-            for LIBJPEGTURBO_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$LIBJPEGTURBO_SUBDIR/$VERSION/libs/$LIBJPEGTURBO_ABI" "$LIBJPEGTURBO_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $LIBTIFF_VERSIONS; do
-            copy_prebuilt "$LIBTIFF_SUBDIR/$VERSION/include" "$LIBTIFF_SUBDIR/$VERSION/"
-            for LIBTIFF_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$LIBTIFF_SUBDIR/$VERSION/libs/$LIBTIFF_ABI" "$LIBTIFF_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $ICU_VERSIONS; do
-            copy_prebuilt "$ICU_SUBDIR/$VERSION/include" "$ICU_SUBDIR/$VERSION/"
-            for ICU_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$ICU_SUBDIR/$VERSION/libs/$ICU_ABI" "$ICU_SUBDIR/$VERSION/libs"
-            done
-        done
-
-        for VERSION in $BOOST_VERSIONS; do
-            copy_prebuilt "$BOOST_SUBDIR/$VERSION/include" "$BOOST_SUBDIR/$VERSION/"
-            copy_prebuilt "$BOOST_SUBDIR+icu/$VERSION/include" "$BOOST_SUBDIR+icu/$VERSION/"
-            for BOOST_ABI in $PREBUILT_ABIS; do
-                copy_prebuilt "$BOOST_SUBDIR/$VERSION/libs/$BOOST_ABI" "$BOOST_SUBDIR/$VERSION/libs"
-                copy_prebuilt "$BOOST_SUBDIR+icu/$VERSION/libs/$BOOST_ABI" "$BOOST_SUBDIR+icu/$VERSION/libs"
-            done
-        done
-
-        if [ -d "$DSTDIR/$COMPILER_RT_SUBDIR" ]; then
-            COMPILER_RT_ABIS=$PREBUILT_ABIS
-            for COMPILER_RT_ABI in $COMPILER_RT_ABIS; do
-                copy_prebuilt "$COMPILER_RT_SUBDIR/libs/$COMPILER_RT_ABI" "$COMPILER_RT_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find compiler-rt source tree!"
-        fi
-
-        if [ -d "$DSTDIR/$GCCUNWIND_SUBDIR" ]; then
-            GCCUNWIND_ABIS=$PREBUILT_ABIS
-            for GCCUNWIND_ABI in $GCCUNWIND_ABIS; do
-                copy_prebuilt "$GCCUNWIND_SUBDIR/libs/$GCCUNWIND_ABI" "$GCCUNWIND_SUBDIR/libs"
-            done
-        else
-            echo "WARNING: Could not find libgccunwind source tree!"
-        fi
-    else
-        # Unpack toolchains
-        for TC in $TOOLCHAINS; do
-            unpack_prebuilt $TC-$SYSTEM "$DSTDIR" "$DSTDIR64"
-            echo "Removing sysroot for $TC"
-            rm -rf $DSTDIR/toolchains/$TC/prebuilt/$SYSTEM/sysroot
-            rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}_64/sysroot
-            rm -rf $DSTDIR64/toolchains/$TC/prebuilt/${SYSTEM}-x86_64/sysroot
-        done
-
-        # Unpack clang/llvm
-        for LLVM_VERSION in $LLVM_VERSION_LIST; do
-            # TODO(danalbert): Fix 64-bit Windows LLVM.
-            # This wrongly packages 32-bit Windows LLVM for 64-bit as well, but
-            # the real bug here is that we don't have a 64-bit Windows LLVM.
-            # http://b/22414702
-            LLVM_32=
-            if [ "$SYSTEM" = "windows" -a "$TRY64" = "yes" ]; then
-                LLVM_32=yes
-            fi
-            unpack_prebuilt \
-                llvm-$LLVM_VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64" $LLVM_32
-        done
-
-        rm -rf $DSTDIR/toolchains/*l
-        rm -rf $DSTDIR64/toolchains/*l
-
-        # Unpack renderscript tools; http://b/22377128.
-        #echo "WARNING: no renderscript-$SYSTEM tools! http://b/22377128"
-        unpack_prebuilt renderscript-$SYSTEM "$DSTDIR" "$DSTDIR64"
-
-        # Unpack prebuilt ndk-stack and other host tools
-        unpack_prebuilt ndk-stack-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
-        unpack_prebuilt ndk-depends-$SYSTEM "$DSTDIR" "$DSTDIR64" "yes"
-        unpack_prebuilt ndk-make-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-awk-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-python-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        unpack_prebuilt ndk-yasm-$SYSTEM "$DSTDIR" "$DSTDIR64"
-
-        if [ "$SYSTEM" = "windows" ]; then
-            unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        fi
-
-        for VERSION in $PYTHON_VERSIONS; do
-            unpack_prebuilt ndk-vendor-host-python$VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
-        done
+    if [ "$SYSTEM" = "windows" ]; then
+        unpack_prebuilt toolbox-$SYSTEM "$DSTDIR" "$DSTDIR64"
     fi
+
+    for VERSION in $PYTHON_VERSIONS; do
+        unpack_prebuilt ndk-vendor-host-python$VERSION-$SYSTEM "$DSTDIR" "$DSTDIR64"
+    done
 
     # Unpack other host tools
     unpack_prebuilt scan-build-view "$DSTDIR" "$DSTDIR64"
