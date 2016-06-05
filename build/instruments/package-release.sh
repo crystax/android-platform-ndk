@@ -578,6 +578,7 @@ if [ -z "$PREBUILT_NDK" ]; then
     done
 
     for ABI in $ABIS; do
+        unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
         unpack_prebuilt android-openssh-$ABI "$REFERENCE"
     done
 fi
