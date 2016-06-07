@@ -96,6 +96,7 @@ include/sys/limits.h
 include/sys/mtio.h
 include/sys/personality.h
 include/sys/prctl.h
+include/sys/procfs.h
 include/sys/queue.h
 include/sys/resource.h
 include/sys/select.h
@@ -109,7 +110,9 @@ include/sys/sysconf.h
 include/sys/sysinfo.h
 include/sys/time.h
 include/sys/timerfd.h
+include/sys/ucontext.h
 include/sys/uio.h
+include/sys/user.h
 include/sys/xattr.h
 include/sysexits.h
 include/tar.h

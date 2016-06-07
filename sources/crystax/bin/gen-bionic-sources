@@ -217,6 +217,7 @@ g.add "libc/include/sys/glibc-syscalls.h",              public: true
 g.add "libc/include/sys/inotify.h",                     public: true
 g.add "libc/include/sys/personality.h",                 public: true
 g.add "libc/include/sys/prctl.h",                       public: true
+g.add "libc/include/sys/procfs.h",                      public: true
 g.add "libc/include/sys/resource.h",                    public: true
 g.add "libc/include/sys/select.h",                      public: true
 g.add "libc/include/sys/signal.h",                      public: true
@@ -228,7 +229,9 @@ g.add "libc/include/sys/sysconf.h",                     public: true
 g.add "libc/include/sys/sysinfo.h",                     public: true
 g.add "libc/include/sys/time.h",                        public: true
 g.add "libc/include/sys/timerfd.h",                     public: true
+g.add "libc/include/sys/ucontext.h",                    public: true
 g.add "libc/include/sys/uio.h",                         public: true
+g.add "libc/include/sys/user.h",                        public: true
 g.add "libc/include/sys/xattr.h",                       public: true
 g.add "libc/include/unistd.h",                          public: true
 g.add "libc/kernel/uapi/asm-arm/asm/auxvec.h",          public: true
