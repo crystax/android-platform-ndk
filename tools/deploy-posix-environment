@@ -389,6 +389,8 @@ deploy_vim()
     local VIM_ROOT=$(detect_package_root vim)
     test -n "$VIM_ROOT" || return 1
 
+    local dstf
+
     local f
     for f in vim xxd; do
         local srcf=$(strip_debug_info $VIM_ROOT/bin/$f)
@@ -398,6 +400,18 @@ deploy_vim()
         adb_shell chmod 0755 $dstf || return 1
         rm -f $srcf
     done
+
+    local mksymlinks=/tmp/vim-mksymlinks.$RTAG
+    {
+        for f in vi ex rvim rview view vimdiff; do
+            echo "ln -sf vim $DEPLOY_ROOT/bin/$f || exit 1"
+        done
+    } | cat >$mksymlinks
+    dstf=$DEPLOY_ROOT/tmp/vim-mksymlinks
+    adb_push $mksymlinks $dstf || exit 1
+    adb_shell chmod 0755 $dstf || exit 1
+    adb_shell "HOME=$DEPLOY_ROOT $DEPLOY_ROOT/bin/bash --login -c $dstf" || exit 1
+    adb_shell rm -f $dstf || exit 1
 
     local archive=/tmp/vim-share.$RTAG/vim-share.tar.gz
     run mkdir -p $(dirname $archive) || return 1
