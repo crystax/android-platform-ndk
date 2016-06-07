@@ -444,24 +444,21 @@ alias cp='cp -i'
 alias ll='ls --color=auto -FAl'
 alias tf='tail -F'
 
-SHELL=\$HOME/bin/bash
-export SHELL
+export HISTCONTROL=ignoreboth:erasedups
+
+export SHELL=\$HOME/bin/bash
 
 TMP=\$HOME/tmp
 TMPDIR=\$TMP
 export TMP TMPDIR
 
-TERMINFO=\$HOME/share/terminfo
-export TERMINFO
+export TERMINFO=\$HOME/share/terminfo
 
-VIMRUNTIME=\$HOME/share/vim
-export VIMRUNTIME
+export VIMRUNTIME=\$HOME/share/vim
 
-LD_LIBRARY_PATH=\$HOME/lib
-export LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=\$HOME/lib
 
-PATH=\$HOME/bin:\$PATH
-export PATH
+export PATH=\$HOME/bin:\$PATH
 
 cd \$HOME
 EOF
