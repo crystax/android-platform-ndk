@@ -265,6 +265,14 @@ dump "Building $ABIS OpenSSH..."
 run $BUILDTOOLS/build-target-openssh.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/openssh
 fail_panic "Could not build OpenSSH"
 
+dump "Building $ABIS ncurses..."
+run $BUILDTOOLS/build-target-ncurses.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ncurses
+fail_panic "Could not build ncurses"
+
+dump "Building $ABIS htop..."
+run $BUILDTOOLS/build-target-htop.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/htop
+fail_panic "Could not build htop"
+
 dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
 

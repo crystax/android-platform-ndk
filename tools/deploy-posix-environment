@@ -250,7 +250,20 @@ detect_package_root()
 
 RTAG=$(uuidgen | $SED 's,-,,g')
 
-trap "rm -f /tmp/*.$RTAG" EXIT INT QUIT ABRT TERM
+trap "rm -Rf /tmp/*.$RTAG" EXIT INT QUIT ABRT TERM
+
+strip_debug_info()
+{
+    local src="$1"
+    local dst="/tmp/$(basename $src)-$(uuidgen | $SED 's,-,,g').$RTAG"
+
+    rm -f $dst 1>&2 || return 1
+    mkdir -p $(dirname $dst) 1>&2 || return 1
+    cp -f $src $dst 1>&2 || exit 1
+    $STRIP --strip-unneeded $dst 1>&2 || return 1
+
+    echo $dst
+}
 
 for d in bin etc lib libexec run sbin; do
     adb_shell mkdir -p $DEPLOY_ROOT/$d/ || exit 1
@@ -259,12 +272,17 @@ done
 adb_shell mkdir -p $DEPLOY_ROOT/tmp/ || exit 1
 adb_shell chmod 0777 $DEPLOY_ROOT/tmp/ || exit 1
 
-LIBCRYSTAX_STRIPPED=/tmp/libcrystax.so.$RTAG
-run cp -f $NDK/sources/crystax/libs/$ABI/libcrystax.so $LIBCRYSTAX_STRIPPED || exit 1
-run $STRIP $LIBCRYSTAX_STRIPPED || exit 1
-adb_push $LIBCRYSTAX_STRIPPED $DEPLOY_ROOT/lib/libcrystax.so || exit 1
-adb_shell chmod 0644 $DEPLOY_ROOT/lib/libcrystax.so || exit 1
-rm -f $LIBCRYSTAX_STRIPPED
+deploy_libcrystax()
+{
+    local srcf=$(strip_debug_info $NDK/sources/crystax/libs/$ABI/libcrystax.so)
+    test -n "$srcf" || return 1
+    local dstf=$DEPLOY_ROOT/lib/libcrystax.so
+    adb_push $srcf $dstf || return 1
+    rm -f $srcf
+    adb_shell chmod 0644 $dstf || return 1
+}
+
+deploy_libcrystax || return 1
 
 for p in \
         bash \
@@ -275,18 +293,18 @@ for p in \
         gnu-which \
         info-zip \
         info-unzip \
+        htop \
         ; do
     PACKAGE_ROOT=$(detect_package_root $p)
     test -n "$PACKAGE_ROOT" || exit 1
     for f in $PACKAGE_ROOT/*; do
-        STRIPPED=/tmp/$(basename $f).$RTAG
-        run cp -f $f $STRIPPED || exit 1
-        run $STRIP $STRIPPED || exit 1
+        srcf=$(strip_debug_info $f)
+        test -n "$srcf" || exit 1
         dstf=$DEPLOY_ROOT/bin/$(basename $f)
         adb_shell mkdir -p $(dirname $dstf) || exit 1
-        adb_push $STRIPPED $dstf || exit 1
+        adb_push $srcf $dstf || exit 1
         adb_shell chmod 0755 $dstf || exit 1
-        rm -f $STRIPPED
+        rm -f $srcf
     done
 done
 
@@ -294,14 +312,13 @@ OPENSSH_ROOT=$(detect_package_root openssh)
 test -n "$OPENSSH_ROOT" || exit 1
 
 for f in $OPENSSH_ROOT/bin/* $OPENSSH_ROOT/sbin/* $OPENSSH_ROOT/libexec/*; do
-    STRIPPED=/tmp/$(basename $f).$RTAG
-    run cp -f $f $STRIPPED || exit 1
-    run $STRIP $STRIPPED || exit 1
+    srcf=$(strip_debug_info $f)
+    test -n "$srcf" || exit 1
     dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
     adb_shell mkdir -p $(dirname $dstf) || exit 1
-    adb_push $STRIPPED $dstf || exit 1
+    adb_push $srcf $dstf || exit 1
     adb_shell chmod 0755 $dstf || exit 1
-    rm -f $STRIPPED
+    rm -f $srcf
 done
 
 for f in $OPENSSH_ROOT/etc/*; do
@@ -336,9 +353,36 @@ for u in $(cat $NDK/tools/coreutils.txt); do
     echo "rm -f $u || exit 1" >>$MKCOREUTILS
     echo "ln -s coreutils $u || exit 1" >>$MKCOREUTILS
 done
-adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils
+adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils || exit 1
 adb_shell "HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/bash $DEPLOY_ROOT/tmp/mkcoreutils" || exit 1
-adb_shell rm -f $DEPLOY_ROOT/mkcoreutils
+adb_shell rm -f $DEPLOY_ROOT/mkcoreutils || exit 1
+
+deploy_ncurses()
+{
+    local NCURSES_ROOT=$(detect_package_root ncurses)
+    test -n "$NCURSES_ROOT" || return 1
+    for f in clear infocmp tabs tic tput tset; do
+        local srcf=$(strip_debug_info $NCURSES_ROOT/bin/$f)
+        dstf=$DEPLOY_ROOT/bin/$f
+        adb_shell mkdir -p $(dirname $dstf) || exit 1
+        adb_push $srcf $dstf || exit 1
+        adb_shell chmod 0755 $dstf || exit 1
+        rm -f $srcf
+    done
+
+    local archive=/tmp/ncurses-share.$RTAG/ncurses-share.tar.gz
+    run mkdir -p $(dirname $archive) || exit 1
+    ( cd $NCURSES_ROOT/ && tar cf $archive share/ ) || return 1
+
+    local dstf=$DEPLOY_ROOT/tmp/$(basename $archive)
+    adb_push $archive $dstf || exit 1
+    rm -f $archive
+
+    adb_shell "cd $DEPLOY_ROOT && HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/tar xvf $dstf" || exit 1
+    adb_shell rm -f $dstf || exit 1
+}
+
+deploy_ncurses || exit 1
 
 BASH_PROFILE=/tmp/bash_profile.$RTAG
 cat >$BASH_PROFILE <<EOF
@@ -361,6 +405,9 @@ export SHELL
 TMP=\$HOME/tmp
 TMPDIR=\$TMP
 export TMP TMPDIR
+
+TERMINFO=\$HOME/share/terminfo
+export TERMINFO
 
 LD_LIBRARY_PATH=\$HOME/lib
 export LD_LIBRARY_PATH
