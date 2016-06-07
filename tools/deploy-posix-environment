@@ -384,7 +384,35 @@ deploy_ncurses()
     adb_shell rm -f $dstf || return 1
 }
 
+deploy_vim()
+{
+    local VIM_ROOT=$(detect_package_root vim)
+    test -n "$VIM_ROOT" || return 1
+
+    local f
+    for f in vim xxd; do
+        local srcf=$(strip_debug_info $VIM_ROOT/bin/$f)
+        dstf=$DEPLOY_ROOT/bin/$f
+        adb_shell mkdir -p $(dirname $dstf)
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
+        rm -f $srcf
+    done
+
+    local archive=/tmp/vim-share.$RTAG/vim-share.tar.gz
+    run mkdir -p $(dirname $archive) || return 1
+    ( cd $VIM_ROOT/ && tar cf $archive share/ ) || return 1
+
+    local dstf=$DEPLOY_ROOT/tmp/$(basename $archive)
+    adb_push $archive $dstf || return 1
+    rm -f $archive
+
+    adb_shell "cd $DEPLOY_ROOT && LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/tar xvf $dstf" || return 1
+    adb_shell rm -f $dstf || return 1
+}
+
 deploy_ncurses || exit 1
+deploy_vim     || exit 1
 
 BASH_PROFILE=/tmp/bash_profile.$RTAG
 cat >$BASH_PROFILE <<EOF
@@ -410,6 +438,9 @@ export TMP TMPDIR
 
 TERMINFO=\$HOME/share/terminfo
 export TERMINFO
+
+VIMRUNTIME=\$HOME/share/vim
+export VIMRUNTIME
 
 LD_LIBRARY_PATH=\$HOME/lib
 export LD_LIBRARY_PATH

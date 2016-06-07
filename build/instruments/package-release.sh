@@ -532,6 +532,7 @@ for ABI in $ABIS; do
     unpack_prebuilt android-openssh-$ABI "$REFERENCE"
     unpack_prebuilt android-ncurses-$ABI "$REFERENCE"
     unpack_prebuilt android-htop-$ABI "$REFERENCE"
+    unpack_prebuilt android-vim-$ABI "$REFERENCE"
 done
 
 RELEASE_VERSION=${RELEASE_PREFIX%%-b*}

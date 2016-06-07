@@ -273,6 +273,10 @@ dump "Building $ABIS htop..."
 run $BUILDTOOLS/build-target-htop.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/htop
 fail_panic "Could not build htop"
 
+dump "Building $ABIS VIM..."
+run $BUILDTOOLS/build-target-vim.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/vim
+fail_panic "Could not build VIM"
+
 dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name 'libcrystax.*' -delete
 
