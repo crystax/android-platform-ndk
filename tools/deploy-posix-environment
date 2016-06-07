@@ -284,16 +284,17 @@ deploy_libcrystax()
 
 deploy_libcrystax || return 1
 
-for p in \
-        bash \
+for p in              \
+        bash          \
+        cpulimit      \
         gnu-coreutils \
-        gnu-grep \
-        gnu-sed \
-        gnu-tar \
-        gnu-which \
-        info-zip \
-        info-unzip \
-        htop \
+        gnu-grep      \
+        gnu-sed       \
+        gnu-tar       \
+        gnu-which     \
+        htop          \
+        info-unzip    \
+        info-zip      \
         ; do
     PACKAGE_ROOT=$(detect_package_root $p)
     test -n "$PACKAGE_ROOT" || exit 1

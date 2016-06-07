@@ -265,6 +265,10 @@ dump "Building $ABIS OpenSSH..."
 run $BUILDTOOLS/build-target-openssh.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/openssh
 fail_panic "Could not build OpenSSH"
 
+dump "Building $ABIS cpulimit..."
+run $BUILDTOOLS/build-target-cpulimit.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/cpulimit
+fail_panic "Could not build cpulimit"
+
 dump "Building $ABIS ncurses..."
 run $BUILDTOOLS/build-target-ncurses.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ncurses
 fail_panic "Could not build ncurses"
