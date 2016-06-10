@@ -98,11 +98,21 @@
 #endif
 #define __weak_reference(s, a) __weak_alias(s, a)
 
+#ifdef __strong_alias
+#undef __strong_alias
+#endif
+#define __strong_alias(alias, sym) \
+    __asm__(".global " #alias); \
+    __asm__(".equ "    #alias ", " #sym);
+
 #ifdef __strong_reference
 #undef __strong_reference
 #endif
+#define __strong_reference(s, a) __strong_alias(a, s)
+/*
 #define __strong_reference(sym,aliassym) \
-    extern __typeof (sym) aliassym __attribute__ ((__alias__ (#sym)))
+    extern __typeof(sym) aliassym __attribute__ ((__alias__ (#sym)))
+*/
 
 #ifdef __warn_references
 #undef __warn_references
