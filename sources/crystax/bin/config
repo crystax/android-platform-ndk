@@ -392,13 +392,15 @@ common_cflags_for_abi()
     echo $archflags
 
     echo "-fPIC -DPIC"
-    echo "-g -O2"
+    echo "-g"
 
     if is_debug_mode; then
+        echo "-O0"
         echo "-D_DEBUG"
         echo "-DDEBUG"
         echo "-DCRYSTAX_DEBUG=1"
     else
+        echo "-O2"
         echo "-DNDEBUG"
     fi
 
@@ -598,6 +600,8 @@ ldflags_for_abi()
             echo "-Wl,--fix-cortex-a8"
             ;;
     esac
+
+    #echo "-Wl,--hash-style=both"
 
     echo "-Wl,--no-undefined"
     echo "-Wl,-z,noexecstack"
