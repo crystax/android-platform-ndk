@@ -288,9 +288,9 @@ APILEVELS.each do |apilevel|
                         FileUtils.cp File.join(CRYSTAX_DIR, 'empty', 'libcrystax.a'), File.join(dstlp, lib)
                     end
 
-                    if !File.exists?(File.join(dstlp, 'libc.so'))
-                        FileUtils.cp File.join(srclp, 'stubs', 'libbionicstub.so'), File.join(dstlp, 'libc.so')
-                    end
+                    #if !File.exists?(File.join(dstlp, 'libc.so'))
+                    #    FileUtils.cp File.join(srclp, 'stubs', 'libbionicstub.so'), File.join(dstlp, 'libc.so')
+                    #end
                 end
             end
         end
