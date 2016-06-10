@@ -292,7 +292,6 @@ for p in              \
         gnu-sed       \
         gnu-tar       \
         gnu-which     \
-        htop          \
         info-unzip    \
         info-zip      \
         ; do
@@ -426,8 +425,8 @@ deploy_vim()
     adb_shell rm -f $dstf || return 1
 }
 
-deploy_ncurses || exit 1
-deploy_vim     || exit 1
+#deploy_ncurses || exit 1
+#deploy_vim     || exit 1
 
 BASH_PROFILE=/tmp/bash_profile.$RTAG
 cat >$BASH_PROFILE <<EOF
