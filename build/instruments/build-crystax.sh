@@ -142,7 +142,7 @@ if [ -n "$PACKAGE_DIR" ] ; then
         FILES=""
         for MLIB in $($NDK_DIR/$CRYSTAX_SUBDIR/bin/config --multilibs --abi=$ABI); do
             LIBPATH=$($NDK_DIR/$CRYSTAX_SUBDIR/bin/config --libpath --abi=$ABI --multilib=$MLIB)
-            for LIB in libcrystax.a libcrystax.so stubs/libbionicstub.so; do
+            for LIB in libcrystax.a libcrystax.so; do
                 FILES="$FILES $CRYSTAX_SUBDIR/$LIBPATH/$LIB"
             done
         done

@@ -360,7 +360,7 @@ $(call objdir,$(2),$(3))/lib$(1).a
 endef
 
 define stubs
-dl bionic
+dl
 endef
 
 # $1: stub name
@@ -381,9 +381,6 @@ $(strip $(or \
         dlerror              \
         dlopen               \
         dlsym                \
-    ),\
-    $(if $(filter bionic,$(1)),\
-        __crystax_bionic_stub \
     ),\
     $(error Unknown stub: '$(1)')\
 ))
