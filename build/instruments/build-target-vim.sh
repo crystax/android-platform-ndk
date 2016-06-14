@@ -125,10 +125,10 @@ build_vim_for_abi ()
     run mkdir -p $INSTALLDIR/
     fail_panic "Can't create $ABI install folder"
 
-    run rsync -a --delete $OUTDIR/install/ $INSTALLDIR/ &&
-    run rm -Rf $INSTALLDIR/share/man && \
-    run mv $INSTALLDIR/share/vim/vim74/* $INSTALLDIR/share/vim/ && \
-    run rm -Rf $INSTALLDIR/share/vim/vim74
+    run rm -Rf $OUTDIR/install/share/man && \
+    run mv $OUTDIR/install/share/vim/vim*/* $OUTDIR/install/share/vim/ && \
+    run rmdir $OUTDIR/install/share/vim/vim*/ &&
+    ( cd $OUTDIR/install && run tar czf $INSTALLDIR/vim.tar.gz bin share )
     fail_panic "Can't install $ABI VIM"
 }
 

@@ -269,21 +269,21 @@ dump "Building $ABIS cpulimit..."
 run $BUILDTOOLS/build-target-cpulimit.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/cpulimit
 fail_panic "Could not build cpulimit"
 
-#dump "Building $ABIS ncurses..."
-#run $BUILDTOOLS/build-target-ncurses.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ncurses
-#fail_panic "Could not build ncurses"
+dump "Building $ABIS ncurses..."
+run $BUILDTOOLS/build-target-ncurses.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ncurses
+fail_panic "Could not build ncurses"
 
-#dump "Building $ABIS GNU less..."
-#run $BUILDTOOLS/build-target-gnu-less.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-less
-#fail_panic "Could not build GNU less"
+dump "Building $ABIS GNU less..."
+run $BUILDTOOLS/build-target-gnu-less.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-less
+fail_panic "Could not build GNU less"
 
-#dump "Building $ABIS htop..."
-#run $BUILDTOOLS/build-target-htop.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/htop
-#fail_panic "Could not build htop"
+dump "Building $ABIS htop..."
+run $BUILDTOOLS/build-target-htop.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/htop
+fail_panic "Could not build htop"
 
-#dump "Building $ABIS VIM..."
-#run $BUILDTOOLS/build-target-vim.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/vim
-#fail_panic "Could not build VIM"
+dump "Building $ABIS VIM..."
+run $BUILDTOOLS/build-target-vim.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/vim
+fail_panic "Could not build VIM"
 
 dump "Cleanup sysroot folders..."
 run find $NDK_DIR/platforms -name 'libcrystax.*' -delete

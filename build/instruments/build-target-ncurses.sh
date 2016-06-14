@@ -116,7 +116,11 @@ build_ncurses_for_abi ()
     run mkdir -p $INSTALLDIR/
     fail_panic "Can't create $ABI install folder"
 
-    run rsync -a --delete $OUTDIR/install/ $INSTALLDIR/
+    ( cd $OUTDIR/install && run tar czf $OUTDIR/install/share.tar.gz share ) && \
+    run rm -Rf $OUTDIR/install/share && \
+    run rm -Rf $OUTDIR/install/bin/ncurses*-config && \
+    run rm -Rf $OUTDIR/install/lib/terminfo && \
+    run rsync -aL --delete $OUTDIR/install/ $INSTALLDIR/
     fail_panic "Can't install $ABI ncurses"
 }
 
