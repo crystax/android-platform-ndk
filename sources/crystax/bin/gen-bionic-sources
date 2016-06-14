@@ -236,6 +236,7 @@ g.add "libc/include/sys/uio.h",                         public: true
 g.add "libc/include/sys/user.h",                        public: true
 g.add "libc/include/sys/xattr.h",                       public: true
 g.add "libc/include/unistd.h",                          public: true
+g.add "libc/include/utmp.h",                            public: true
 g.add "libc/kernel/uapi/asm-arm/asm/auxvec.h",          public: true
 g.add "libc/kernel/uapi/asm-arm/asm/bitsperlong.h",     public: true
 g.add "libc/kernel/uapi/asm-arm/asm/posix_types.h",     public: true
@@ -468,6 +469,9 @@ g.add "libc/tzcode/difftime.c"
 g.add "libc/tzcode/localtime.c"
 g.add "libc/tzcode/private.h"
 g.add "libc/tzcode/tzfile.h"
+
+# utmp
+g.add "libc/upstream-netbsd/lib/libc/gen/utmp.c"
 
 # accept
 g.add "libc/arch-arm/syscalls/__accept4.S"
