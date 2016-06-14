@@ -90,6 +90,7 @@ include/sys/auxv.h
 include/sys/endian.h
 include/sys/epoll.h
 include/sys/event.h
+include/sys/file.h
 include/sys/glibc-syscalls.h
 include/sys/iconv.h
 include/sys/inotify.h

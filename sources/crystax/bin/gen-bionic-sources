@@ -213,6 +213,7 @@ g.add "libc/include/sys/_sigdefs.h",                    public: true
 g.add "libc/include/sys/_sigdefs.h",                    public: true
 g.add "libc/include/sys/auxv.h",                        public: true
 g.add "libc/include/sys/epoll.h",                       public: true
+g.add "libc/include/sys/file.h",                        public: true
 g.add "libc/include/sys/glibc-syscalls.h",              public: true
 g.add "libc/include/sys/inotify.h",                     public: true
 g.add "libc/include/sys/ipc.h",                         public: true
