@@ -29,6 +29,7 @@ include/dirent.h
 include/err.h
 include/fts.h
 include/ftw.h
+include/glob.h
 include/iconv.h
 include/inttypes.h
 include/langinfo.h
