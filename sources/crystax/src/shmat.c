@@ -27,21 +27,18 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51
-#define __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/syscall.h>
+#include <stdint.h>
 
-#include <crystax/id.h>
-#include <sys/cdefs.h>
-#include <sys/types.h> /* for size_t, time_t and pid_t */
-#include <linux/shm.h>
-
-__BEGIN_DECLS
-
-void *shmat(int, const void *, int);
-int shmctl(int, int, struct shmid_ds *);
-int shmdt(const void *);
-int shmget(key_t, size_t, int);
-
-__END_DECLS
-
-#endif /* __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51 */
+void *shmat(int id, const void *addr, int flag)
+{
+#ifdef __NR_shmat
+    return (void *)syscall(__NR_shmat, id, addr, flag);
+#else
+    unsigned long ret;
+    ret = syscall(SYS_ipc, SHMAT, id, flag, &addr, addr);
+    return (ret > -(unsigned long)SHMLBA) ? (void *)ret : (void *)addr;
+#endif
+}

@@ -27,21 +27,15 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51
-#define __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51
+#ifndef __CRYSTAX_INCLUDE_ASM_UNISTD_X32_H_829B38D4B6E14C2B97BDFB8DE2B2CE7F
+#define __CRYSTAX_INCLUDE_ASM_UNISTD_X32_H_829B38D4B6E14C2B97BDFB8DE2B2CE7F
 
 #include <crystax/id.h>
-#include <sys/cdefs.h>
-#include <sys/types.h> /* for size_t, time_t and pid_t */
-#include <linux/shm.h>
 
-__BEGIN_DECLS
+#if defined(__x86_64__) && defined(__ILP32__)
+#include <asm-x86/asm/unistd_x32.h>
+#else
+#error "Unknown architecture"
+#endif
 
-void *shmat(int, const void *, int);
-int shmctl(int, int, struct shmid_ds *);
-int shmdt(const void *);
-int shmget(key_t, size_t, int);
-
-__END_DECLS
-
-#endif /* __CRYSTAX_SYS_SHM_H_959C0327A4FF4EE8AE01930AB8234F51 */
+#endif /* __CRYSTAX_INCLUDE_ASM_UNISTD_X32_H_829B38D4B6E14C2B97BDFB8DE2B2CE7F */

@@ -36,6 +36,7 @@ include/limits.h
 include/linux/auxvec.h
 include/linux/in6.h
 include/linux/inotify.h
+include/linux/ipc.h
 include/linux/libc-compat.h
 include/linux/personality.h
 include/linux/posix_types.h
@@ -92,6 +93,7 @@ include/sys/event.h
 include/sys/glibc-syscalls.h
 include/sys/iconv.h
 include/sys/inotify.h
+include/sys/ipc.h
 include/sys/limits.h
 include/sys/mtio.h
 include/sys/personality.h

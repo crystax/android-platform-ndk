@@ -215,6 +215,7 @@ g.add "libc/include/sys/auxv.h",                        public: true
 g.add "libc/include/sys/epoll.h",                       public: true
 g.add "libc/include/sys/glibc-syscalls.h",              public: true
 g.add "libc/include/sys/inotify.h",                     public: true
+g.add "libc/include/sys/ipc.h",                         public: true
 g.add "libc/include/sys/personality.h",                 public: true
 g.add "libc/include/sys/prctl.h",                       public: true
 g.add "libc/include/sys/procfs.h",                      public: true
@@ -272,9 +273,13 @@ g.add "libc/kernel/uapi/asm-x86/asm/resource.h",        public: true
 g.add "libc/kernel/uapi/asm-x86/asm/siginfo.h",         public: true
 g.add "libc/kernel/uapi/asm-x86/asm/signal.h",          public: true
 g.add "libc/kernel/uapi/asm-x86/asm/unistd.h",          public: true
+g.add "libc/kernel/uapi/asm-x86/asm/unistd_32.h",       public: true
+g.add "libc/kernel/uapi/asm-x86/asm/unistd_64.h",       public: true
+g.add "libc/kernel/uapi/asm-x86/asm/unistd_x32.h",      public: true
 g.add "libc/kernel/uapi/linux/auxvec.h",                public: true
 g.add "libc/kernel/uapi/linux/in6.h",                   public: true
 g.add "libc/kernel/uapi/linux/inotify.h",               public: true
+g.add "libc/kernel/uapi/linux/ipc.h",                   public: true
 g.add "libc/kernel/uapi/linux/libc-compat.h",           public: true
 g.add "libc/kernel/uapi/linux/personality.h",           public: true
 g.add "libc/kernel/uapi/linux/posix_types.h",           public: true
