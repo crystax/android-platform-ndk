@@ -273,6 +273,10 @@ fail_panic "Could not build cpulimit"
 #run $BUILDTOOLS/build-target-ncurses.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ncurses
 #fail_panic "Could not build ncurses"
 
+#dump "Building $ABIS GNU less..."
+#run $BUILDTOOLS/build-target-gnu-less.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-less
+#fail_panic "Could not build GNU less"
+
 #dump "Building $ABIS htop..."
 #run $BUILDTOOLS/build-target-htop.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/htop
 #fail_panic "Could not build htop"

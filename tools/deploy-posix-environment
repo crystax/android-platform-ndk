@@ -289,9 +289,11 @@ for p in              \
         cpulimit      \
         gnu-coreutils \
         gnu-grep      \
+        gnu-less      \
         gnu-sed       \
         gnu-tar       \
         gnu-which     \
+        htop          \
         info-unzip    \
         info-zip      \
         ; do
