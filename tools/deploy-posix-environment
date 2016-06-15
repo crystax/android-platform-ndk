@@ -265,12 +265,16 @@ strip_debug_info()
     echo $dst
 }
 
-for d in bin etc lib libexec run sbin; do
-    adb_shell mkdir -p $DEPLOY_ROOT/$d/ || exit 1
-    adb_shell chmod 0755 $DEPLOY_ROOT/$d/ || exit 1
-done
-adb_shell mkdir -p $DEPLOY_ROOT/tmp/ || exit 1
-adb_shell chmod 0777 $DEPLOY_ROOT/tmp/ || exit 1
+create_directories()
+{
+    local d
+    for d in bin etc lib libexec run sbin; do
+        adb_shell mkdir -p $DEPLOY_ROOT/$d/ || return 1
+        adb_shell chmod 0755 $DEPLOY_ROOT/$d/ || return 1
+    done
+    adb_shell mkdir -p $DEPLOY_ROOT/tmp/ || return 1
+    adb_shell chmod 0777 $DEPLOY_ROOT/tmp/ || return 1
+}
 
 deploy_libcrystax()
 {
@@ -282,82 +286,113 @@ deploy_libcrystax()
     adb_shell chmod 0644 $dstf || return 1
 }
 
-deploy_libcrystax || return 1
+deploy_bash()
+{
+    local PACKAGE_ROOT=$(detect_package_root bash)
+    test -n "$PACKAGE_ROOT" || return 1
 
-for p in              \
-        bash          \
-        cpulimit      \
-        gnu-coreutils \
-        gnu-grep      \
-        gnu-less      \
-        gnu-sed       \
-        gnu-tar       \
-        gnu-which     \
-        htop          \
-        info-unzip    \
-        info-zip      \
-        ; do
-    PACKAGE_ROOT=$(detect_package_root $p)
-    test -n "$PACKAGE_ROOT" || exit 1
+    local srcf=$(strip_debug_info $PACKAGE_ROOT/bash)
+    test -n "$srcf" || return 1
+
+    local dstf=$DEPLOY_ROOT/bin/bash
+
+    adb_push $srcf $dstf || return 1
+    adb_shell chmod 0755 $dstf || return 1
+    rm -f $srcf
+}
+
+deploy_gnu_coreutils()
+{
+    local PACKAGE_ROOT=$(detect_package_root gnu-coreutils)
+    test -n "$PACKAGE_ROOT" || return 1
+
+    local srcf=$(strip_debug_info $PACKAGE_ROOT/coreutils)
+    test -n "$srcf" || return 1
+
+    local dstf=$DEPLOY_ROOT/bin/coreutils
+
+    adb_push $srcf $dstf || return 1
+    adb_shell chmod 0755 $dstf || return 1
+    rm -f $srcf
+
+    local MKCOREUTILS=/tmp/mkcoreutils.$RTAG
+    echo "cd $DEPLOY_ROOT/bin/ || exit 1" >$MKCOREUTILS
+    for u in $(cat $NDK/tools/coreutils.txt); do
+        echo "rm -f $u || exit 1" >>$MKCOREUTILS
+        echo "ln -s coreutils $u || exit 1" >>$MKCOREUTILS
+    done
+    adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils || return 1
+    #adb_shell "HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/bash $DEPLOY_ROOT/tmp/mkcoreutils" || return 1
+    adb_shell "sh $DEPLOY_ROOT/tmp/mkcoreutils" || return 1
+    adb_shell rm -f $DEPLOY_ROOT/mkcoreutils || return 1
+}
+
+deploy_binfiles()
+{
+    local PACKAGE_NAME=$1
+    if [ -z "$PACKAGE_NAME" ]; then
+        echo "Usage: deploy_binfiles package-name" 1>&2
+        return 1
+    fi
+
+    local PACKAGE_ROOT=$(detect_package_root $PACKAGE_NAME)
+    test -n "$PACKAGE_ROOT" || return 1
+
+    local f
     for f in $PACKAGE_ROOT/*; do
-        srcf=$(strip_debug_info $f)
-        test -n "$srcf" || exit 1
-        dstf=$DEPLOY_ROOT/bin/$(basename $f)
-        adb_shell mkdir -p $(dirname $dstf) || exit 1
-        adb_push $srcf $dstf || exit 1
-        adb_shell chmod 0755 $dstf || exit 1
+        local srcf=$(strip_debug_info $f)
+        test -n "$srcf" || return 1
+        local dstf=$DEPLOY_ROOT/bin/$(basename $f)
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
         rm -f $srcf
     done
-done
+}
 
-OPENSSH_ROOT=$(detect_package_root openssh)
-test -n "$OPENSSH_ROOT" || exit 1
+deploy_openssh()
+{
+    local OPENSSH_ROOT=$(detect_package_root openssh)
+    test -n "$OPENSSH_ROOT" || return 1
 
-for f in $OPENSSH_ROOT/bin/* $OPENSSH_ROOT/sbin/* $OPENSSH_ROOT/libexec/*; do
-    srcf=$(strip_debug_info $f)
-    test -n "$srcf" || exit 1
-    dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
-    adb_shell mkdir -p $(dirname $dstf) || exit 1
-    adb_push $srcf $dstf || exit 1
-    adb_shell chmod 0755 $dstf || exit 1
-    rm -f $srcf
-done
+    local srcf
+    local dstf
+    local f
+    for f in $OPENSSH_ROOT/bin/* $OPENSSH_ROOT/sbin/* $OPENSSH_ROOT/libexec/*; do
+        srcf=$(strip_debug_info $f)
+        test -n "$srcf" || return 1
+        dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
+        adb_shell mkdir -p $(dirname $dstf) || return 1
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
+        rm -f $srcf
+    done
 
-for f in $OPENSSH_ROOT/etc/*; do
-    srcf=/tmp/$(basename $f).$RTAG
-    dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
-    cat $f | $SED "s,\$DEPLOY_ROOT,$DEPLOY_ROOT,g" >$srcf || exit 1
-    case $f in
-        */sshd_config)
-            set_sshd_config_value $srcf Port $SSHD_PORT || exit 1
-            set_sshd_config_value $srcf PasswordAuthentication no || exit 1
-            set_sshd_config_value $srcf UsePrivilegeSeparation no || exit 1
-            set_sshd_config_value $srcf UseDNS no || exit 1
-            set_sshd_config_value $srcf AllowAgentForwarding yes || exit 1
-            set_sshd_config_value $srcf PermitTTY yes || exit 1
-            set_sshd_config_value $srcf AuthorizedKeysFile "$DEPLOY_ROOT/.ssh/authorized_keys" || exit 1
-            #set_sshd_config_value $srcf PidFile "$DEPLOY_ROOT/run/sshd.pid" || exit 1
-            #set_sshd_config_value $srcf LogLevel DEBUG3 || exit 1
-            #for t in rsa dsa ecdsa ed25519; do
-            #    HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
-            #    echo "HostKey $HOST_KEY" >>$srcf || exit 1
-            #done
-    esac
-    adb_shell mkdir -p $(dirname $dstf) || exit 1
-    adb_push $srcf $dstf || exit 1
-    adb_shell chmod 0644 $dstf || exit 1
-    rm -f $srcf
-done
-
-MKCOREUTILS=/tmp/mkcoreutils.$RTAG
-echo "cd $DEPLOY_ROOT/bin/ || exit 1" >$MKCOREUTILS
-for u in $(cat $NDK/tools/coreutils.txt); do
-    echo "rm -f $u || exit 1" >>$MKCOREUTILS
-    echo "ln -s coreutils $u || exit 1" >>$MKCOREUTILS
-done
-adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils || exit 1
-adb_shell "HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/bash $DEPLOY_ROOT/tmp/mkcoreutils" || exit 1
-adb_shell rm -f $DEPLOY_ROOT/mkcoreutils || exit 1
+    for f in $OPENSSH_ROOT/etc/*; do
+        srcf=/tmp/$(basename $f).$RTAG
+        dstf=$DEPLOY_ROOT/$(echo $f | $SED "s,$OPENSSH_ROOT/,,")
+        cat $f | $SED "s,\$DEPLOY_ROOT,$DEPLOY_ROOT,g" >$srcf || return 1
+        case $f in
+            */sshd_config)
+                set_sshd_config_value $srcf Port $SSHD_PORT || return 1
+                set_sshd_config_value $srcf PasswordAuthentication no || return 1
+                set_sshd_config_value $srcf UsePrivilegeSeparation no || return 1
+                set_sshd_config_value $srcf UseDNS no || return 1
+                set_sshd_config_value $srcf AllowAgentForwarding yes || return 1
+                set_sshd_config_value $srcf PermitTTY yes || return 1
+                set_sshd_config_value $srcf AuthorizedKeysFile "$DEPLOY_ROOT/.ssh/authorized_keys" || return 1
+                #set_sshd_config_value $srcf PidFile "$DEPLOY_ROOT/run/sshd.pid" || return 1
+                #set_sshd_config_value $srcf LogLevel DEBUG3 || return 1
+                #for t in rsa dsa ecdsa ed25519; do
+                #    HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
+                #    echo "HostKey $HOST_KEY" >>$srcf || return 1
+                #done
+        esac
+        adb_shell mkdir -p $(dirname $dstf) || return 1
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0644 $dstf || return 1
+        rm -f $srcf
+    done
+}
 
 deploy_ncurses()
 {
@@ -406,12 +441,10 @@ deploy_vim()
     adb_shell rm -f $dstf || return 1
 }
 
-deploy_ncurses   || exit 1
-deploy_procps_ng || exit 1
-deploy_vim       || exit 1
-
-BASH_PROFILE=/tmp/bash_profile.$RTAG
-cat >$BASH_PROFILE <<EOF
+deploy_bash_profile()
+{
+    local BASH_PROFILE=/tmp/bash_profile.$RTAG
+    cat >$BASH_PROFILE <<EOF
 if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
     echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
     echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
@@ -447,15 +480,49 @@ export PATH=\$HOME/bin:\$HOME/sbin:\$PATH
 
 cd \$HOME
 EOF
+    test $? -eq 0 || return 1
 
-adb_push $BASH_PROFILE $DEPLOY_ROOT/.bash_profile
-rm -f $BASH_PROFILE
+    adb_push $BASH_PROFILE $DEPLOY_ROOT/.bash_profile || return 1
+    rm -f $BASH_PROFILE
+}
 
-BASH="HOME=$DEPLOY_ROOT $DEPLOY_ROOT/bin/bash --login"
-for t in rsa dsa ecdsa ed25519; do
-    HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
-    adb_shell "$BASH -c 'test -f $HOST_KEY || $DEPLOY_ROOT/bin/ssh-keygen -t $t -N \"\" -f $HOST_KEY'" || exit 1
+run_sshd()
+{
+    local BASH="HOME=$DEPLOY_ROOT $DEPLOY_ROOT/bin/bash --login"
+
+    local t
+    for t in rsa dsa ecdsa ed25519; do
+        local HOST_KEY=$DEPLOY_ROOT/etc/ssh_host_${t}_key
+        adb_shell "$BASH -c 'test -f $HOST_KEY || $DEPLOY_ROOT/bin/ssh-keygen -t $t -N \"\" -f $HOST_KEY'" || return 1
+    done
+
+    adb_shell "$BASH -c 'kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null'" || return 1
+    adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -x $DEPLOY_ROOT'" || return 1
+}
+
+create_directories   || exit 1
+deploy_libcrystax    || exit 1
+deploy_bash          || exit 1
+deploy_gnu_coreutils || exit 1
+
+for p in              \
+        cpulimit      \
+        gnu-grep      \
+        gnu-less      \
+        gnu-sed       \
+        gnu-tar       \
+        gnu-which     \
+        htop          \
+        info-unzip    \
+        info-zip      \
+        ; do
+    deploy_binfiles $p || exit 1
 done
 
-adb_shell "$BASH -c 'kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null'"
-adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -x $DEPLOY_ROOT'"
+deploy_openssh      || exit 1
+deploy_ncurses      || exit 1
+deploy_procps_ng    || exit 1
+deploy_vim          || exit 1
+deploy_bash_profile || exit 1
+
+run_sshd || exit 1
