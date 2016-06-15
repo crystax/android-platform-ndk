@@ -382,6 +382,18 @@ deploy_ncurses()
     adb_shell rm -f $dstf || return 1
 }
 
+deploy_procps_ng()
+{
+    local PROCPS_NG_ROOT=$(detect_package_root procps-ng)
+    test -n "$PROCPS_NG_ROOT" || return 1
+
+    local srcf=$PROCPS_NG_ROOT/procps-ng.tar.gz
+    local dstf=$DEPLOY_ROOT/tmp/$(basename $srcf)
+    adb_push $srcf $dstf || return 1
+    adb_shell "cd $DEPLOY_ROOT && LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/tar xvf $dstf" || return 1
+    adb_shell rm -f $dstf || return 1
+}
+
 deploy_vim()
 {
     local VIM_ROOT=$(detect_package_root vim)
@@ -394,8 +406,9 @@ deploy_vim()
     adb_shell rm -f $dstf || return 1
 }
 
-deploy_ncurses || exit 1
-deploy_vim     || exit 1
+deploy_ncurses   || exit 1
+deploy_procps_ng || exit 1
+deploy_vim       || exit 1
 
 BASH_PROFILE=/tmp/bash_profile.$RTAG
 cat >$BASH_PROFILE <<EOF
@@ -411,6 +424,7 @@ alias mv='mv -i'
 alias cp='cp -i'
 alias ll='ls --color=auto -FAl'
 alias tf='tail -F'
+alias pg='ps auxw | grep -v grep | grep'
 
 export HISTCONTROL=ignoreboth:erasedups
 
@@ -429,7 +443,7 @@ export VIMRUNTIME=\$HOME/share/vim
 
 export LD_LIBRARY_PATH=\$HOME/lib
 
-export PATH=\$HOME/bin:\$PATH
+export PATH=\$HOME/bin:\$HOME/sbin:\$PATH
 
 cd \$HOME
 EOF
