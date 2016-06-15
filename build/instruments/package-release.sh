@@ -526,6 +526,7 @@ for ABI in $ABIS; do
     unpack_prebuilt android-gnu-grep-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-sed-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-tar-$ABI "$REFERENCE"
+    unpack_prebuilt android-gnu-zip-$ABI "$REFERENCE"
     unpack_prebuilt android-gnu-which-$ABI "$REFERENCE"
     unpack_prebuilt android-info-zip-$ABI "$REFERENCE"
     unpack_prebuilt android-info-unzip-$ABI "$REFERENCE"

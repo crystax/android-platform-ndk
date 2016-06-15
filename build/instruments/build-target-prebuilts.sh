@@ -249,6 +249,10 @@ dump "Building $ABIS GNU tar..."
 run $BUILDTOOLS/build-target-gnu-tar.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-tar
 fail_panic "Could not build GNU tar"
 
+dump "Building $ABIS GNU zip..."
+run $BUILDTOOLS/build-target-gnu-zip.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-zip
+fail_panic "Could not build GNU zip"
+
 dump "Building $ABIS GNU which..."
 run $BUILDTOOLS/build-target-gnu-which.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/gnu-which
 fail_panic "Could not build GNU which"
