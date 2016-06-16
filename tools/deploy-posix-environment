@@ -317,13 +317,25 @@ deploy_gnu_coreutils()
 
     local MKCOREUTILS=/tmp/mkcoreutils.$RTAG
     echo "cd $DEPLOY_ROOT/bin/ || exit 1" >$MKCOREUTILS
-    for u in $(cat $NDK/tools/coreutils.txt); do
+
+    # This list is retrieved from output of "coreutils --help" on device
+    local COREUTILS="\
+        [ base32 base64 basename cat chcon chgrp chmod chown chroot cksum comm cp csplit cut date \
+        dd df dir dircolors dirname du echo env expand expr factor false fmt fold ginstall groups \
+        head id join kill link ln logname ls md5sum mkdir mkfifo mknod mktemp mv nice nl nohup \
+        nproc numfmt od paste pathchk pinky pr printenv printf ptx pwd readlink realpath rm rmdir \
+        runcon seq sha1sum sha224sum sha256sum sha384sum sha512sum shred shuf sleep sort split \
+        stat stdbuf stty sum sync tac tail tee test timeout touch tr true truncate tsort tty \
+        uname unexpand uniq unlink users vdir wc who whoami yes"
+
+    local u
+    for u in $COREUTILS; do
         echo "rm -f $u || exit 1" >>$MKCOREUTILS
         echo "ln -s coreutils $u || exit 1" >>$MKCOREUTILS
     done
+
     adb_push $MKCOREUTILS $DEPLOY_ROOT/tmp/mkcoreutils || return 1
-    #adb_shell "HOME=$DEPLOY_ROOT LD_LIBRARY_PATH=$DEPLOY_ROOT/lib $DEPLOY_ROOT/bin/bash $DEPLOY_ROOT/tmp/mkcoreutils" || return 1
-    adb_shell "sh $DEPLOY_ROOT/tmp/mkcoreutils" || return 1
+    adb_shell "/system/bin/sh $DEPLOY_ROOT/tmp/mkcoreutils" || return 1
     adb_shell rm -f $DEPLOY_ROOT/mkcoreutils || return 1
 }
 
