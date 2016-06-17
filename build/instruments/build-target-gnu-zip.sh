@@ -106,13 +106,11 @@ build_gzip_for_abi ()
     dump "Building $ABI GNU zip"
 
     rm -Rf $OUTDIR
-    mkdir -p $OUTDIR/ && cp -r "$SRCDIR" "$OUTDIR/src"
-    fail_panic "Couldn't copy sources for $ABI build"
 
-    run make -C $OUTDIR/src/android \
+    run make -C $SRCDIR/android \
         NDK=$NDK_DIR \
         ABI=$ABI \
-        OUTDIR=$OUTDIR/out \
+        OUTDIR=$OUTDIR \
 
     fail_panic "Couldn't build $ABI GNU zip"
 
@@ -121,7 +119,7 @@ build_gzip_for_abi ()
 
     local f
     for f in gzip gunzip zcat; do
-        run cp -f $OUTDIR/out/install/bin/$f $INSTALLDIR/
+        run cp -f $OUTDIR/install/bin/$f $INSTALLDIR/
         fail_panic "Can't install $ABI GNU zip"
     done
 }
