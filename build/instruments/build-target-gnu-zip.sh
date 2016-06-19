@@ -42,7 +42,7 @@ By default, this will try with the current NDK directory, unless
 you use the --ndk-dir=<path> option.
 
 The output will be placed in appropriate sub-directories of
-<ndk>/packages/gzip/\$VERSION, but you can override this with the --out-dir=<path>
+<ndk>/packages/gnu-zip/\$VERSION, but you can override this with the --out-dir=<path>
 
 option.
 "
@@ -87,7 +87,7 @@ dump "$PACKAGE_VERSION"
 ABIS=$(commas_to_spaces $ABIS)
 
 if [ -z "$OPTION_BUILD_DIR" ]; then
-    BUILD_DIR=$NDK_TMPDIR/build-gzip
+    BUILD_DIR=$NDK_TMPDIR/build-gnu-zip
 else
     eval BUILD_DIR=$OPTION_BUILD_DIR
 fi
@@ -97,11 +97,11 @@ fail_panic "Could not create build directory: $BUILD_DIR"
 
 # $1: ABI
 # $2: build directory
-build_gzip_for_abi ()
+build_gnu_zip_for_abi ()
 {
     local ABI=$1
     local OUTDIR="$2"
-    local INSTALLDIR="$NDK/packages/gzip/$PACKAGE_VERSION/$ABI"
+    local INSTALLDIR="$NDK/packages/gnu-zip/$PACKAGE_VERSION/$ABI"
 
     dump "Building $ABI GNU zip"
 
@@ -128,7 +128,7 @@ BUILT_ABIS=""
 for ABI in $ABIS; do
     DO_BUILD_PACKAGE="yes"
     if [ -n "$PACKAGE_DIR" ]; then
-        PACKAGE_NAME="android-gzip-$ABI.tar.xz"
+        PACKAGE_NAME="android-gnu-zip-$ABI.tar.xz"
         echo "Look for: $PACKAGE_NAME"
         try_cached_package "$PACKAGE_DIR" "$PACKAGE_NAME" no_exit
         if [ $? = 0 ]; then
@@ -138,7 +138,7 @@ for ABI in $ABIS; do
         fi
     fi
     if [ "$DO_BUILD_PACKAGE" = "yes" ]; then
-        build_gzip_for_abi $ABI "$BUILD_DIR/$ABI"
+        build_gnu_zip_for_abi $ABI "$BUILD_DIR/$ABI"
     fi
 done
 
@@ -146,10 +146,10 @@ done
 if [ -n "$PACKAGE_DIR" ] ; then
     for ABI in $BUILT_ABIS; do
         FILES=""
-        for f in $NDK/packages/gzip/$PACKAGE_VERSION/$ABI/*; do
-            FILES="$FILES packages/gzip/$PACKAGE_VERSION/$ABI/$(basename $f)"
+        for f in $NDK/packages/gnu-zip/$PACKAGE_VERSION/$ABI/*; do
+            FILES="$FILES packages/gnu-zip/$PACKAGE_VERSION/$ABI/$(basename $f)"
         done
-        PACKAGE_NAME="android-gzip-$ABI.tar.xz"
+        PACKAGE_NAME="android-gnu-zip-$ABI.tar.xz"
         PACKAGE="$PACKAGE_DIR/$PACKAGE_NAME"
         log "Packaging: $PACKAGE"
         pack_archive "$PACKAGE" "$NDK_DIR" "$FILES"

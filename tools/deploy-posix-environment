@@ -524,7 +524,7 @@ for p in              \
         gnu-sed       \
         gnu-tar       \
         gnu-which     \
-        gzip          \
+        gnu-zip       \
         htop          \
         info-unzip    \
         info-zip      \
