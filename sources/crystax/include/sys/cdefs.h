@@ -33,6 +33,8 @@
 #include <crystax/id.h>
 #include <crystax/google/sys/cdefs.h>
 
+#undef __BIONIC__
+
 #if !defined(_POSIX_SOURCE)
 #define _POSIX_SOURCE
 #endif
