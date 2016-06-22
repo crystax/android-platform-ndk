@@ -293,6 +293,10 @@ dump "Building $ABIS VIM..."
 run $BUILDTOOLS/build-target-vim.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/vim
 fail_panic "Could not build VIM"
 
+dump "Building $ABIS x264..."
+run $BUILDTOOLS/build-target-x264.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/x264
+fail_panic "Could not build x264"
+
 dump "Building $ABIS ffmpeg..."
 run $BUILDTOOLS/build-target-ffmpeg.sh $FLAGS --abis="$ABIS" $VENDOR_SRC_DIR/ffmpeg
 fail_panic "Could not build ffmpeg"
