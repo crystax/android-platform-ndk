@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2012, 2014, 2016 The Android Open Source Project
+# Copyright (C) 2012, 2014 The Android Open Source Project
 # Copyright (C) 2012 Ray Donnelly <mingw.android at gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -390,18 +390,11 @@ build_host_python ()
     #  and bininstall: doing
     #  (cd $(DESTDIR)$(BINDIR); $(LN) -s python$(VERSION)-config python2-config)
     #  Though the real fix is to make bininstall depend on libainstall.
-    run make Parser/pgen -j$NUM_JOBS
-    fail_panic "Could not build Parser/pgen!"
-
     run make -j$NUM_JOBS
     fail_panic "Could not build Python!"
 
     run make install
     fail_panic "Could not install Python!"
-
-    # copy Parser/pgen to be able to cross compile Python for Android later
-    cp "Parser/pgen" "$INSTALLDIR/bin/"
-    fail_panic "Cannot copy Parser/pgen to directory $INSTALLDIR/bin/"
 
     # Pretty printers.
     PYPPDIR="$INSTALLDIR/share/pretty-printers/"
