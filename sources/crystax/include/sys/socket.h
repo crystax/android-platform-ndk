@@ -70,6 +70,7 @@ __socketcall int bind(int, const struct sockaddr *, int);
 __socketcall int connect(int, const struct sockaddr *, socklen_t);
 __socketcall int listen(int, int);
 __socketcall int accept(int, struct sockaddr *, socklen_t *);
+__socketcall int accept4(int, struct sockaddr*, socklen_t*, int);
 __socketcall int getsockname(int, struct sockaddr *, socklen_t *);
 __socketcall int getpeername(int, struct sockaddr *, socklen_t *);
 __socketcall int socketpair(int, int, int, int *);

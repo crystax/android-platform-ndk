@@ -482,6 +482,7 @@ common_cflags_for_abi()
     echo "-I$bionic/libc/tzcode"
     echo "-I$bionic/libc/upstream-netbsd/android/include"
     echo "-I$bionic/libc/upstream-netbsd/lib/libc/include"
+    echo "-I$bionic/libc/private"
     echo "-I$bionic/libc"
     echo "-I$systemcore/include"
 

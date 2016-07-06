@@ -28,7 +28,7 @@
 include ../common.mk
 
 ifeq (yes,$(shell uname -s | grep -iq linux && echo yes))
-CFLAGS += -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200809L
+CFLAGS += -D_XOPEN_SOURCE=600 -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
 LDLIBS += -lrt -ldl -lm -lcrypt
 LDFLAGS += -pthread
 endif
