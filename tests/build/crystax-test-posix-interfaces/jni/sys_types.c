@@ -94,3 +94,7 @@ CHECK(uid_t);
 #if __XSI_VISIBLE
 CHECK(useconds_t);
 #endif
+
+CHECK(ushort);
+CHECK(uint);
+CHECK(ulong);

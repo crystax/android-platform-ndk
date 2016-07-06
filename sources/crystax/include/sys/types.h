@@ -178,7 +178,11 @@ typedef __uint64_t       u_int64_t;
 typedef __int64_t        quad_t;
 typedef __uint64_t       u_quad_t;
 typedef quad_t *         qaddr_t;
-#endif
+
+typedef unsigned short ushort;
+typedef unsigned int   uint;
+typedef unsigned long  ulong;
+#endif /* __BSD_VISIBLE */
 
 typedef char *       caddr_t;
 typedef const char * c_caddr_t;
