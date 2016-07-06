@@ -168,9 +168,14 @@ By default, this will try with the current NDK directory, unless you use the --n
         OPTIONS[:publish] = true
     end
 
-    OPTIONS[:toolchain_versions] = Dir.glob(File.join(OPTIONS[:ndk], 'toolchains', '*')).select do |e|
+    OPTIONS[:toolchain_versions] = Dir.glob(File.join(OPTIONS[:ndk], 'build', 'core', 'toolchains', '*')).select do |e|
         File.directory?(e) && File.exists?(File.join(e, 'setup.mk')) && File.exists?(File.join(e, 'config.mk'))
-    end.map { |e| File.basename(e) }.reject { |e| e =~ /^llvm\b/ }.map do |e|
+    end.map { |e| File.basename(e) }.reject do |e|
+    end.reject do |e|
+        # Reject aaa-bbb-ccc-clang toolchains. All clang toolchains must end with version number,
+        # such as arm-linux-androideabi-clang3.8
+        File.basename(e) =~ /clang$/
+    end.map do |e|
         e.sub(/^.*-([^-]+)$/, '\1')
     end.sort.uniq.map { |e| e.sub(/^(\d.*)$/, 'gcc\1') }.select { |e| e =~ /^(gcc|clang)/ }
 
