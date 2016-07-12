@@ -126,6 +126,12 @@ if [ -z "$ANDROID_SERIAL" ]; then
 fi
 export ANDROID_SERIAL
 
+DEFAULT_GCC_VERSION=$(bash -c 'source '$NDK'/build/instruments/dev-defaults.sh && echo $DEFAULT_GCC_VERSION' 2>/dev/null)
+if [ -z "$DEFAULT_GCC_VERSION" ]; then
+    error "Can't detect default GCC version"
+    exit 1
+fi
+
 run()
 {
     echo "## COMMAND: $@"
@@ -281,6 +287,16 @@ deploy_libcrystax()
     local srcf=$(strip_debug_info $NDK/sources/crystax/libs/$ABI/libcrystax.so)
     test -n "$srcf" || return 1
     local dstf=$DEPLOY_ROOT/lib/libcrystax.so
+    adb_push $srcf $dstf || return 1
+    rm -f $srcf
+    adb_shell chmod 0644 $dstf || return 1
+}
+
+deploy_gnu_libstdcxx()
+{
+    local srcf=$(strip_debug_info $NDK/sources/cxx-stl/gnu-libstdc++/$DEFAULT_GCC_VERSION/libs/$ABI/libgnustl_shared.so)
+    test -n "$srcf" || return 1
+    local dstf=$DEPLOY_ROOT/lib/libgnustl_shared.so
     adb_push $srcf $dstf || return 1
     rm -f $srcf
     adb_shell chmod 0644 $dstf || return 1
@@ -514,6 +530,7 @@ run_sshd()
 
 create_directories   || exit 1
 deploy_libcrystax    || exit 1
+deploy_gnu_libstdcxx || exit 1
 deploy_bash          || exit 1
 deploy_gnu_coreutils || exit 1
 
