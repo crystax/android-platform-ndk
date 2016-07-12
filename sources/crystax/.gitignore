@@ -117,6 +117,7 @@ include/sys/timerfd.h
 include/sys/ucontext.h
 include/sys/uio.h
 include/sys/user.h
+include/sys/utsname.h
 include/sys/xattr.h
 include/sysexits.h
 include/tar.h

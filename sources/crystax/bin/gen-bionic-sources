@@ -189,6 +189,10 @@ g.fixup :redefine_fcntl do |f|
     f.puts "#define fcntl __fcntl64"
 end
 
+g.fixup :redefine_uname do |f|
+    f.puts "#define uname __uname"
+end
+
 # public headers
 g.add "libc/include/arpa/inet.h",                       public: true
 g.add "libc/include/arpa/nameser.h",                    public: true
@@ -234,6 +238,7 @@ g.add "libc/include/sys/timerfd.h",                     public: true
 g.add "libc/include/sys/ucontext.h",                    public: true
 g.add "libc/include/sys/uio.h",                         public: true
 g.add "libc/include/sys/user.h",                        public: true
+g.add "libc/include/sys/utsname.h",                     public: true
 g.add "libc/include/sys/xattr.h",                       public: true
 g.add "libc/include/unistd.h",                          public: true
 g.add "libc/include/utmp.h",                            public: true
@@ -2397,12 +2402,12 @@ g.add "libc/arch-x86/syscalls/umount2.S"
 g.add "libc/arch-x86_64/syscalls/umount2.S"
 
 # uname
-g.add "libc/arch-arm/syscalls/uname.S"
-g.add "libc/arch-arm64/syscalls/uname.S"
-g.add "libc/arch-mips/syscalls/uname.S"
-g.add "libc/arch-mips64/syscalls/uname.S"
-g.add "libc/arch-x86/syscalls/uname.S"
-g.add "libc/arch-x86_64/syscalls/uname.S"
+g.add "libc/arch-arm/syscalls/uname.S",    fixup: "redefine_uname"
+g.add "libc/arch-arm64/syscalls/uname.S",  fixup: "redefine_uname"
+g.add "libc/arch-mips/syscalls/uname.S",   fixup: "redefine_uname"
+g.add "libc/arch-mips64/syscalls/uname.S", fixup: "redefine_uname"
+g.add "libc/arch-x86/syscalls/uname.S",    fixup: "redefine_uname"
+g.add "libc/arch-x86_64/syscalls/uname.S", fixup: "redefine_uname"
 
 # unlink
 g.add "libc/bionic/unlink.cpp"
