@@ -469,6 +469,44 @@ deploy_vim()
     adb_shell rm -f $dstf || return 1
 }
 
+deploy_x264()
+{
+    local X264_ROOT=$(detect_package_root x264)
+    test -n "$X264_ROOT" || return 1
+
+    local srcf
+    local dstf
+    local f
+    for f in $X264_ROOT/bin/* $X264_ROOT/lib/lib*.so; do
+        srcf=$(strip_debug_info $f)
+        dstf=$(echo $f | sed "s,^$X264_ROOT/,$DEPLOY_ROOT/,")
+        adb_shell mkdir -p $(dirname $dstf) || return 1
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
+        rm -f $srcf
+    done
+}
+
+deploy_ffmpeg()
+{
+    deploy_x264 || return 1
+
+    local FFMPEG_ROOT=$(detect_package_root ffmpeg)
+    test -n "$FFMPEG_ROOT" || return 1
+
+    local srcf
+    local dstf
+    local f
+    for f in $FFMPEG_ROOT/bin/* $FFMPEG_ROOT/lib/lib*.so; do
+        srcf=$(strip_debug_info $f)
+        dstf=$(echo $f | sed "s,^$FFMPEG_ROOT/,$DEPLOY_ROOT/,")
+        adb_shell mkdir -p $(dirname $dstf) || return 1
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
+        rm -f $srcf
+    done
+}
+
 deploy_bash_profile()
 {
     local BASH_PROFILE=/tmp/bash_profile.$RTAG
@@ -553,6 +591,7 @@ deploy_openssh      || exit 1
 deploy_ncurses      || exit 1
 deploy_procps_ng    || exit 1
 deploy_vim          || exit 1
+deploy_ffmpeg       || exit 1
 deploy_bash_profile || exit 1
 
 run_sshd || exit 1
