@@ -71,6 +71,7 @@ OPTIONS = {}
 OPTIONS[:testdir] = File.join(ENV['HOME'], '.crystax', 'boost')
 OPTIONS[:ndk] = File.expand_path('../..', __FILE__)
 OPTIONS[:stdlib] = 'gnu'
+OPTIONS[:lines_num_threshold] = 5000
 
 optparser = OptionParser.new do |o|
     o.banner = <<-EOF
@@ -228,6 +229,10 @@ By default, this will try with the current NDK directory, unless you use the --n
         OPTIONS[:boost_regression_url] = u
     end
 
+    o.on("--lines-num-threshold=N", Integer) do |n|
+        OPTIONS[:lines_num_threshold] = n
+    end
+
 end
 optparser.parse!(ARGV)
 
@@ -260,6 +265,11 @@ when 'gnu', 'llvm'
     # OK
 else
     $stderr.puts "ERROR: Wrong 'stdlib': '#{OPTIONS[:stdlib]}'"
+    exit 1
+end
+
+if OPTIONS[:lines_num_threshold] <= 0
+    $stderr.puts "ERROR: Wrong lines-num-threshold value: '#{OPTIONS[:lines_num_threshold]}'"
     exit 1
 end
 
@@ -351,7 +361,7 @@ def rm_rf(path)
                 total = 0
                 while !o.gets.nil?
                     cnt += 1
-                    next if cnt < 5000
+                    next if cnt < OPTIONS[:lines_num_threshold]
 
                     total += cnt
                     cnt = 0
@@ -1046,7 +1056,7 @@ def test_for_abi(abi, testdir)
                         total = 0
                         while !o.gets.nil?
                             cnt += 1
-                            next if cnt < 5000
+                            next if cnt < OPTIONS[:lines_num_threshold]
 
                             total += cnt
                             cnt = 0
@@ -1091,7 +1101,7 @@ def test_for_abi(abi, testdir)
                         total = 0
                         while !e.gets.nil?
                             cnt += 1
-                            next if cnt < 5000
+                            next if cnt < OPTIONS[:lines_num_threshold]
 
                             total += cnt
                             cnt = 0
