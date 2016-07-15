@@ -603,8 +603,11 @@ run_sshd()
         adb_shell "$BASH -c 'test -f $HOST_KEY || $DEPLOY_ROOT/bin/ssh-keygen -t $t -N \"\" -f $HOST_KEY'" || return 1
     done
 
-    adb_shell "$BASH -c 'kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null'" || return 1
-    adb_shell "$BASH -c 'HOME=$DEPLOY_ROOT $DEPLOY_ROOT/sbin/sshd -x $DEPLOY_ROOT'" || return 1
+    adb_shell "$BASH -c '                                               \
+        kill \`cat $DEPLOY_ROOT/run/sshd.pid 2>/dev/null\` 2>/dev/null; \
+        export HOME=$DEPLOY_ROOT &&                                     \
+        $DEPLOY_ROOT/sbin/sshd -x $DEPLOY_ROOT &&                       \
+        true'" || return 1
 }
 
 create_directories   || exit 1
