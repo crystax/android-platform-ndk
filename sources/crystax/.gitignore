@@ -64,9 +64,11 @@ include/math.h
 include/mntent.h
 include/monetary.h
 include/net/if_ether.h
+include/netdb.h
 include/netinet/in.h
 include/netinet/in6.h
 include/nl_types.h
+include/nsswitch.h
 include/poll.h
 include/printf.h
 include/pthread.h

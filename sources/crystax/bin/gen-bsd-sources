@@ -831,6 +831,8 @@ g.add "lib/libc/iconv/iconv_close.c"
 g.add "lib/libc/iconv/iconv_open.c"
 # libc include
 g.add "lib/libc/include/errlst.h"
+g.add "lib/libc/include/nss_tls.h"
+g.add "lib/libc/include/reentrant.h"
 # libc locale
 g.add "lib/libc/locale/ascii.c",           warnings: ["sign-compare", "type-limits", "tautological-compare"]
 g.add "lib/libc/locale/big5.c"
@@ -903,6 +905,8 @@ g.add "lib/libc/locale/wcwidth.c"
 g.add "lib/libc/locale/xlocale.c",         warnings: "missing-field-initializers"
 g.add "lib/libc/locale/xlocale_private.h"
 # libc net
+g.add "lib/libc/net/getprotoent.c",        warnings: "unused-parameter"
+g.add "lib/libc/net/netdb_private.h"
 g.add "lib/libc/net/ntoh.c"
 # libc regex
 g.add "lib/libc/regex/cname.h"

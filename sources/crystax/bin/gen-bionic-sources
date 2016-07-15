@@ -203,8 +203,10 @@ g.add "libc/include/machine/pthread_types.h",           public: true
 g.add "libc/include/machine/timespec.h",                public: true
 g.add "libc/include/mntent.h",                          public: true
 g.add "libc/include/net/if_ether.h",                    public: true
+g.add "libc/include/netdb.h",                           public: true
 g.add "libc/include/netinet/in.h",                      public: true
 g.add "libc/include/netinet/in6.h",                     public: true
+g.add "libc/include/nsswitch.h",                        public: true
 g.add "libc/include/poll.h",                            public: true
 g.add "libc/include/pthread.h",                         public: true
 g.add "libc/include/pty.h",                             public: true
@@ -1929,6 +1931,14 @@ g.add "libc/arch-mips/syscalls/setgroups.S"
 g.add "libc/arch-mips64/syscalls/setgroups.S"
 g.add "libc/arch-x86/syscalls/setgroups.S"
 g.add "libc/arch-x86_64/syscalls/setgroups.S"
+
+# sethostname
+g.add "libc/arch-arm/syscalls/sethostname.S"
+g.add "libc/arch-arm64/syscalls/sethostname.S"
+g.add "libc/arch-mips/syscalls/sethostname.S"
+g.add "libc/arch-mips64/syscalls/sethostname.S"
+g.add "libc/arch-x86/syscalls/sethostname.S"
+g.add "libc/arch-x86_64/syscalls/sethostname.S"
 
 # setitimer
 g.add "libc/arch-arm/syscalls/setitimer.S"

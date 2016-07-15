@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,29 +27,43 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C
-#define __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
 
-#include <crystax/id.h>
-#include <inttypes.h>
+int getdomainname(char *name, int namelen)
+{
+    FILE *fp;
+    size_t n;
 
-#define gethostbyaddr __crystax_google_gethostbyaddr
-#define gethostbyaddr_r __crystax_google_gethostbyaddr_r
-#define setnetgrent __crystax_google_setnetgrent
-#include <crystax/google/netdb.h>
-#undef gethostbyaddr
-#undef gethostbyaddr_r
-#undef setnetgrent
+    if (namelen <= 0) {
+        errno = EINVAL;
+        return -1;
+    }
 
-#include <getrrsetbyname.h>
+    fp = fopen("/proc/sys/kernel/domainname", "rb");
+    if (!fp) {
+        errno = EFAULT;
+        return -1;
+    }
 
-__BEGIN_DECLS
+    n = fread(name, 1, namelen, fp);
+    fclose(fp);
 
-struct hostent * gethostbyaddr(const void *addr, socklen_t len, int af);
-int gethostbyaddr_r(const void *addr, socklen_t len, int af, struct hostent *hp, char *buf,
-                    size_t buflen, struct hostent **result, int *h_errnop);
-int setnetgrent(const char *netgroup);
+    if (n >= (size_t)namelen) {
+        errno = EINVAL;
+        return -1;
+    }
 
-__END_DECLS
+    name[n] = '\0';
+    return 0;
+}
 
-#endif /* __CRYSTAX_INCLUDE_NETDB_H_97DF64C430AF4AB9A759BBD1B758205C */
+int setdomainname(const char *name, int namelen)
+{
+    (void)name;
+    (void)namelen;
+
+    errno = EPERM;
+    return -1;
+}
