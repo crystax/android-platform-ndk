@@ -73,6 +73,7 @@ extern void (*__cleanup)(void) __attribute__((__visibility__("hidden")));
 #define _pthread_rwlock_wrlock(x)  pthread_rwlock_wrlock(x)
 #define _pthread_self()            pthread_self()
 #define _pthread_setspecific(x, y) pthread_setspecific(x, y)
+#define _pthread_main_np()         pthread_main_np()
 
 #define _dup2(fd, fd2) dup2(fd, fd2)
 #define _once(o, f) pthread_once(o, f)
