@@ -377,6 +377,38 @@ deploy_binfiles()
     done
 }
 
+deploy_net_tools()
+{
+    local NET_TOOLS_ROOT=$(detect_package_root net-tools)
+    test -n "$NET_TOOLS_ROOT" || return 1
+
+    local srcf
+    local dstf
+    local basef
+    local f
+    for f in $NET_TOOLS_ROOT/*; do
+        srcf=$(strip_debug_info $f)
+        test -n "$srcf" || return 1
+        basef=$(basename $f)
+        case $basef in
+            hostname|netstat)
+                dstf=$DEPLOY_ROOT/bin/$basef
+                ;;
+            *)
+                dstf=$DEPLOY_ROOT/sbin/$basef
+        esac
+        adb_shell mkdir -p $(dirname $dstf) || return 1
+        adb_push $srcf $dstf || return 1
+        adb_shell chmod 0755 $dstf || return 1
+        rm -f $srcf
+    done
+
+    for f in dnsdomainname domainname nisdomainname ypdomainname; do
+        adb_shell "rm -f $DEPLOY_ROOT/bin/$f" || return 1
+        adb_shell "ln -s hostname $DEPLOY_ROOT/bin/$f" || return 1
+    done
+}
+
 deploy_openssh()
 {
     local OPENSSH_ROOT=$(detect_package_root openssh)
@@ -588,6 +620,7 @@ for p in              \
 done
 
 deploy_openssh      || exit 1
+deploy_net_tools    || exit 1
 deploy_ncurses      || exit 1
 deploy_procps_ng    || exit 1
 deploy_vim          || exit 1
