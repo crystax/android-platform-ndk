@@ -539,26 +539,10 @@ deploy_ffmpeg()
     done
 }
 
-deploy_bash_profile()
+deploy_bash_configs()
 {
-    local BASH_PROFILE=/tmp/bash_profile.$RTAG
-    cat >$BASH_PROFILE <<EOF
-if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
-    echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
-    echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
-    exit 1
-fi
-
-umask 0022
-
-alias mv='mv -i'
-alias cp='cp -i'
-alias ll='ls --color=auto -FAl'
-alias tf='tail -F'
-alias pg='ps auxw | grep -v grep | grep'
-
-export HISTCONTROL=ignoreboth:erasedups
-
+    local BASHRC=/tmp/bashrc.$RTAG
+    cat >$BASHRC <<EOF
 export SHELL=\$HOME/bin/bash
 
 TMP=\$HOME/tmp
@@ -575,6 +559,31 @@ export VIMRUNTIME=\$HOME/share/vim
 export LD_LIBRARY_PATH=\$HOME/lib
 
 export PATH=\$HOME/bin:\$HOME/sbin:\$PATH
+EOF
+    test $? -eq 0 || return 1
+
+    adb_push $BASHRC $DEPLOY_ROOT/.bashrc || return 1
+    rm -f $BASHRC
+
+    local BASH_PROFILE=/tmp/bash_profile.$RTAG
+    cat >$BASH_PROFILE <<EOF
+if [ "\$HOME" != "$DEPLOY_ROOT" ]; then
+    echo "*** ERROR: HOME doesn't point to $DEPLOY_ROOT!" 1>&2
+    echo "*** ERROR: Re-run Bash again with HOME=$DEPLOY_ROOT!" 1>&2
+    exit 1
+fi
+
+test -e ~/.bashrc && source ~/.bashrc
+
+umask 0022
+
+alias mv='mv -i'
+alias cp='cp -i'
+alias ll='ls --color=auto -FAl'
+alias tf='tail -F'
+alias pg='ps auxw | grep -v grep | grep'
+
+export HISTCONTROL=ignoreboth:erasedups
 
 cd \$HOME
 EOF
@@ -625,6 +634,6 @@ deploy_ncurses      || exit 1
 deploy_procps_ng    || exit 1
 deploy_vim          || exit 1
 deploy_ffmpeg       || exit 1
-deploy_bash_profile || exit 1
+deploy_bash_configs || exit 1
 
 run_sshd || exit 1
