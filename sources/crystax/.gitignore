@@ -35,6 +35,8 @@ include/inttypes.h
 include/langinfo.h
 include/limits.h
 include/linux/auxvec.h
+include/linux/if_plip.h
+include/linux/if_slip.h
 include/linux/in6.h
 include/linux/inotify.h
 include/linux/ipc.h
@@ -47,6 +49,7 @@ include/linux/sched.h
 include/linux/signal.h
 include/linux/signalfd.h
 include/linux/time.h
+include/linux/tty.h
 include/linux/unistd.h
 include/linux/xattr.h
 include/locale.h
@@ -97,6 +100,7 @@ include/sys/file.h
 include/sys/glibc-syscalls.h
 include/sys/iconv.h
 include/sys/inotify.h
+include/sys/ioctl.h
 include/sys/ipc.h
 include/sys/limits.h
 include/sys/mtio.h

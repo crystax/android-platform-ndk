@@ -222,6 +222,7 @@ g.add "libc/include/sys/epoll.h",                       public: true
 g.add "libc/include/sys/file.h",                        public: true
 g.add "libc/include/sys/glibc-syscalls.h",              public: true
 g.add "libc/include/sys/inotify.h",                     public: true
+g.add "libc/include/sys/ioctl.h",                       public: true
 g.add "libc/include/sys/ipc.h",                         public: true
 g.add "libc/include/sys/personality.h",                 public: true
 g.add "libc/include/sys/prctl.h",                       public: true
@@ -260,6 +261,7 @@ g.add "libc/kernel/uapi/asm-arm64/asm/signal.h",        public: true
 g.add "libc/kernel/uapi/asm-arm64/asm/unistd.h",        public: true
 g.add "libc/kernel/uapi/asm-generic/auxvec.h",          public: true
 g.add "libc/kernel/uapi/asm-generic/bitsperlong.h",     public: true
+g.add "libc/kernel/uapi/asm-generic/param.h",           public: true
 g.add "libc/kernel/uapi/asm-generic/posix_types.h",     public: true
 g.add "libc/kernel/uapi/asm-generic/siginfo.h",         public: true
 g.add "libc/kernel/uapi/asm-generic/signal-defs.h",     public: true
@@ -286,6 +288,8 @@ g.add "libc/kernel/uapi/asm-x86/asm/unistd_32.h",       public: true
 g.add "libc/kernel/uapi/asm-x86/asm/unistd_64.h",       public: true
 g.add "libc/kernel/uapi/asm-x86/asm/unistd_x32.h",      public: true
 g.add "libc/kernel/uapi/linux/auxvec.h",                public: true
+g.add "libc/kernel/uapi/linux/if_plip.h",               public: true
+g.add "libc/kernel/uapi/linux/if_slip.h",               public: true
 g.add "libc/kernel/uapi/linux/in6.h",                   public: true
 g.add "libc/kernel/uapi/linux/inotify.h",               public: true
 g.add "libc/kernel/uapi/linux/ipc.h",                   public: true
@@ -298,6 +302,7 @@ g.add "libc/kernel/uapi/linux/sched.h",                 public: true
 g.add "libc/kernel/uapi/linux/signal.h",                public: true
 g.add "libc/kernel/uapi/linux/signalfd.h",              public: true
 g.add "libc/kernel/uapi/linux/time.h",                  public: true
+g.add "libc/kernel/uapi/linux/tty.h",                   public: true
 g.add "libc/kernel/uapi/linux/unistd.h",                public: true
 g.add "libc/kernel/uapi/linux/xattr.h",                 public: true
 
