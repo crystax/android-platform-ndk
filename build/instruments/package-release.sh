@@ -539,6 +539,7 @@ for ABI in $ABIS; do
     unpack_prebuilt android-vim-$ABI "$REFERENCE"
     unpack_prebuilt android-x264-$ABI "$REFERENCE"
     unpack_prebuilt android-ffmpeg-$ABI "$REFERENCE"
+    unpack_prebuilt android-net-tools-$ABI "$REFERENCE"
 done
 
 RELEASE_VERSION=${RELEASE_PREFIX%%-b*}
