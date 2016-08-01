@@ -51,10 +51,10 @@ int ptsname_r(int, char*, size_t);
 int getpt(void);
 int clearenv(void);
 
-int  rand();
+int  rand(void);
 void srand(unsigned int s);
 
-long random();
+long random(void);
 void srandom(unsigned long s);
 
 __END_DECLS
