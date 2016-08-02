@@ -28,6 +28,8 @@
  */
 
 #include <sys/auxv.h>
+#include <sys/prctl.h>
+#include <sys/resource.h>
 #include <elf.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -44,6 +46,8 @@
 #define ElfW(type) Elf32_ ## type
 #endif
 
+#define DUMPABLE_VALUE 1
+
 static ElfW(auxv_t) *readauxv()
 {
     int fd;
@@ -52,10 +56,24 @@ static ElfW(auxv_t) *readauxv()
     size_t auxvidx = 0;
     ElfW(auxv_t) buf;
     size_t buflen = 0;
-    char fname[PATH_MAX + 1];
+    const char *fname = "/proc/self/auxv";
 
-    if (snprintf(fname, sizeof(fname) - 1, "/proc/%u/auxv", (unsigned)getpid()) <= 0)
-        PANIC("can't create procfs auxv file name");
+    int dumpable;
+    struct rlimit rl;
+
+    dumpable = prctl(PR_GET_DUMPABLE, 0, 0, 0, 0);
+    if (dumpable < 0)
+        PANIC("can't get PR_GET_DUMPABLE: %s", strerror(errno));
+
+    if (dumpable != DUMPABLE_VALUE) {
+        if (prctl(PR_SET_DUMPABLE, DUMPABLE_VALUE, 0, 0, 0) < 0)
+            PANIC("can't set PR_SET_DUMPABLE: %s", strerror(errno));
+
+        rl.rlim_cur = 0;
+        rl.rlim_max = RLIM_INFINITY;
+        if (setrlimit(RLIMIT_CORE, &rl) < 0)
+            PANIC("Can't set RLIMIT_CORE: %s", strerror(errno));
+    }
 
     fd = open(fname, O_RDONLY);
     if (fd < 0)
@@ -90,6 +108,11 @@ static ElfW(auxv_t) *readauxv()
     }
 
     close(fd);
+
+    if (dumpable != DUMPABLE_VALUE) {
+        if (prctl(PR_SET_DUMPABLE, dumpable, 0, 0, 0) < 0)
+            PANIC("can't set PR_SET_DUMPABLE(%d): %s", dumpable, strerror(errno));
+    }
 
     return auxv;
 }
