@@ -28,10 +28,10 @@
  */
 
 #if defined(CRYSTAX_INIT_DEBUG) && CRYSTAX_INIT_DEBUG == 1
-#ifdef CRYSTAX_DEBUG
-#undef CRYSTAX_DEBUG
+#ifdef __CRYSTAX_DEBUG
+#undef __CRYSTAX_DEBUG
 #endif
-#define CRYSTAX_DEBUG 1
+#define __CRYSTAX_DEBUG 1
 #endif
 
 #include <crystax/private.h>

@@ -47,42 +47,52 @@ static JNI_GetCreatedJavaVMs_func_t JNI_GetCreatedJavaVMs_func = NULL;
 CRYSTAX_GLOBAL
 jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/)
 {
+    FRAME_TRACER;
     return crystax_jni_on_load(vm);
 }
 
 CRYSTAX_GLOBAL
 void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 {
+    FRAME_TRACER;
     crystax_jni_on_unload(vm);
 }
 
 static void initialize_jni_runtime()
 {
+    FRAME_TRACER;
+
     if (::pthread_mutex_lock(&mtx) != 0)
         PANIC("Can't lock mutex");
 
+    TRACE;
     if (!libart_handle)
     {
+        TRACE;
         libart_handle = ::dlopen("libart.so", RTLD_NOW);
         if (!libart_handle)
             PANIC("Can't open libart.so");
 
+        TRACE;
         JNI_GetDefaultJavaVMInitArgs_func = (JNI_GetDefaultJavaVMInitArgs_func_t)::dlsym(
                 libart_handle, "JNI_GetDefaultJavaVMInitArgs");
         if (!JNI_GetDefaultJavaVMInitArgs_func)
             PANIC("Can't find JNI_GetDefaultJavaVMInitArgs in libart.so");
 
+        TRACE;
         JNI_CreateJavaVM_func = (JNI_CreateJavaVM_func_t)::dlsym(
                 libart_handle, "JNI_CreateJavaVM");
         if (!JNI_CreateJavaVM_func)
             PANIC("Can't find JNI_CreateJavaVM in libart.so");
 
+        TRACE;
         JNI_GetCreatedJavaVMs_func = (JNI_GetCreatedJavaVMs_func_t)::dlsym(
                 libart_handle, "JNI_GetCreatedJavaVMs");
         if (!JNI_GetCreatedJavaVMs_func)
             PANIC("Can't find JNI_GetCreatedJavaVMs in libart.so");
     }
 
+    TRACE;
     if (::pthread_mutex_unlock(&mtx) != 0)
         PANIC("Can't unlock mutex");
 }

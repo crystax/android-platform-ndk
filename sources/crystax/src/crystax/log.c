@@ -27,13 +27,13 @@
  * or implied, of CrystaX.
  */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <dlfcn.h>
-#include <errno.h>
 
 #define CRYSTAX_LOG_SINK_STDOUT 0
 #define CRYSTAX_LOG_SINK_LOGCAT 1
+
+#define CRYSTAX_LOG_SINK CRYSTAX_LOG_SINK_LOGCAT
 
 #ifndef CRYSTAX_LOG_SINK
 #define CRYSTAX_LOG_SINK CRYSTAX_LOG_SINK_STDOUT
@@ -46,32 +46,11 @@
 #include <crystax/private.h>
 #include <crystax/atomic.h>
 
-#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_LOGCAT
+#define __noinstrument __attribute__ ((no_instrument_function))
 
-static int (*func_android_log_vprint)(int, const char *, const char *, va_list) = NULL;
+extern __noreturn void _exit(int);
 
-static int initialized = 0;
-
-static int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list ap)
-{
-    if (__crystax_atomic_fetch(&initialized) == 0)
-    {
-        void *pc;
-        void *pf;
-
-        pc = dlopen("liblog.so", RTLD_NOW);
-        if (!pc) abort();
-
-        pf = dlsym(pc, "__android_log_vprint");
-        if (!pf) abort();
-
-        __crystax_atomic_swap(&func_android_log_vprint, pf);
-        __crystax_atomic_swap(&initialized, 1);
-    }
-    return func_android_log_vprint(prio, tag, fmt, ap);
-}
-#endif /* CRYSTAX_LOG_SINK_LOGCAT */
-
+__noinstrument
 const char *__crystax_log_short_file(const char *f)
 {
     int const MAXLEN = 25;
@@ -85,49 +64,132 @@ const char *__crystax_log_short_file(const char *f)
     return s - MAXLEN;
 }
 
-int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
+__noinstrument
+__noreturn static void __crystax_log_abort(int line)
+{
+    /* We can't call abort() function here since logging calls could be called from
+     * the code on very early stage of loading library.
+     * We rely on the fact that accesing low address, either debuggerd or kernel's
+     * crash dump will show the fault address.
+     */
+    *(unsigned int*)((uintptr_t)line) = 0;
+    _exit(line > 0 && line < 255 ? line : 255);
+}
+
+static int (*func_android_log_vprint)(int, const char *, const char *, va_list) = NULL;
+
+__noinstrument
+int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list ap)
+{
+    if (__crystax_atomic_fetch(&func_android_log_vprint) == NULL)
+    {
+        void *pc;
+        void *pf;
+
+        pc = dlopen("liblog.so", RTLD_LOCAL | RTLD_NOW);
+        if (!pc) __crystax_log_abort(__LINE__);
+
+        pf = dlsym(pc, "__android_log_vprint");
+        if (!pf) __crystax_log_abort(__LINE__);
+
+        __crystax_atomic_swap(&func_android_log_vprint, pf);
+    }
+
+    return func_android_log_vprint(prio, tag, fmt, ap);
+}
+
+__noinstrument
+int __crystax_logcat(int prio, const char *tag, const char *fmt, ...)
 {
     int rc;
     va_list ap;
-    int serrno;
 
-    serrno = errno;
+    va_start(ap, fmt);
+    rc = __crystax_vlogcat(prio, tag, fmt, ap);
+    va_end(ap);
 
-#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
+    return rc;
+}
+
+__noinstrument
+int __crystax_vlogstd(int prio, const char *tag, const char *fmt, va_list ap)
+{
+    int rc;
+
     char *newfmtfmt = "%s: %s\n";
     rc = snprintf(NULL, 0, newfmtfmt, tag, fmt);
     if (rc < 0)
     {
         fprintf(stderr, "CRYSTAX_PANI: can't create new format string\n");
-        abort();
+        __crystax_log_abort(__LINE__);
     }
     if (rc > 4096)
     {
         fprintf(stderr, "CRYSTAX_PANI: format string too long: \"%s\"\n", fmt);
-        abort();
+        __crystax_log_abort(__LINE__);
     }
+
     char newfmt[rc + 1];
     rc = snprintf(newfmt, sizeof(newfmt), newfmtfmt, tag, fmt);
     if (rc < 0)
     {
         fprintf(stderr, "CRYSTAX_PANI: can't create new format string\n");
-        abort();
+        __crystax_log_abort(__LINE__);
     }
-#endif
+
+    FILE *fp = prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr;
+    rc = vfprintf(fp, newfmt, ap);
+    fflush(fp);
+
+    return rc;
+}
+
+__noinstrument
+int __crystax_logstd(int prio, const char *tag, const char *fmt, ...)
+{
+    int rc;
+    va_list ap;
 
     va_start(ap, fmt);
+    rc = __crystax_vlogstd(prio, tag, fmt, ap);
+    va_end(ap);
+
+    return rc;
+}
+
+__noinstrument
+int __crystax_vlog(int prio, const char *tag, const char *fmt, va_list ap)
+{
 #if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_LOGCAT
-    rc = __crystax_vlogcat(prio, tag, fmt, ap);
+    return __crystax_vlogcat(prio, tag, fmt, ap);
 #elif CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
-    rc = vfprintf(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr, newfmt, ap);
-    fflush(prio < CRYSTAX_LOGLEVEL_WARN ? stdout : stderr);
+    return __crystax_vlogstd(prio, tag, fmt, ap);
 #else
 #error Unknown log sink
 #endif
+}
 
+__noinstrument
+int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
+{
+    int rc;
+    va_list ap;
+
+    va_start(ap, fmt);
+    rc = __crystax_vlog(prio, tag, fmt, ap);
     va_end(ap);
 
-    errno = serrno;
-
     return rc;
+}
+
+__noinstrument
+void __cyg_profile_func_enter(void *fn, void *caller)
+{
+    __crystax_logcat(CRYSTAX_LOGLEVEL_INFO, "LIBCRYSTAX", "ENTER: fn=%p, caller=%p", fn, caller);
+}
+
+__noinstrument
+void __cyg_profile_func_exit(void *fn, void *caller)
+{
+    __crystax_logcat(CRYSTAX_LOGLEVEL_INFO, "LIBCRYSTAX", "LEAVE: fn=%p, caller=%p", fn, caller);
 }

@@ -27,17 +27,17 @@
  * or implied, of CrystaX.
  */
 
-#if defined(CRYSTAX_DEBUG_PATH_FUNCTIONS) && CRYSTAX_DEBUG_PATH_FUNCTIONS == 1
-#   ifdef CRYSTAX_DEBUG
-#   undef CRYSTAX_DEBUG
+#if defined(__CRYSTAX_DEBUG_PATH_FUNCTIONS) && __CRYSTAX_DEBUG_PATH_FUNCTIONS == 1
+#   ifdef __CRYSTAX_DEBUG
+#   undef __CRYSTAX_DEBUG
 #   endif
-#   define CRYSTAX_DEBUG 1
-#   define CRYSTAX_DEBUG_SINK 0
+#   define __CRYSTAX_DEBUG 1
+#   define __CRYSTAX_DEBUG_SINK 0
 #else
-#   ifdef CRYSTAX_DEBUG
-#   undef CRYSTAX_DEBUG
+#   ifdef __CRYSTAX_DEBUG
+#   undef __CRYSTAX_DEBUG
 #   endif
-#   define CRYSTAX_DEBUG 0
+#   define __CRYSTAX_DEBUG 0
 #   ifdef CRYSTAX_FILEIO_DEBUG
 #   undef CRYSTAX_FILEIO_DEBUG
 #   endif

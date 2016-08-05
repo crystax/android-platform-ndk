@@ -31,10 +31,10 @@
 #define _CRYSTAX_FILEIO_COMMON_H_99544c48e9174f659a97671e7f64c763
 
 #if defined(CRYSTAX_FILEIO_DEBUG) && CRYSTAX_FILEIO_DEBUG
-#ifdef CRYSTAX_DEBUG
-#undef CRYSTAX_DEBUG
+#ifdef __CRYSTAX_DEBUG
+#undef __CRYSTAX_DEBUG
 #endif
-#define CRYSTAX_DEBUG 1
+#define __CRYSTAX_DEBUG 1
 #endif
 
 #include <crystax.h>

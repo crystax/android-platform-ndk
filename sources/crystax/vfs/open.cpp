@@ -34,7 +34,7 @@ namespace crystax
 namespace fileio
 {
 
-#if defined(CRYSTAX_DEBUG) && CRYSTAX_DEBUG == 1
+#if defined(__CRYSTAX_DEBUG) && __CRYSTAX_DEBUG == 1
 static const char *mode_s(int oflag)
 {
     switch (oflag)

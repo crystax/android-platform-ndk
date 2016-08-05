@@ -398,7 +398,7 @@ common_cflags_for_abi()
         echo "-O0"
         echo "-D_DEBUG"
         echo "-DDEBUG"
-        echo "-DCRYSTAX_DEBUG=1"
+        echo "-D__CRYSTAX_DEBUG=1"
     else
         echo "-O2"
         echo "-DNDEBUG"
