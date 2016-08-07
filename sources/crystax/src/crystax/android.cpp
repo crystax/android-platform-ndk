@@ -27,7 +27,7 @@
  * or implied, of CrystaX.
  */
 
-#if defined(CRYSTAX_INIT_DEBUG) && CRYSTAX_INIT_DEBUG == 1
+#if defined(__CRYSTAX_INIT_DEBUG) && __CRYSTAX_INIT_DEBUG == 1
 #ifdef __CRYSTAX_DEBUG
 #undef __CRYSTAX_DEBUG
 #endif
