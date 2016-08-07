@@ -62,7 +62,7 @@ __noreturn static void early_abort(int line)
     // we rely on the fact that if we dereference a low address, either debuggerd or the
     // kernel's crash dump will show the fault address.
     *reinterpret_cast<int*>(line) = 0;
-    _exit(line == 0 ? -1 : line);
+    _exit(line > 0 && line < 255 ? line : 255);
 }
 
 static void * memalloc(size_t length)
