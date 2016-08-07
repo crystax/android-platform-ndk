@@ -27,6 +27,8 @@
  * or implied, of CrystaX.
  */
 
+#if 0
+
 #include <crystax.h>
 #include <pthread.h>
 #include <jni.h>
@@ -117,3 +119,5 @@ jint JNI_GetCreatedJavaVMs(JavaVM** vms, jsize size, jsize* count)
     initialize_jni_runtime();
     return JNI_GetCreatedJavaVMs(vms, size, count);
 }
+
+#endif
