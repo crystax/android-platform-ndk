@@ -28,6 +28,7 @@
  */
 
 #include <sys/mman.h>
+#include <sys/prctl.h>
 #include <fcntl.h>
 
 #include "private/KernelArgumentBlock.h"
@@ -135,7 +136,7 @@ static void put_to_rawargs(void *&rawargs, size_t &size, off_t &offset, T value)
     offset += sizeof(value);
 }
 
-static void *construct_rawargs()
+static void *construct_rawargs_impl()
 {
     size_t argslen = 0;
     char const *args = static_cast<char const *>(
@@ -189,6 +190,27 @@ static void *construct_rawargs()
     put_to_rawargs(rawargs, rawargssize, rawargsoffset, end);
 
     return rawargs;
+}
+
+static void *construct_rawargs()
+{
+    static void *args = NULL;
+    if (!args)
+    {
+        int dumpable = prctl(PR_GET_DUMPABLE, 0, 0, 0, 0);
+        EARLY_ABORT_IF(dumpable < 0);
+
+        int const DUMPABLE = 1;
+
+        if (dumpable != DUMPABLE)
+            EARLY_ABORT_IF(prctl(PR_SET_DUMPABLE, DUMPABLE, 0, 0, 0) < 0);
+
+        args = construct_rawargs_impl();
+
+        if (dumpable != DUMPABLE)
+            EARLY_ABORT_IF(prctl(PR_SET_DUMPABLE, dumpable, 0, 0, 0) < 0);
+    }
+    return args;
 }
 
 } // namespace init
