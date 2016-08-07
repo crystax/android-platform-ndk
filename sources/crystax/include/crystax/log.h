@@ -59,13 +59,13 @@
 
 #if __CRYSTAX_DEBUG
 
-#include <pthread.h>
+#include <unistd.h>
 
 #   define CRYSTAX_LOG(level, fmt, ...) \
         __crystax_log(CRYSTAX_LEVEL_VAL(level), \
                 CRYSTAX_LEVEL_TAG(level), \
-                "[%08x] ...%s:%-5d: %-15s: " fmt, \
-                (unsigned)pthread_self(), \
+                "[%u:%u] ...%s:%-5d: %-15s: " fmt, \
+                (unsigned)getpid(), (unsigned)gettid(), \
                 __crystax_log_short_file(__FILE__), __LINE__, \
                 __FUNCTION__, ##__VA_ARGS__)
 
@@ -101,11 +101,9 @@ __BEGIN_DECLS
 
 const char *__crystax_log_short_file(const char *f);
 int __crystax_logcat(int prio, const char *tag, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
-int __crystax_logstd(int prio, const char *tag, const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 int __crystax_log(int prio, const char *tag,  const char *fmt, ...) __attribute__ ((format(printf, 3, 4)));
 
 int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list ap);
-int __crystax_vlogstd(int prio, const char *tag, const char *fmt, va_list ap);
 int __crystax_vlog(int prio, const char *tag, const char *fmt, va_list ap);
 
 __END_DECLS
@@ -121,16 +119,16 @@ public:
         :file(f), line(l), function(fn)
     {
         __crystax_log(CRYSTAX_LEVEL_VAL(DBG), CRYSTAX_LEVEL_TAG(DBG),
-                "[%08x] ...%s:%-5d: %-15s: *** ENTER",
-                (unsigned)::pthread_self(),
+                "[%u:%u] ...%s:%-5d: %-15s: *** ENTER",
+                (unsigned)getpid(), (unsigned)gettid(),
                 __crystax_log_short_file(file), line, function);
     }
 
     ~call_frame_tracer()
     {
         __crystax_log(CRYSTAX_LEVEL_VAL(DBG), CRYSTAX_LEVEL_TAG(DBG),
-                "[%08x] ...%s:%-5d: %-15s: *** LEAVE",
-                (unsigned)::pthread_self(),
+                "[%u:%u] ...%s:%-5d: %-15s: *** LEAVE",
+                (unsigned)getpid(), (unsigned)gettid(),
                 __crystax_log_short_file(file), line, function);
     }
 

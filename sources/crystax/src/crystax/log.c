@@ -27,24 +27,19 @@
  * or implied, of CrystaX.
  */
 
+#include <crystax/log.h>
+#include <android/log.h>
+
 #include <stdio.h>
 #include <dlfcn.h>
 
-#define CRYSTAX_LOG_SINK_STDOUT 0
-#define CRYSTAX_LOG_SINK_LOGCAT 1
+#include <crystax/ctassert.h>
 
-#define CRYSTAX_LOG_SINK CRYSTAX_LOG_SINK_LOGCAT
-
-#ifndef CRYSTAX_LOG_SINK
-#define CRYSTAX_LOG_SINK CRYSTAX_LOG_SINK_STDOUT
-#endif
-
-#ifndef CRYSTAX_LOG_SINK
-#error  CRYSTAX_LOG_SINK not defined
-#endif
-
-#include <crystax/private.h>
-#include <crystax/atomic.h>
+__CRYSTAX_STATIC_ASSERT(CRYSTAX_LOGLEVEL_DEBUG == ANDROID_LOG_DEBUG, "Wrong log level DEBUG");
+__CRYSTAX_STATIC_ASSERT(CRYSTAX_LOGLEVEL_INFO  == ANDROID_LOG_INFO,  "Wrong log level INFO");
+__CRYSTAX_STATIC_ASSERT(CRYSTAX_LOGLEVEL_WARN  == ANDROID_LOG_WARN,  "Wrong log level WARN");
+__CRYSTAX_STATIC_ASSERT(CRYSTAX_LOGLEVEL_ERROR == ANDROID_LOG_ERROR, "Wrong log level ERROR");
+__CRYSTAX_STATIC_ASSERT(CRYSTAX_LOGLEVEL_PANIC == ANDROID_LOG_FATAL, "Wrong log level PANIC");
 
 #define __noinstrument __attribute__ ((no_instrument_function))
 
@@ -55,12 +50,8 @@ const char *__crystax_log_short_file(const char *f)
 {
     int const MAXLEN = 25;
     const char *s;
-
     for (s = f; *s != '\0'; ++s);
-
-    if ((s - f) < MAXLEN)
-        return f;
-
+    if ((s - f) < MAXLEN) return f;
     return s - MAXLEN;
 }
 
@@ -76,26 +67,41 @@ __noreturn static void __crystax_log_abort(int line)
     _exit(line > 0 && line < 255 ? line : 255);
 }
 
-static int (*func_android_log_vprint)(int, const char *, const char *, va_list) = NULL;
+static void *__crystax_liblog_handle()
+{
+    static void *handle = NULL;
+    if (!handle)
+    {
+        handle = dlopen("liblog.so", RTLD_LOCAL | RTLD_NOW);
+        if (!handle) __crystax_log_abort(__LINE__);
+    }
+    return handle;
+}
+
+__noinstrument
+int __crystax_logwrite(int prio, const char *tag, const char *text)
+{
+    typedef int (*func_t)(int, const char *, const char *);
+    static func_t func = NULL;
+    if (!func)
+    {
+        func = (func_t)dlsym(__crystax_liblog_handle(), "__android_log_write");
+        if (!func) __crystax_log_abort(__LINE__);
+    }
+    return func(prio, tag, text);
+}
 
 __noinstrument
 int __crystax_vlogcat(int prio, const char *tag, const char *fmt, va_list ap)
 {
-    if (__crystax_atomic_fetch(&func_android_log_vprint) == NULL)
+    typedef int (*func_t)(int, const char *, const char *, va_list);
+    static func_t func = NULL;
+    if (!func)
     {
-        void *pc;
-        void *pf;
-
-        pc = dlopen("liblog.so", RTLD_LOCAL | RTLD_NOW);
-        if (!pc) __crystax_log_abort(__LINE__);
-
-        pf = dlsym(pc, "__android_log_vprint");
-        if (!pf) __crystax_log_abort(__LINE__);
-
-        __crystax_atomic_swap(&func_android_log_vprint, pf);
+        func = (func_t)dlsym(__crystax_liblog_handle(), "__android_log_vprint");
+        if (!func) __crystax_log_abort(__LINE__);
     }
-
-    return func_android_log_vprint(prio, tag, fmt, ap);
+    return func(prio, tag, fmt, ap);
 }
 
 __noinstrument
@@ -112,7 +118,7 @@ int __crystax_logcat(int prio, const char *tag, const char *fmt, ...)
 }
 
 __noinstrument
-int __crystax_vlogstd(int prio, const char *tag, const char *fmt, va_list ap)
+int __crystax_vlog(int prio, const char *tag, const char *fmt, va_list ap)
 {
     int rc;
 
@@ -145,31 +151,6 @@ int __crystax_vlogstd(int prio, const char *tag, const char *fmt, va_list ap)
 }
 
 __noinstrument
-int __crystax_logstd(int prio, const char *tag, const char *fmt, ...)
-{
-    int rc;
-    va_list ap;
-
-    va_start(ap, fmt);
-    rc = __crystax_vlogstd(prio, tag, fmt, ap);
-    va_end(ap);
-
-    return rc;
-}
-
-__noinstrument
-int __crystax_vlog(int prio, const char *tag, const char *fmt, va_list ap)
-{
-#if CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_LOGCAT
-    return __crystax_vlogcat(prio, tag, fmt, ap);
-#elif CRYSTAX_LOG_SINK == CRYSTAX_LOG_SINK_STDOUT
-    return __crystax_vlogstd(prio, tag, fmt, ap);
-#else
-#error Unknown log sink
-#endif
-}
-
-__noinstrument
 int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
 {
     int rc;
@@ -182,6 +163,7 @@ int __crystax_log(int prio, const char *tag,  const char *fmt, ...)
     return rc;
 }
 
+#if 0
 __noinstrument
 void __cyg_profile_func_enter(void *fn, void *caller)
 {
@@ -193,3 +175,4 @@ void __cyg_profile_func_exit(void *fn, void *caller)
 {
     __crystax_logcat(CRYSTAX_LOGLEVEL_INFO, "LIBCRYSTAX", "LEAVE: fn=%p, caller=%p", fn, caller);
 }
+#endif
