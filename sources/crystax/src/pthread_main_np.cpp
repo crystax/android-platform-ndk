@@ -27,13 +27,11 @@
  * or implied, of CrystaX.
  */
 
-#include <pthread.h>
-
-pthread_t __crystax_thr_initial = 0;
+#include <pthread_np.h>
+#include <bionic/pthread_internal.h>
 
 int pthread_main_np()
 {
-    if (__crystax_thr_initial == 0)
-        return -1;
-    return pthread_equal(pthread_self(), __crystax_thr_initial) ? 1 : 0;
+    pthread_internal_t *self = reinterpret_cast<pthread_internal_t*>(::pthread_self());
+    return self->prev == NULL ? 1 : 0;
 }

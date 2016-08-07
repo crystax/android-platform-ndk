@@ -42,8 +42,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-extern "C" pthread_t __crystax_thr_initial;
-
 namespace crystax
 {
 
@@ -132,7 +130,6 @@ CRYSTAX_HIDDEN
 void __crystax_on_load()
 {
     FRAME_TRACER;
-    ::__crystax_thr_initial = ::pthread_self();
     ::pthread_once(&::crystax::s_jnienv_key_create_once, &::crystax::jni::jnienv_key_create);
 
     TRACE;
