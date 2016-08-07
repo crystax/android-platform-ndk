@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,21 +27,16 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
-#define _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
+#include <crystax/private.h>
+#include <dlfcn.h>
 
-#include <sys/cdefs.h>
-#include <crystax.h>
-#include <crystax/log.h>
-#include <crystax/bionic.h>
-
-#ifdef __cplusplus
-#   define CRYSTAX_GLOBAL extern "C" __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN extern "C" __attribute__ ((visibility ("hidden")))
-#else
-#   define CRYSTAX_GLOBAL __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN __attribute__ ((visibility ("hidden")))
-#endif
-#define CRYSTAX_LOCAL  __attribute__ ((visibility ("hidden")))
-
-#endif /* _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763 */
+void *__crystax_bionic_handle()
+{
+    static void *pc = NULL;
+    if (!pc)
+    {
+        pc = dlopen("libc.so", RTLD_LOCAL|RTLD_NOW);
+        if (!pc) PANIC("can't open libc.so: %s", dlerror());
+    }
+    return pc;
+}

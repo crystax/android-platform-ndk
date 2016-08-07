@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,21 +27,25 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
-#define _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
+#ifndef __CRYSTAX_SRC_INCLUDE_CRYSTAX_MALLOC_H_FCABC6B669B44830AC681D7EAED127A2
+#define __CRYSTAX_SRC_INCLUDE_CRYSTAX_MALLOC_H_FCABC6B669B44830AC681D7EAED127A2
 
+#include <crystax/id.h>
 #include <sys/cdefs.h>
-#include <crystax.h>
-#include <crystax/log.h>
-#include <crystax/bionic.h>
+#include <stddef.h> /* for size_t */
 
-#ifdef __cplusplus
-#   define CRYSTAX_GLOBAL extern "C" __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN extern "C" __attribute__ ((visibility ("hidden")))
-#else
-#   define CRYSTAX_GLOBAL __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN __attribute__ ((visibility ("hidden")))
-#endif
-#define CRYSTAX_LOCAL  __attribute__ ((visibility ("hidden")))
+__BEGIN_DECLS
 
-#endif /* _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763 */
+void  *crystax_calloc(size_t count, size_t size);
+void   crystax_free(void *ptr);
+void  *crystax_malloc(size_t size);
+void  *crystax_valloc(size_t size);
+void  *crystax_memalign(size_t alignment, size_t size);
+size_t crystax_malloc_usable_size(void const *ptr);
+int    crystax_posix_memalign(void **memptr, size_t alignment, size_t size);
+void  *crystax_pvalloc(size_t size);
+void  *crystax_realloc(void *ptr, size_t size);
+
+__END_DECLS
+
+#endif /* __CRYSTAX_SRC_INCLUDE_CRYSTAX_MALLOC_H_FCABC6B669B44830AC681D7EAED127A2 */

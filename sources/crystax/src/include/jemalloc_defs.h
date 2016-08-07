@@ -1,4 +1,7 @@
 /* include/jemalloc/jemalloc_defs.h.  Generated from jemalloc_defs.h.in by configure.  */
+
+#error "This file should not be included to any other file!"
+
 /*
  * If JEMALLOC_PREFIX is defined via --with-jemalloc-prefix, it will cause all
  * public APIs to be prefixed.  This makes it possible, with some care, to use

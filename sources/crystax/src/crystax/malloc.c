@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 CrystaX.
+ * Copyright (c) 2011-2016 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,21 +27,30 @@
  * or implied, of CrystaX.
  */
 
-#ifndef _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
-#define _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763
+#include <crystax/malloc.h>
+#include <crystax/private.h>
+#include <dlfcn.h>
+#include <stddef.h>
 
-#include <sys/cdefs.h>
-#include <crystax.h>
-#include <crystax/log.h>
-#include <crystax/bionic.h>
+#define CRYSTAX_DEFINE_FUNCTION(ret, params, name, args) \
+    CRYSTAX_HIDDEN ret crystax_ ## name params \
+    { \
+        typedef ret (*func_t) params; \
+        static func_t func = NULL; \
+        if (!func) \
+        { \
+            func = (func_t) dlsym(__crystax_bionic_handle(), #name); \
+            if (!func) PANIC("can't find '" #name "' in libc"); \
+        } \
+        return func args; \
+    }
 
-#ifdef __cplusplus
-#   define CRYSTAX_GLOBAL extern "C" __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN extern "C" __attribute__ ((visibility ("hidden")))
-#else
-#   define CRYSTAX_GLOBAL __attribute__ ((visibility ("default")))
-#   define CRYSTAX_HIDDEN __attribute__ ((visibility ("hidden")))
-#endif
-#define CRYSTAX_LOCAL  __attribute__ ((visibility ("hidden")))
-
-#endif /* _CRYSTAX_PRIVATE_H_99544c48e9174f659a97671e7f64c763 */
+CRYSTAX_DEFINE_FUNCTION(void *, (size_t c, size_t s),           calloc,             (c, s))
+CRYSTAX_DEFINE_FUNCTION(void *, (size_t s),                     malloc,             (s))
+CRYSTAX_DEFINE_FUNCTION(void,   (void *p),                      free,               (p))
+CRYSTAX_DEFINE_FUNCTION(void *, (size_t s),                     valloc,             (s))
+CRYSTAX_DEFINE_FUNCTION(void *, (size_t a, size_t s),           memalign,           (a, s))
+CRYSTAX_DEFINE_FUNCTION(size_t, (void const *p),                malloc_usable_size, (p))
+CRYSTAX_DEFINE_FUNCTION(int,    (void **p, size_t a, size_t s), posix_memalign,     (p, a, s))
+CRYSTAX_DEFINE_FUNCTION(void *, (size_t s),                     pvalloc,            (s))
+CRYSTAX_DEFINE_FUNCTION(void *, (void *p, size_t s),            realloc,            (p, s))
