@@ -3,9 +3,7 @@
 #include <python_module__ctypes.h>
 #include <python_module__multiprocessing.h>
 #include <python_module__socket.h>
-#ifdef NDK_HAVE_OPENSSL_SUPPORT
 #include <python_module__ssl.h>
-#endif
 #include <python_module__sqlite3.h>
 #include <python_module_pyexpat.h>
 #include <python_module_select.h>
@@ -17,9 +15,7 @@ static struct _inittab extensions[] = {
   {"_ctypes", init_ctypes},
   {"_multiprocessing", init_multiprocessing},
   {"_socket", init_socket},
-#ifdef NDK_HAVE_OPENSSL_SUPPORT
   {"_ssl", init_ssl},
-#endif
   {"_sqlite3", init_sqlite3},
   {"pyexpat", initpyexpat},
   {"select", initselect},
