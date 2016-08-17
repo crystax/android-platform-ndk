@@ -459,7 +459,20 @@ build_openssl_for_abi ()
     } >$BUILDDIR_OPENSSL_TOOL/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_OPENSSL_TOOL/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL APP_LIBCRYSTAX=static -j$NUM_JOBS APP_ABI=$ABI V=1
+    local EXE_PLATFORM
+    case $ABI in
+        x86|armeabi*|mips)
+            EXE_PLATFORM=android-16
+            ;;
+        x86_64|arm64-v8a|mips64)
+            EXE_PLATFORM=android-21
+            ;;
+        *)
+            panic "ERROR: Unknown ABI: '$ABI'"
+    esac
+
+    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL -j$NUM_JOBS APP_ABI=$ABI V=1 \
+        APP_LIBCRYSTAX=static APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build build openssl tool for $ABI"
 
     local OPENSSL_INSTALLDIR_BIN="$OPENSSL_DSTDIR/bin/$ABI"
