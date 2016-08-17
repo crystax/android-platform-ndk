@@ -8,7 +8,7 @@ local.properties
 build.xml
 platforms/
 packages/
-toolchains/*/prebuilt/
+toolchains/
 /ndk-stack*
 /ndk-depends*
 /host-tools/
@@ -18,7 +18,9 @@ prebuilt/android-mips/
 prebuilt/android-mips64/
 prebuilt/android-x86/
 prebuilt/android-x86_64/
+prebuilt/linux-x86/
 prebuilt/linux-x86_64/
+prebuilt/darwin-x86/
 prebuilt/darwin-x86_64/
 prebuilt/windows/
 prebuilt/windows-x86_64/
