@@ -263,6 +263,18 @@ build_python_for_abi ()
             ;;
     esac
 
+    local EXE_PLATFORM
+    case $ABI in
+        x86|armeabi*|mips)
+            EXE_PLATFORM=android-16
+            ;;
+        x86_64|arm64-v8a|mips64)
+            EXE_PLATFORM=android-21
+            ;;
+        *)
+            panic "ERROR: Unknown ABI: '$ABI'"
+    esac
+
     local TOOLCHAIN
     case $ABI in
         armeabi*)
@@ -288,6 +300,7 @@ build_python_for_abi ()
             ;;
     esac
 
+    local CFLAGS
     case $ABI in
         armeabi)
             CFLAGS="-march=armv5te -mtune=xscale -msoft-float"
@@ -309,7 +322,7 @@ build_python_for_abi ()
             ;;
     esac
 
-    local CFLAGS="$CFLAGS --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH"
+    CFLAGS="$CFLAGS --sysroot=$NDK_DIR/platforms/android-$APILEVEL/arch-$ARCH"
 
     local LDFLAGS=""
     if [ "$ABI" = "armeabi-v7a-hard" ]; then
@@ -586,7 +599,8 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1 \
+        APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI interpreter"
 
     log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
@@ -1255,7 +1269,8 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER_STATIC/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER_STATIC/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC APP_LIBCRYSTAX=static -j$NUM_JOBS APP_ABI=$ABI V=1
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1 \
+        APP_LIBCRYSTAX=static APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI static interpreter"
 
     log "Install python$PYTHON_ABI-$ABI static interpreter in $PYBIN_INSTALLDIR_STATIC_BIN"
