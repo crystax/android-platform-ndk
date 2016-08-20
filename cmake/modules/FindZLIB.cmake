@@ -1,5 +1,5 @@
 set(ZLIB_FOUND TRUE)
 set(ZLIB_INCLUDE_DIRS ${ANDROID_SYSROOT}/include)
-set(ZLIB_LIBRARIES ${ANDROID_SYSROOT}/lib/libz.so)
+set(ZLIB_LIBRARIES ${ANDROID_SYSROOT}/usr/lib/libz.so)
 
 mark_as_advanced(ZLIB_INCLUDE_DIRS)
