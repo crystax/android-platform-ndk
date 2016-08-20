@@ -374,7 +374,9 @@ if( NOT ANDROID_NDK_HOST_X64 )
  set( ANDROID_NDK_HOST_SYSTEM_NAME ${ANDROID_NDK_HOST_SYSTEM_NAME2} )
 endif()
 
-get_filename_component(ANDROID_NDK ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
+if( NOT ANDROID_NDK )
+  get_filename_component(ANDROID_NDK ${CMAKE_CURRENT_LIST_DIR} DIRECTORY)
+endif()
 
 # remember found paths
 if( ANDROID_NDK )
