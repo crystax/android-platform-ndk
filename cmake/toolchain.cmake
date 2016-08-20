@@ -1020,6 +1020,9 @@ if( APPLE )
  mark_as_advanced( CMAKE_INSTALL_NAME_TOOL )
 endif()
 
+remove_definitions( -DANDROID )
+add_definitions( -DANDROID )
+
 if( ANDROID_SYSROOT MATCHES "[ ;\"]" )
  if( CMAKE_HOST_WIN32 )
   # try to convert path to 8.3 form
