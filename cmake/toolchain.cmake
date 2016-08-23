@@ -379,11 +379,7 @@ if( NOT ANDROID_NDK )
 endif()
 
 # remember found paths
-if( ANDROID_NDK )
- get_filename_component( ANDROID_NDK "${ANDROID_NDK}" ABSOLUTE )
- set( ANDROID_NDK "${ANDROID_NDK}" CACHE INTERNAL "Path of the Android NDK" FORCE )
- set( BUILD_WITH_ANDROID_NDK True )
-elseif( ANDROID_STANDALONE_TOOLCHAIN )
+if( ANDROID_STANDALONE_TOOLCHAIN )
  get_filename_component( ANDROID_STANDALONE_TOOLCHAIN "${ANDROID_STANDALONE_TOOLCHAIN}" ABSOLUTE )
  # try to detect change
  if( CMAKE_AR )
@@ -397,6 +393,10 @@ elseif( ANDROID_STANDALONE_TOOLCHAIN )
  endif()
  set( ANDROID_STANDALONE_TOOLCHAIN "${ANDROID_STANDALONE_TOOLCHAIN}" CACHE INTERNAL "Path of the Android standalone toolchain" FORCE )
  set( BUILD_WITH_STANDALONE_TOOLCHAIN True )
+elseif( ANDROID_NDK )
+ get_filename_component( ANDROID_NDK "${ANDROID_NDK}" ABSOLUTE )
+ set( ANDROID_NDK "${ANDROID_NDK}" CACHE INTERNAL "Path of the Android NDK" FORCE )
+ set( BUILD_WITH_ANDROID_NDK True )
 else()
  message( FATAL_ERROR "Could not find neither Android NDK nor Android standalone toolchain.
     You should set an environment variable:
