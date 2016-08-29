@@ -14,11 +14,10 @@
 #  define MY_POSIX_MAX_PATH PROC_PIDPATHINFO_MAXSIZE
 #endif
 
-#ifndef PYTHON_STDLIB_PATH
-#error PYTHON_STDLIB_PATH must be defined in Makefile
+#ifndef PYTHON3_DSO_REL_PATH
+#error PYTHON3_DSO_REL_PATH - must be defined in Makefile
 #endif
 
-#define PYTHON3_DLL_REL_PATH "libpython3.5m.so"
 static char NULL_PTR_STR[] = "NULL";
 
 #if defined(__linux__)
@@ -55,8 +54,6 @@ static void GetRelativePathFormat(char* base, char* fmt)
   fmt[++idx] = 0;
 }
 
-typedef void (*Py_SetProgramNamePtr)(wchar_t*);
-typedef void (*Py_SetPathPtr)(const wchar_t*);
 typedef int (*Py_MainPtr)(int, wchar_t**);
 typedef void* (*PyMem_RawMallocPtr)(size_t);
 typedef void (*PyMem_RawFreePtr)(void*);
@@ -68,13 +65,10 @@ int main(int argc, char** argv)
   char executable[MY_POSIX_MAX_PATH + 1] = {0};
   char pthfmt[MY_POSIX_MAX_PATH + 1]     = {0};
   char corepath[MY_POSIX_MAX_PATH + 1]   = {0};
-  char syspath[MY_POSIX_MAX_PATH + 1]    = {0};
   void* core = 0;
   int retcode = 126;
   int i;
 
-  Py_SetProgramNamePtr Py_SetProgramName = 0;
-  Py_SetPathPtr Py_SetPath = 0;
   Py_MainPtr Py_Main = 0;
   PyMem_RawMallocPtr PyMem_RawMalloc = 0;
   PyMem_RawFreePtr PyMem_RawFree = 0;
@@ -83,15 +77,7 @@ int main(int argc, char** argv)
   GetExecutablePath(executable);
   GetRelativePathFormat(executable, pthfmt);
 
-  snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON3_DLL_REL_PATH);
-  if (PYTHON_STDLIB_PATH[0] == '/')
-  {
-    snprintf(syspath, MY_POSIX_MAX_PATH, "%s", PYTHON_STDLIB_PATH);
-  }
-  else
-  {
-    snprintf(syspath, MY_POSIX_MAX_PATH, pthfmt, PYTHON_STDLIB_PATH);
-  }
+  snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON3_DSO_REL_PATH);
 
   core = dlopen(corepath, RTLD_LAZY);
   if (core == 0)
@@ -100,26 +86,6 @@ int main(int argc, char** argv)
     if (lasterr == 0)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load library: '%s', dlerror: %s\n", corepath, lasterr);
-    goto exit;
-  }
-
-  Py_SetProgramName = (Py_SetProgramNamePtr)dlsym(core, "Py_SetProgramName");
-  if (Py_SetProgramName == 0)
-  {
-    const char* lasterr = dlerror();
-    if (lasterr == 0)
-      lasterr = NULL_PTR_STR;
-    fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_SetProgramName", corepath, lasterr);
-    goto exit;
-  }
-
-  Py_SetPath = (Py_SetPathPtr)dlsym(core, "Py_SetPath");
-  if (Py_SetPath == 0)
-  {
-    const char* lasterr = dlerror();
-    if (lasterr == 0)
-      lasterr = NULL_PTR_STR;
-    fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_SetPath", corepath, lasterr);
     goto exit;
   }
 
@@ -163,20 +129,6 @@ int main(int argc, char** argv)
     goto exit;
   }
 
-  wchar_t* executable_w = Py_DecodeLocale(executable, 0);
-  if (executable_w == 0)
-  {
-    fprintf(stderr, "Fatal Python error: unable to decode executable path: '%s'\n", executable);
-    goto exit;
-  }
-
-  wchar_t* syspath_w = Py_DecodeLocale(syspath, 0);
-  if (syspath_w == 0)
-  {
-    fprintf(stderr, "Fatal Python error: unable to decode syspath: '%s'\n", syspath);
-    goto exit;
-  }
-
   wchar_t** argv_copy = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
   wchar_t** argv_copy2 = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
 
@@ -197,12 +149,8 @@ int main(int argc, char** argv)
   setlocale(LC_ALL, oldloc);
   free(oldloc);
 
-  Py_SetProgramName(executable_w);
-  Py_SetPath(syspath_w);
   retcode = Py_Main(argc, argv_copy);
 
-  PyMem_RawFree(executable_w);
-  PyMem_RawFree(syspath_w);
   for (i = 0; i < argc; i++)
   {
     PyMem_RawFree(argv_copy2[i]);

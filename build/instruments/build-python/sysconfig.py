@@ -18,7 +18,7 @@ __all__ = [
 
 _INSTALL_SCHEMES = {
     'bundled': {
-        'stdlib': '{bundled_root}/stdlib.zip',
+        'stdlib': '{{bundled_root}}/python{0}{1}.zip'.format(sys.version_info[0], sys.version_info[1]),
         'platstdlib': '{bundled_root}/modules',
         'purelib': '{bundled_root}/site-packages',
         'platlib': '{bundled_root}/site-packages',
@@ -26,7 +26,7 @@ _INSTALL_SCHEMES = {
     }
 
 _SCHEME_KEYS = ('stdlib', 'platstdlib', 'purelib', 'platlib')
-_PY_VERSION_SHORT = sys.version[:3]
+_PY_VERSION_SHORT = '{0}.{1}'.format(sys.version_info[0], sys.version_info[1])
 _CONFIG_VARS = None
 
 
