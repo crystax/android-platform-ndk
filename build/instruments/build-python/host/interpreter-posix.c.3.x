@@ -14,8 +14,8 @@
 #  define MY_POSIX_MAX_PATH PROC_PIDPATHINFO_MAXSIZE
 #endif
 
-#ifndef PYTHON3_DSO_REL_PATH
-#error PYTHON3_DSO_REL_PATH - must be defined in Makefile
+#ifndef PYTHON_DSO_REL_PATH
+#error PYTHON_DSO_REL_PATH - must be defined in Makefile
 #endif
 
 static char NULL_PTR_STR[] = "NULL";
@@ -65,65 +65,65 @@ int main(int argc, char** argv)
   char executable[MY_POSIX_MAX_PATH + 1] = {0};
   char pthfmt[MY_POSIX_MAX_PATH + 1]     = {0};
   char corepath[MY_POSIX_MAX_PATH + 1]   = {0};
-  void* core = 0;
+  void* core = NULL;
   int retcode = 126;
   int i;
 
-  Py_MainPtr Py_Main = 0;
-  PyMem_RawMallocPtr PyMem_RawMalloc = 0;
-  PyMem_RawFreePtr PyMem_RawFree = 0;
-  Py_DecodeLocalePtr Py_DecodeLocale = 0;
+  Py_MainPtr Py_Main = NULL;
+  PyMem_RawMallocPtr PyMem_RawMalloc = NULL;
+  PyMem_RawFreePtr PyMem_RawFree = NULL;
+  Py_DecodeLocalePtr Py_DecodeLocale = NULL;
 
   GetExecutablePath(executable);
   GetRelativePathFormat(executable, pthfmt);
 
-  snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON3_DSO_REL_PATH);
+  snprintf(corepath, MY_POSIX_MAX_PATH, pthfmt, PYTHON_DSO_REL_PATH);
 
   core = dlopen(corepath, RTLD_LAZY);
-  if (core == 0)
+  if (core == NULL)
   {
     const char* lasterr = dlerror();
-    if (lasterr == 0)
+    if (lasterr == NULL)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load library: '%s', dlerror: %s\n", corepath, lasterr);
     goto exit;
   }
 
   Py_Main = (Py_MainPtr)dlsym(core, "Py_Main");
-  if (Py_Main == 0)
+  if (Py_Main == NULL)
   {
     const char* lasterr = dlerror();
-    if (lasterr == 0)
+    if (lasterr == NULL)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_Main", corepath, lasterr);
     goto exit;
   }
 
   PyMem_RawMalloc = (PyMem_RawMallocPtr)dlsym(core, "PyMem_RawMalloc");
-  if (PyMem_RawMalloc == 0)
+  if (PyMem_RawMalloc == NULL)
   {
     const char* lasterr = dlerror();
-    if (lasterr == 0)
+    if (lasterr == NULL)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "PyMem_RawMalloc", corepath, lasterr);
     goto exit;
   }
 
   PyMem_RawFree = (PyMem_RawFreePtr)dlsym(core, "PyMem_RawFree");
-  if (PyMem_RawFree == 0)
+  if (PyMem_RawFree == NULL)
   {
     const char* lasterr = dlerror();
-    if (lasterr == 0)
+    if (lasterr == NULL)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "PyMem_RawFree", corepath, lasterr);
     goto exit;
   }
 
   Py_DecodeLocale = (Py_DecodeLocalePtr)dlsym(core, "Py_DecodeLocale");
-  if (Py_DecodeLocale == 0)
+  if (Py_DecodeLocale == NULL)
   {
     const char* lasterr = dlerror();
-    if (lasterr == 0)
+    if (lasterr == NULL)
       lasterr = NULL_PTR_STR;
     fprintf(stderr, "Fatal Python error: cannot load symbol: '%s' from library '%s', dlerror: %s\n", "Py_DecodeLocale", corepath, lasterr);
     goto exit;
@@ -132,12 +132,12 @@ int main(int argc, char** argv)
   wchar_t** argv_copy = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
   wchar_t** argv_copy2 = (wchar_t **)PyMem_RawMalloc(sizeof(wchar_t*)*(argc+1));
 
-  char* oldloc = strdup(setlocale(LC_ALL, 0));
+  char* oldloc = strdup(setlocale(LC_ALL, NULL));
   setlocale(LC_ALL, "");
   for (i = 0; i < argc; ++i)
   {
-    argv_copy[i] = Py_DecodeLocale(argv[i], 0);
-    if (argv_copy[i] == 0)
+    argv_copy[i] = Py_DecodeLocale(argv[i], NULL);
+    if (argv_copy[i] == NULL)
     {
       free(oldloc);
       fprintf(stderr, "Fatal Python error: unable to decode the command line argument #%i\n", i + 1);
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
     }
     argv_copy2[i] = argv_copy[i];
   }
-  argv_copy2[argc] = argv_copy[argc] = 0;
+  argv_copy2[argc] = argv_copy[argc] = NULL;
   setlocale(LC_ALL, oldloc);
   free(oldloc);
 
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
   PyMem_RawFree(argv_copy2);
 
 exit:
-  if (core != 0)
+  if (core != NULL)
     dlclose(core);
 
   return retcode;

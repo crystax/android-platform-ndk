@@ -264,7 +264,7 @@ build_python_stub ()
         echo 'set(CMAKE_BUILD_TYPE RELEASE)'
         echo 'link_libraries(dl)'
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
-        echo "set(CMAKE_C_FLAGS \"-DPYTHON3_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+        echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
     } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION
     fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION"
 
@@ -725,7 +725,14 @@ build_host_python ()
                 ;;
         esac
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
-        echo "set(CMAKE_C_FLAGS \"-DPYTHON3_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+        case $HOST_SYSTEM_TAG in
+            windows*)
+                echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=L\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+                ;;
+            *)
+                echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+                ;;
+        esac
     } >$INTERPRETER_CMAKE_DESCRIPTION
     fail_panic "Can't generate $INTERPRETER_CMAKE_DESCRIPTION"
 

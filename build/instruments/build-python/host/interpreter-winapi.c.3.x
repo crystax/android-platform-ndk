@@ -2,13 +2,13 @@
 #include <windows.h>
 #include <stdio.h>
 
-#ifndef PYTHON3_DSO_REL_PATH
-#error PYTHON3_DSO_REL_PATH - must be defined in Makefile
+#ifndef PYTHON_DSO_REL_PATH
+#error PYTHON_DSO_REL_PATH - must be defined in Makefile
 #endif
 
 static void GetExecutablePath(wchar_t* path)
 {
-  unsigned size = GetModuleFileNameW(0, path, MAX_PATH);
+  unsigned size = GetModuleFileNameW(NULL, path, MAX_PATH);
   path[size] = 0;
 }
 
@@ -39,15 +39,15 @@ int wmain(int argc, wchar_t** argv)
   HMODULE core = NULL;
   int retcode = 126;
 
-  Py_MainPtr Py_Main = 0;
+  Py_MainPtr Py_Main = NULL;
 
   GetExecutablePath(executable);
   GetRelativePathFormat(executable, pthfmt);
 
-  _snwprintf(corepath, MAX_PATH, pthfmt, PYTHON3_DSO_REL_PATH);
+  _snwprintf(corepath, MAX_PATH, pthfmt, PYTHON_DSO_REL_PATH);
 
-  core = LoadLibraryExW(corepath, 0, 0);
-  if (core == 0)
+  core = LoadLibraryExW(corepath, NULL, 0);
+  if (core == NULL)
   {
     DWORD code = GetLastError();
     _fwprintf_p(stderr, L"Fatal Python error: cannot load library: '%s', LoadLibraryExW error code: %d\n", corepath, code);
@@ -55,7 +55,7 @@ int wmain(int argc, wchar_t** argv)
   }
 
   Py_Main = (Py_MainPtr)GetProcAddress(core, "Py_Main");
-  if (Py_Main == 0)
+  if (Py_Main == NULL)
   {
     DWORD code = GetLastError();
     _fwprintf_p(stderr, L"Fatal Python error: cannot load symbol: '%s' from library '%s', GetProcAddress error code: %d\n", L"Py_Main", corepath, code);
@@ -65,7 +65,7 @@ int wmain(int argc, wchar_t** argv)
   retcode = Py_Main(argc, argv);
 
 exit:
-  if (core)
+  if (core != NULL)
     FreeLibrary(core);
 
   return retcode;
