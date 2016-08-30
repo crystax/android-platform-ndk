@@ -45,7 +45,7 @@ int main()
     // clang-3.7 and clang-3.8 are failing. In the future, this bug should be fixed, so next
     // gcc/clang versions should pass.
 
-#if !defined(__i386__) || CLANG_VERSION_GREATER_THAN(3, 8) || GCC_VERSION_GREATER_THAN(6, 1)
+#if !defined(__i386__) || CLANG_VERSION_GREATER_THAN(3, 8) || GCC_VERSION_GREATER_THAN(6, 2)
     TEST(long long);
     TEST(double);
     TEST(long double);
