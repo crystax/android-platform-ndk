@@ -53,10 +53,10 @@ void pwd_check_functions()
     (void)endpwent();
     (void)getpwent();
 #endif
-    (void)getpwnam((const char *)0);
-    (void)getpwnam_r((const char *)0, (struct passwd *)0, (char *)0, (size_t)0, (struct passwd **)0);
+    (void)getpwnam((const char *)1234);
+    (void)getpwnam_r((const char *)1234, (struct passwd *)1234, (char *)1234, (size_t)0, (struct passwd **)1234);
     (void)getpwuid((uid_t)0);
-    (void)getpwuid_r((uid_t)0, (struct passwd *)0, (char *)0, (size_t)0, (struct passwd **)0);
+    (void)getpwuid_r((uid_t)0, (struct passwd *)1234, (char *)1234, (size_t)0, (struct passwd **)1234);
 #if __XSI_VISIBLE
     (void)setpwent();
 #endif
