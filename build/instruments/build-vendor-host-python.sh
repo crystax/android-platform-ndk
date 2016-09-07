@@ -89,6 +89,12 @@ if [ -z "$PYTHON_MINOR_VERSION" ]; then
     panic "Can't detect python minor version."
 fi
 
+PYTHON_MICRO_VERSION=\
+$(cat $PYTHON_SRCDIR/Include/patchlevel.h | sed -n 's/#define[ \t]*PY_MICRO_VERSION[ \t]*\([0-9]*\).*/\1/p')
+if [ -z "$PYTHON_MINOR_VERSION" ]; then
+    panic "Can't detect python micro version."
+fi
+
 PYTHON_ABI="$PYTHON_MAJOR_VERSION"'.'"$PYTHON_MINOR_VERSION"
 
 PYTHON_BUILD_UTILS_DIR=$(cd $(dirname $0)/build-python && pwd)
@@ -606,8 +612,18 @@ build_host_python ()
             fail_panic "Can't create symlink for Windows.h"
             run find $MINGW_ROOT -name "mstcpip.h" -exec ln -s {} "$BUILDDIR_CORE/MSTcpIP.h" \;
             fail_panic "Can't create symlink for mstcpip.h"
-            run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.$PYTHON_ABI.mingw.patch"
-            fail_panic "Can't patch posixmodule.c"
+            if [ "$PYTHON_ABI" = "3.5" ]; then
+                if ["$PYTHON_MICRO_VERSION" -lt "2" ]; then
+                    run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.3.5.1.mingw.patch"
+                    fail_panic "Can't patch posixmodule.c"
+                else
+                    run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.3.5.x.mingw.patch"
+                    fail_panic "Can't patch posixmodule.c"
+                fi
+            else
+                run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.$PYTHON_ABI.mingw.patch"
+                fail_panic "Can't patch posixmodule.c"
+            fi
             run patch "$BUILDDIR_CORE/dynload_win.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/dynload_win.c.$PYTHON_ABI.mingw.patch"
             fail_panic "Can't patch dynload_win.c"
             ;;

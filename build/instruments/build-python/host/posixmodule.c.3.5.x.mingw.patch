@@ -1,0 +1,63 @@
+--- posixmodule.c	2016-01-27 10:54:56.000000000 +0300
++++ posixmodule.c.mingw	2016-09-07 08:34:57.000000000 +0300
+@@ -154,6 +154,17 @@
+ #define HAVE_CWAIT      1
+ #define HAVE_FSYNC      1
+ #define fsync _commit
++#ifdef __MINGW32__
++#define HAVE_UNISTD_H
++#define HAVE_GETPPID    1
++#define HAVE_GETLOGIN   1
++#define HAVE_SPAWNV     1
++#define HAVE_EXECV      1
++#define HAVE_PIPE       1
++#define HAVE_SYSTEM     1
++#define HAVE_CWAIT      1
++#define HAVE_FSYNC      1
++#define fsync _commit
+ #else
+ /* Unix functions that the configure script doesn't check for */
+ #define HAVE_EXECV      1
+@@ -173,6 +184,7 @@
+ #define HAVE_WAIT       1
+ #define HAVE_TTYNAME    1
+ #endif  /* _MSC_VER */
++#endif  /* __MINGW32__ */
+ #endif  /* ! __WATCOMC__ || __QNX__ */
+ 
+ 
+@@ -182,7 +194,7 @@
+ [clinic start generated code]*/
+ /*[clinic end generated code: output=da39a3ee5e6b4b0d input=94a0f0f978acae17]*/
+ 
+-#ifndef _MSC_VER
++#if !defined(_MSC_VER) && !defined(__MINGW32__)
+ 
+ #if defined(__sgi)&&_COMPILER_VERSION>=700
+ /* declare ctermid_r if compiling with MIPSPro 7.x in ANSI C mode
+@@ -307,6 +319,12 @@
+ #endif
+ #endif /* _MSC_VER */
+ 
++#ifdef __MINGW32__
++#include <process.h>
++#include <windows.h>
++#include "osdefs.h"
++#endif
++
+ #ifndef MAXPATHLEN
+ #if defined(PATH_MAX) && PATH_MAX > 1024
+ #define MAXPATHLEN PATH_MAX
+@@ -1351,10 +1369,10 @@
+ 
+     if(!SetCurrentDirectoryW(path))
+         return FALSE;
+-    result = GetCurrentDirectoryW(Py_ARRAY_LENGTH(new_path), new_path);
++    result = GetCurrentDirectoryW(Py_ARRAY_LENGTH(_new_path), new_path);
+     if (!result)
+         return FALSE;
+-    if (result > Py_ARRAY_LENGTH(new_path)) {
++    if (result > Py_ARRAY_LENGTH(_new_path)) {
+         new_path = PyMem_RawMalloc(result * sizeof(wchar_t));
+         if (!new_path) {
+             SetLastError(ERROR_OUTOFMEMORY);
