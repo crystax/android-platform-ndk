@@ -91,7 +91,7 @@ fi
 
 PYTHON_MICRO_VERSION=\
 $(cat $PYTHON_SRCDIR/Include/patchlevel.h | sed -n 's/#define[ \t]*PY_MICRO_VERSION[ \t]*\([0-9]*\).*/\1/p')
-if [ -z "$PYTHON_MINOR_VERSION" ]; then
+if [ -z "$PYTHON_MICRO_VERSION" ]; then
     panic "Can't detect python micro version."
 fi
 
