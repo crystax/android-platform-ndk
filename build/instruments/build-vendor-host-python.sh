@@ -613,7 +613,7 @@ build_host_python ()
             run find $MINGW_ROOT -name "mstcpip.h" -exec ln -s {} "$BUILDDIR_CORE/MSTcpIP.h" \;
             fail_panic "Can't create symlink for mstcpip.h"
             if [ "$PYTHON_ABI" = "3.5" ]; then
-                if ["$PYTHON_MICRO_VERSION" -lt "2" ]; then
+                if [ "$PYTHON_MICRO_VERSION" -lt "2" ]; then
                     run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.3.5.1.mingw.patch"
                     fail_panic "Can't patch posixmodule.c"
                 else
