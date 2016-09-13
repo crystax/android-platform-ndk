@@ -146,23 +146,6 @@ mkdir -p "$BUILD_DIR"
 fail_panic "Can't create build directory: $BUILD_DIR"
 
 
-# $1: target directory
-generate_python_interpreter_wrapper ()
-{
-    local TARGET_DIR=$1
-    local INTERPRETER_FPATH="$TARGET_DIR/python"
-    {
-        echo '#!/system/bin/sh'
-        echo 'DIR_HERE=$(cd ${0%python} && pwd)'
-        echo 'export LD_LIBRARY_PATH=$DIR_HERE/libs'
-        echo 'exec $DIR_HERE/python.bin "$@"'
-    } > $INTERPRETER_FPATH
-    fail_panic "Can't generate python interpreter wrapper '$INTERPRETER_FPATH'"
-
-    chmod +x $INTERPRETER_FPATH
-    fail_panic "Can't chmod +x interpreter wrapper: '$INTERPRETER_FPATH'"
-}
-
 # $1: module name
 # $2: target directory
 generate_python_module_header ()
@@ -615,14 +598,12 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1 \
-        APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1 APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI interpreter"
 
     log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
-    run cp -p -T "$OBJDIR_INTERPRETER/python" "$PYBIN_INSTALLDIR/python.bin"
+    run cp -p -T "$OBJDIR_INTERPRETER/python" "$PYBIN_INSTALLDIR/python"
     fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
-    generate_python_interpreter_wrapper $PYBIN_INSTALLDIR
 
 # Step 5: site-packages
     local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
@@ -1285,8 +1266,7 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER_STATIC/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER_STATIC/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1 \
-        APP_LIBCRYSTAX=static APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1 APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI static interpreter"
 
     log "Install python$PYTHON_ABI-$ABI static interpreter in $PYBIN_INSTALLDIR_STATIC_BIN"
