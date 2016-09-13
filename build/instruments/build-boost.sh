@@ -113,9 +113,6 @@ ABIS=$(commas_to_spaces $ABIS)
 
 STDLIBS=$(commas_to_spaces $STDLIBS)
 
-PYTHON_VERSION=$(echo "$PYTHON_VERSIONS" | tr ' ' '\n' | tail -n 1)
-PYTHON_DIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION
-
 if [ -z "$OPTION_BUILD_DIR" ]; then
     BUILD_DIR=$NDK_TMPDIR/build-boost
 else
@@ -327,7 +324,14 @@ build_boost_for_abi ()
         echo "import option ;"
         echo "import feature ;"
         echo "import python ;"
-        echo "using python : $PYTHON_VERSION : $PYTHON_DIR : $PYTHON_DIR/include/python : $PYTHON_DIR/libs/$ABI ;"
+
+        echo "using python ;"
+        local PYTHON_VERSION PYTHON_DIR
+        for PYTHON_VERSION in $PYTHON_VERSIONS; do
+            PYTHON_DIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION
+            echo "using python : $PYTHON_VERSION : $PYTHON_DIR : $PYTHON_DIR/include/python : $PYTHON_DIR/libs/$ABI : <target-os>android ;"
+        done
+
         case $LIBSTDCXX in
             gnu-*)
                 echo "using gcc : $ARCH : g++ ;"

@@ -881,21 +881,21 @@ def test_for_abi(abi, testdir)
     configjam = File.join(testdir, 'config.jam')
     FileUtils.rm_f configjam
 
-    python_version = Dir.glob(File.join(OPTIONS[:ndk], 'sources/python/*')).map do |e|
-        File.basename(e)
-    end.sort do |a,b|
-        a.split('.').map(&:to_i) <=> b.split('.').map(&:to_i)
-    end.last
     File.open(configjam, "a") do |f|
-        dir = File.join(OPTIONS[:ndk], 'sources/python', python_version)
         f.puts "import python ;"
         # This is needed for library check scripts, running on host machine
         # Here we just specify "using python" and rely on usual Python auto-detecting
         # technique implemented in the Boost scripts
         f.puts "using python ;"
-        # This line needed to specify target python - i.e. Python-for-Android
-        # This Python implementation will be used for target tests - i.e. for Boost.Python
-        f.puts "using python : #{python_version} : #{dir} : #{dir}/include/python : #{dir}/libs/#{abi} : <target-os>android ;"
+
+        Dir.glob(File.join(OPTIONS[:ndk], 'sources/python/*')).map do |e|
+            File.basename(e)
+        end.each do |python_version|
+            dir = File.join(OPTIONS[:ndk], 'sources/python', python_version)
+            # This line needed to specify target python - i.e. Python-for-Android
+            # This Python implementation will be used for target tests - i.e. for Boost.Python
+            f.puts "using python : #{python_version} : #{dir} : #{dir}/include/python : #{dir}/libs/#{abi} : <target-os>android ;"
+        end
     end unless python_version.nil?
 
     toolsets = []
