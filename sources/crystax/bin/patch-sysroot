@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2016 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -109,7 +109,7 @@ end
 
 CRYSTAX_DIR = File.expand_path('../..', __FILE__)
 CRYSTAX_INCDIR = File.join(CRYSTAX_DIR, 'include')
-NDK_DIR = File.expand_path('../..', CRYSTAX_DIR)
+NDK_DIR = [nil, ''].include?(ENV['CREW_NDK_DIR']) ? File.expand_path('../..', CRYSTAX_DIR) : ENV['CREW_NDK_DIR']
 
 def log(msg)
     $stdout.puts msg if OPTIONS[:verbose]
