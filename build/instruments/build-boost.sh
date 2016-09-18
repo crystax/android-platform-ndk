@@ -527,9 +527,9 @@ EOF
     local WITHOUT=""
 
     # Boost.Context in 1.57.0 and earlier don't support arm64
-    # Boost.Context in 1.61.0 and earlier don't support mips64
+    # Boost.Context in 1.62.0 and earlier don't support mips64
     if [ \( "$ARCH" = "arm64"  -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 57 \) -o \
-         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 61 \) ]; then
+         \( "$ARCH" = "mips64" -a $BOOST_MAJOR_VERSION -eq 1 -a $BOOST_MINOR_VERSION -le 62 \) ]; then
         WITHOUT="$WITHOUT --without-context"
     fi
 
