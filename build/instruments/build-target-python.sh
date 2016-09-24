@@ -333,6 +333,7 @@ build_python_for_abi ()
 
     local CONFIG_SITE=$BUILDDIR_CONFIG/config.site
     {
+        echo 'ac_cv_little_endian_double=yes'
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
         echo 'ac_cv_func_gethostbyname_r=no'
