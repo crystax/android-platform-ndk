@@ -3,6 +3,7 @@
 *.pyc
 *.swp
 .DS_Store
+.crew
 Thumbs.db
 local.properties
 build.xml
