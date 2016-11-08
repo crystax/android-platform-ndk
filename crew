@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cmd=`dirname $0`/tools/crew/crew
+cmd=`dirname $0`/crew.dir/crew
 if [ ! -f $cmd ]; then
     cmd=`dirname $0`/../../crew/crew
 fi
