@@ -6,10 +6,64 @@
 #error PYTHON_DSO_REL_PATH - must be defined in Makefile
 #endif
 
-static void GetExecutablePath(wchar_t* path)
+static int GetExecutablePath(wchar_t* path)
 {
-  unsigned size = GetModuleFileNameW(NULL, path, MAX_PATH);
+  DWORD code;
+  DWORD attr;
+  DWORD size;
+  wchar_t reparsed_path[MAX_PATH + 1];
+  HANDLE fh_exe;
+  DWORD (WINAPI* GetFinalPathNameByHandleW_Ptr)(HANDLE, LPWSTR, DWORD, DWORD);
+
+  size = GetModuleFileNameW(NULL, path, MAX_PATH);
+  if (size == 0)
+  {
+    code = GetLastError();
+    _fwprintf_p(stderr, L"Fatal Python error: cannot eval path of executable, GetModuleFileNameW error code: %d\n", code);
+    return 0;
+  }
+  if (size > MAX_PATH)
+    size = MAX_PATH;
   path[size] = 0;
+  GetFinalPathNameByHandleW_Ptr = (DWORD (WINAPI *)(HANDLE, LPWSTR, DWORD, DWORD))GetProcAddress(GetModuleHandle("kernel32"), "GetFinalPathNameByHandleW");
+  if (GetFinalPathNameByHandleW_Ptr == NULL)
+    return 1;
+
+  attr = GetFileAttributesW(path);
+  if (attr == INVALID_FILE_ATTRIBUTES)
+  {
+    code = GetLastError();
+    _fwprintf_p(stderr, L"Fatal Python error: cannot eval path of executable, GetFileAttributesW error code: %d\n", code);
+    return 0;
+  }
+  if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
+  {
+    fh_exe = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (fh_exe == INVALID_HANDLE_VALUE)
+    {
+      code = GetLastError();
+      _fwprintf_p(stderr, L"Fatal Python error: cannot eval path of executable, CreateFileW error code: %d\n", code);
+      return 0;
+    }
+    size = (*GetFinalPathNameByHandleW_Ptr)(fh_exe, reparsed_path, MAX_PATH, 0);
+    if (size == 0)
+    {
+      code = GetLastError();
+      CloseHandle(fh_exe);
+      _fwprintf_p(stderr, L"Fatal Python error: cannot eval path of executable, GetFinalPathNameByHandleW error code: %d\n", code);
+      return 0;
+    }
+    CloseHandle(fh_exe);
+    if (size > MAX_PATH)
+      size = MAX_PATH;
+    reparsed_path[size] = 0;
+
+    if (wcsncmp(L"\\\\?\\", reparsed_path, 4) == 0)
+      wcsncpy(path, &reparsed_path[4], MAX_PATH - 3);
+    else
+      wcsncpy(path, reparsed_path, MAX_PATH + 1);
+  }
+  return 1;
 }
 
 static void GetRelativePathFormat(wchar_t* base, wchar_t* fmt)
@@ -41,7 +95,9 @@ int main(int argc, char** argv)
 
   Py_MainPtr Py_Main = NULL;
 
-  GetExecutablePath(executable);
+  if (!GetExecutablePath(executable))
+    goto exit;
+
   GetRelativePathFormat(executable, pthfmt);
 
   _snwprintf(corepath, MAX_PATH, pthfmt, PYTHON_DSO_REL_PATH);

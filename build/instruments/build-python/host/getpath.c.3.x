@@ -85,7 +85,44 @@ static wchar_t* eval_full_path_of_executable()
     wchar_t* exe_path_w = NULL;
 #ifdef _WIN32
     wchar_t buffer[MAXPATHLEN + 1];
-    GetModuleFileNameW(NULL, buffer, MAXPATHLEN);
+    wchar_t reparsed_path[MAXPATHLEN + 1];
+    DWORD attr;
+    DWORD size;
+    DWORD (WINAPI* GetFinalPathNameByHandleW_Ptr)(HANDLE, LPWSTR, DWORD, DWORD);
+    HANDLE fh_exe;
+    size = GetModuleFileNameW(NULL, buffer, MAXPATHLEN);
+    if (size == 0)
+        Py_FatalError("Cannot eval path of executable: got 0 from GetModuleFileNameW");
+    if (size  > MAXPATHLEN)
+        size = MAXPATHLEN;
+    buffer[size] = 0;
+    GetFinalPathNameByHandleW_Ptr = (DWORD (WINAPI *)(HANDLE, LPWSTR, DWORD, DWORD))GetProcAddress(GetModuleHandle("kernel32"), "GetFinalPathNameByHandleW");
+    if (GetFinalPathNameByHandleW_Ptr)
+    {
+        attr = GetFileAttributesW(buffer);
+        if (attr == INVALID_FILE_ATTRIBUTES)
+            Py_FatalError("Cannot eval path of executable: got INVALID_FILE_ATTRIBUTES from GetFileAttributesW");
+        if (attr & FILE_ATTRIBUTE_REPARSE_POINT)
+        {
+            fh_exe = CreateFileW(buffer, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+            if (fh_exe == INVALID_HANDLE_VALUE)
+                Py_FatalError("Cannot eval path of executable: got INVALID_HANDLE_VALUE from CreateFileW");
+            size = (*GetFinalPathNameByHandleW_Ptr)(fh_exe, reparsed_path, MAX_PATH, 0);
+            if (size == 0)
+            {
+                CloseHandle(fh_exe);
+                Py_FatalError("Cannot eval path of executable: got 0 from GetFinalPathNameByHandleW");
+            }
+            CloseHandle(fh_exe);
+            if (size > MAX_PATH)
+              size = MAX_PATH;
+            reparsed_path[size] = 0;
+            if (wcsncmp(L"\\\\?\\", reparsed_path, 4) == 0)
+                wcsncpy(buffer, &reparsed_path[4], MAX_PATH - 3);
+            else
+                wcsncpy(buffer, reparsed_path, MAX_PATH + 1);
+        }
+    }
     exe_path_w = PyMem_RawMalloc((wcslen(buffer) + 1) * sizeof(wchar_t));
     wcscpy(exe_path_w, buffer);
 #else
