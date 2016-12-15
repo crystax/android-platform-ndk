@@ -401,6 +401,24 @@ build_boost_for_abi ()
     FLAGS="$FLAGS --sysroot=$SYSROOT"
     FLAGS="$FLAGS -fPIC"
 
+    local PY2_LIBNAME PY3_LIBNAME PY2_LIBDIR PY3_LIBDIR
+    local PYTHON_VERSION
+    for PYTHON_VERSION in $PYTHON_VERSIONS; do
+        case $PYTHON_VERSION in
+            2.*)
+                PY2_LIBNAME="python${PYTHON_VERSION}"
+                PY2_LIBDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/shared/$ABI/libs"
+                ;;
+            3.*)
+                PY3_LIBNAME="python${PYTHON_VERSION}m"
+                PY3_LIBDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/shared/$ABI/libs"
+                ;;
+            *)
+                panic "Unknown python version: '$PYTHON_VERSION'"
+                ;;
+        esac
+    done
+
     mktool $TMPTARGETTCDIR/$CXXNAME <<EOF
 #!/bin/sh
 
@@ -411,6 +429,11 @@ elif echo "\$@" | tr ' ' '\\n' | grep -q -x -e -emit-pth; then
 else
     LINKER=yes
 fi
+
+PY2_LIBNAME=$PY2_LIBNAME
+PY3_LIBNAME=$PY3_LIBNAME
+PY2_LIBDIR=$PY2_LIBDIR
+PY3_LIBDIR=$PY3_LIBDIR
 
 # Remove any -m32/-m64 from input parameters
 PARAMS=\`echo "\$@" | tr ' ' '\\n' | grep -v -x -e -m32 | grep -v -x -e -m64 | tr '\\n' ' '\`
@@ -452,10 +475,17 @@ if [ "x\$LINKER" = "xyes" ]; then
     PARAMS=\$NPARAMS
 fi
 
+PY_LDFLAGS=""
 FLAGS="$FLAGS"
 if [ "x\$LINKER" = "xyes" ]; then
     FLAGS="\$FLAGS $LFLAGS"
     FLAGS="\$FLAGS $ICU_LDFLAGS"
+    if [ "\$LIBNAME" = "libboost_python.so" ]; then
+        PY_LDFLAGS="-L\$PY2_LIBDIR -l\$PY2_LIBNAME"
+    fi
+    if [ "\$LIBNAME" = "libboost_python3.so" ]; then
+        PY_LDFLAGS="-L\$PY3_LIBDIR -l\$PY3_LIBNAME"
+    fi
     FLAGS="\$FLAGS -L$LIBCRYSTAX/libs/$ABI"
     FLAGS="\$FLAGS $LIBSTDCXX_LDFLAGS"
 else
@@ -467,7 +497,7 @@ fi
 
 PARAMS="\$FLAGS \$PARAMS"
 if [ "x\$LINKER" = "xyes" ]; then
-    PARAMS="\$PARAMS $LIBSTDCXX_LDLIBS"
+    PARAMS="\$PARAMS \$PY_LDFLAGS $LIBSTDCXX_LDLIBS"
 fi
 
 run()
