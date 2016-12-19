@@ -140,6 +140,67 @@ mktool()
     done
 }
 
+# $1: LIBSTDCXX
+# $2: SRCDIR
+# $3: BUILD_STEP : [generic, py2, py3]
+generate_boost_project_config ()
+{
+    local LIBSTDCXX=$1
+    local SRCDIR=$2
+    local BUILD_STEP=$3
+
+    local PY2_LIBNAME PY3_LIBNAME PY2_LIBDIR PY3_LIBDIR
+    local PYTHON_VERSION
+    for PYTHON_VERSION in $PYTHON_VERSIONS; do
+        case $PYTHON_VERSION in
+            2.*)
+                PY2_VER=$PYTHON_VERSION
+                PY2_DIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION"
+                PY2_INCDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/include/python"
+                PY2_LIBDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/shared/$ABI/libs"
+                ;;
+            3.*)
+                PY3_VER=$PYTHON_VERSION
+                PY3_DIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION"
+                PY3_INCDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/include/python"
+                PY3_LIBDIR="$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION/shared/$ABI/libs"
+                ;;
+            *)
+                panic "Unknown python version: '$PYTHON_VERSION'"
+                ;;
+        esac
+    done
+
+    {
+        echo "import option ;"
+        echo "import feature ;"
+        if [ "$BUILD_STEP" = "py2" ]; then
+            echo "using python : $PY2_VER : $PY2_DIR : $PY2_INCDIR : $PY2_LIBDIR : <target-os>android ;"
+        fi
+        if [ "$BUILD_STEP" = "py3" ]; then
+            echo "import python ;"
+            echo "using python : $PY3_VER : $PY3_DIR : $PY3_INCDIR : $PY3_LIBDIR : <target-os>android ;"
+        fi
+
+        case $LIBSTDCXX in
+            gnu-*)
+                echo "using gcc : $ARCH : g++ ;"
+                echo "project : default-build <toolset>gcc ;"
+                ;;
+            llvm-*)
+                echo "using clang : $ARCH : clang++ ;"
+                echo "project : default-build <toolset>clang ;"
+                ;;
+            *)
+                echo "ERROR: Wrong C++ stdlib: '$LIBSTDCXX'" 1>&2
+                exit 1
+        esac
+        echo "libraries = ;"
+        echo "option.set keep-going : false ;"
+    } | cat >"$SRCDIR/project-config.jam"
+    fail_panic "Could not create project-config.jam"
+}
+
 # $1: ABI
 # $2: build directory
 # $3: C++ Standard Library implementation
@@ -319,36 +380,6 @@ build_boost_for_abi ()
         run ./bootstrap.sh --with-toolset=cc
         fail_panic "Could not bootstrap Boost build"
     fi
-
-    {
-        echo "import option ;"
-        echo "import feature ;"
-        echo "import python ;"
-
-        echo "using python ;"
-        local PYTHON_VERSION PYTHON_DIR
-        for PYTHON_VERSION in $PYTHON_VERSIONS; do
-            PYTHON_DIR=$NDK_DIR/$PYTHON_SUBDIR/$PYTHON_VERSION
-            echo "using python : $PYTHON_VERSION : $PYTHON_DIR : $PYTHON_DIR/include/python : $PYTHON_DIR/libs/$ABI : <target-os>android ;"
-        done
-
-        case $LIBSTDCXX in
-            gnu-*)
-                echo "using gcc : $ARCH : g++ ;"
-                echo "project : default-build <toolset>gcc ;"
-                ;;
-            llvm-*)
-                echo "using clang : $ARCH : clang++ ;"
-                echo "project : default-build <toolset>clang ;"
-                ;;
-            *)
-                echo "ERROR: Wrong C++ stdlib: '$LIBSTDCXX'" 1>&2
-                exit 1
-        esac
-        echo "libraries = ;"
-        echo "option.set keep-going : false ;"
-    } | cat >project-config.jam
-    fail_panic "Could not create project-config.jam"
 
     {
         echo "using mpi ;"
@@ -572,26 +603,68 @@ EOF
         fi
     fi
 
+    # export BOOST_BUILD_PATH to avoid clashes with preinstalled Boost.Build (can happen on Gentoo based systems)
+    export BOOST_BUILD_PATH=$SRCDIR/tools/build
+
     local PREFIX=$BUILDDIR/install
 
-    run ./b2 -d+2 -q -j$NUM_JOBS \
-        variant=release \
-        link=static,shared \
-        runtime-link=shared \
-        threading=multi \
-        target-os=android \
-        binary-format=elf \
-        address-model=$BJAMADDRMODEL \
-        architecture=$BJAMARCH \
-        abi=$BJAMABI \
-        --user-config=user-config.jam \
-        --layout=system \
-        --prefix=$PREFIX \
-        --build-dir=$BUILDDIR/build \
-        $WITHOUT \
-        install \
+    local BUILD_STEP WITHOUT_STEP BUILDDIR_STEP PREFIX_STEP
+    for BUILD_STEP in py2 py3 generic; do
+        WITHOUT_STEP=$WITHOUT
+        if [ "$BUILD_STEP" = "generic" ]; then
+            WITHOUT_STEP="$WITHOUT --without-python"
+            PREFIX_STEP=$PREFIX
+            BUILDDIR_STEP="$BUILDDIR/build"
+        else
+            WITHOUT_STEP="$WITHOUT"
+            PREFIX_STEP="$BUILDDIR/install-$BUILD_STEP"
+            BUILDDIR_STEP="$BUILDDIR/build-$BUILD_STEP"
+        fi
 
-    fail_panic "Couldn't build Boost $BOOST_VERSION $ABI libraries"
+        generate_boost_project_config $LIBSTDCXX $SRCDIR $BUILD_STEP
+
+        if [ "$BUILD_STEP" = "py2" -o "$BUILD_STEP" = "py3" ]; then
+            cd "$SRCDIR/libs/python/build"
+            fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION python sources directory"
+        else
+            cd $SRCDIR
+            fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
+        fi
+
+        run $SRCDIR/b2 -d+2 -q -j$NUM_JOBS \
+            variant=release \
+            link=static,shared \
+            runtime-link=shared \
+            threading=multi \
+            target-os=android \
+            binary-format=elf \
+            address-model=$BJAMADDRMODEL \
+            architecture=$BJAMARCH \
+            abi=$BJAMABI \
+            --user-config=$SRCDIR/user-config.jam \
+            --layout=system \
+            --prefix=$PREFIX_STEP \
+            --build-dir=$BUILDDIR_STEP \
+            $WITHOUT_STEP \
+            install
+
+        fail_panic "Couldn't build Boost $BOOST_VERSION $ABI libraries, step='$BUILD_STEP'"
+    done
+
+    cd $SRCDIR
+    fail_panic "Couldn't CD to temporary Boost $BOOST_VERSION sources directory"
+
+    run rm -rf "$BUILDDIR/install-py2/include"
+    fail_panic "Couldn't remove headers generated by custom build of python-2"
+
+    run rm -rf "$BUILDDIR/install-py3/include"
+    fail_panic "Couldn't remove headers generated by custom build of python-3"
+
+    run cp -pR "$BUILDDIR/install-py2/lib" $PREFIX
+    fail_panic "Couldn't copy libs generated by custom build of python-2"
+
+    run cp -pR "$BUILDDIR/install-py3/lib" $PREFIX
+    fail_panic "Couldn't copy libs generated by custom build of python-3"
 
     if [ "$BOOST_HEADERS_INSTALLED" != "yes" ]; then
         log "Install Boost $BOOST_VERSION headers into $BOOST_DSTDIR"
