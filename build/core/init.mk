@@ -552,7 +552,7 @@ ADD_TOOLCHAIN := $(BUILD_SYSTEM)/add-toolchain.mk
 
 # the list of known abis and archs
 NDK_KNOWN_DEVICE_ABI64S := arm64-v8a x86_64 mips64
-NDK_KNOWN_DEVICE_ABI32S := armeabi-v7a armeabi x86 mips
+NDK_KNOWN_DEVICE_ABI32S := armeabi-v7a x86 mips
 NDK_KNOWN_DEVICE_ABIS := $(NDK_KNOWN_DEVICE_ABI64S) $(NDK_KNOWN_DEVICE_ABI32S)
 NDK_KNOWN_ABIS     := armeabi-v7a-hard $(NDK_KNOWN_DEVICE_ABIS)
 NDK_KNOWN_ABI32S   := armeabi-v7a-hard $(NDK_KNOWN_DEVICE_ABI32S)

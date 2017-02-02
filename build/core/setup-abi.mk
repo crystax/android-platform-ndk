@@ -1,4 +1,4 @@
-# Copyright (C) 2009 The Android Open Source Project
+# Copyright (C) 2009, 2017 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,9 +63,6 @@ TARGET_GDB_SETUP := $(TARGET_OUT)/setup.gdb
 # RS triple
 ifneq ($(filter $(TARGET_ARCH_ABI), armeabi-v7a armeabi-v7a-hard),)
   RS_TRIPLE := armv7-none-linux-gnueabi
-endif
-ifeq ($(TARGET_ARCH_ABI),armeabi)
-  RS_TRIPLE := arm-none-linux-gnueabi
 endif
 ifeq ($(TARGET_ARCH_ABI),mips)
   RS_TRIPLE := mipsel-unknown-linux
