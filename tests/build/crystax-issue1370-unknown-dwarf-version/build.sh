@@ -18,7 +18,7 @@ for opt do
 done
 
 if [ -z "$APP_ABI" -o "$APP_ABI" = "all" ]; then
-    APP_ABI="armeabi,armeabi-v7a,armeabi-v7a-hard,x86,mips,arm64-v8a,x86_64,mips64"
+    APP_ABI="armeabi-v7a,armeabi-v7a-hard,x86,mips,arm64-v8a,x86_64,mips64"
 fi
 
 APP_ABI=`echo $APP_ABI | tr ',' ' '`
