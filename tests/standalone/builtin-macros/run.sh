@@ -129,7 +129,7 @@ case $ABI in
 esac
 
 case $ABI in
-    armeabi|armeabi-v7a|armeabi-v7a-hard)
+    armeabi-v7a|armeabi-v7a-hard)
         macro_check __arm__ 1              "ARM CPU architecture"
 	macro_check_undef __LP64__         "LP64 data model"
         macro_check __ARM_EABI__ 1         "ARM EABI runtime"

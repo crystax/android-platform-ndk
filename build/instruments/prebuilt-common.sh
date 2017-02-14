@@ -1273,7 +1273,7 @@ convert_abi_to_arch ()
     local RET
     local ABI=$1
     case $ABI in
-        armeabi|armeabi-v7a|armeabi-v7a-hard)
+        armeabi-v7a|armeabi-v7a-hard)
             RET=arm
             ;;
         x86|mips|x86_64|mips64)
@@ -1286,7 +1286,7 @@ convert_abi_to_arch ()
             RET=arm64
             ;;
         *)
-            >&2 echo "ERROR: Unsupported ABI name: $ABI, use one of: armeabi, armeabi-v7a, x86, mips, armeabi-v7a-hard, arm64-v8a, x86_64 or mips64"
+            >&2 echo "ERROR: Unsupported ABI name: $ABI, use one of: armeabi-v7a, x86, mips, armeabi-v7a-hard, arm64-v8a, x86_64 or mips64"
             exit 1
             ;;
     esac
@@ -1303,7 +1303,7 @@ convert_arch_to_abi ()
     local ARCH=$1
     case $ARCH in
         arm)
-            RET=armeabi,armeabi-v7a,armeabi-v7a-hard
+            RET=armeabi-v7a,armeabi-v7a-hard
             ;;
         x86|x86_64|mips|mips64)
             RET=$ARCH

@@ -43,7 +43,7 @@ for opt do
 done
 
 if [ -z "$APP_ABI" -o "$APP_ABI" = "all" ]; then
-    APP_ABI="armeabi,armeabi-v7a"
+    APP_ABI="armeabi-v7a"
 fi
 
 # Only test for armeabi and armeabi-v7a

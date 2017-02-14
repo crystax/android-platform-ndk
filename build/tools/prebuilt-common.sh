@@ -1242,7 +1242,7 @@ convert_abi_to_arch ()
     local RET
     local ABI=$1
     case $ABI in
-        armeabi|armeabi-v7a|armeabi-v7a-hard)
+        armeabi-v7a|armeabi-v7a-hard)
             RET=arm
             ;;
         x86|mips|x86_64|mips64)

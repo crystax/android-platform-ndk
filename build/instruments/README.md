@@ -354,7 +354,7 @@ unless you use the --out-dir=<path> option.
 Note that:
 
  * Each script will generate the binaries for all the CPU ABIs supported by the
-   NDK, e.g. armeabi, armeabi-v7a, x86 and mips. You can restrict them using the
+   NDK, e.g. armeabi-v7a, x86 and mips. You can restrict them using the
    --abis=<list> option though.
 
  - The GNU libstdc++ dev-script requires the path to the toolchain sources,
