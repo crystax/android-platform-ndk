@@ -1,0 +1,51 @@
+--- posixmodule.c	2016-06-26 00:38:38.000000000 +0300
++++ posixmodule.c.3.5.mingw	2016-09-10 10:40:23.000000000 +0300
+@@ -156,6 +156,17 @@
+ #define HAVE_CWAIT      1
+ #define HAVE_FSYNC      1
+ #define fsync _commit
++#ifdef __MINGW32__
++#define HAVE_UNISTD_H
++#define HAVE_GETPPID    1
++#define HAVE_GETLOGIN   1
++#define HAVE_SPAWNV     1
++#define HAVE_EXECV      1
++#define HAVE_PIPE       1
++#define HAVE_SYSTEM     1
++#define HAVE_CWAIT      1
++#define HAVE_FSYNC      1
++#define fsync _commit
+ #else
+ /* Unix functions that the configure script doesn't check for */
+ #define HAVE_EXECV      1
+@@ -175,6 +186,7 @@
+ #define HAVE_WAIT       1
+ #define HAVE_TTYNAME    1
+ #endif  /* _MSC_VER */
++#endif  /* __MINGW32__ */
+ #endif  /* ! __WATCOMC__ || __QNX__ */
+ 
+ 
+@@ -184,7 +196,7 @@
+ [clinic start generated code]*/
+ /*[clinic end generated code: output=da39a3ee5e6b4b0d input=94a0f0f978acae17]*/
+ 
+-#ifndef _MSC_VER
++#if !defined(_MSC_VER) && !defined(__MINGW32__)
+ 
+ #if defined(__sgi)&&_COMPILER_VERSION>=700
+ /* declare ctermid_r if compiling with MIPSPro 7.x in ANSI C mode
+@@ -309,6 +321,13 @@
+ #endif
+ #endif /* _MSC_VER */
+ 
++#ifdef __MINGW32__
++#include <process.h>
++#include <windows.h>
++#include "osdefs.h"
++#endif
++
++
+ #ifndef MAXPATHLEN
+ #if defined(PATH_MAX) && PATH_MAX > 1024
+ #define MAXPATHLEN PATH_MAX

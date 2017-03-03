@@ -471,8 +471,7 @@ build_openssl_for_abi ()
             panic "ERROR: Unknown ABI: '$ABI'"
     esac
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL -j$NUM_JOBS APP_ABI=$ABI V=1 \
-        APP_LIBCRYSTAX=static APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
+    run $NDK_DIR/ndk-build -C $BUILDDIR_OPENSSL_TOOL -j$NUM_JOBS APP_ABI=$ABI V=1 APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build build openssl tool for $ABI"
 
     local OPENSSL_INSTALLDIR_BIN="$OPENSSL_DSTDIR/bin/$ABI"

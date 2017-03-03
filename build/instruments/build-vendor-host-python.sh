@@ -89,6 +89,12 @@ if [ -z "$PYTHON_MINOR_VERSION" ]; then
     panic "Can't detect python minor version."
 fi
 
+PYTHON_MICRO_VERSION=\
+$(cat $PYTHON_SRCDIR/Include/patchlevel.h | sed -n 's/#define[ \t]*PY_MICRO_VERSION[ \t]*\([0-9]*\).*/\1/p')
+if [ -z "$PYTHON_MICRO_VERSION" ]; then
+    panic "Can't detect python micro version."
+fi
+
 PYTHON_ABI="$PYTHON_MAJOR_VERSION"'.'"$PYTHON_MINOR_VERSION"
 
 PYTHON_BUILD_UTILS_DIR=$(cd $(dirname $0)/build-python && pwd)
@@ -105,11 +111,6 @@ fi
 PY_C_CONFIG_FILE="$PYTHON_BUILD_UTILS_DIR_HOST/config.c.$PYTHON_ABI"
 if [ ! -f "$PY_C_CONFIG_FILE" ]; then
     panic "Build of host python $PYTHON_ABI is not supported, no such file: $PY_C_CONFIG_FILE"
-fi
-
-PY_C_INTERPRETER_STUB_FILE="$PYTHON_BUILD_UTILS_DIR_HOST/host-interpreter-stub.c.$PYTHON_ABI"
-if [ ! -f "$PY_C_INTERPRETER_STUB_FILE" ]; then
-    panic "Build of host python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_STUB_FILE"
 fi
 
 determine_systems ()
@@ -185,8 +186,7 @@ build_python_stub ()
     local BUILDDIR_PYSTUB="$1"
     local BUILDDIR_PYSTUB_CONFIG="$BUILDDIR_PYSTUB/config"
     local BUILDDIR_PYSTUB_CORE="$BUILDDIR_PYSTUB/core"
-    local BUILDDIR_PYSTUB_INTERPRETER_0="$BUILDDIR_PYSTUB/interpreter-0"
-    local BUILDDIR_PYSTUB_INTERPRETER_1="$BUILDDIR_PYSTUB/interpreter-1"
+    local BUILDDIR_PYSTUB_INTERPRETER="$BUILDDIR_PYSTUB/interpreter"
     local BUILDDIR_PYSTUB_BIN="$BUILDDIR_PYSTUB/bin"
     run mkdir -p $BUILDDIR_PYSTUB_CONFIG
     fail_panic "Can't create directory: $BUILDDIR_PYSTUB_CONFIG"
@@ -238,8 +238,13 @@ build_python_stub ()
         cp -p -t "$BUILDDIR_PYSTUB_CORE" "$BUILDDIR_PYSTUB_CONFIG/pyconfig.h"
     fail_panic "Can't copy config.c pyconfig.h to $BUILDDIR_PYSTUB_CORE"
 
+    local PY_C_GETPATH
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.$PYTHON_ABI"
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.2.7"
+        run cp -p -T $PY_C_GETPATH "$BUILDDIR_PYSTUB_CORE/getpath.c"
+        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_PYSTUB_CORE"
+    else
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.3.x"
         run cp -p -T $PY_C_GETPATH "$BUILDDIR_PYSTUB_CORE/getpath.c"
         fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_PYSTUB_CORE"
     fi
@@ -257,62 +262,58 @@ build_python_stub ()
     run cp -p -t "$BUILDDIR_PYSTUB_BIN" "$BUILDDIR_PYSTUB_CORE/build/$PY_CORE_FNAME"
     fail_panic "Can't copy '$PY_CORE_FNAME' from $BUILDDIR_PYSTUB_CORE/build to '$BUILDDIR_PYSTUB_BIN'"
 
-    run mkdir -p $BUILDDIR_PYSTUB_INTERPRETER_0
-    fail_panic "Can't create directory: $BUILDDIR_PYSTUB_INTERPRETER_0"
-    local PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0="$BUILDDIR_PYSTUB_INTERPRETER_0/CMakeLists.txt"
+    run mkdir -p $BUILDDIR_PYSTUB_INTERPRETER
+    fail_panic "Can't create directory: $BUILDDIR_PYSTUB_INTERPRETER"
+    local PYSTUB_INTERPRETER_CMAKE_DESCRIPTION="$BUILDDIR_PYSTUB_INTERPRETER/CMakeLists.txt"
     {
         echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
         echo 'set(CMAKE_BUILD_TYPE RELEASE)'
         echo 'link_libraries(dl)'
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
-        echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"$PYTHON_SRCDIR/Lib\\\\\\\"\")"
-    } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0
-    fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_0"
+        echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+    } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION
+    fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION"
 
-    local PYSTUB_INTERPRETER_0_BUILD_WRAPPER="$BUILDDIR_PYSTUB_INTERPRETER_0/build.sh"
-    generate_cmake_wrapper $PYSTUB_INTERPRETER_0_BUILD_WRAPPER
+    local PYSTUB_INTERPRETER_BUILD_WRAPPER="$BUILDDIR_PYSTUB_INTERPRETER/build.sh"
+    generate_cmake_wrapper $PYSTUB_INTERPRETER_BUILD_WRAPPER
 
-    run cp -p -T $PY_C_INTERPRETER_STUB_FILE "$BUILDDIR_PYSTUB_INTERPRETER_0/interpreter.c"
-    fail_panic "Can't copy $PY_C_INTERPRETER_STUB_FILE to $BUILDDIR_PYSTUB_INTERPRETER_0"
-    log "build python-$PYTHON_ABI interpreter(0) stub for $BH_BUILD_TAG ..."
-    run $PYSTUB_INTERPRETER_0_BUILD_WRAPPER
-    fail_panic "Can't build python-$PYTHON_ABI interpreter(0) stub for $BH_BUILD_TAG"
-    run cp -p -t "$BUILDDIR_PYSTUB_BIN" "$BUILDDIR_PYSTUB_INTERPRETER_0/build/python"
-    fail_panic "Can't copy python from $BUILDDIR_PYSTUB_INTERPRETER_0/build to $BUILDDIR_PYSTUB_BIN"
+    local PY_C_INTERPRETER_STUB_FILE
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        PY_C_INTERPRETER_STUB_FILE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.2.7"
+    else
+        PY_C_INTERPRETER_STUB_FILE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.3.x"
+    fi
+    run cp -p -T $PY_C_INTERPRETER_STUB_FILE "$BUILDDIR_PYSTUB_INTERPRETER/interpreter.c"
+    fail_panic "Can't copy $PY_C_INTERPRETER_STUB_FILE to $BUILDDIR_PYSTUB_INTERPRETER"
+    log "build python-$PYTHON_ABI interpreter stub for $BH_BUILD_TAG ..."
+    run $PYSTUB_INTERPRETER_BUILD_WRAPPER
+    fail_panic "Can't build python-$PYTHON_ABI interpreter stub for $BH_BUILD_TAG"
+    run cp -p -t "$BUILDDIR_PYSTUB_BIN" "$BUILDDIR_PYSTUB_INTERPRETER/build/python"
+    fail_panic "Can't copy python from $BUILDDIR_PYSTUB_INTERPRETER/build to $BUILDDIR_PYSTUB_BIN"
 
     log "build python-$PYTHON_ABI stdlib for $BH_BUILD_TAG ..."
-    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        run $BUILDDIR_PYSTUB_BIN/python -B -S $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip "$BUILDDIR_PYSTUB_BIN/stdlib.zip"
-        fail_panic "Can't install python $PYTHON_ABI stdlib"
-    else
-        run $BUILDDIR_PYSTUB_BIN/python -B -S $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip "$BUILDDIR_PYSTUB_BIN/stdlib.zip"
-        fail_panic "Can't generate python $PYTHON_ABI stdlib"
-    fi
-
-    run rm -f "$BUILDDIR_PYSTUB_BIN/python"
-    fail_panic "Can't remove $BUILDDIR_PYSTUB_BIN/python"
-    run mkdir -p $BUILDDIR_PYSTUB_INTERPRETER_1
-    fail_panic "Can't create directory: $BUILDDIR_PYSTUB_INTERPRETER_1"
-    local PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1="$BUILDDIR_PYSTUB_INTERPRETER_1/CMakeLists.txt"
+    local STDLIB_GEN_WRAPPER="$BUILDDIR_PYSTUB_BIN/gen_stdlib.sh"
     {
-        echo "cmake_minimum_required (VERSION $CMAKE_MIN_VERSION)"
-        echo 'set(CMAKE_BUILD_TYPE RELEASE)'
-        echo 'link_libraries(dl)'
-        echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
-        echo "set(CMAKE_C_FLAGS \"-DPYTHON_STDLIB_PATH=\\\\\\\"stdlib.zip\\\\\\\"\")"
-    } >$PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1
-    fail_panic "Can't generate $PYSTUB_INTERPRETER_CMAKE_DESCRIPTION_1"
+        echo '#!/bin/bash -e'
+        echo 'DIR_HERE=$(cd $(dirname $0) && pwd)'
+        echo "export PYTHONHOME=$PYTHON_SRCDIR/Lib"
+        echo "\$DIR_HERE/python -B -S $PYTHON_BUILD_UTILS_DIR/build_stdlib.py \\"
+        if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+            echo '    --py2 \'
+        fi
+        echo "    --pysrc-root $PYTHON_SRCDIR \\"
+        echo "    --output-zip \$DIR_HERE/python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.zip"
+    } >$STDLIB_GEN_WRAPPER
+    fail_panic "Can't build wrapper for stdlib generation: $STDLIB_GEN_WRAPPER"
 
-    local PYSTUB_INTERPRETER_1_BUILD_WRAPPER="$BUILDDIR_PYSTUB_INTERPRETER_1/build.sh"
-    generate_cmake_wrapper $PYSTUB_INTERPRETER_1_BUILD_WRAPPER
+    run chmod +x $STDLIB_GEN_WRAPPER
+    fail_panic "Can't chmod +x stdlib build wrapper: '$STDLIB_GEN_WRAPPER'"
 
-    run cp -p -T $PY_C_INTERPRETER_STUB_FILE "$BUILDDIR_PYSTUB_INTERPRETER_1/interpreter.c"
-    fail_panic "Can't copy $PY_C_INTERPRETER_STUB_FILE to $BUILDDIR_PYSTUB_INTERPRETER_1"
-    log "build python-$PYTHON_ABI interpreter(1) stub for $BH_BUILD_TAG ..."
-    run $PYSTUB_INTERPRETER_1_BUILD_WRAPPER
-    fail_panic "Can't build python-$PYTHON_ABI interpreter(1) stub for $BH_BUILD_TAG"
-    run cp -p -t "$BUILDDIR_PYSTUB_BIN" "$BUILDDIR_PYSTUB_INTERPRETER_1/build/python"
-    fail_panic "Can't copy python from $BUILDDIR_PYSTUB_INTERPRETER_1/build to $BUILDDIR_PYSTUB_BIN"
+    run $STDLIB_GEN_WRAPPER
+    fail_panic "Can't generate python $PYTHON_ABI stdlib"
+
+    run rm -f "$STDLIB_GEN_WRAPPER"
+    fail_panic "Can't remove $'STDLIB_GEN_WRAPPER'"
 }
 
 # Build python module
@@ -583,11 +584,16 @@ build_host_python ()
     local CORE_BUILD_WRAPPER="$BUILDDIR_CORE/build.sh"
     generate_cmake_wrapper $CORE_BUILD_WRAPPER $CMAKE_TOOLCHAIN_DESCRIPTION
 
+    local PY_C_GETPATH
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.$PYTHON_ABI"
-        run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/getpath.c"
-        fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE"
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.2.7"
+    else
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR_HOST/getpath.c.3.x"
     fi
+
+    run cp -p -T $PY_C_GETPATH "$BUILDDIR_CORE/getpath.c"
+    fail_panic "Can't copy $PY_C_GETPATH to $BUILDDIR_CORE"
+
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/config.c"
     fail_panic "Can't copy config.c to $BUILDDIR_CORE"
     case $HOST_SYSTEM_TAG in
@@ -601,23 +607,25 @@ build_host_python ()
             fail_panic "Can't copy pyconfig.h errmap.h importdl.h dynload_win.c posixmodule.c to $BUILDDIR_CORE"
             run patch "$BUILDDIR_CORE/pyconfig.h" < "$PYTHON_BUILD_UTILS_DIR_HOST/pyconfig.h.$PYTHON_ABI.mingw.patch"
             fail_panic "Can't patch pyconfig.h"
-            if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
-                run cp -p -t "$BUILDDIR_CORE" "$PYTHON_SRCDIR/PC/getpathp.c"
-                fail_panic "Can't copy getpathp.c to $BUILDDIR_CORE"
-            fi
             # fix CamelCase inclusions for windows.h and mstcpip.h
             run find $MINGW_ROOT -name "windows.h" -exec ln -s {} "$BUILDDIR_CORE/Windows.h" \;
             fail_panic "Can't create symlink for Windows.h"
             run find $MINGW_ROOT -name "mstcpip.h" -exec ln -s {} "$BUILDDIR_CORE/MSTcpIP.h" \;
             fail_panic "Can't create symlink for mstcpip.h"
-            run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.$PYTHON_ABI.mingw.patch"
-            fail_panic "Can't patch posixmodule.c"
+            if [ "$PYTHON_ABI" = "3.5" ]; then
+                if [ "$PYTHON_MICRO_VERSION" -lt "2" ]; then
+                    run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.3.5.1.mingw.patch"
+                    fail_panic "Can't patch posixmodule.c"
+                else
+                    run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.3.5.x.mingw.patch"
+                    fail_panic "Can't patch posixmodule.c"
+                fi
+            else
+                run patch "$BUILDDIR_CORE/posixmodule.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/posixmodule.c.$PYTHON_ABI.mingw.patch"
+                fail_panic "Can't patch posixmodule.c"
+            fi
             run patch "$BUILDDIR_CORE/dynload_win.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/dynload_win.c.$PYTHON_ABI.mingw.patch"
             fail_panic "Can't patch dynload_win.c"
-            if [ "$PYTHON_MAJOR_VERSION" == "3" ]; then
-                run patch "$BUILDDIR_CORE/getpathp.c" < "$PYTHON_BUILD_UTILS_DIR_HOST/getpathp.c.$PYTHON_ABI.mingw.patch"
-                fail_panic "Can't patch getpathp.c"
-            fi
             ;;
 
         darwin*)
@@ -733,6 +741,14 @@ build_host_python ()
                 ;;
         esac
         echo "add_executable(python \${CMAKE_CURRENT_LIST_DIR}/interpreter.c)"
+        case $HOST_SYSTEM_TAG in
+            windows*)
+                echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=L\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+                ;;
+            *)
+                echo "set(CMAKE_C_FLAGS \"-DPYTHON_DSO_REL_PATH=\\\\\\\"$PY_CORE_FNAME\\\\\\\"\")"
+                ;;
+        esac
     } >$INTERPRETER_CMAKE_DESCRIPTION
     fail_panic "Can't generate $INTERPRETER_CMAKE_DESCRIPTION"
 
@@ -743,11 +759,19 @@ build_host_python ()
     local PY_INTERPRETER_FNAME
     case $HOST_SYSTEM_TAG in
         windows*)
-            INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-winapi.c.${PYTHON_ABI}"
+            if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+                INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-winapi.c.2.7"
+            else
+                INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-winapi.c.3.x"
+            fi
             PY_INTERPRETER_FNAME="python.exe"
             ;;
         *)
-            INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.${PYTHON_ABI}"
+            if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+                INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.2.7"
+            else
+                INTERPRETER_SOURCE="$PYTHON_BUILD_UTILS_DIR_HOST/interpreter-posix.c.3.x"
+            fi
             PY_INTERPRETER_FNAME="python"
             ;;
     esac
@@ -763,7 +787,7 @@ build_host_python ()
 
 # Step 5: build python stdlib for host
     log "build python-$PYTHON_ABI stdlib for $HOST_SYSTEM_TAG ..."
-    local PY_STDLIB_ZIPFILE="$OUTPUT_DIR/stdlib.zip"
+    local PY_STDLIB_ZIPFILE="$OUTPUT_DIR/python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.zip"
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
         run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
         fail_panic "Can't build python-$PYTHON_ABI stdlib for $HOST_SYSTEM_TAG"

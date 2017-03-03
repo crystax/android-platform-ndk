@@ -82,10 +82,10 @@ static void GetRelativePathFormat(wchar_t* base, wchar_t* fmt)
   fmt[++idx] = 0;
 }
 
-typedef int (*Py_MainPtr)(int, char **);
+typedef int (*Py_MainPtr)(int, wchar_t**);
 
 
-int main(int argc, char** argv)
+int wmain(int argc, wchar_t** argv)
 {
   wchar_t executable[MAX_PATH + 1] = {0};
   wchar_t pthfmt[MAX_PATH + 1]     = {0};
