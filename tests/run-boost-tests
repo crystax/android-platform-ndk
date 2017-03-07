@@ -896,7 +896,7 @@ def test_for_abi(abi, testdir)
             # This Python implementation will be used for target tests - i.e. for Boost.Python
             f.puts "using python : #{python_version} : #{dir} : #{dir}/include/python : #{dir}/libs/#{abi} : <target-os>android ;"
         end
-    end unless python_version.nil?
+    end
 
     toolsets = []
     toolsets_path = []

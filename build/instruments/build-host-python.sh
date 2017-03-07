@@ -260,6 +260,16 @@ build_host_python ()
         linux*)
             if [ "$HOST_TAG" = "linux-x86_64" ]; then
                 BUILDCONFIG=$BH_HOST_CONFIG
+                # WARNING!!! This is quick&dirty solution to force Python build scripts use sysroot
+                # included to own prebuilt toolchain.
+                # If it isn't found in a specified path, just ignore it and go further as usual.
+                # However, if it's found, force using it when building Python to avoid conflicts
+                # with system-installed headers and libraries (this is the case when we're building
+                # Python on Ubuntu 16.04.
+                local LINUX_SYSROOT="$(dirname $NDK_DIR)/prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.8/sysroot"
+                if [ -d "$LINUX_SYSROOT" ]; then
+                    ARGS=$ARGS" --with-build-sysroot=$LINUX_SYSROOT"
+                fi
             fi
             ;;
         darwin*)

@@ -110,12 +110,20 @@ if [ ! -f "$PY_C_CONFIG_FILE" ]; then
     panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_CONFIG_FILE"
 fi
 
-PY_C_INTERPRETER_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter.c.$PYTHON_ABI"
+if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+    PY_C_INTERPRETER_FILE="$PYTHON_SRCDIR/Modules/python.c"
+else
+    PY_C_INTERPRETER_FILE="$PYTHON_SRCDIR/Programs/python.c"
+fi
 if [ ! -f "$PY_C_INTERPRETER_FILE" ]; then
     panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_FILE"
 fi
 
-PY_C_INTERPRETER_STATIC_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter-static.c.$PYTHON_ABI"
+if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+    PY_C_INTERPRETER_STATIC_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter-static.c.2.7"
+else
+    PY_C_INTERPRETER_STATIC_FILE="$PYTHON_BUILD_UTILS_DIR/interpreter-static.c.3.x"
+fi
 if [ ! -f "$PY_C_INTERPRETER_STATIC_FILE" ]; then
     panic "Build of python $PYTHON_ABI is not supported, no such file: $PY_C_INTERPRETER_STATIC_FILE"
 fi
@@ -137,23 +145,6 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 fail_panic "Can't create build directory: $BUILD_DIR"
 
-
-# $1: target directory
-generate_python_interpreter_wrapper ()
-{
-    local TARGET_DIR=$1
-    local INTERPRETER_FPATH="$TARGET_DIR/python"
-    {
-        echo '#!/system/bin/sh'
-        echo 'DIR_HERE=$(cd ${0%python} && pwd)'
-        echo 'export LD_LIBRARY_PATH=$DIR_HERE/libs'
-        echo 'exec $DIR_HERE/python.bin $*'
-    } > $INTERPRETER_FPATH
-    fail_panic "Can't generate python interpreter wrapper '$INTERPRETER_FPATH'"
-
-    chmod +x $INTERPRETER_FPATH
-    fail_panic "Can't chmod +x interpreter wrapper: '$INTERPRETER_FPATH'"
-}
 
 # $1: module name
 # $2: target directory
@@ -342,6 +333,7 @@ build_python_for_abi ()
 
     local CONFIG_SITE=$BUILDDIR_CONFIG/config.site
     {
+        echo 'ac_cv_little_endian_double=yes'
         echo 'ac_cv_file__dev_ptmx=no'
         echo 'ac_cv_file__dev_ptc=no'
         echo 'ac_cv_func_gethostbyname_r=no'
@@ -401,8 +393,16 @@ build_python_for_abi ()
     run mkdir -p $BUILDDIR_CORE/jni
     fail_panic "Can't create directory: $BUILDDIR_CORE/jni"
 
-    local PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.${PYTHON_ABI}"
-    local PY_C_FROZEN="$PYTHON_BUILD_UTILS_DIR/frozen.c.${PYTHON_ABI}"
+    local PY_C_GETPATH
+    local PY_C_FROZEN
+
+    if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.2.7"
+        PY_C_FROZEN="$PYTHON_BUILD_UTILS_DIR/frozen.c.2.7"
+    else
+        PY_C_GETPATH="$PYTHON_BUILD_UTILS_DIR/getpath.c.3.x"
+        PY_C_FROZEN="$PYTHON_BUILD_UTILS_DIR/frozen.c.3.x"
+    fi
 
     run cp -p -T $PY_C_CONFIG_FILE "$BUILDDIR_CORE/jni/config.c" && \
         cp -p -T $PY_C_FROZEN "$BUILDDIR_CORE/jni/frozen.c" && \
@@ -510,13 +510,13 @@ build_python_for_abi ()
     fail_panic "Can't install python$PYTHON_ABI-$ABI static core in $PYBIN_INSTALLDIR_STATIC_LIBS"
 
 # Step 3: build python stdlib
-    local PYSTDLIB_ZIPFILE="$PYBIN_INSTALLDIR/stdlib.zip"
+    local PY_STDLIB_ZIPFILE="$PYBIN_INSTALLDIR/libs/python${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION}.zip"
     log "Install python$PYTHON_ABI-$ABI stdlib as $PYSTDLIB_ZIPFILE"
     if [ "$PYTHON_MAJOR_VERSION" = "2" ]; then
-        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --py2 --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
         fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
     else
-        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PYSTDLIB_ZIPFILE
+        run $PYTHON_FOR_BUILD $PYTHON_BUILD_UTILS_DIR/build_stdlib.py --pysrc-root $PYTHON_SRCDIR --output-zip $PY_STDLIB_ZIPFILE
         fail_panic "Can't install python$PYTHON_ABI-$ABI stdlib"
     fi
 
@@ -599,14 +599,12 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1 \
-        APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER -j$NUM_JOBS APP_ABI=$ABI V=1 APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI interpreter"
 
     log "Install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
-    run cp -p -T "$OBJDIR_INTERPRETER/python" "$PYBIN_INSTALLDIR/python.bin"
+    run cp -p -T "$OBJDIR_INTERPRETER/python" "$PYBIN_INSTALLDIR/python"
     fail_panic "Can't install python$PYTHON_ABI-$ABI interpreter in $PYBIN_INSTALLDIR"
-    generate_python_interpreter_wrapper $PYBIN_INSTALLDIR
 
 # Step 5: site-packages
     local SITE_README_SRCDIR="$PYTHON_SRCDIR/Lib/site-packages"
@@ -1269,8 +1267,7 @@ build_python_for_abi ()
     } >$BUILDDIR_INTERPRETER_STATIC/jni/Android.mk
     fail_panic "Can't generate $BUILDDIR_INTERPRETER_STATIC/jni/Android.mk"
 
-    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1 \
-        APP_LIBCRYSTAX=static APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
+    run $NDK_DIR/ndk-build -C $BUILDDIR_INTERPRETER_STATIC -j$NUM_JOBS APP_ABI=$ABI V=1 APP_PLATFORM=$EXE_PLATFORM APP_PIE=true
     fail_panic "Can't build python$PYTHON_ABI-$ABI static interpreter"
 
     log "Install python$PYTHON_ABI-$ABI static interpreter in $PYBIN_INSTALLDIR_STATIC_BIN"
