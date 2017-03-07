@@ -4,6 +4,7 @@
 *.swp
 .DS_Store
 .crew
+.tramp_history
 Thumbs.db
 local.properties
 build.xml
