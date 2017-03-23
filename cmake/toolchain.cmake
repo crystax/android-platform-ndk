@@ -1506,8 +1506,13 @@ if( CMAKE_GENERATOR MATCHES "Ninja" AND CMAKE_HOST_WIN32 )
  # CMake generates Ninja makefiles with UNIX paths only if it thinks that we are going to build with MinGW
  set( CMAKE_COMPILER_IS_MINGW TRUE ) # tell CMake that we are MinGW
  set( CMAKE_CROSSCOMPILING TRUE )    # stop recursion
- enable_language( C )
- enable_language( CXX )
+ 
+ # Behavior change of enable_language() introduced in CMake repo commit v3.6.0-rc1~293^2
+ if( CMAKE_VERSION VERSION_LESS 3.6 )
+  enable_language( C )
+  enable_language( CXX )
+ endif()
+ 
  # unset( CMAKE_COMPILER_IS_MINGW ) # can't unset because CMake does not convert back-slashes in response files without it
  unset( MINGW )
 endif()
