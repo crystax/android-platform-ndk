@@ -17,9 +17,10 @@ else
     TOOLCHAIN_VERSIONS=$NDK_TOOLCHAIN_VERSION
 fi
 
-BOOST_VERSIONS=$(ls -1 $NDK/sources/boost/ 2>/dev/null)
+BOOST_DIR=$NDK/packages/boost
+BOOST_VERSIONS=$(ls -1 $BOOST_DIR/ 2>/dev/null)
 if [ -z "$BOOST_VERSIONS" ]; then
-    echo "*** ERROR: Can't find Boost libraries in $NDK/sources/boost" 1>&2
+    echo "*** ERROR: Can't find Boost libraries in $BOOST_DIR" 1>&2
     exit 1
 fi
 
