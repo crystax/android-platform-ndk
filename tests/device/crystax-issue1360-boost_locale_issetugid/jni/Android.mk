@@ -7,4 +7,4 @@ LOCAL_CPPFLAGS += -std=c++14 -fexceptions -Os
 LOCAL_SRC_FILES := issetugidtest.cpp
 include $(BUILD_EXECUTABLE)
 
-$(call import-module,boost/1.61.0)
+$(call import-module,boost/1.63.0)
