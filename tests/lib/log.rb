@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -29,96 +29,96 @@ require 'time'
 require 'fileutils'
 
 class Log
-    @@loggers = []
-    @@mtx = Mutex.new
+  @@loggers = []
+  @@mtx = Mutex.new
 
-    @@print_timestamps = true
+  @@print_timestamps = true
 
-    def self.timestamps=(v)
-        @@print_timestamps = v
+  def self.timestamps=(v)
+    @@print_timestamps = v
+  end
+
+  def self.add(logger)
+    @@mtx.synchronize do
+      @@loggers << logger
     end
+  end
 
-    def self.add(logger)
-        @@mtx.synchronize do
-            @@loggers << logger
+  FATAL   = 0
+  ERROR   = 1
+  WARNING = 2
+  NOTICE  = 3
+  INFO    = 4
+  DEBUG   = 5
+
+  [:debug, :info, :notice, :warning, :error, :fatal].each do |sym|
+    define_singleton_method(sym) do |msg, options = {}|
+      level = Log.const_get(sym.to_s.upcase)
+      ls = []
+      @@mtx.synchronize do
+        ls = @@loggers.select { |l| l.level >= level }
+      end
+      ls.each do |l|
+        message = ""
+        prefix = ""
+        prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC: ') if @@print_timestamps
+        message << prefix unless options[:noprefix]
+        case level
+        when FATAL
+          message << "FATAL: "
+        when ERROR
+          message << "ERROR: "
+        when WARNING
+          message << "WARNING: "
         end
+        message << msg
+        l.log(message, level, options)
+      end
     end
-
-    FATAL   = 0
-    ERROR   = 1
-    WARNING = 2
-    NOTICE  = 3
-    INFO    = 4
-    DEBUG   = 5
-
-    [:debug, :info, :notice, :warning, :error, :fatal].each do |sym|
-        define_singleton_method(sym) do |msg, options = {}|
-            level = Log.const_get(sym.to_s.upcase)
-            ls = []
-            @@mtx.synchronize do
-                ls = @@loggers.select { |l| l.level >= level }
-            end
-            ls.each do |l|
-                message = ""
-                prefix = ""
-                prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC: ') if @@print_timestamps
-                message << prefix unless options[:noprefix]
-                case level
-                when FATAL
-                    message << "FATAL: "
-                when ERROR
-                    message << "ERROR: "
-                when WARNING
-                    message << "WARNING: "
-                end
-                message << msg
-                l.log(message, level, options)
-            end
-        end
-    end
+  end
 end
 
 class Logger
-    class PureVirtualMethodCalled < Exception; end
+  class PureVirtualMethodCalled < Exception; end
 
-    attr_reader :level
+  attr_reader :level
 
-    def initialize(level = Log::DEBUG)
-        @level = level
-    end
+  def initialize(level = Log::DEBUG)
+    @level = level
+  end
 
-    def log(msg, level, options)
-        raise PureVirtualMethodCalled.new
-    end
+  def log(msg, level, options)
+    raise PureVirtualMethodCalled.new
+  end
 end
 
 class StdLogger < Logger
-    def initialize(level = Log::DEBUG)
-        super(level)
-        @mtx = Mutex.new
-    end
+  def initialize(level = Log::DEBUG)
+    super(level)
+    @mtx = Mutex.new
+  end
 
-    def log(msg, l, options)
-        @mtx.synchronize do
-            STDOUT.write msg
-            STDOUT.write "\n" unless options[:nonewline]
-            STDOUT.flush
-        end
+  def log(msg, l, options)
+    @mtx.synchronize do
+      STDOUT.write msg
+      STDOUT.write "\n" unless options[:nonewline]
+      STDOUT.flush
     end
+  end
 end
 
 class FileLogger < Logger
-    def initialize(file, level = Log::DEBUG)
-        super(level)
-        @file = file
-        FileUtils.mkdir_p File.dirname(file)
-    end
+  def initialize(file, level = Log::DEBUG)
+    super(level)
+    @file = file
+    FileUtils.mkdir_p File.dirname(file)
+  end
 
-    def log(msg, l, options)
-        File.open(@file, "a") do |f|
-            f.flock(File::LOCK_EX)
-            f.write msg
-            f.write "\n" unless options[:nonewline]
-        end
+  def log(msg, l, options)
+    File.open(@file, "a") do |f|
+      f.flock(File::LOCK_EX)
+      f.write msg
+      f.write "\n" unless options[:nonewline]
     end
+  end
 end
