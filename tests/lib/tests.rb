@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -28,43 +28,43 @@
 require_relative 'project'
 
 class Tests
-    attr_reader :type
+  attr_reader :type
 
-    def initialize(ndk, options = {})
-        @ndk = ndk
-        @options = options
-        @type = options[:type]
-        @tests = Dir.glob(File.join(@ndk, 'tests', @type, '*')).sort
+  def initialize(ndk, options = {})
+    @ndk = ndk
+    @options = options
+    @type = options[:type]
+    @tests = Dir.glob(File.join(@ndk, 'tests', @type, '*')).sort
+  end
+
+  def run
+    fails = 0
+    @tests.each do |t|
+      next if @options[:tests] && !@options[:tests].include?(File.basename(t))
+
+      proj = Project.new(t, @ndk, @options)
+      begin
+        proj.test
+      rescue
+        raise unless @options[:keep_going]
+        fails += 1
+      else
+        proj.cleanup
+      end
     end
 
-    def run
-        fails = 0
-        @tests.each do |t|
-            next if @options[:tests] && !@options[:tests].include?(File.basename(t))
-
-            proj = Project.new(t, @ndk, @options)
-            begin
-                proj.test
-            rescue
-                raise unless @options[:keep_going]
-                fails += 1
-            else
-                proj.cleanup
-            end
-        end
-
-        raise "Testing failed" if fails > 0
-    end
+    raise "Testing failed" if fails > 0
+  end
 end
 
 class BuildTests < Tests
-    def initialize(ndk, options = {})
-        super(ndk, options.merge(type: 'build'))
-    end
+  def initialize(ndk, options = {})
+    super(ndk, options.merge(type: 'build'))
+  end
 end
 
 class DeviceTests < Tests
-    def initialize(ndk, options = {})
-        super(ndk, options.merge(type: 'device'))
-    end
+  def initialize(ndk, options = {})
+    super(ndk, options.merge(type: 'device'))
+  end
 end
