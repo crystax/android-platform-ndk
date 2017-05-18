@@ -119,7 +119,7 @@ class Project
         else
           host_tag = "#{tag}-#{arch}"
         end
-        make = File.join(@ndk, 'prebuilt', host_tag, 'bin', "make#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
+        make = File.join(@ndk, 'prebuilt', host_tag, 'bin', "make#{".cmd" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
         next unless File.exists?(make)
         @gnumake = make
         break
@@ -295,7 +295,7 @@ class Project
 
     env = options[:env] || {}
     env['GNUMAKE'] = gnumake
-    env['JOBS'] = @jobs
+    env['JOBS'] = @jobs.to_s
 
     Open3.popen3(env, cmd) do |i,o,e,t|
       [i,o,e].each { |io| io.sync = true }
@@ -463,13 +463,10 @@ class Project
     proc do
       if WINDOWS
         shell = ENV['SHELL']
-        if ENV['OSTYPE'] == 'cygwin'
-          o,e,s = Open3.capture3("cygpath -m #{shell}")
-          raise "Can't convert cygwin path to native: #{e}" unless s.success?
-          shell = o.chomp
-        else
-          shell = shell.sub(/^\/([A-Za-z])\//, '\1:/')
-        end
+        # NB: cygwin shell is required!
+        o,e,s = Open3.capture3("cygpath -m #{shell}")
+        raise "Can't convert cygwin path to native: #{e}" unless s.success?
+        shell = o.chomp
         cmd = "#{shell} #{script}"
       else
         cmd = script
