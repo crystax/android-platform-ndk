@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -49,96 +49,96 @@ options[:log] = File.join(options[:outdir], 'tests.log')
 options[:keep_going] = false
 options[:ndk] = ENV['NDK'] || File.expand_path(File.join(File.dirname(__FILE__), '..'))
 if ENV['ANDROID_SDK_ROOT']
-    options[:adb] = File.join(ENV['ANDROID_SDK_ROOT'], 'platform-tools', "adb#{'.exe' if RUBY_PLATFORM =~ /win32/}")
+  options[:adb] = File.join(ENV['ANDROID_SDK_ROOT'], 'platform-tools', "adb#{'.exe' if RUBY_PLATFORM =~ /win32/}")
 else
-    options[:adb] = 'adb'
+  options[:adb] = 'adb'
 end
 options[:types] = ['awk', 'samples', 'build', 'device', 'standalone']
 options[:stimeout] = 180
 
 optparser = OptionParser.new do |o|
-    o.separator "Parameters:"
+  o.separator "Parameters:"
 
-    o.on("-h", "--help", "Show help screen and exit") do
-        puts optparser
-        exit 0
-    end
+  o.on("-h", "--help", "Show help screen and exit") do
+    puts optparser
+    exit 0
+  end
 
-    o.on("-v", "--[no-]verbose", "Enable verbose mode [#{options[:verbose]}]") do |v|
-        options[:verbose] = v
-    end
+  o.on("-v", "--[no-]verbose", "Enable verbose mode [#{options[:verbose]}]") do |v|
+    options[:verbose] = v
+  end
 
-    o.on("--log=FILE", "Use this file for logging [#{options[:log]}]") do |f|
-        options[:log] = f
-    end
+  o.on("--log=FILE", "Use this file for logging [#{options[:log]}]") do |f|
+    options[:log] = f
+  end
 
-    options[:print_timestamps] = true
-    o.on("--[no-]print-timestamps", "Print timestamps in log [#{options[:print_timestamps]}]") do |p|
-        options[:print_timestamps] = p
-    end
+  options[:print_timestamps] = true
+  o.on("--[no-]print-timestamps", "Print timestamps in log [#{options[:print_timestamps]}]") do |p|
+    options[:print_timestamps] = p
+  end
 
-    o.on("-k", "--[no-]keep-going", "Keep going even if some tests failed [#{options[:keep_going]}]") do |k|
-        options[:keep_going] = k
-    end
+  o.on("-k", "--[no-]keep-going", "Keep going even if some tests failed [#{options[:keep_going]}]") do |k|
+    options[:keep_going] = k
+  end
 
-    o.on("--ndk=DIR", "Use specified directory as NDK root [#{options[:ndk]}]") do |n|
-        options[:ndk] = n
-    end
+  o.on("--ndk=DIR", "Use specified directory as NDK root [#{options[:ndk]}]") do |n|
+    options[:ndk] = n
+  end
 
-    o.on("--adb=PATH", "Use specified adb [#{options[:adb]}]") do |a|
-        options[:adb] = a
-    end
+  o.on("--adb=PATH", "Use specified adb [#{options[:adb]}]") do |a|
+    options[:adb] = a
+  end
 
-    o.on("-jN", "--jobs=N", "Build jobs [autodetect]") do |j|
-        options[:jobs] = j
-    end
+  o.on("-jN", "--jobs=N", "Build jobs [autodetect]") do |j|
+    options[:jobs] = j
+  end
 
-    o.on("--tests=TESTS", Array, "Run only specified tests") do |t|
-        options[:tests] = t
-    end
+  o.on("--tests=TESTS", Array, "Run only specified tests") do |t|
+    options[:tests] = t
+  end
 
-    o.on("--out-dir=PATH", "Test output directory [#{options[:outdir]}]") do |t|
-        options[:outdir] = t
-    end
+  o.on("--out-dir=PATH", "Test output directory [#{options[:outdir]}]") do |t|
+    options[:outdir] = t
+  end
 
-    o.on("--toolchain-version=V", "Specify toolchain version to test [all]") do |v|
-        options[:toolchain_version] = v.sub(/^(\d+\.\d+.*)$/, 'gcc\1')
-    end
+  o.on("--toolchain-version=V", "Specify toolchain version to test [all]") do |v|
+    options[:toolchain_version] = v.sub(/^(\d+\.\d+.*)$/, 'gcc\1')
+  end
 
-    o.on("--types=LIST", Array, "Test types to run [#{options[:types].join(',')}]") do |l|
-        options[:types] = l
-    end
+  o.on("--types=LIST", Array, "Test types to run [#{options[:types].join(',')}]") do |l|
+    options[:types] = l
+  end
 
-    o.on("--mro-prefix=PREFIX", "Machine-readable output prefix") do |p|
-        options[:mroprefix] = p
-    end
+  o.on("--mro-prefix=PREFIX", "Machine-readable output prefix") do |p|
+    options[:mroprefix] = p
+  end
 
-    o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |t|
-        options[:emutag] = t
-    end
+  o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |t|
+    options[:emutag] = t
+  end
 
-    o.on("--only-abis=LIST", Array, "Only test specified ABIs") do |a|
-        options[:abis] = a
-    end
+  o.on("--only-abis=LIST", Array, "Only test specified ABIs") do |a|
+    options[:abis] = a
+  end
 
-    o.on("--single-test-timeout=TIMEOUT", "Timeout (in seconds) for running single test on device") do |t|
-        options[:stimeout] = t
-    end
+  o.on("--single-test-timeout=TIMEOUT", "Timeout (in seconds) for running single test on device") do |t|
+    options[:stimeout] = t
+  end
 
-    o.on("--[no-]pie", "Run only PIE-enabled (or only PIE-disabled) tests") do |p|
-        options[:pie] = p
-    end
+  o.on("--[no-]pie", "Run only PIE-enabled (or only PIE-disabled) tests") do |p|
+    options[:pie] = p
+  end
 
-    o.on("--full", "Run all tests, including those marked as 'long'") do |f|
-        options[:full_testing] = f
-    end
+  o.on("--full", "Run all tests, including those marked as 'long'") do |f|
+    options[:full_testing] = f
+  end
 end
 optparser.parse!(ARGV)
 
 if !ARGV.empty?
-    $stderr.puts "ERROR: Unknown options: #{ARGV.join(" ")}"
-    $stderr.puts optparser
-    exit 1
+  $stderr.puts "ERROR: Unknown options: #{ARGV.join(" ")}"
+  $stderr.puts optparser
+  exit 1
 end
 
 Log.timestamps = options[:print_timestamps]
@@ -149,50 +149,51 @@ Log.add FileLogger.new(options[:log], Log::DEBUG) if options[:log]
 MRO.prefix = options[:mroprefix]
 
 def prepare_environment(options)
-    ENV['ANDROID_NDK_ROOT'] = nil
-    ENV['NDK'] = options[:ndk]
-    ENV['V'] = options[:verbose] ? '1' : '0'
-    ENV['NDK_TOOLCHAIN_VERSION'] = options[:toolchain_version].sub(/^(gcc|clang)-/, '\1').sub(/^gcc/, '') rescue nil
-    ENV['NDK_LOGFILE'] = options[:log]
-    ENV['_NDK_TESTING_ALL_'] = 'all' if ENV['_NDK_TESTING_ALL_'].nil?
+  ENV['ANDROID_NDK_ROOT'] = nil
+  ENV['NDK'] = options[:ndk]
+  ENV['V'] = options[:verbose] ? '1' : '0'
+  ENV['NDK_TOOLCHAIN_VERSION'] = options[:toolchain_version].sub(/^(gcc|clang)-/, '\1').sub(/^gcc/, '') rescue nil
+  ENV['NDK_LOGFILE'] = options[:log]
+  ENV['_NDK_TESTING_ALL_'] = 'all' if ENV['_NDK_TESTING_ALL_'].nil?
 end
 
 def elapsed(seconds)
-    s = seconds % 60
-    m = (seconds / 60) % 60
-    h = seconds / 3600
-    "%d:%02d:%02d" % [h,m,s]
+  s = seconds % 60
+  m = (seconds / 60) % 60
+  h = seconds / 3600
+  "%d:%02d:%02d" % [h,m,s]
 end
 
 def run_all(options)
-    started = Time.now
+  started = Time.now
 
-    Log.notice "=== START NDK TESTING"
+  Log.notice "=== START NDK TESTING"
 
-    prepare_environment(options)
+  prepare_environment(options)
 
-    options[:types].select! { |t| ['build', 'device'].include?(t) } if options[:tests].is_a?(Array) && options[:tests].size > 0
+  options[:types].select! { |t| ['build', 'device'].include?(t) } if options[:tests].is_a?(Array) && options[:tests].size > 0
 
-    fails = 0
-    options[:types].each do |type|
-        begin
-            tests = Object.const_get("#{type.capitalize}Tests").new(options[:ndk], options)
-            tests.run
-        rescue
-            raise unless options[:keep_going]
-            fails += 1
-        end
+  fails = 0
+  options[:types].each do |type|
+    begin
+      tests = Object.const_get("#{type.capitalize}Tests").new(options[:ndk], options)
+      tests.run
+    rescue
+      raise unless options[:keep_going]
+      fails += 1
     end
+  end
 
-    raise "Testing failed" if fails > 0
+  raise "Testing failed" if fails > 0
 rescue Interrupt
-    Log.notice "INTERRUPTED"
-    exit 1
+  Log.notice "INTERRUPTED"
+  exit 1
 rescue => e
-    Log.error e.message
-    exit 1
+  Log.error e.message
+
+  exit 1
 ensure
-    Log.notice "=== DONE (took #{elapsed(Time.now - started)})"
+  Log.notice "=== DONE (took #{elapsed(Time.now - started)})"
 end
 
 run_all options
