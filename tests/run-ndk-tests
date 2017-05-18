@@ -34,6 +34,7 @@ require_relative 'lib/samples'
 require_relative 'lib/tests'
 require_relative 'lib/standalone'
 require_relative 'lib/mro'
+require_relative 'lib/project'
 
 Encoding.default_external = Encoding::UTF_8
 ENV['LANG'] = 'en_US.UTF-8'
@@ -49,7 +50,7 @@ options[:log] = File.join(options[:outdir], 'tests.log')
 options[:keep_going] = false
 options[:ndk] = ENV['NDK'] || File.expand_path(File.join(File.dirname(__FILE__), '..'))
 if ENV['ANDROID_SDK_ROOT']
-  options[:adb] = File.join(ENV['ANDROID_SDK_ROOT'], 'platform-tools', "adb#{'.exe' if RUBY_PLATFORM =~ /win32/}")
+  options[:adb] = File.join(ENV['ANDROID_SDK_ROOT'], 'platform-tools', "adb#{'.exe' if Project::WINDOWS}")
 else
   options[:adb] = 'adb'
 end
@@ -190,6 +191,7 @@ rescue Interrupt
   exit 1
 rescue => e
   Log.error e.message
+  #Log.error e.backtrace.join("\n")
 
   exit 1
 ensure
