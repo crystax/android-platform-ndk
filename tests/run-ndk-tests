@@ -43,9 +43,11 @@ ENV['LC_ALL'] = ENV['LANG']
 $stdout.sync = true
 $stderr.sync = true
 
+DRIVE = "C:" if Project::WINDOWS
+
 options = {}
 options[:verbose] = false
-options[:outdir] = "/tmp/ndk-#{ENV['USER']}/tests"
+options[:outdir] = "#{DRIVE}/tmp/ndk-#{ENV['USER']}/tests"
 options[:log] = File.join(options[:outdir], 'tests.log')
 options[:keep_going] = false
 options[:ndk] = ENV['NDK'] || File.expand_path(File.join(File.dirname(__FILE__), '..'))
