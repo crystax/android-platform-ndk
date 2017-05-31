@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -30,27 +30,27 @@ require_relative 'project'
 require_relative 'tests'
 
 class SamplesTests < Tests
-    def initialize(ndk, options = {})
-        super ndk, options.merge(type: 'samples')
+  def initialize(ndk, options = {})
+    super ndk, options.merge(type: 'samples')
 
-        dirs = []
-        if !File.exists?(File.join(ndk, 'RELEASE.TXT'))
-            # This is a development work directory, we will take the samples
-            # directly from development/ndk.
-            devndk = File.join(File.dirname(ndk), 'development', 'ndk')
-            dirs << File.join(devndk, 'samples')
-            Dir.glob(File.join(devndk, 'platforms', 'android-*', 'samples')).each do |dir|
-                dirs << dir
-            end
-        end
-        dirs << File.join(ndk, 'samples')
-
-        @tests = []
-        dirs.each do |dir|
-            Dir.glob(File.join(dir, '*')).each do |p|
-                @tests << p unless @tests.map { |e| File.basename(e) }.include?(File.basename(p))
-            end
-        end
-        @tests.sort! { |a,b| File.basename(a) <=> File.basename(b) }
+    dirs = []
+    if !File.exists?(File.join(ndk, 'RELEASE.TXT'))
+      # This is a development work directory, we will take the samples
+      # directly from development/ndk.
+      devndk = File.join(File.dirname(ndk), 'development', 'ndk')
+      dirs << File.join(devndk, 'samples')
+      Dir.glob(File.join(devndk, 'platforms', 'android-*', 'samples')).each do |dir|
+        dirs << dir
+      end
     end
+    dirs << File.join(ndk, 'samples')
+
+    @tests = []
+    dirs.each do |dir|
+      Dir.glob(File.join(dir, '*')).each do |p|
+        @tests << p unless @tests.map { |e| File.basename(e) }.include?(File.basename(p))
+      end
+    end
+    @tests.sort! { |a,b| File.basename(a) <=> File.basename(b) }
+  end
 end

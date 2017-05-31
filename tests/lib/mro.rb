@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -28,11 +28,11 @@
 require 'json'
 
 class MRO
-    def self.prefix=(p)
-        @@prefix = p
-    end
+  def self.prefix=(p)
+    @@prefix = p
+  end
 
-    def self.dump(obj)
-        $stdout.puts "#{@@prefix}#{obj.to_json}" if @@prefix
-    end
+  def self.dump(obj)
+    $stdout.puts "#{@@prefix}#{obj.to_json}" if @@prefix
+  end
 end
