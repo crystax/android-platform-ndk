@@ -70,7 +70,7 @@ class AwkTests < Tests
       else
         host_tag = "#{tag}-#{arch}"
       end
-      awk = File.join(@ndk, 'prebuilt', host_tag, 'bin', "awk#{".cmd" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
+      awk = File.join(@ndk, 'prebuilt', host_tag, 'bin', "awk#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
       @awk = awk if @awk.nil? && File.exists?(awk)
     end
     raise "Can't find 'awk' in #{@ndk}" if @awk.nil?

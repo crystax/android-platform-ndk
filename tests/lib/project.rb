@@ -119,7 +119,7 @@ class Project
         else
           host_tag = "#{tag}-#{arch}"
         end
-        make = File.join(@ndk, 'prebuilt', host_tag, 'bin', "make#{".cmd" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
+        make = File.join(@ndk, 'prebuilt', host_tag, 'bin', "make#{".exe" if RUBY_PLATFORM =~ /(cygwin|mingw|win32)/}")
         next unless File.exists?(make)
         @gnumake = make
         break
