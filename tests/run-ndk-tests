@@ -43,7 +43,7 @@ ENV['LC_ALL'] = ENV['LANG']
 $stdout.sync = true
 $stderr.sync = true
 
-DRIVE = "C:" if Project::WINDOWS
+DRIVE = Project::WINDOWS ? "C:" : ''
 
 options = {}
 options[:verbose] = false
