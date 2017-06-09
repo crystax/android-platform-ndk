@@ -294,7 +294,6 @@ class Project
     log_info "## CWD: #{Dir.pwd}"
 
     env = options[:env] || {}
-    env['GNUMAKE'] = gnumake
     env['JOBS'] = @jobs.to_s
 
     Open3.popen3(env, cmd) do |i,o,e,t|
