@@ -33,7 +33,7 @@ LIBCXX_SUBDIR=sources/cxx-stl/llvm-libc++
 LIBCXXABI_SUBDIR=sources/cxx-stl/llvm-libc++abi/libcxxabi
 
 # Location of the GNUstep libobjc2 headers and libraries, relative to the NDK root directory
-GNUSTEP_OBJC2_SUBDIR=sources/objc/gnustep-libobjc2
+GNUSTEP_OBJC2_SUBDIR=packages/libobjc2/1.8.1
 
 # Location of the Cocotron headers and libraries, relative to the NDK root directory
 COCOTRON_SUBDIR=sources/objc/cocotron/0.1.0
@@ -68,19 +68,19 @@ OPENSSL_VERSIONS="1.0.2h"
 DEFAULT_OPENSSL_VERSION=$(echo $OPENSSL_VERSIONS | tr ' ' '\n' | head -n 1)
 
 # Location of the libpng libraries, relative to the NDK root directory
-LIBPNG_SUBDIR=sources/libpng
-LIBPNG_VERSIONS="1.6.19"
+LIBPNG_VERSIONS="1.6.29"
+LIBPNG_SUBDIR=packages/libpng
 
 # Location of the libjpeg libraries, relative to the NDK root directory
-LIBJPEG_SUBDIR=sources/libjpeg
-LIBJPEG_VERSIONS="9a"
+LIBJPEG_SUBDIR=packages/libjpeg
+LIBJPEG_VERSIONS="9b"
 
 # Location of the libjpeg-turbo libraries, relative to the NDK root directory
-LIBJPEGTURBO_SUBDIR=sources/libjpeg-turbo
+LIBJPEGTURBO_SUBDIR=packages/libjpeg-turbo
 LIBJPEGTURBO_VERSIONS="1.4.2"
 
 # Location of the libtiff libraries, relative to the NDK root directory
-LIBTIFF_SUBDIR=sources/libtiff
+LIBTIFF_SUBDIR=packages/libtiff
 LIBTIFF_VERSIONS="4.0.6"
 
 # Location of the gccunwind sources, relative to the NDK root directory
