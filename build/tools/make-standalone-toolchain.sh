@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2010, 2014, 2015 The Android Open Source Project
+# Copyright (C) 2010, 2014, 2015, 2017 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -455,9 +455,6 @@ copy_crystax_libs_for_abi () {
 
     case $ABI in
         armeabi*)
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi" "$ABI_TARGET/lib" "libcrystax.so"
-            #
             copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.so"
             #
@@ -544,9 +541,6 @@ copy_libobjc2_libs_for_abi()
     for LIB in libobjc.so; do
         case $ABI in
             armeabi*)
-                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBOBJC2_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
                 copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
                 copy_file_list "$LIBOBJC2_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
                 #
@@ -592,9 +586,6 @@ copy_libpng_libs_for_abi()
     for LIB in libpng.a libpng.so; do
         case $ABI in
             armeabi*)
-                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBPNG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
                 copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
                 copy_file_list "$LIBPNG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
                 #
@@ -639,9 +630,6 @@ copy_libjpeg_libs_for_abi()
     for LIB in libjpeg.a libjpeg.so; do
         case $ABI in
             armeabi*)
-                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBJPEG_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
                 copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
                 copy_file_list "$LIBJPEG_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
                 #
@@ -686,9 +674,6 @@ copy_libtiff_libs_for_abi()
     for LIB in libtiff.a libtiff.so libtiffxx.a libtiffxx.so; do
         case $ABI in
             armeabi*)
-                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib" "$LIB"
-                copy_file_list "$LIBTIFF_LIBS/armeabi" "$ABI_TARGET/lib/thumb" "$LIB"
-                #
                 copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "$LIB"
                 copy_file_list "$LIBTIFF_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a/thumb" "$LIB"
                 #
@@ -805,10 +790,6 @@ copy_stl_libs_for_abi () {
     fi
 
     case $ABI in
-        armeabi)
-            copy_stl_libs armeabi           "bits"                "bits"
-            copy_stl_libs armeabi           "thumb/bits"          "bits"       "/thumb"
-            ;;
         armeabi-v7a)
             copy_stl_libs armeabi-v7a       "armv7-a/bits"        "bits"       "armv7-a"
             copy_stl_libs armeabi-v7a       "armv7-a/thumb/bits"  "bits"       "armv7-a/thumb"
