@@ -4,7 +4,7 @@
 # platforms and architectures.
 #
 #
-# Copyright (c) 2014, 2015, 2016 CrystaX.
+# Copyright (c) 2014, 2015, 2016, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,18 @@
 
 require 'optparse'
 require 'fileutils'
+require 'pathname'
 
 
+NDK_DIR       = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.to_s
+CREW_CMD      = (RbConfig::CONFIG['EXEEXT'] == '.exe') ? "#{NDK_DIR}/crew.cmd" : "#{NDK_DIR}/crew"
+CREW_DIR      = `#{CREW_CMD} -W env --base-dir`.strip
+PLATFORM_NAME = File.basename(`#{CREW_CMD} -W env --tools-dir`.strip)
+TMP_DIR       = `#{CREW_CMD} -W env --base-build-dir`.strip
 
-MIN_SUPPORTED_API_LEVEL = 9
+require_relative "#{CREW_DIR}/library/arch.rb"
+require_relative "#{CREW_DIR}/library/toolchain.rb"
+
 
 class Ndk_data
 
@@ -49,26 +57,15 @@ class Ndk_data
 
   def initialize
     user = ENV['USER']
-    ndk_path = '.'
 
     # ./test/standalone/run.sh will use the value of the variable as log file name
-    self.log_file = "/tmp/ndk-#{user}/tests/standalone.log"
+    self.log_file = "#{TMP_DIR}/tests/standalone.log"
+    FileUtils.mkdir_p File.dirname(self.log_file)
 
-    @ndk_tmp_dir = "/tmp/ndk-#{user}/tmp"
-    @ndk_build_tools_path = File.join(ndk_path, 'build', 'tools')
-
-    @cmd_prefix =
-      "export NDK_BUILDTOOLS_PATH=#{@ndk_build_tools_path}"         + " ; " +
-      ". " + File.join(@ndk_build_tools_path, 'ndk-common.sh')      + " ; " +
-      ". " + File.join(@ndk_build_tools_path, 'prebuilt-common.sh') + " ; "
-
+    @ndk_tmp_dir = "#{TMP_DIR}/tmp"
     @default_stl_types = ["gnustl", "libc++"]
-
-    @llvm_versions = default_llvm_versions
+    @llvm_versions = Toolchain::SUPPORTED_LLVM.map(&:version)
     @compiler_types = ["gcc"] + @llvm_versions.map { |v| "clang" + v }
-
-    # todo: why 32 windows returns host_tag 'windows' but 64 -- cygwin-x86_64?
-    @tag = (host_tag == 'cygwin-x86_64') ? 'windows-x86_64' : host_tag
   end
 
   def log_file
@@ -80,113 +77,56 @@ class Ndk_data
   end
 
   def default_api_levels
-    v = get_info_from_shell("echo $API_LEVELS").split
-    v.delete_if {|l| l.to_i < MIN_SUPPORTED_API_LEVEL }
+    api_levels = []
+    FileUtils.cd("#{NDK_DIR}/platforms") { api_levels = Dir['*'].map { |s| s.split('-')[1].to_i } }
+    api_levels.sort
   end
 
-  def prebuilt_abis
-    get_info_from_shell("echo $PREBUILT_ABIS").split
-  end
-
-  def default_gcc_versions
-    get_info_from_shell("echo $DEFAULT_GCC_VERSION_LIST").split
-  end
-
-  def use_32bit_tools
-    @tag = host_tag32
-  end
-
-  def allowed_api_levels(abi, apis)
-    r = []
-    apis.each { |api| if Integer(api) >= min_api_level(abi) then r << api end }
-    r
+  def allowed_api_levels(arch, apis)
+    apis.select { |api| api >= arch.min_api_level }
   end
 
   def standalone_path(api_level, arch, gcc_version, stl_type)
-    File.join(@ndk_tmp_dir, "android-ndk-api#{api_level}-#{arch}-#{tag}-#{gcc_version}-#{stl_type}")
-  end
-
-  def toolchain_name_for_arch(arch, gcc_version)
-    get_info_from_shell("echo $(get_toolchain_name_for_arch #{arch} #{gcc_version})")
-  end
-
-  def toolchain_prefix_for_arch(arch)
-    get_info_from_shell("echo $(get_default_toolchain_prefix_for_arch #{arch})")
-  end
-
-  def abi_to_arch(abi)
-    case abi
-    when /arm64/ then "arm64"
-    when /arm/   then "arm"
-    else         abi
-    end
-  end
-
-  private
-
-  def min_api_level(abi)
-    case abi
-    when /64/   then 21
-    when /x86/  then 10
-    when /mips/ then 15
-    else             MIN_SUPPORTED_API_LEVEL
-    end
-  end
-
-  def default_llvm_versions
-    get_info_from_shell("echo $DEFAULT_LLVM_VERSION_LIST").split
-  end
-
-  def host_tag
-    get_info_from_shell("echo $HOST_TAG")
-  end
-
-  def host_tag32
-    get_info_from_shell("echo $HOST_TAG32")
-  end
-
-  def get_info_from_shell(cmd)
-    command = @cmd_prefix + cmd
-    s = `#{command}`
-    if $? != 0
-      abort("failed command: #{command}")
-    end
-    return s.strip
+    File.join(@ndk_tmp_dir, "android-ndk-api-#{api_level}-#{arch.name}-#{gcc_version}-#{stl_type}")
   end
 end
 
 
-$ndk_data = Ndk_data.new
+NDK_DATA = Ndk_data.new
 $num_tests_run = 0
 $num_tests_failed = 0
 
 
-class Toolchain
+class StandaloneToolchain
 
-  def initialize(abi, gccver, stl, apilev)
-    @abi = abi
-    @arch = $ndk_data.abi_to_arch(abi)
-    @gccver = gccver
-    @stl = stl
-    @apilev = apilev
+  attr_reader :arch, :gcc_version, :stl, :api_level, :install_dir_base, :prefix, :results
 
-    @install_dir_base = $ndk_data.standalone_path(@apilev, @arch, @gccver, @stl)
-    @name = $ndk_data.toolchain_name_for_arch(@arch, @gccver)
-    @prefix = $ndk_data.toolchain_prefix_for_arch(@arch)
+  def initialize(arch, gcc_version, stl, api_level)
+    @arch        = arch
+    @gcc_version = gcc_version
+    @stl         = stl
+    @api_level   = api_level
+
+    @install_dir_base = NDK_DATA.standalone_path(api_level, arch, gcc_version, stl)
+    @prefix = arch.host
 
     @results = Hash.new(0)
 
-    log =
+    # todo: why?
+    log = nil
 
-    $ndk_data.llvm_versions.each do |llvm_ver|
-      cmd = "./build/instruments/make-standalone-toolchain.sh" +
-            " --platform=android-#{apilev}"                    +
-            " --install-dir=#{@install_dir_base}-#{llvm_ver}"  +
-            " --llvm-version=#{llvm_ver}"                      +
-            " --stl=#{stl}"                                    +
-            " --toolchain=#{@name}"                            +
-            " --system=#{$ndk_data.tag}"
-      File.open($ndk_data.log_file, "a") do |log|
+    NDK_DATA.llvm_versions.each do |llvm_ver|
+      args = [" --clean-install-dir",
+              " --install-dir=#{toolchain_dir(llvm_ver)}",
+              " --gcc-version=#{gcc_version}",
+              " --llvm-version=#{llvm_ver}",
+              " --stl=#{stl}",
+              " --arch=#{arch.name}",
+              " --platform=#{PLATFORM_NAME}",
+              " --api-level=#{api_level}"
+             ]
+      cmd = "#{CREW_CMD} -W -b make-standalone-toolchain #{args.join(' ')}"
+      File.open(NDK_DATA.log_file, "a") do |log|
         log.puts "############################################"
         log.puts
         log.puts " Creating toolchain with command: #{cmd}"
@@ -200,82 +140,63 @@ class Toolchain
     end
   end
 
+  def toolchain_dir(llvm_ver)
+    "#{install_dir_base}-#{llvm_ver}"
+  end
+
   def clean
-    $ndk_data.llvm_versions.each do |llvm_ver|
-      FileUtils.remove_dir("#{@install_dir_base}-#{llvm_ver}")
-    end
+    NDK_DATA.llvm_versions.each { |llvm_ver| FileUtils.rm_rf toolchain_dir(llvm_ver) }
   end
 
   def run_tests
     # run tests with GCC toolchain
     # since GCC compilers are the same for each LLVM version
     # use first LLVM version to run GCC tests
-    @results['gcc'] =
-      if (@gccver == "4.6") && (@stl == 'libc++')
-        -1
-      else
-        cmd = "./tests/standalone/run.sh " +
-              " --no-sysroot"              +
-              " --prefix=#{@install_dir_base}-#{$ndk_data.llvm_versions[0]}/bin/#{@prefix}-gcc"
-        if /armeabi/ =~ @abi
-          cmd += " --abi=#{@abi}"
-        end
-        run_test_cmd(cmd)
-      end
+    # todo: test armeabi-v7a-hard too
+    cmd = "./tests/standalone/run.sh --no-sysroot --prefix=#{toolchain_dir(NDK_DATA.llvm_versions[0])}/bin/#{prefix}-gcc --abi=#{arch.abis[0]}"
+    results['gcc'] = run_test_cmd(cmd)
     # run tests with LLVM toolchains
-    # but do not run tests with LLVM for gcc 4.6 based toolchains
-    $ndk_data.llvm_versions.each do |llvm_ver|
-      @results['clang'+llvm_ver] =
-        if @gccver == "4.6"
-          -1
-        else
-          cmd = "./tests/standalone/run.sh"                            +
-                " --no-sysroot"                                        +
-                " --prefix=#{@install_dir_base}-#{llvm_ver}/bin/clang" +
-                " --abi=#{@abi}"
-          # if /armeabi/ =~ @abi
-          #   cmd += " --abi=#{@abi}"
-          # end
-          run_test_cmd(cmd)
-        end
+    NDK_DATA.llvm_versions.each do |llvm_ver|
+      cmd = "./tests/standalone/run.sh --no-sysroot --prefix=#{toolchain_dir(llvm_ver)}/bin/clang --abi=#{arch.abis[0]}"
+      results['clang'+llvm_ver] = run_test_cmd(cmd)
     end
-    @results
+    results
   end
 
-  private
-
   def run_test_cmd(cmd)
-    output = `#{cmd}`
     num_failed = 0
-    r = (output.split("\n")[-1]).split
-    if r[-1] == 'Success.'
-      $num_tests_run += Integer((r[0].split("/"))[0])
-    elsif r[2] == 'failed'
-      $num_tests_run += Integer(r[-1].delete("."))
-      $num_tests_failed += num_failed = Integer(r[0])
-    else
-      abort("error: unexpected output from command: #{cmd}; output: #{output}")
+    FileUtils.cd(NDK_DIR) do
+      output = `#{cmd}`
+      r = (output.split("\n")[-1]).split
+      if r[-1] == 'Success.'
+        $num_tests_run += Integer((r[0].split("/"))[0])
+      elsif r[2] == 'failed'
+        $num_tests_run += Integer(r[-1].delete("."))
+        $num_tests_failed += num_failed = Integer(r[0])
+      else
+        abort("error: unexpected output from command: #{cmd}; output: #{output}")
+      end
     end
     num_failed
   end
 end
 
 
-api_levels = $ndk_data.default_api_levels
-abis = $ndk_data.prebuilt_abis
-stl_types = $ndk_data.default_stl_types
-gcc_versions = $ndk_data.default_gcc_versions
+architectures = Arch::LIST.values
+gcc_versions  = Toolchain::SUPPORTED_GCC.map(&:version)
+stl_types     = NDK_DATA.default_stl_types
+api_levels    = NDK_DATA.default_api_levels
 
 options = { clean: true }
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
   opts.on("--api-levels=LIST", String, "List of API levels;", "#{api_levels}") do |l|
-    api_levels = l.split(',').map {|s| Integer(s) }
+    api_levels = l.split(',').map { |s| s.to_i }
   end
 
-  opts.on("--abis=LIST", String, "List of ABIs;", "#{abis}") do |l|
-    abis = l.split(',')
+  opts.on("--archs=LIST", String, "List of architectures;", "#{architectures.map(&:name).join(',')}") do |l|
+    architectures = l.split(',').map { |a| Arch::LIST[a.to_sym] }
   end
 
   opts.on("--stl-types=LIST", String, "List of STL variants;", "#{stl_types}") do |l|
@@ -286,12 +207,8 @@ OptionParser.new do |opts|
     gcc_versions = l.split(',')
   end
 
-  opts.on("--use-32bit-tools", "Use 32bit versions of tools on 64bit host") do |_|
-    $ndk_data.use_32bit_tools
-  end
-
-  opts.on("--ndk-log-file=FILE", String, "Use the FILE as NDK's log file;", "#{$ndk_data.log_file}") do |f|
-    $ndk_data.log_file = File.expand_path(f)
+  opts.on("--ndk-log-file=FILE", String, "Use the FILE as NDK's log file;", "#{NDK_DATA.log_file}") do |f|
+    NDK_DATA.log_file = File.expand_path(f)
   end
 
   opts.on("--no-clean", "Do not remove toolchains after tests were run") do |_|
@@ -305,21 +222,21 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-puts "using tools for tag: #{$ndk_data.tag}"
-abis.each do |abi|
-  puts "#{abi}"
+puts "using tools for platform: #{PLATFORM_NAME}"
+architectures.each do |arch|
+  puts "#{arch}"
   gcc_versions.each do |gccver|
     puts "  #{gccver}"
     stl_types.each do |stl|
       print "    #{stl}, API levels: "
-      results = Hash[$ndk_data.compiler_types.map { |v| [v, []] }]
-      $ndk_data.allowed_api_levels(abi, api_levels).each do |apilev|
+      results = Hash[NDK_DATA.compiler_types.map { |v| [v, []] }]
+      NDK_DATA.allowed_api_levels(arch, api_levels).each do |apilev|
         # create toolchain and run tests
-        toolchain = Toolchain.new(abi, gccver, stl, apilev)
+        toolchain = StandaloneToolchain.new(arch, gccver, stl, apilev)
         # run_test returns a hash indexed by compiler type
         # where each hash value is a number of failed tests
         r = toolchain.run_tests
-        $ndk_data.compiler_types.each do |compiler|
+        NDK_DATA.compiler_types.each do |compiler|
           if r[compiler] > 0
             results[compiler] = results[compiler] << [Integer(apilev), r[compiler]]
           end
@@ -332,7 +249,7 @@ abis.each do |abi|
       end
       puts ""
       # output results
-      $ndk_data.compiler_types.each do |compiler|
+      NDK_DATA.compiler_types.each do |compiler|
         print "      #{compiler}: "
         if results[compiler].size == 0
           puts "OK"
