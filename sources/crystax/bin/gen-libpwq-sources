@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2017 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -34,7 +34,7 @@ require 'digest'
 MYNAME = Pathname.new(File.expand_path(__FILE__)).relative_path_from(Pathname.new(File.expand_path('../..', __FILE__))).to_s
 
 TOPDIR = File.realpath(File.join(File.dirname(__FILE__), '..'))
-SRCDIR = File.realpath(File.join(TOPDIR, 'vendor', 'libpwq'))
+SRCDIR = File.realpath(File.join(TOPDIR, '../../../../vendor/libpwq'))
 
 PRIVATEDIR = File.join(TOPDIR, 'gen', 'libpwq')
 PUBLICDIR  = File.join(TOPDIR, 'include')
