@@ -732,8 +732,6 @@ class Project
         next if !@abis.nil? && !@abis.include?(abi)
         # 64-bit targets don't support non-PIE executables
         next if !pie && ['arm64-v8a', 'x86_64', 'mips64'].include?(abi)
-        # clang have problems with 'armeabi' support
-        next if abi == 'armeabi' && @options[:toolchain_version].to_s =~ /^clang/
 
         begin
           run_on_device abi: abi, pie: pie

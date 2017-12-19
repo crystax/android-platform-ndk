@@ -39,7 +39,7 @@ class StandaloneTests
     @ndk = ndk
     @options = options
 
-    @abis = options[:abis] || ['armeabi', 'armeabi-v7a', 'armeabi-v7a-hard', 'x86', 'mips', 'arm64-v8a', 'x86_64', 'mips64']
+    @abis = options[:abis] || ['armeabi-v7a', 'armeabi-v7a-hard', 'x86', 'mips', 'arm64-v8a', 'x86_64', 'mips64']
 
     @toolchain_version = options[:toolchain_version]
     raise "No toolchain version passed" if @toolchain_version.nil?
