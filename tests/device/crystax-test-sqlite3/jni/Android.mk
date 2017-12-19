@@ -12,4 +12,4 @@ LOCAL_SRC_FILES        := test.c
 LOCAL_STATIC_LIBRARIES := sqlite3_shared
 include $(BUILD_EXECUTABLE)
 
-$(call import-module,sqlite/3.13.0)
+$(call import-module,sqlite/3.18.0)
