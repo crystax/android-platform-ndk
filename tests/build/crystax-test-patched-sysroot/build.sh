@@ -23,9 +23,9 @@ for lib in libbz2.a libm.a libm_hard.a libc.a libpthread.a librt.a; do
         done
     } || exit 1
 
-    find $NDK/platforms -name "$lib" -print | {
+    find $NDK/platforms -name "$lib" -print | grep -v '/google/' | {
         while read f; do
-            size=$(du -b $f | awk '{print $1}')
+            size=$(wc -c $f | awk '{print $1}')
             if [ $size -ne 8 ]; then
                 echo "ERROR: File $f is not empty stub" 1>&2
                 exit 1
