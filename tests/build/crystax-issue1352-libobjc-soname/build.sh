@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Copyright (c) 2011-2016 CrystaX.
+# Copyright (c) 2011-2016, 2018 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -43,7 +43,9 @@ NDK_BUILDTOOLS_PATH="$NDK/build/tools"
 source $NDK/build/tools/dev-defaults.sh || exit 1
 source $NDK/build/tools/prebuilt-common.sh || exit 1
 
-LIBOBJC2_DIR=$NDK/sources/objc/gnustep-libobjc2
+#LIBOBJC2_DIR=$NDK/sources/objc/gnustep-libobjc2
+LIBOBJC2_VER=1.8.1
+LIBOBJC2_DIR=$NDK/packages/libobjc2/$LIBOBJC2_VER
 
 if [ ! -d "$LIBOBJC2_DIR" ]; then
     echo "*** ERROR: No $LIBOBJC2_DIR found!" 1>&2
