@@ -1,4 +1,4 @@
-# Copyright (c) 2011-2017 CrystaX.
+# Copyright (c) 2011-2018 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -107,111 +107,16 @@ class StandaloneTests
   end
   private :run_cmd
 
-  def variants(cxxstdlib = nil)
-    v = ""
-    v << " #{@options[:toolchain_version]}" unless @options[:toolchain_version].nil?
-    v << " w/ #{cxxstdlib}" unless cxxstdlib.nil?
-    v
-  end
-  private :variants
-
   def tmpdir(abi, cxxstdlib)
     File.join(@outdir, abi, cxxstdlib)
   end
   private :tmpdir
 
-  def toolchain_dir(abi, cxxstdlib)
-    File.join(tmpdir(abi, cxxstdlib), 'toolchain', @toolchain_version)
-  end
-  private :toolchain_dir
-
-  def create_toolchain(abi, cxxstdlib)
-    log_notice "STA create [#{abi}]#{variants(cxxstdlib)}"
-
-    FileUtils.rm_rf toolchain_dir(abi, cxxstdlib)
-
-    case abi
-    when /^armeabi/
-      toolchain = 'arm-linux-androideabi'
-      apilevel = 9
-    when 'arm64-v8a'
-      toolchain = 'aarch64-linux-android'
-      apilevel = 21
-    when 'mips'
-      toolchain = 'mipsel-linux-android'
-      apilevel = 9
-    when 'mips64'
-      toolchain = 'mips64el-linux-android'
-      apilevel = 21
-    when 'x86'
-      toolchain = 'x86'
-      apilevel = 9
-    when 'x86_64'
-      toolchain = 'x86_64'
-      apilevel = 21
-    else
-      raise "Unknown ABI: #{abi.inspect}"
-    end
-
-    toolchain << "-#{@toolchain_version.sub(/^gcc-?/, '')}"
-
-    script = File.join(@ndk, 'build', 'tools', 'make-standalone-toolchain.sh')
-    raise "No #!/bin/bash in make-standalone-toolchain.sh" if File.read(script).split("\n").first != "#!/bin/bash"
-
-    case cxxstdlib
-    when /^gnu/
-      stl = 'gnustl'
-    when /^llvm/
-      stl = 'libc++'
-    else
-      raise "Unsupported C++ Standard Library: '#{cxxstdlib}'"
-    end
-
-    args = [script]
-    args << "--verbose"
-    args << "--install-dir=#{toolchain_dir(abi, cxxstdlib)}"
-    args << "--abis=#{abi}"
-    args << "--stl=#{stl}"
-    args << "--platform=android-#{apilevel}"
-    args << "--toolchain=#{toolchain}"
-
-    run_cmd args.join(' ')
-
-    MRO.dump event: "standalone-create-success", path: toolchain_dir(abi, cxxstdlib), abi: abi, cxxstdlib: cxxstdlib
-  rescue => e
-    log_info "ERROR: #{e.message}"
-    log_notice "   ---> FAILURE: STANDALONE TOOLCHAIN CREATION [#{abi}]#{variants(cxxstdlib)}"
-    MRO.dump event: "standalone-create-failed", path: toolchain_dir(abi, cxxstdlib), abi: abi, cxxstdlib: cxxstdlib
-    raise
-  end
-  private :create_toolchain
-
-  def cleanup(abi, cxxstdlib)
-    log_info "## CLEANUP: #{tmpdir(abi, cxxstdlib)}"
-    FileUtils.rm_rf tmpdir(abi, cxxstdlib)
-  end
-  private :cleanup
 
   def run
-    fails = 0
+    ruby = File.join(RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name'])
 
-    @abis.each do |abi|
-      # gcc-4.8 doesn't support 64-bit ABIs
-      next if @toolchain_version == 'gcc4.8' && ['arm64-v8a', 'x86_64', 'mips64'].include?(abi)
-
-      %w[gnu-libstdc++ llvm-libc++].each do |cxxstdlib|
-        begin
-          create_toolchain(abi, cxxstdlib)
-        rescue => err
-          log_error "ERROR: #{err.message}"
-          raise unless @options[:keep_going]
-          fails += 1
-        else
-          cleanup(abi, cxxstdlib)
-        end
-      end
-    end
-
-    raise "Testing failed" if fails > 0
+    log_notice "Starting standalone tests"
+    run_cmd "#{ruby} #{@ndk}/tests/standalone/run-standalone-tests.rb"
   end
 end

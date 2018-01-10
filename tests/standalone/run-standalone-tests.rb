@@ -4,7 +4,7 @@
 # platforms and architectures.
 #
 #
-# Copyright (c) 2014, 2015, 2016, 2017 CrystaX.
+# Copyright (c) 2014, 2015, 2016, 2017, 2018 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -40,12 +40,21 @@ require 'optparse'
 require 'fileutils'
 require 'pathname'
 
+def crew_dir(ndk_dir)
+  d = File.join(ndk_dir, 'crew.dir')
+  if not File.directory?(d)
+    d = File.join(ndk_dir, '..', '..', 'crew')
+  end
+  Pathname.new(d).realpath.to_s
+end
 
 NDK_DIR       = Pathname.new(__FILE__).realpath.dirname.dirname.dirname.to_s
-CREW_CMD      = (RbConfig::CONFIG['EXEEXT'] == '.exe') ? "#{NDK_DIR}/crew.cmd" : "#{NDK_DIR}/crew"
-CREW_DIR      = `#{CREW_CMD} -W env --base-dir`.strip
+CREW_DIR      = crew_dir(NDK_DIR)
+CREW_CMD_EXT  = (RbConfig::CONFIG['EXEEXT'] == '.exe') ? ".cmd" : ""
+CREW_CMD      = "#{CREW_DIR}/crew#{CREW_CMD_EXT}"
 PLATFORM_NAME = File.basename(`#{CREW_CMD} -W env --tools-dir`.strip)
 TMP_DIR       = `#{CREW_CMD} -W env --base-build-dir`.strip
+
 
 require_relative "#{CREW_DIR}/library/arch.rb"
 require_relative "#{CREW_DIR}/library/toolchain.rb"
