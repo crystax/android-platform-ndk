@@ -35,142 +35,142 @@ OPTIONS[:print_timestamps] = true
 OPTIONS[:verbose_errors] = false
 
 optparser = OptionParser.new do |o|
-    o.banner = "Usage: #{$0} [options] executable [exe-options]"
+  o.banner = "Usage: #{$0} [options] executable [exe-options]"
 
-    o.separator "\nCommon options:"
+  o.separator "\nCommon options:"
 
-    o.on("-h", "--help", "Show help screen and exit") do
-        puts o
-        exit 0
-    end
+  o.on("-h", "--help", "Show help screen and exit") do
+    puts o
+    exit 0
+  end
 
-    o.on("-v", "--[no-]verbose", "Enable verbose logging") do |v|
-        OPTIONS[:verbose] = v
-    end
+  o.on("-v", "--[no-]verbose", "Enable verbose logging") do |v|
+    OPTIONS[:verbose] = v
+  end
 
-    o.on("-l", "--log=FILE", "Use specified file for logging [stdout]") do |f|
-        OPTIONS[:log] = f
-    end
+  o.on("-l", "--log=FILE", "Use specified file for logging [stdout]") do |f|
+    OPTIONS[:log] = f
+  end
 
-    o.separator "\nRequired options:"
+  o.separator "\nRequired options:"
 
-    o.on("--abi=ABI", "Target ABI") do |a|
-        OPTIONS[:abi] = a
-    end
+  o.on("--abi=ABI", "Target ABI") do |a|
+    OPTIONS[:abi] = a
+  end
 
-    o.separator "\nBehavior options:"
+  o.separator "\nBehavior options:"
 
-    o.on("-k", "--[no-]keep-going", "If specified, don't exit on first fail. ",
-                                    "Instead, run remaining executables and fail",
-                                    "when all of them are finished") do |k|
-        OPTIONS[:keepgoing] = k
-    end
+  o.on("-k", "--[no-]keep-going", "If specified, don't exit on first fail. ",
+       "Instead, run remaining executables and fail",
+       "when all of them are finished") do |k|
+    OPTIONS[:keepgoing] = k
+  end
 
-    o.on("-a", "--run-on-all-devices", "If specified, run on all compatible devices",
-                                       "(default: run on first compatible device)") do |r|
-        OPTIONS[:run_on_all_devices] = r
-    end
+  o.on("-a", "--run-on-all-devices", "If specified, run on all compatible devices",
+       "(default: run on first compatible device)") do |r|
+    OPTIONS[:run_on_all_devices] = r
+  end
 
-    o.on("--[no-]print-timestamps", "Print timestamps in log [#{OPTIONS[:print_timestamps]}]") do |p|
-        OPTIONS[:print_timestamps] = p
-    end
+  o.on("--[no-]print-timestamps", "Print timestamps in log [#{OPTIONS[:print_timestamps]}]") do |p|
+    OPTIONS[:print_timestamps] = p
+  end
 
-    o.separator "\nTimeout options:"
+  o.separator "\nTimeout options:"
 
-    o.on("--timeout=VALUE", Integer, "Timeout (in seconds) for execution [#{OPTIONS[:timeout]}]") do |t|
-        OPTIONS[:timeout] = [t, 0].max
-    end
+  o.on("--timeout=VALUE", Integer, "Timeout (in seconds) for execution [#{OPTIONS[:timeout]}]") do |t|
+    OPTIONS[:timeout] = [t, 0].max
+  end
 
-    o.on("--device-lock-timeout=VALUE", Numeric, "Timeout (in seconds) for device lock [#{OPTIONS[:device_lock_timeout]}]") do |t|
-        OPTIONS[:device_lock_timeout] = t
-    end
+  o.on("--device-lock-timeout=VALUE", Numeric, "Timeout (in seconds) for device lock [#{OPTIONS[:device_lock_timeout]}]") do |t|
+    OPTIONS[:device_lock_timeout] = t
+  end
 
-    o.separator "\nPath options:"
+  o.separator "\nPath options:"
 
-    o.on("--ndk=PATH", "Path to NDK [autodetect]") do |p|
-        OPTIONS[:ndk] = p
-    end
+  o.on("--ndk=PATH", "Path to NDK [autodetect]") do |p|
+    OPTIONS[:ndk] = p
+  end
 
-    o.on("--adb=PATH", "Path to adb [autodetect]") do |a|
-        OPTIONS[:adb] = a
-    end
+  o.on("--adb=PATH", "Path to adb [autodetect]") do |a|
+    OPTIONS[:adb] = a
+  end
 
-    o.on("--strip=PATH", "Full path to the 'strip' utility needed for stripping",
-                         "binaries before uploading them to device/emulator [autodetect]") do |s|
-        OPTIONS[:strip] = s
-    end
+  o.on("--strip=PATH", "Full path to the 'strip' utility needed for stripping",
+       "binaries before uploading them to device/emulator [autodetect]") do |s|
+    OPTIONS[:strip] = s
+  end
 
-    o.on("--device-path=PATH", "Root path on device used for uploading binaries",
-                               "[#{OPTIONS[:devpath]}]") do |d|
-        OPTIONS[:devpath] = d
-    end
+  o.on("--device-path=PATH", "Root path on device used for uploading binaries",
+       "[#{OPTIONS[:devpath]}]") do |d|
+    OPTIONS[:devpath] = d
+  end
 
-    o.on("--lock-directory=PATH", "Directory used for lock files [#{OPTIONS[:lockdir]}]") do |d|
-        OPTIONS[:lockdir] = d
-    end
+  o.on("--lock-directory=PATH", "Directory used for lock files [#{OPTIONS[:lockdir]}]") do |d|
+    OPTIONS[:lockdir] = d
+  end
 
-    o.on("--strip-directory=PATH", "Directory used for storing stripped binaries [#{OPTIONS[:stripdir]}]") do |d|
-        OPTIONS[:stripdir] = d
-    end
+  o.on("--strip-directory=PATH", "Directory used for storing stripped binaries [#{OPTIONS[:stripdir]}]") do |d|
+    OPTIONS[:stripdir] = d
+  end
 
-    o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays.",
-                                              "This option need to specified only if adbrunner",
-                                              "takes already stripped binaries.") do |l|
-        OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
-    end
+  o.on("--symbols-directories=LIST", Array, "Directories where unstripped binaries lays.",
+       "This option need to specified only if adbrunner",
+       "takes already stripped binaries.") do |l|
+    OPTIONS[:symdirs] = l.map { |p| File.expand_path(p) }
+  end
 
-    o.on("-L", "--libpath=PATHS", Array, "Load shared libraries from specified path to device") do |l|
-        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
-    end
+  o.on("-L", "--libpath=PATHS", Array, "Load shared libraries from specified path to device") do |l|
+    OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
+  end
 
-    o.on("--ld-library-path=PATHS", Array, "The same as --libpath option (kept for compatibility)") do |l|
-        OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
-    end
+  o.on("--ld-library-path=PATHS", Array, "The same as --libpath option (kept for compatibility)") do |l|
+    OPTIONS[:ld_library_path] = l.map { |x| x.split(':') }.flatten
+  end
 
-    o.separator "\nAdditional options:"
+  o.separator "\nAdditional options:"
 
-    # TODO: autodetect it.
-    # This is possible by running `readelf -a file` and checking "Type:" field in the output
-    # For non-PIE binaries, type is "EXEC (Executable file)"
-    # For PIE binaries, type is "DYN (Shared object file)"
-    o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option [#{OPTIONS[:pie]}]") do |p|
-        OPTIONS[:pie] = p
-    end
+  # TODO: autodetect it.
+  # This is possible by running `readelf -a file` and checking "Type:" field in the output
+  # For non-PIE binaries, type is "EXEC (Executable file)"
+  # For PIE binaries, type is "DYN (Shared object file)"
+  o.on("--[no-]pie", "Indicate that executable was built with (or without) -fPIE option [#{OPTIONS[:pie]}]") do |p|
+    OPTIONS[:pie] = p
+  end
 
-    o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |tag|
-        OPTIONS[:emutag] = tag
-    end
+  o.on("--emulator-tag=TAG", "Run tests only on emulators having specified tag") do |tag|
+    OPTIONS[:emutag] = tag
+  end
 
-    o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
-        OPTIONS[:mroprefix] = p
-    end
+  o.on("--mro-prefix=PREFIX", "Enabled machine-readable output prefixed with PREFIX") do |p|
+    OPTIONS[:mroprefix] = p
+  end
 
-    o.on("--args-path-prefixes=LIST", Array, "Prefixes for command line arguments indicating paths") do |l|
-        OPTIONS[:args_path_prefixes] = l
-    end
+  o.on("--args-path-prefixes=LIST", Array, "Prefixes for command line arguments indicating paths") do |l|
+    OPTIONS[:args_path_prefixes] = l
+  end
 
-    o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on [autodetect]") do |l|
-        OPTIONS[:min_api_level] = l
-    end
+  o.on("--min-api-level=N", Integer, "Minimal API level of device to run these tests on [autodetect]") do |l|
+    OPTIONS[:min_api_level] = l
+  end
 
-    o.on("--[no-]verbose-errors", "Print verbose output on fail [#{OPTIONS[:verbose_errors]}]") do |v|
-        OPTIONS[:verbose_errors] = v
-    end
+  o.on("--[no-]verbose-errors", "Print verbose output on fail [#{OPTIONS[:verbose_errors]}]") do |v|
+    OPTIONS[:verbose_errors] = v
+  end
 
 end
 ENV['POSIXLY_CORRECT'] = '1'
 optparser.parse!(ARGV)
 
 if OPTIONS[:abi].nil?
-    $stderr.puts "ERROR: No ABI specified"
-    $stderr.puts optparser
-    exit 1
+  $stderr.puts "ERROR: No ABI specified"
+  $stderr.puts optparser
+  exit 1
 end
 
 if OPTIONS[:devpath].nil?
-    $stderr.puts "ERROR: No device path specified"
-    $stderr.puts optparser
-    exit 1
+  $stderr.puts "ERROR: No device path specified"
+  $stderr.puts optparser
+  exit 1
 end
 
 cmds = []
@@ -178,27 +178,27 @@ cmds = []
 OPTIONS[:runfrom] = ARGV.shift.sub(/^@/, '') if ARGV.first.to_s =~ /^@/
 
 if !OPTIONS[:runfrom].nil?
-    File.open(OPTIONS[:runfrom], 'r') do |f|
-        while line = f.gets.chomp.strip rescue nil
-            next if line.empty?
-            cmds << line.split(/\s+/)
-        end
+  File.open(OPTIONS[:runfrom], 'r') do |f|
+    while line = f.gets.chomp.strip rescue nil
+      next if line.empty?
+      cmds << line.split(/\s+/)
     end
+  end
 else
-    cmds << ARGV.dup unless ARGV.empty?
-    ARGV.clear
+  cmds << ARGV.dup unless ARGV.empty?
+  ARGV.clear
 end
 
 if cmds.empty?
-    $stderr.puts "ERROR: No executable specified"
-    $stderr.puts optparser
-    exit 1
+  $stderr.puts "ERROR: No executable specified"
+  $stderr.puts optparser
+  exit 1
 end
 
 if !ARGV.empty?
-    $stderr.puts "ERROR: Extra arguments in command line"
-    $stderr.puts optparser
-    exit 1
+  $stderr.puts "ERROR: Extra arguments in command line"
+  $stderr.puts optparser
+  exit 1
 end
 
 CMDS = cmds
@@ -224,77 +224,77 @@ ARGS_PATH_PREFIXES = OPTIONS[:args_path_prefixes]
 VERBOSE_ERRORS = OPTIONS[:verbose_errors]
 
 if OPTIONS[:min_api_level].nil?
-    case ABI
-    when /^armeabi/, 'x86', 'mips'
-        OPTIONS[:min_api_level] = 9
-    when /^arm64/, 'x86_64', 'mips64'
-        OPTIONS[:min_api_level] = 21
-    else
-        raise "Unknown ABI: '#{ABI.inspect}'"
-    end
+  case ABI
+  when /^armeabi/, 'x86', 'mips'
+    OPTIONS[:min_api_level] = 9
+  when /^arm64/, 'x86_64', 'mips64'
+    OPTIONS[:min_api_level] = 21
+  else
+    raise "Unknown ABI: '#{ABI.inspect}'"
+  end
 end
 MIN_API_LEVEL = OPTIONS[:min_api_level]
 
 OPTIONS[:ld_library_path] ||= []
 ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH'].each do |e|
-    OPTIONS[:ld_library_path] += ENV[e].split(':') unless ENV[e].nil?
+  OPTIONS[:ld_library_path] += ENV[e].split(':') unless ENV[e].nil?
 end
 LD_LIBRARY_PATH = OPTIONS[:ld_library_path]
 
 if OPTIONS[:strip].nil?
-    case ABI
-    when /^armeabi/
-        toolchain_name = "arm-linux-androideabi"
-    when /^arm64/
-        toolchain_name = "aarch64-linux-android"
-    when "mips"
-        toolchain_name = "mipsel-linux-android"
-    when "mips64"
-        toolchain_name = "mips64el-linux-android"
-    when "x86"
-        toolchain_name = "x86"
-    when "x86_64"
-        toolchain_name = "x86_64"
-    else
-        raise "Unknown ABI: #{ABI.inspect}"
-    end
+  case ABI
+  when /^armeabi/
+    toolchain_name = "arm-linux-androideabi"
+  when /^arm64/
+    toolchain_name = "aarch64-linux-android"
+  when "mips"
+    toolchain_name = "mipsel-linux-android"
+  when "mips64"
+    toolchain_name = "mips64el-linux-android"
+  when "x86"
+    toolchain_name = "x86"
+  when "x86_64"
+    toolchain_name = "x86_64"
+  else
+    raise "Unknown ABI: #{ABI.inspect}"
+  end
 
-    case ABI
-    when 'x86'
-        toolchain_prefix = "i686-linux-android"
-    when 'x86_64'
-        toolchain_prefix = "x86_64-linux-android"
-    else
-        toolchain_prefix = toolchain_name
-    end
+  case ABI
+  when 'x86'
+    toolchain_prefix = "i686-linux-android"
+  when 'x86_64'
+    toolchain_prefix = "x86_64-linux-android"
+  else
+    toolchain_prefix = toolchain_name
+  end
 
-    toolchain_version = Dir.glob(File.join(NDK, 'toolchains', "#{toolchain_name}-*")).reject do |e|
-        e =~ /-clang\d+\.\d+$/
-    end.map do |e|
-        File.basename(e).sub(/^#{toolchain_name}-/, '').split('.').map(&:to_i)
-    end.sort do |a,b|
-        a <=> b
-    end.last.join('.')
+  toolchain_version = Dir.glob(File.join(NDK, 'toolchains', "#{toolchain_name}-*")).reject do |e|
+    e =~ /-clang\d+\.\d+$/
+  end.map do |e|
+    File.basename(e).sub(/^#{toolchain_name}-/, '').split('.').map(&:to_i)
+  end.sort do |a,b|
+    a <=> b
+  end.last.join('.')
 
-    case RUBY_PLATFORM
-    when /darwin/
-        host_tag = "darwin"
-    when /linux/
-        host_tag = "linux"
-    when /(cygwin|mingw|win32)/
-        host_tag = "windows"
-    end
+  case RUBY_PLATFORM
+  when /darwin/
+    host_tag = "darwin"
+  when /linux/
+    host_tag = "linux"
+  when /(cygwin|mingw|win32)/
+    host_tag = "windows"
+  end
 
-    case RUBY_PLATFORM
-    when /^x86_64-/
-        host_tag << "-x86_64"
-    else
-        host_tag << "-x86" unless host_tag == "windows"
-    end
+  case RUBY_PLATFORM
+  when /^x86_64-/
+    host_tag << "-x86_64"
+  else
+    host_tag << "-x86" unless host_tag == "windows"
+  end
 
-    strip = File.join(NDK, "toolchains", "#{toolchain_name}-#{toolchain_version}",
-                      "prebuilt", host_tag, "bin", "#{toolchain_prefix}-strip")
-    OPTIONS[:strip] = strip if File.executable?(strip)
+  strip = File.join(NDK, "toolchains", "#{toolchain_name}-#{toolchain_version}",
+                    "prebuilt", host_tag, "bin", "#{toolchain_prefix}-strip")
+  OPTIONS[:strip] = strip if File.executable?(strip)
 end
 STRIP = OPTIONS[:strip]
 
@@ -303,847 +303,847 @@ $stdout.sync = true
 $stderr.sync = true
 
 class AdbError < Exception
-    def initialize(operation, msg)
-        @operation = operation
-        @msg = msg
-    end
+  def initialize(operation, msg)
+    @operation = operation
+    @msg = msg
+  end
 
-    def operation
-        @operation
-    end
+  def operation
+    @operation
+  end
 
-    def message
-        "ADB FAILED (#{@operation}): #{@msg}"
-    end
+  def message
+    "ADB FAILED (#{@operation}): #{@msg}"
+  end
 end
 
 class AdbShellCommandFailed < Exception
-    def initialize(cmd, rc)
-        @cmd = cmd
-        @rc = rc
-    end
+  def initialize(cmd, rc)
+    @cmd = cmd
+    @rc = rc
+  end
 
-    def exitcode
-        @rc
-    end
+  def exitcode
+    @rc
+  end
 
-    def message
-        "RUN [$?=#{@rc}]: #{@cmd}"
-    end
+  def message
+    "RUN [$?=#{@rc}]: #{@cmd}"
+  end
 end
 
 class MRO
-    def self.dump(object)
-        return if MROPREFIX.nil? || MROPREFIX.empty?
-        $stdout.puts "%s%s" % [MROPREFIX, object.to_json.to_s]
-    end
+  def self.dump(object)
+    return if MROPREFIX.nil? || MROPREFIX.empty?
+    $stdout.puts "%s%s" % [MROPREFIX, object.to_json.to_s]
+  end
 end
 
 def log(msg, options = {})
-    do_log = proc do |f|
-        prefix = "## ADBRUNNER.#{MYPID} "
-        prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC ') if PRINT_TIMESTAMPS
-        prefix << "[%s] " % ENV['ANDROID_SERIAL'] if ENV['ANDROID_SERIAL']
-        f.puts "#{prefix}#{msg}"
-    end
-    if LOG
-        File.open(LOG, "a") { |f| do_log.call(f) }
-    else
-        do_log.call($stdout)
-    end
+  do_log = proc do |f|
+    prefix = "## ADBRUNNER.#{MYPID} "
+    prefix << Time.now.utc.strftime('%Y-%m-%d %H:%M:%S.%3N UTC ') if PRINT_TIMESTAMPS
+    prefix << "[%s] " % ENV['ANDROID_SERIAL'] if ENV['ANDROID_SERIAL']
+    f.puts "#{prefix}#{msg}"
+  end
+  if LOG
+    File.open(LOG, "a") { |f| do_log.call(f) }
+  else
+    do_log.call($stdout)
+  end
 end
 
 def killall
-    CHILDREN.each do |child|
-        Process.kill('KILL', WINDOWS ? child : -Process.getpgid(child)) rescue nil
-    end
+  CHILDREN.each do |child|
+    Process.kill('KILL', WINDOWS ? child : -Process.getpgid(child)) rescue nil
+  end
 end
 
 def run(*args, &block)
-    options = args.last.is_a?(Hash) ? args.pop : {}
-    cmd = args.join(' ')
-    log "## COMMAND: #{cmd}" if options[:verbose]
+  options = args.last.is_a?(Hash) ? args.pop : {}
+  cmd = args.join(' ')
+  log "## COMMAND: #{cmd}" if options[:verbose]
 
-    pid = nil
-    status = nil
+  pid = nil
+  status = nil
 
-    th = Thread.start do
-        po = {}
-        po[:pgroup] = true unless WINDOWS
-        Open3.popen3(*args, po) do |i,o,e,t|
-            pid = t.pid
-            CHILDREN << pid
+  th = Thread.start do
+    po = {}
+    po[:pgroup] = true unless WINDOWS
+    Open3.popen3(*args, po) do |i,o,e,t|
+      pid = t.pid
+      CHILDREN << pid
 
-            [i,o,e].each { |io| io.sync = true }
+      [i,o,e].each { |io| io.sync = true }
 
-            if block_given?
-                yield i,o,e,t
-            else
-                i.close
+      if block_given?
+        yield i,o,e,t
+      else
+        i.close
 
-                {o => STDOUT_PREFIX, e => STDERR_PREFIX}.map do |io,prefix|
-                    Thread.start do
-                        while line = io.gets.chomp rescue nil
-                            log "#{prefix}#{line}"
-                        end
-                    end
-                end.each(&:join)
-
-                raise "'#{cmd}' failed: #{t.value.to_i}" if !t.value.success?
+        {o => STDOUT_PREFIX, e => STDERR_PREFIX}.map do |io,prefix|
+          Thread.start do
+            while line = io.gets.chomp rescue nil
+              log "#{prefix}#{line}"
             end
-            status = t.value
-        end
-    end
+          end
+        end.each(&:join)
 
-    begin
-        Timeout.timeout(options[:timeout]) { th.join }
-    rescue Timeout::Error => err
-        log "WARNING: '#{cmd}' timed out (#{options[:timeout]} seconds)"
-        ['TERM', 'KILL'].each do |sig|
-            Process.kill(sig, WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
-        end
-        th.kill
-        raise err
+        raise "'#{cmd}' failed: #{t.value.to_i}" if !t.value.success?
+      end
+      status = t.value
     end
+  end
 
-    status
+  begin
+    Timeout.timeout(options[:timeout]) { th.join }
+  rescue Timeout::Error => err
+    log "WARNING: '#{cmd}' timed out (#{options[:timeout]} seconds)"
+    ['TERM', 'KILL'].each do |sig|
+      Process.kill(sig, WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
+    end
+    th.kill
+    raise err
+  end
+
+  status
 ensure
-    Process.kill('KILL', WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
-    CHILDREN.reject! { |c| c == pid } unless pid.nil?
+  Process.kill('KILL', WINDOWS ? pid : -Process.getpgid(pid)) rescue nil unless pid.nil?
+  CHILDREN.reject! { |c| c == pid } unless pid.nil?
 end
 
 def strip(src, dst = nil)
-    return src if !STRIP && dst.nil?
+  return src if !STRIP && dst.nil?
 
-    if dst.nil?
-        d = Digest::SHA256.new
-        d.update src
-        dst = File.join(STRIPDIR, ABI, "#{File.basename(src)}.#{d.hexdigest}")
-    end
+  if dst.nil?
+    d = Digest::SHA256.new
+    d.update src
+    dst = File.join(STRIPDIR, ABI, "#{File.basename(src)}.#{d.hexdigest}")
+  end
 
-    checksum = File.read("#{dst}.sha256") rescue nil
+  checksum = File.read("#{dst}.sha256") rescue nil
 
-    if File.exists?(dst) && File.mtime(dst) > File.mtime(src) && !checksum.nil? && sha256(src) == checksum
-        return dst
-    end
+  if File.exists?(dst) && File.mtime(dst) > File.mtime(src) && !checksum.nil? && sha256(src) == checksum
+    return dst
+  end
 
-    log "COPY: #{src} -> #{dst}"
-    FileUtils.rm_f dst
-    FileUtils.mkdir_p File.dirname(dst)
-    FileUtils.cp src, dst
+  log "COPY: #{src} -> #{dst}"
+  FileUtils.rm_f dst
+  FileUtils.mkdir_p File.dirname(dst)
+  FileUtils.cp src, dst
 
-    if STRIP
-        log "STRIP: #{dst}"
-        run STRIP, '--strip-unneeded', dst
-    end
+  if STRIP
+    log "STRIP: #{dst}"
+    run STRIP, '--strip-unneeded', dst
+  end
 
-    File.open("#{dst}.sha256", "w") do |f|
-        f.write sha256(src)
-    end if File.basename(src) =~ /^lib.+\.so(\..+)?$/
+  File.open("#{dst}.sha256", "w") do |f|
+    f.write sha256(src)
+  end if File.basename(src) =~ /^lib.+\.so(\..+)?$/
 
-    dst
+  dst
 end
 
 def crystax_ndk_version
-    reltxt = File.join(NDK, 'RELEASE.TXT')
-    return "develop" unless File.exists?(reltxt)
-    File.read(reltxt).split("\n").first.chomp.sub(/^crystax-ndk-(\d+)\.(\d+)\.(\d+)/, 'v\1.\2.\3')
+  reltxt = File.join(NDK, 'RELEASE.TXT')
+  return "develop" unless File.exists?(reltxt)
+  File.read(reltxt).split("\n").first.chomp.sub(/^crystax-ndk-(\d+)\.(\d+)\.(\d+)/, 'v\1.\2.\3')
 rescue
-    "unknown"
+  "unknown"
 end
 
 def adb_devices
-    devices = []
+  devices = []
 
-    err = ""
-    run ADB, 'devices', timeout: 5 do |i,o,e,t|
-        i.close
+  err = ""
+  run ADB, 'devices', timeout: 5 do |i,o,e,t|
+    i.close
 
-        out = ""
-        while true
-            rs = []
-            rs << o unless o.eof?
-            rs << e unless e.eof?
-            break if rs.empty?
+    out = ""
+    while true
+      rs = []
+      rs << o unless o.eof?
+      rs << e unless e.eof?
+      break if rs.empty?
 
-            ios, = IO.select(rs)
-            ios.each do |io|
-                c = io.read_nonblock(4096) rescue nil
-                next if c.nil?
+      ios, = IO.select(rs)
+      ios.each do |io|
+        c = io.read_nonblock(4096) rescue nil
+        next if c.nil?
 
-                case io
-                when e
-                    err << c
-                when o
-                    out << c
-                end
-            end
+        case io
+        when e
+          err << c
+        when o
+          out << c
         end
-
-        out.split("\n").map(&:chomp).each do |line|
-            next unless line =~ /^([^\t]+)\tdevice$/
-            devices << $1
-        end
-
-        raise AdbError.new('devices', err) unless t.value.success?
+      end
     end
 
-    fd = []
-    devices.each do |id|
-        begin
-            props = adb_getprop(id)
-
-            next if !EMUTAG.nil? && props['crystax.emulator.tag'] != EMUTAG
-            next if props['sys.boot_completed'] != "1"
-
-            apilevel = props['ro.build.version.sdk'].to_i rescue 0
-            next if apilevel == 0
-            next if apilevel <= 15 && PIE
-            next if apilevel >= 21 && !PIE
-
-            next if !MIN_API_LEVEL.nil? && apilevel < MIN_API_LEVEL
-
-            devabilist = []
-            devabilist += props['ro.product.cpu.abilist'].split(',') rescue []
-            if devabilist.empty?
-                devabi1 = props['ro.product.cpu.abi'].to_s rescue ''
-                devabi2 = props['ro.product.cpu.abi2'].to_s rescue ''
-                devabilist << devabi1 unless devabi1.empty?
-                devabilist << devabi2 unless devabi2.empty?
-            end
-            devabilist << "armeabi" if devabilist.empty?
-            devabilist << "armeabi-v7a-hard" if devabilist.include?("armeabi-v7a")
-
-            if id =~ /^emulator\b/
-                devmodel = id
-            else
-                devmodel = props['ro.product.model'].to_s rescue ''
-                devmodel = id if devmodel.empty?
-            end
-
-            devmainabi = devabilist.first
-            devabilist.each do |devabi|
-                # Skip incompatible ABI
-                next if devabi != ABI
-
-                # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
-                # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
-                # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
-                next if PIE && devabi =~ /^armeabi-v7a/ && devmainabi == 'x86'
-
-                fd << {id: id, model: devmodel, apilevel: apilevel}
-            end
-        rescue AdbError => e
-            log e.message
-            next
-        end
+    out.split("\n").map(&:chomp).each do |line|
+      next unless line =~ /^([^\t]+)\tdevice$/
+      devices << $1
     end
 
-    fd
+    raise AdbError.new('devices', err) unless t.value.success?
+  end
+
+  fd = []
+  devices.each do |id|
+    begin
+      props = adb_getprop(id)
+
+      next if !EMUTAG.nil? && props['crystax.emulator.tag'] != EMUTAG
+      next if props['sys.boot_completed'] != "1"
+
+      apilevel = props['ro.build.version.sdk'].to_i rescue 0
+      next if apilevel == 0
+      next if apilevel <= 15 && PIE
+      next if apilevel >= 21 && !PIE
+
+      next if !MIN_API_LEVEL.nil? && apilevel < MIN_API_LEVEL
+
+      devabilist = []
+      devabilist += props['ro.product.cpu.abilist'].split(',') rescue []
+      if devabilist.empty?
+        devabi1 = props['ro.product.cpu.abi'].to_s rescue ''
+        devabi2 = props['ro.product.cpu.abi2'].to_s rescue ''
+        devabilist << devabi1 unless devabi1.empty?
+        devabilist << devabi2 unless devabi2.empty?
+      end
+      devabilist << "armeabi" if devabilist.empty?
+      devabilist << "armeabi-v7a-hard" if devabilist.include?("armeabi-v7a")
+
+      if id =~ /^emulator\b/
+        devmodel = id
+      else
+        devmodel = props['ro.product.model'].to_s rescue ''
+        devmodel = id if devmodel.empty?
+      end
+
+      devmainabi = devabilist.first
+      devabilist.each do |devabi|
+        # Skip incompatible ABI
+        next if devabi != ABI
+
+        # Special case: Dell Venue x86 tablet specify 'ro.product.cpu.abi=x86' and 'ro.product.cpu.abi2=armeabi-v7a'.
+        # However, only non-PIE-enabled armeabi-v7a binaries supported, even though for x86 binaries usual
+        # rules applied - i.e. PIE binaries works starting from android-16 and non-PIE binaries works only up to android-19.
+        next if PIE && devabi =~ /^armeabi-v7a/ && devmainabi == 'x86'
+
+        fd << {id: id, model: devmodel, apilevel: apilevel}
+      end
+    rescue AdbError => e
+      log e.message
+      next
+    end
+  end
+
+  fd
 rescue Timeout::Error
-    log "WARNING: 'adb devices' timed out"
-    []
+  log "WARNING: 'adb devices' timed out"
+  []
 rescue AdbError => e
-    log e.message
-    []
+  log e.message
+  []
 end
 
 def adb_getprop(devid, propname = nil)
-    tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
+  tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
 
-    operation = "getprop"
-    operation << " #{propname}" unless propname.nil?
+  operation = "getprop"
+  operation << " #{propname}" unless propname.nil?
 
-    os = []
-    es = []
-    run ADB, '-s', devid, 'shell', "#{operation} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
-        i.close
+  os = []
+  es = []
+  run ADB, '-s', devid, 'shell', "#{operation} ; echo #{tag}:$?", timeout: 5, verbose: VERBOSE do |i,o,e,t|
+    i.close
 
-        out = ""
-        err = ""
-        while true
-            rs = []
-            rs << o unless o.eof?
-            rs << e unless e.eof?
-            break if rs.empty?
+    out = ""
+    err = ""
+    while true
+      rs = []
+      rs << o unless o.eof?
+      rs << e unless e.eof?
+      break if rs.empty?
 
-            ios, = IO.select(rs)
-            ios.each do |io|
-                c = io.read_nonblock(4096) rescue nil
-                next if c.nil?
+      ios, = IO.select(rs)
+      ios.each do |io|
+        c = io.read_nonblock(4096) rescue nil
+        next if c.nil?
 
-                case io
-                when e
-                    err << c
-                when o
-                    out << c
-                end
-            end
+        case io
+        when e
+          err << c
+        when o
+          out << c
         end
-
-        os = out.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
-        es = err.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
-
-        raise AdbError.new(operation, es.join("\n")) unless t.value.success?
+      end
     end
 
-    last = os.last
-    raise AdbError.new(operation, "no tag in stdout: #{os.inspect}") unless last =~ /#{tag}:(\d+)$/
-    raise AdbError.new(operation, "exit code: #{$1}") unless $1.to_i == 0
+    os = out.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
+    es = err.split("\n").map(&:chomp).map { |line| line.chop! while line[-1] == "\r"; line }
 
-    last.sub!(/#{tag}:.*$/, '')
-    os = os[0..-2]
-    os << last unless last.empty?
+    raise AdbError.new(operation, es.join("\n")) unless t.value.success?
+  end
 
-    if propname.nil?
-        value = {}
-        os.each do |l|
-            next unless l =~ /^\s*\[([^\]]+)\]\s*:\s*\[([^\]]*)\]\s*$/
-            value[$1] = $2
-        end
-        #log "[#{devid}]: #{value.inspect}" if VERBOSE
-    else
-        value = os.join("\n")
-        log "[#{devid}] #{propname}: #{value.inspect}" if VERBOSE
+  last = os.last
+  raise AdbError.new(operation, "no tag in stdout: #{os.inspect}") unless last =~ /#{tag}:(\d+)$/
+  raise AdbError.new(operation, "exit code: #{$1}") unless $1.to_i == 0
+
+  last.sub!(/#{tag}:.*$/, '')
+  os = os[0..-2]
+  os << last unless last.empty?
+
+  if propname.nil?
+    value = {}
+    os.each do |l|
+      next unless l =~ /^\s*\[([^\]]+)\]\s*:\s*\[([^\]]*)\]\s*$/
+      value[$1] = $2
     end
-    value
+  #log "[#{devid}]: #{value.inspect}" if VERBOSE
+  else
+    value = os.join("\n")
+    log "[#{devid}] #{propname}: #{value.inspect}" if VERBOSE
+  end
+  value
 rescue Timeout::Error
-    raise AdbError.new("getprop#{" #{propname}" unless propname.nil?}", "timeout")
+  raise AdbError.new("getprop#{" #{propname}" unless propname.nil?}", "timeout")
 end
 
 def adb_rm(devid, files)
     run ADB, '-s', devid, 'shell', "rm -r #{files}", timeout: 10, verbose: VERBOSE do |i,o,e,t|
-        i.close
+  i.close
 
-        while true
-            rs = []
-            rs << o unless o.eof?
-            rs << e unless e.eof?
-            break if rs.empty?
+  while true
+    rs = []
+    rs << o unless o.eof?
+    rs << e unless e.eof?
+    break if rs.empty?
 
-            ios, = IO.select(rs)
-            ios.each do |io|
-                io.read_nonblock(4096) rescue nil
-            end
-        end
-
-        t.value
+    ios, = IO.select(rs)
+    ios.each do |io|
+      io.read_nonblock(4096) rescue nil
     end
+  end
+
+  t.value
+end
 rescue Timeout::Error
-    nil
+  nil
 end
 
 def adb_shell(devid, cmd, options = {})
-    log "RUN:  #{cmd}"
+  log "RUN:  #{cmd}"
 
-    tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
+  tag = "EXITCODE#{SecureRandom.uuid.gsub('-', '')}"
 
-    os = []
-    es = []
-    run ADB, '-s', devid, 'shell', "#{cmd} ; echo #{tag}:$?" do |i,o,e,t|
+  os = []
+  es = []
+  run ADB, '-s', devid, 'shell', "#{cmd} ; echo #{tag}:$?" do |i,o,e,t|
 
-        have_tag = false
+    have_tag = false
 
-        opl = ""
-        epl = ""
-        while true
-            rs = []
-            rs << o unless o.eof?
-            rs << e unless e.eof?
-            break if rs.empty?
+    opl = ""
+    epl = ""
+    while true
+      rs = []
+      rs << o unless o.eof?
+      rs << e unless e.eof?
+      break if rs.empty?
 
-            ios, = IO.select([$stdin] + rs)
-            ios.each do |io|
-                c = io.read_nonblock(4096) rescue nil
-                next if c.nil?
+      ios, = IO.select([$stdin] + rs)
+      ios.each do |io|
+        c = io.read_nonblock(4096) rescue nil
+        next if c.nil?
 
-                case io
-                when $stdin
-                    i.write_nonblock c
-                when o
-                    lines = (opl + c).lines
-                    if lines.last !~ /\n$/
-                        opl = lines.last
-                        lines = lines[0..-2]
-                    else
-                        opl = ""
-                    end
-                    lines.each do |line|
-                        line.chomp!
-                        line.chop! while line[-1] == "\r"
-                        os << line
+        case io
+        when $stdin
+          i.write_nonblock c
+        when o
+          lines = (opl + c).lines
+          if lines.last !~ /\n$/
+            opl = lines.last
+            lines = lines[0..-2]
+          else
+            opl = ""
+          end
+          lines.each do |line|
+            line.chomp!
+            line.chop! while line[-1] == "\r"
+            os << line
 
-                        logline = line.dup
-                        if logline =~ /#{tag}:.*$/
-                            have_tag = true
-                            logline.sub!(/#{tag}:.*$/, '')
-                            log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
-                            $stdout.puts logline if !LOG.nil? && !logline.empty?
-                        else
-                            log "#{STDOUT_PREFIX}#{logline}"
-                            $stdout.puts logline if !LOG.nil?
-                        end
-                    end
-                when e
-                    lines = (epl + c).lines
-                    if lines.last !~ /\n$/
-                        epl = lines.last
-                        lines = lines[0..-2]
-                    else
-                        epl = ""
-                    end
-                    lines.each do |line|
-                        line.chomp!
-                        line.chop! while line[-1] == "\r"
-                        log "#{STDERR_PREFIX}#{line}"
-                        es << line
-                    end
-                end
+            logline = line.dup
+            if logline =~ /#{tag}:.*$/
+              have_tag = true
+              logline.sub!(/#{tag}:.*$/, '')
+              log "#{STDOUT_PREFIX}#{logline}" unless logline.empty?
+              $stdout.puts logline if !LOG.nil? && !logline.empty?
+            else
+              log "#{STDOUT_PREFIX}#{logline}"
+              $stdout.puts logline if !LOG.nil?
             end
+          end
+        when e
+          lines = (epl + c).lines
+          if lines.last !~ /\n$/
+            epl = lines.last
+            lines = lines[0..-2]
+          else
+            epl = ""
+          end
+          lines.each do |line|
+            line.chomp!
+            line.chop! while line[-1] == "\r"
+            log "#{STDERR_PREFIX}#{line}"
+            es << line
+          end
         end
-
-        i.close
-
-        raise AdbError.new('shell', es.join("\n")) unless t.value.success?
+      end
     end
 
-    raise AdbError.new('shell', os.join("\n")) if os.first =~ /Text file busy/
-    raise AdbError.new('shell', "no tag in stdout: #{os.inspect}") if os.last !~ /#{tag}:(\d+)$/
-    rc = $1.to_i
-    raise AdbShellCommandFailed.new(cmd, rc) if rc != 0 && !options[:nothrow]
-    rc
+    i.close
+
+    raise AdbError.new('shell', es.join("\n")) unless t.value.success?
+  end
+
+  raise AdbError.new('shell', os.join("\n")) if os.first =~ /Text file busy/
+  raise AdbError.new('shell', "no tag in stdout: #{os.inspect}") if os.last !~ /#{tag}:(\d+)$/
+  rc = $1.to_i
+  raise AdbShellCommandFailed.new(cmd, rc) if rc != 0 && !options[:nothrow]
+  rc
 end
 
 def adb_pull(devid, src, dst)
-    log "PULL: #{src} -> #{dst}"
+  log "PULL: #{src} -> #{dst}"
 
-    run ADB, '-s', devid, 'pull', src, dst do |i,o,e,t|
-        i.close
+  run ADB, '-s', devid, 'pull', src, dst do |i,o,e,t|
+    i.close
 
-        lt = Time.now
+    lt = Time.now
 
-        wt = Thread.start do
-            while true
-                sleep 5
-                next if Time.now - lt < 60
-                log "WARNING: pull '#{src}' -> '#{dst}' timed out (60 seconds)"
-            end
-        end
-
-        [o,e].map do |io|
-            Thread.start do
-                while line = io.gets
-                    lt = Time.now
-                    log line
-                end
-            end
-        end.each(&:join)
-
-        wt.kill
-
-        raise AdbError.new('pull', "Can't pull #{src} to #{dst}") unless t.value.success?
+    wt = Thread.start do
+      while true
+        sleep 5
+        next if Time.now - lt < 60
+        log "WARNING: pull '#{src}' -> '#{dst}' timed out (60 seconds)"
+      end
     end
+
+    [o,e].map do |io|
+      Thread.start do
+        while line = io.gets
+          lt = Time.now
+          log line
+        end
+      end
+    end.each(&:join)
+
+    wt.kill
+
+    raise AdbError.new('pull', "Can't pull #{src} to #{dst}") unless t.value.success?
+  end
 rescue Timeout::Error
-    raise AdbError.new('pull', "Pull of #{src} to #{dst} timed out")
+  raise AdbError.new('pull', "Pull of #{src} to #{dst} timed out")
 end
 
 def adb_push(devid, src, dst)
-    raise "No such file or directory: #{src}" unless File.exists?(src)
+  raise "No such file or directory: #{src}" unless File.exists?(src)
 
-    if File.directory?(src) && adb_shell(devid, "mkdir -p #{dst}", nothrow: true) != 0
-        raise AdbError.new('push', "Can't create #{dst}")
+  if File.directory?(src) && adb_shell(devid, "mkdir -p #{dst}", nothrow: true) != 0
+    raise AdbError.new('push', "Can't create #{dst}")
+  end
+
+  log "PUSH: #{src} -> #{dst}"
+
+  run ADB, '-s', devid, 'push', src, dst do |i,o,e,t|
+    i.close
+
+    lt = Time.now
+
+    wt = Thread.start do
+      while true
+        sleep 5
+        next if Time.now - lt < 60
+        log "WARNING: push '#{src}' -> '#{dst}' timed out (60 seconds)"
+      end
     end
 
-    log "PUSH: #{src} -> #{dst}"
-
-    run ADB, '-s', devid, 'push', src, dst do |i,o,e,t|
-        i.close
-
-        lt = Time.now
-
-        wt = Thread.start do
-            while true
-                sleep 5
-                next if Time.now - lt < 60
-                log "WARNING: push '#{src}' -> '#{dst}' timed out (60 seconds)"
-            end
+    [o,e].map do |io|
+      Thread.start do
+        while line = io.gets
+          lt = Time.now
+          log line
         end
+      end
+    end.each(&:join)
 
-        [o,e].map do |io|
-            Thread.start do
-                while line = io.gets
-                    lt = Time.now
-                    log line
-                end
-            end
-        end.each(&:join)
+    wt.kill
 
-        wt.kill
-
-        raise AdbError.new('push', "Can't push #{src} to #{dst}") unless t.value.success?
-    end
+    raise AdbError.new('push', "Can't push #{src} to #{dst}") unless t.value.success?
+  end
 rescue Timeout::Error
-    raise AdbError.new('push', "Push of #{src} to #{dst} timed out")
+  raise AdbError.new('push', "Push of #{src} to #{dst} timed out")
 end
 
 def adb_logcat(devid, tag, file)
-    tagfound = false
-    FileUtils.mkdir_p File.dirname(file)
-    File.open(file, "w") do |f|
-        run ADB, '-s', devid, 'logcat', '-v', 'threadtime', '-d', timeout: 30 do |i,o,e,t|
-            ot = Thread.start do
-                while line = o.gets
-                    if line.chomp =~ /\b#{tag}\b/
-                        tagfound = true
-                        next
-                    end
-                    next unless tagfound
+  tagfound = false
+  FileUtils.mkdir_p File.dirname(file)
+  File.open(file, "w") do |f|
+    run ADB, '-s', devid, 'logcat', '-v', 'threadtime', '-d', timeout: 30 do |i,o,e,t|
+      ot = Thread.start do
+        while line = o.gets
+          if line.chomp =~ /\b#{tag}\b/
+            tagfound = true
+            next
+          end
+          next unless tagfound
 
-                    f.puts line
-                end
-            end
-
-            et = Thread.start do
-                while line = e.gets
-                    next unless tagfound
-                    f.puts line
-                end
-            end
-
-            i.close
-            ot.join
-            et.join
-
-            raise AdbError.new('logcat', "Can't get logcat") unless t.value.success?
+          f.puts line
         end
+      end
+
+      et = Thread.start do
+        while line = e.gets
+          next unless tagfound
+          f.puts line
+        end
+      end
+
+      i.close
+      ot.join
+      et.join
+
+      raise AdbError.new('logcat', "Can't get logcat") unless t.value.success?
     end
+  end
 rescue Timeout::Error
-    nil
+  nil
 end
 
 def sha256(file)
-    d = Digest::SHA256.new
-    File.open(file, 'rb') do |f|
-        while buf = f.read(16*1024*1024)
-            d.update buf
-        end
+  d = Digest::SHA256.new
+  File.open(file, 'rb') do |f|
+    while buf = f.read(16*1024*1024)
+      d.update buf
     end
-    d.hexdigest
+  end
+  d.hexdigest
 end
 
 def do_run_test(attempt, devid, tag, exe, args)
-    devpath = File.join(DEVPATH, ABI)
-    dsttmppath  = File.join(devpath, 'tmp')
-    dstlibpath  = File.join(devpath, 'lib')
-    dstpath = File.join(devpath, SecureRandom.uuid)
-    dstbinpath  = File.join(dstpath, 'bin')
-    dstdatapath = File.join(dstpath, 'data')
+  devpath = File.join(DEVPATH, ABI)
+  dsttmppath  = File.join(devpath, 'tmp')
+  dstlibpath  = File.join(devpath, 'lib')
+  dstpath = File.join(devpath, SecureRandom.uuid)
+  dstbinpath  = File.join(dstpath, 'bin')
+  dstdatapath = File.join(dstpath, 'data')
 
-    dstdirs = []
-    dstdirs << dsttmppath
-    dstdirs << dstlibpath
-    dstdirs << dstpath
-    dstdirs << dstbinpath
-    dstdirs << dstdatapath
+  dstdirs = []
+  dstdirs << dsttmppath
+  dstdirs << dstlibpath
+  dstdirs << dstpath
+  dstdirs << dstbinpath
+  dstdirs << dstdatapath
 
-    adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
+  adb_shell devid, dstdirs.map { |e| "mkdir -p #{e}" }.join(" && ")
 
-    binaries = [exe]
+  binaries = [exe]
 
-    %w{crystax gnustl_shared c++_shared objc}.each do |lib|
-        knownlib = File.join(File.dirname(exe), "lib#{lib}.so")
-        next unless File.exists?(knownlib)
-        binaries << knownlib unless binaries.include?(knownlib)
+  %w{crystax gnustl_shared c++_shared objc}.each do |lib|
+    knownlib = File.join(File.dirname(exe), "lib#{lib}.so")
+    next unless File.exists?(knownlib)
+    binaries << knownlib unless binaries.include?(knownlib)
+  end
+
+  if exe.length > 35
+    targetexe = "exe#{SecureRandom.uuid.gsub('-', '')}"
+  else
+    targetexe = File.basename(exe)
+  end
+
+  libdirs = []
+  libdirs += File.read("#{exe}.ldlp").split("\n").map(&:chomp) rescue []
+  libdirs += LD_LIBRARY_PATH
+  libdirs.each do |dir|
+    ['lib*.so', 'lib*.so.*'].each do |wildcard|
+      Dir.glob(File.join(dir, wildcard)).each do |lib|
+        binaries << lib unless binaries.include?(lib)
+      end
     end
+  end
 
-    if exe.length > 35
-        targetexe = "exe#{SecureRandom.uuid.gsub('-', '')}"
-    else
-        targetexe = File.basename(exe)
+  binaries.reject! { |b| b =~ /\.ldlp$/ }
+
+  binaries.each do |e|
+    raise "No such file or directory: #{e}" unless File.exists?(e)
+
+    be = (e == exe) ? targetexe : File.basename(e)
+
+    islib = be =~ /^lib.+\.so(\..+)?$/
+    dbe = "#{islib ? dstlibpath : dstbinpath}/#{be}"
+
+    cs = islib ? sha256(e) : nil
+    needpush = !islib || adb_shell(devid, "grep -q -x #{cs} #{dbe}.sha256 2>/dev/null", nothrow: true) != 0
+    next unless needpush
+
+    tmpf = strip(e)
+    begin
+      adb_push devid, tmpf, dbe
+      if islib
+        adb_shell devid, "echo #{cs} >#{dbe}.sha256"
+      else
+        adb_shell devid, "chmod 0755 #{dbe}"
+      end
+    ensure
+      FileUtils.rm_f tmpf if tmpf != e && !islib
     end
+  end
 
-    libdirs = []
-    libdirs += File.read("#{exe}.ldlp").split("\n").map(&:chomp) rescue []
-    libdirs += LD_LIBRARY_PATH
-    libdirs.each do |dir|
-        ['lib*.so', 'lib*.so.*'].each do |wildcard|
-            Dir.glob(File.join(dir, wildcard)).each do |lib|
-                binaries << lib unless binaries.include?(lib)
-            end
-        end
+  pushed = {}
+
+  newargs = []
+  args.each do |arg|
+    prefix = ARGS_PATH_PREFIXES.select { |p| arg =~ /^(-#{p}|--#{p}=)/ }.first rescue nil
+    arg = arg.sub(/^(-#{prefix}|--#{prefix}=)/, '') unless prefix.nil?
+
+    if File.exists?(arg)
+      dstfile = File.join(dstdatapath, File.basename(arg))
+      adb_push devid, arg, dstfile if pushed[arg] != dstfile
+      pushed[arg] = dstfile
+      arg = dstfile if arg =~ /^\//
     end
+    arg = "'#{arg}'" if arg =~ /\s+/
+    newarg = "#{prefix}#{arg}"
+    newargs << newarg
+  end
 
-    binaries.reject! { |b| b =~ /\.ldlp$/ }
+  env = {}
+  env['LD_LIBRARY_PATH'] = dstlibpath
+  env['TMPDIR'] = dsttmppath
 
-    binaries.each do |e|
-        raise "No such file or directory: #{e}" unless File.exists?(e)
+  adb_shell devid, "log #{tag} && cd #{dstdatapath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} #{dstbinpath}/#{targetexe} #{newargs.join(' ')}"
+                                                                                      rescue AdbShellCommandFailed => err
+                                                                                        log err.message
 
-        be = (e == exe) ? targetexe : File.basename(e)
+                                                                                        logerr = proc do |msg|
+                                                                                          log "#{STDERR_PREFIX}#{msg}"
+                                                                                          $stderr.puts msg if VERBOSE_ERRORS
+                                                                                        end
 
-        islib = be =~ /^lib.+\.so(\..+)?$/
-        dbe = "#{islib ? dstlibpath : dstbinpath}/#{be}"
+                                                                                        logerr.call ""
+                                                                                        logerr.call ""
+                                                                                        logerr.call "=== BEGIN OF ENVIRONMENT ==="
+                                                                                        logerr.call "CMD: #{exe} #{args.join(' ')}"
+                                                                                        logerr.call "PWD: #{dstbinpath}"
+                                                                                        logerr.call "NDK: #{NDK} - CrystaX NDK #{crystax_ndk_version}"
+                                                                                        logerr.call "=== END OF ENVIRONMENT ==="
 
-        cs = islib ? sha256(e) : nil
-        needpush = !islib || adb_shell(devid, "grep -q -x #{cs} #{dbe}.sha256 2>/dev/null", nothrow: true) != 0
-        next unless needpush
+                                                                                        lf = File.join(ROOTDIR, "logcat", "#{SecureRandom.uuid}.log")
+                                                                                        at_exit { FileUtils.rm_f lf }
 
-        tmpf = strip(e)
-        begin
-            adb_push devid, tmpf, dbe
-            if islib
-                adb_shell devid, "echo #{cs} >#{dbe}.sha256"
-            else
-                adb_shell devid, "chmod 0755 #{dbe}"
-            end
-        ensure
-            FileUtils.rm_f tmpf if tmpf != e && !islib
-        end
-    end
+                                                                                        adb_logcat devid, tag, lf
 
-    pushed = {}
+                                                                                        File.open(lf, "r") do |f|
+                                                                                          logerr.call ""
+                                                                                          logerr.call "=== BEGIN OF LOGCAT ==="
+                                                                                          while line = f.gets
+                                                                                            logerr.call line
+                                                                                          end
+                                                                                          logerr.call "=== END OF LOGCAT ==="
+                                                                                        end rescue nil
 
-    newargs = []
-    args.each do |arg|
-        prefix = ARGS_PATH_PREFIXES.select { |p| arg =~ /^(-#{p}|--#{p}=)/ }.first rescue nil
-        arg = arg.sub(/^(-#{prefix}|--#{prefix}=)/, '') unless prefix.nil?
+                                                                                        # Prepare temporary directory where all unstripped binaries would be accumulated
+                                                                                        symdirs = SYMDIRS || [File.dirname(exe)] + LD_LIBRARY_PATH
+                                                                                        if symdirs.size == 1 && targetexe == File.basename(exe)
+                                                                                          symdir = symdirs.first
+                                                                                        else
+                                                                                          symdir = File.join(ROOTDIR, "symbols", "#{File.basename(exe)}-#{SecureRandom.uuid}")
+                                                                                          at_exit { FileUtils.rm_rf symdir }
 
-        if File.exists?(arg)
-            dstfile = File.join(dstdatapath, File.basename(arg))
-            adb_push devid, arg, dstfile if pushed[arg] != dstfile
-            pushed[arg] = dstfile
-            arg = dstfile if arg =~ /^\//
-        end
-        arg = "'#{arg}'" if arg =~ /\s+/
-        newarg = "#{prefix}#{arg}"
-        newargs << newarg
-    end
+                                                                                          FileUtils.rm_rf symdir
+                                                                                          FileUtils.mkdir_p symdir
+                                                                                          symdirs.each do |dir|
+                                                                                            Dir.glob(File.join(dir, '*')).select { |e| File.file?(e) }.each do |src|
+                                                                                              next if src =~ /\.a$/
 
-    env = {}
-    env['LD_LIBRARY_PATH'] = dstlibpath
-    env['TMPDIR'] = dsttmppath
+                                                                                              relpath = Pathname.new(src).relative_path_from(Pathname.new(dir)).to_s
+                                                                                              dst = File.join(symdir, relpath)
 
-    adb_shell devid, "log #{tag} && cd #{dstdatapath} && #{env.map { |k,v| "#{k}=#{v}" }.join(' ')} #{dstbinpath}/#{targetexe} #{newargs.join(' ')}"
-rescue AdbShellCommandFailed => err
-    log err.message
+                                                                                              if exe != targetexe && File.basename(dst) == File.basename(exe)
+                                                                                                FileUtils.rm_f File.join(File.dirname(dst), targetexe)
+                                                                                                FileUtils.cp src, File.join(File.dirname(dst), targetexe)
+                                                                                              end
 
-    logerr = proc do |msg|
-        log "#{STDERR_PREFIX}#{msg}"
-        $stderr.puts msg if VERBOSE_ERRORS
-    end
+                                                                                              next if File.exists?(dst)
 
-    logerr.call ""
-    logerr.call ""
-    logerr.call "=== BEGIN OF ENVIRONMENT ==="
-    logerr.call "CMD: #{exe} #{args.join(' ')}"
-    logerr.call "PWD: #{dstbinpath}"
-    logerr.call "NDK: #{NDK} - CrystaX NDK #{crystax_ndk_version}"
-    logerr.call "=== END OF ENVIRONMENT ==="
+                                                                                              FileUtils.mkdir_p File.dirname(dst)
+                                                                                              FileUtils.cp src, dst
+                                                                                            end
+                                                                                          end
+                                                                                        end
 
-    lf = File.join(ROOTDIR, "logcat", "#{SecureRandom.uuid}.log")
-    at_exit { FileUtils.rm_f lf }
+                                                                                        run File.join(NDK, 'ndk-stack'), '-sym', symdir, '-dump', lf, timeout: 30 do |i,o,e,t|
+                                                                                          logerr.call ""
+                                                                                          logerr.call "=== BEGIN OF NDK-STACK ==="
 
-    adb_logcat devid, tag, lf
+                                                                                          i.close
 
-    File.open(lf, "r") do |f|
-        logerr.call ""
-        logerr.call "=== BEGIN OF LOGCAT ==="
-        while line = f.gets
-            logerr.call line
-        end
-        logerr.call "=== END OF LOGCAT ==="
-    end rescue nil
+                                                                                          [o,e].map do |io|
+                                                                                            Thread.start do
+                                                                                              while line = io.gets rescue nil
+                                                                                                logerr.call line
+                                                                                              end
+                                                                                            end
+                                                                                          end.each(&:join)
 
-    # Prepare temporary directory where all unstripped binaries would be accumulated
-    symdirs = SYMDIRS || [File.dirname(exe)] + LD_LIBRARY_PATH
-    if symdirs.size == 1 && targetexe == File.basename(exe)
-        symdir = symdirs.first
-    else
-        symdir = File.join(ROOTDIR, "symbols", "#{File.basename(exe)}-#{SecureRandom.uuid}")
-        at_exit { FileUtils.rm_rf symdir }
+                                                                                          Process.kill(9, t.pid) rescue nil
 
-        FileUtils.rm_rf symdir
-        FileUtils.mkdir_p symdir
-        symdirs.each do |dir|
-            Dir.glob(File.join(dir, '*')).select { |e| File.file?(e) }.each do |src|
-                next if src =~ /\.a$/
+                                                                                          logerr.call "=== END OF NDK-STACK ==="
+                                                                                        end rescue nil
 
-                relpath = Pathname.new(src).relative_path_from(Pathname.new(dir)).to_s
-                dst = File.join(symdir, relpath)
+                                                                                        FileUtils.rm_rf symdir if symdir != symdirs.first
+                                                                                        FileUtils.rm_f lf
 
-                if exe != targetexe && File.basename(dst) == File.basename(exe)
-                    FileUtils.rm_f File.join(File.dirname(dst), targetexe)
-                    FileUtils.cp src, File.join(File.dirname(dst), targetexe)
-                end
+                                                                                        err.exitcode
+                                                                                      ensure
+                                                                                        adb_rm devid, dstpath
+                                                                                                  end
 
-                next if File.exists?(dst)
+                                                                                                  def run_test(attempt, devid, devmodel, exe, args)
+                                                                                                    ENV['ANDROID_SERIAL'] = devid
 
-                FileUtils.mkdir_p File.dirname(dst)
-                FileUtils.cp src, dst
-            end
-        end
-    end
+                                                                                                    tms = Time.now
 
-    run File.join(NDK, 'ndk-stack'), '-sym', symdir, '-dump', lf, timeout: 30 do |i,o,e,t|
-        logerr.call ""
-        logerr.call "=== BEGIN OF NDK-STACK ==="
+                                                                                                    FileUtils.mkdir_p LOCKDIR
+                                                                                                    File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
+                                                                                                      begin
+                                                                                                        log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
+                                                                                                        Timeout.timeout(DEVICE_LOCK_TIMEOUT) { f.flock(File::LOCK_EX) }
+                                                                                                      rescue Timeout::Error => e
+                                                                                                        log "LOCK  (attempt ##{attempt}): BUSY"
+                                                                                                        raise e
+                                                                                                      end
 
-        i.close
+                                                                                                      log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
 
-        [o,e].map do |io|
-            Thread.start do
-                while line = io.gets rescue nil
-                    logerr.call line
-                end
-            end
-        end.each(&:join)
+                                                                                                      tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
+                                                                                                      rc = do_run_test(attempt, devid, tag, exe, args)
 
-        Process.kill(9, t.pid) rescue nil
+                                                                                                      log "EXIT: #{rc} (took #{time_range(Time.now - tms)} on '#{devmodel}')"
+                                                                                                      rc
+                                                                                                    end
+                                                                                                  end
 
-        logerr.call "=== END OF NDK-STACK ==="
-    end rescue nil
+                                                                                                  def time_range(v)
+                                                                                                    seconds = v % 60
+                                                                                                    minutes = (v % 3600) / 60
+                                                                                                    hours   = v / 3600
+                                                                                                    "%d:%02d:%02d" % [hours, minutes, seconds]
+                                                                                                  end
 
-    FileUtils.rm_rf symdir if symdir != symdirs.first
-    FileUtils.rm_f lf
+                                                                                                  started_at = Time.now
 
-    err.exitcode
-ensure
-    adb_rm devid, dstpath
-end
+                                                                                                  begin
+                                                                                                    fails = 0
 
-def run_test(attempt, devid, devmodel, exe, args)
-    ENV['ANDROID_SERIAL'] = devid
+                                                                                                    # Get list of devices
+                                                                                                    devices = adb_devices
 
-    tms = Time.now
+                                                                                                    cmdnum = 0
+                                                                                                    CMDS.each do |cmd|
+                                                                                                      cmdnum += 1
 
-    FileUtils.mkdir_p LOCKDIR
-    File.open(File.join(LOCKDIR, "#{devid}.lock"), "w") do |f|
-        begin
-            log "LOCK  (attempt ##{attempt}): #{args.dup.unshift(exe).join(' ')}"
-            Timeout.timeout(DEVICE_LOCK_TIMEOUT) { f.flock(File::LOCK_EX) }
-        rescue Timeout::Error => e
-            log "LOCK  (attempt ##{attempt}): BUSY"
-            raise e
-        end
+                                                                                                      cmdoptions = {}
+                                                                                                      cmdoptions = JSON.parse(cmd.pop.sub(/^ADBRUNNER-OPTIONS:/, '')) rescue {} if cmd.size > 1 && cmd.last =~ /^ADBRUNNER-OPTIONS:/
 
-        log "START (attempt ##{attempt}): #{args.dup.unshift(exe).join(" ")}"
+                                                                                                      cmdminapilevel = cmdoptions['min-api-level'].to_i rescue 0
 
-        tag = "LOGCAT-TAG-#{SecureRandom.uuid.gsub('-', '')}"
-        rc = do_run_test(attempt, devid, tag, exe, args)
+                                                                                                      started_at = Time.now
+                                                                                                      Timeout.timeout(TIMEOUT) do
+                                                                                                        log "EXEC: #{cmd.join(' ')}"
 
-        log "EXIT: #{rc} (took #{time_range(Time.now - tms)} on '#{devmodel}')"
-        rc
-    end
-end
+                                                                                                        exe = cmd.shift
+                                                                                                        args = cmd
 
-def time_range(v)
-    seconds = v % 60
-    minutes = (v % 3600) / 60
-    hours   = v / 3600
-    "%d:%02d:%02d" % [hours, minutes, seconds]
-end
+                                                                                                        mrofields = {number: cmdnum, total: CMDS.size, exe: exe, args: args}
 
-started_at = Time.now
+                                                                                                        paused = false
 
-begin
-    fails = 0
+                                                                                                        attempt = 0
+                                                                                                        while true
+                                                                                                          attempt += 1
 
-    # Get list of devices
-    devices = adb_devices
+                                                                                                          rc = nil
+                                                                                                          devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
+                                                                                                            next if cmdminapilevel != 0 && d[:apilevel] < cmdminapilevel
+                                                                                                            begin
+                                                                                                              rc = nil
+                                                                                                              paused = false if paused
 
-    cmdnum = 0
-    CMDS.each do |cmd|
-        cmdnum += 1
+                                                                                                              id = d[:id]
+                                                                                                              devmodel = d[:model]
+                                                                                                              apilevel = d[:apilevel]
 
-        cmdoptions = {}
-        cmdoptions = JSON.parse(cmd.pop.sub(/^ADBRUNNER-OPTIONS:/, '')) rescue {} if cmd.size > 1 && cmd.last =~ /^ADBRUNNER-OPTIONS:/
+                                                                                                              MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
 
-        cmdminapilevel = cmdoptions['min-api-level'].to_i rescue 0
+                                                                                                              rc = run_test(attempt, id, devmodel, exe, args)
+                                                                                                              if rc != 0
+                                                                                                                MRO.dump mrofields.merge({event: "fail", exitcode: rc})
+                                                                                                                fails += 1
+                                                                                                                exit rc unless KEEPGOING
+                                                                                                              end
 
-        started_at = Time.now
-        Timeout.timeout(TIMEOUT) do
-            log "EXEC: #{cmd.join(' ')}"
+                                                                                                              # Here we have result of execution on device (either positive or negative)
+                                                                                                              # so we stop trying other compatible devices unless --run-on-all-devices option was specified
+                                                                                                              # and promote this result as result of whole run
+                                                                                                              break if !RUN_ON_ALL_DEVICES
+                                                                                                            rescue Timeout::Error
+                                                                                                            # Ignore. Just switch to next device
+                                                                                                            rescue AdbError => e
+                                                                                                              log e.message
+                                                                                                              # Refresh list of devices
+                                                                                                              devices = adb_devices
+                                                                                                            end
+                                                                                                          end
 
-            exe = cmd.shift
-            args = cmd
+                                                                                                          # Switch to next CMD if current one was executed and exited with any exit code
+                                                                                                          break if !rc.nil?
 
-            mrofields = {number: cmdnum, total: CMDS.size, exe: exe, args: args}
+                                                                                                          if EMUTAG.nil?
+                                                                                                            MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
+                                                                                                            log "EXIT: no suitable device/emulator"
+                                                                                                            break
+                                                                                                          end
 
-            paused = false
+                                                                                                          if !paused
+                                                                                                            MRO.dump mrofields.merge({event: "pause"})
+                                                                                                            paused = true
+                                                                                                          end
 
-            attempt = 0
-            while true
-                attempt += 1
+                                                                                                          log "WAIT: no suitable device/emulator (#{time_range(Time.now - started_at)} elapsed); will try bit later"
+                                                                                                          sleep 10
 
-                rc = nil
-                devices.sort { |a,b| a[:apilevel] <=> b[:apilevel] }.each do |d|
-                    next if cmdminapilevel != 0 && d[:apilevel] < cmdminapilevel
-                    begin
-                        rc = nil
-                        paused = false if paused
+                                                                                                          # Refresh list of devices
+                                                                                                          devices = adb_devices
+                                                                                                        end
+                                                                                                      end
+                                                                                                    end
 
-                        id = d[:id]
-                        devmodel = d[:model]
-                        apilevel = d[:apilevel]
+                                                                                                    exit fails
+                                                                                                  rescue Interrupt
+                                                                                                    $stderr.puts "\n\nINTERRUPTED"
+                                                                                                    exit 1
+                                                                                                  rescue Timeout::Error
+                                                                                                    tmout = (Time.now - started_at).to_i
+                                                                                                    MRO.dump event: "timeout", timeout: tmout
 
-                        MRO.dump mrofields.merge({event: "run", attempt: attempt, devmodel: devmodel, apilevel: apilevel})
-
-                        rc = run_test(attempt, id, devmodel, exe, args)
-                        if rc != 0
-                            MRO.dump mrofields.merge({event: "fail", exitcode: rc})
-                            fails += 1
-                            exit rc unless KEEPGOING
-                        end
-
-                        # Here we have result of execution on device (either positive or negative)
-                        # so we stop trying other compatible devices unless --run-on-all-devices option was specified
-                        # and promote this result as result of whole run
-                        break if !RUN_ON_ALL_DEVICES
-                    rescue Timeout::Error
-                        # Ignore. Just switch to next device
-                    rescue AdbError => e
-                        log e.message
-                        # Refresh list of devices
-                        devices = adb_devices
-                    end
-                end
-
-                # Switch to next CMD if current one was executed and exited with any exit code
-                break if !rc.nil?
-
-                if EMUTAG.nil?
-                    MRO.dump mrofields.merge({event: "skip", reason: "no compatible device/emulator"})
-                    log "EXIT: no suitable device/emulator"
-                    break
-                end
-
-                if !paused
-                    MRO.dump mrofields.merge({event: "pause"})
-                    paused = true
-                end
-
-                log "WAIT: no suitable device/emulator (#{time_range(Time.now - started_at)} elapsed); will try bit later"
-                sleep 10
-
-                # Refresh list of devices
-                devices = adb_devices
-            end
-        end
-    end
-
-    exit fails
-rescue Interrupt
-    $stderr.puts "\n\nINTERRUPTED"
-    exit 1
-rescue Timeout::Error
-    tmout = (Time.now - started_at).to_i
-    MRO.dump event: "timeout", timeout: tmout
-
-    log "TIMEOUT (#{time_range(tmout)} from start)"
-    exit 1
-rescue RuntimeError => e
-    $stderr.puts "FATAL: #{e.message}"
-    $stderr.puts e.backtrace.join("\n")
-    exit 1
-ensure
-    killall
-end
+                                                                                                    log "TIMEOUT (#{time_range(tmout)} from start)"
+                                                                                                    exit 1
+                                                                                                  rescue RuntimeError => e
+                                                                                                    $stderr.puts "FATAL: #{e.message}"
+                                                                                                    $stderr.puts e.backtrace.join("\n")
+                                                                                                    exit 1
+                                                                                                  ensure
+                                                                                                    killall
+                                                                                                  end
