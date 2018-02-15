@@ -1073,13 +1073,13 @@ parse_toolchain_name ()
     case "$TOOLCHAIN" in
     arm-linux-androideabi-*)
         ARCH="arm"
-        ABI="armeabi"
+        ABI="armeabi-v7a"
         ABI_CONFIGURE_TARGET="arm-linux-androideabi"
         ABI_CONFIGURE_EXTRA_FLAGS="--with-arch=armv5te"
         ;;
     arm-eabi-*)
         ARCH="arm"
-        ABI="armeabi"
+        ABI="armeabi-v7a"
         ABI_CONFIGURE_TARGET="arm-eabi"
         ABI_CONFIGURE_EXTRA_FLAGS="--with-arch=armv5te --disable-gold --disable-libgomp"
         ;;
@@ -1272,7 +1272,7 @@ convert_arch_to_abi ()
     local ARCH=$1
     case $ARCH in
         arm)
-            RET=armeabi,armeabi-v7a,armeabi-v7a-hard
+            RET=armeabi-v7a,armeabi-v7a-hard
             ;;
         x86|x86_64|mips|mips64)
             RET=$ARCH
