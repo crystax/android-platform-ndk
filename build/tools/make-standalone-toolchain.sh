@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (C) 2010, 2014, 2015, 2017 The Android Open Source Project
+# Copyright (C) 2010, 2014, 2015, 2017, 2018 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -455,9 +455,6 @@ copy_crystax_libs_for_abi () {
 
     case $ABI in
         armeabi*)
-            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.a"
-            copy_file_list "$CRYSTAX_LIBS/armeabi/thumb" "$ABI_TARGET/lib/thumb" "libcrystax.so"
-            #
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.a"
             copy_file_list "$CRYSTAX_LIBS/armeabi-v7a" "$ABI_TARGET/lib/armv7-a" "libcrystax.so"
             #
@@ -516,6 +513,7 @@ copy_crystax_libs_for_abi () {
     esac
 }
 
+echo "ABIS=$ABIS" 
 for ABI in $(tr ',' ' ' <<< $ABIS); do
   copy_crystax_libs_for_abi "$ABI"
 done
