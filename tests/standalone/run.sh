@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2012, 2014, 2016 The Android Open Source Project
+# Copyright (C) 2012, 2014, 2016, 2018 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -453,6 +453,12 @@ CXXFLAGS=$CXXFLAGS" -fno-exceptions"
 
 CFLAGS=$COMMON_FLAGS" "$CFLAGS
 CXXFLAGS=$COMMON_FLAGS" "$CXXFLAGS
+
+# gccunwind library is needed only when we run tests on toolchain made with Libc++ as STL library
+# since we do not have simple way to test for STL type, just check if gccunwind library exists
+if [ -f "$(dirname "$PREFIX")/../sysroot/usr/lib/libgccunwind.a" ]; then
+    OBJC_LDFLAGS="-lgccunwind $OBJC_LDFLAGS"
+fi
 OBJC_LDFLAGS="-lobjc $OBJC_LDFLAGS"
 
 if [ -z "$TEST_SUBDIRS" ]; then

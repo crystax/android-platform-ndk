@@ -1,7 +1,8 @@
 /* Nothing fancy here, just checking that we can compile hello world */
-#include <stdio.h>
+#include <iostream>
 
-int main(void) {
-    printf("Hello World!\n");
+int main(void)
+{
+    std::cout << "Hello World!\n" << std::endl;
     return 0;
 }
