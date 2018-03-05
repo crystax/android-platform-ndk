@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Copyright (c) 2011-2015, 2017 CrystaX.
+# Copyright (c) 2011-2015, 2017, 2018 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -700,6 +700,7 @@ g.add "contrib/libc-vis/vis.h"
 
 # include
 g.add "include/_ctype.h"
+g.add "include/ar.h"
 g.add "include/complex.h",                 fixup: "define_complex_h_included",
                                            postfixup: "define_complex_functions"
 g.add "include/ctype.h",                   postfixup: "include_crystax_sys_ctype_h"
