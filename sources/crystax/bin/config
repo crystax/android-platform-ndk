@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2011-2015 CrystaX.
+# Copyright (c) 2011-2015, 2018 CrystaX.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification, are
@@ -445,7 +445,6 @@ common_cflags_for_abi()
     echo "-D_POSIX_SOURCE"
     echo "-D_BSD_SOURCE"
     echo "-DREPLACE_GETOPT"
-    echo "-DBZ_NO_STDIO"
 
     echo "-D__DBINTERFACE_PRIVATE"
 
