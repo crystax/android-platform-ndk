@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015, 2018 CrystaX.
+ * Copyright (c) 2018 CrystaX.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -27,47 +27,10 @@
  * or implied, of CrystaX.
  */
 
-#ifndef __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
-#define __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3
+#include <stdlib.h>
+#include <crystax.h>
 
-#include <crystax/id.h>
-#include <crystax/ctassert.h>
-
-#include <sys/cdefs.h>
-#include <jni.h>
-
-__BEGIN_DECLS
-
-int crystax_jni_on_load(JavaVM *vm);
-void crystax_jni_on_unload(JavaVM *vm);
-
-/*
- * Return pointer to application's Java VM.
- * Return NULL if there is no JVM (standalone executable)
- */
-JavaVM *crystax_jvm();
-
-/*
- * Return thread-specific JNIEnv pointer.
- * Return NULL if there is no JVM (standalone executable)
- */
-JNIEnv *crystax_jnienv();
-
-/*
- * Save specified JNIEnv to thread-specific storage.
- * This value will then be returned on subsequent calls
- * of crystax_jnienv()
- */
-void crystax_save_jnienv(JNIEnv *env);
-
-/*
- * Returns contents of the CRYSTAX_POSIX_BASE environment variable.
- * This environment varibale must be set and point to the begining of
- * the crystax posix directory structure.
- */
-const char *crystax_posix_base();
-
-
-__END_DECLS
-
-#endif /* __CRYSTAX_H_4289218d55ff4e74825922c1ca65eaf3 */
+const char *crystax_posix_base()
+{
+    return getenv("CRYSTAX_POSIX_BASE");
+}
