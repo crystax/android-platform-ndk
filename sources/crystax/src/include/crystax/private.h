@@ -33,7 +33,6 @@
 #include <sys/cdefs.h>
 #include <crystax.h>
 #include <crystax/log.h>
-#include <crystax/bionic.h>
 
 #ifdef __cplusplus
 #   define CRYSTAX_GLOBAL extern "C" __attribute__ ((visibility ("default")))

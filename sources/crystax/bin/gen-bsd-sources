@@ -638,7 +638,6 @@ g.add "contrib/gdtoa/strtorf.c"
 g.add "contrib/gdtoa/sum.c"
 g.add "contrib/gdtoa/ulp.c"
 
-=begin
 # jemalloc
 g.add "contrib/jemalloc/include/jemalloc/internal/arena.h",             noguard: true
 g.add "contrib/jemalloc/include/jemalloc/internal/atomic.h",            noguard: true
@@ -691,7 +690,6 @@ g.add "contrib/jemalloc/src/stats.c"
 g.add "contrib/jemalloc/src/tcache.c"
 g.add "contrib/jemalloc/src/tsd.c",        warnings: "unused-parameter"
 g.add "contrib/jemalloc/src/util.c",       warnings: ["unused-parameter", "sign-compare"]
-=end
 
 # libc-vis
 g.add "contrib/libc-vis/vis.c",            warnings: ["pointer-sign", "sign-compare"],
