@@ -282,7 +282,9 @@ sources_for_abi()
     find gen/bionic/libc/arch-common -iname '*.s' -a -not -name 'mangled-*' -print | sort
 
     # Objective-C blocks runtime
-    find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
+    if [ -d vendor/compiler-rt/lib/BlocksRuntime ]; then
+        find vendor/compiler-rt/lib/BlocksRuntime -name '*.c' -print
+    fi
 }
 
 # $1: ABI
