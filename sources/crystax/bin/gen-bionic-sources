@@ -193,6 +193,10 @@ g.fixup :redefine_uname do |f|
     f.puts "#define uname __uname"
 end
 
+g.fixup :redefine_execve do |f|
+    f.puts "#define execve __execve"
+end
+
 # public headers
 g.add "libc/include/arpa/inet.h",                       public: true
 g.add "libc/include/arpa/nameser.h",                    public: true
@@ -321,6 +325,7 @@ g.add "libc/include/stdatomic.h"
 g.add "libc/include/sys/_system_properties.h"
 g.add "libc/include/sys/auxv.h"
 g.add "libc/include/sys/system_properties.h"
+g.add "libc/kernel/uapi/linux/binfmts.h"
 g.add "libc/kernel/uapi/linux/futex.h"
 g.add "libc/private/ErrnoRestorer.h"
 g.add "libc/private/KernelArgumentBlock.h"
@@ -737,12 +742,12 @@ g.add "libc/bionic/eventfd_write.cpp"
 g.add "libc/upstream-openbsd/lib/libc/gen/exec.c"
 
 # execve
-g.add "libc/arch-arm/syscalls/execve.S"
-g.add "libc/arch-arm64/syscalls/execve.S"
-g.add "libc/arch-mips/syscalls/execve.S"
-g.add "libc/arch-mips64/syscalls/execve.S"
-g.add "libc/arch-x86/syscalls/execve.S"
-g.add "libc/arch-x86_64/syscalls/execve.S"
+g.add "libc/arch-arm/syscalls/execve.S",    fixup: "redefine_execve"
+g.add "libc/arch-arm64/syscalls/execve.S",  fixup: "redefine_execve"
+g.add "libc/arch-mips/syscalls/execve.S",   fixup: "redefine_execve"
+g.add "libc/arch-mips64/syscalls/execve.S", fixup: "redefine_execve"
+g.add "libc/arch-x86/syscalls/execve.S",    fixup: "redefine_execve"
+g.add "libc/arch-x86_64/syscalls/execve.S", fixup: "redefine_execve"
 
 # __exit
 g.add "libc/arch-arm/syscalls/__exit.S"
