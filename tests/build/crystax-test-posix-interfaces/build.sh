@@ -56,7 +56,7 @@ for PLATFORM in $PLATFORMS; do
     echo "===== Checking standard headers for $PLATFORM"
     APILEVEL=$(echo $PLATFORM | sed 's,^android-,,')
     if [ $APILEVEL -lt 9 ]; then
-        ABIS="armeabi armeabi-v7a armeabi-v7a-hard"
+        ABIS="armeabi-v7a armeabi-v7a-hard"
     elif [ $APILEVEL -lt 21 ]; then
         ABIS="all32"
     else
