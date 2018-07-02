@@ -258,8 +258,8 @@ class Project
     end
 
     ccs = @host_compilers.dup
-    ccs.select! { |x| x[:type] != options[:type] } unless options[:type].nil?
-    ccs.select! { |x| x[:version] != options[:version] } unless options[:version].nil?
+    ccs.select! { |x| x[:type] == options[:type] } unless options[:type].nil?
+    ccs.select! { |x| x[:version] == options[:version] } unless options[:version].nil?
     ccs
   end
 
