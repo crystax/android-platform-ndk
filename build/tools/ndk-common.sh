@@ -289,7 +289,7 @@ case "$HOST_OS-$HOST_ARCH" in
         SYSTEM_FILE_PROGRAM="/usr/bin/file"
         test -x "$SYSTEM_FILE_PROGRAM" && HOST_FILE_PROGRAM="$SYSTEM_FILE_PROGRAM"
     fi
-    "$HOST_FILE_PROGRAM" -L "$SHELL" | grep -q "x86[_-]64"
+    "$HOST_FILE_PROGRAM" -L "/bin/sh" | grep -q "x86[_-]64"
     if [ $? != 0 ]; then
       # $SHELL is not a 64-bit executable, so assume our userland is too.
       log "Detected 32-bit userland on 64-bit kernel system!"
