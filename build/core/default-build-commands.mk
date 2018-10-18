@@ -82,9 +82,9 @@ endef
 
 # zuav: with /usr/lib mips64 fails to link when objs and libs are built with default options
 ifneq ($(filter mips64,$(TARGET_ARCH_ABI)),)
-    USR_LIB := /usr/lib64
+    USR_LIB_SUFFIX := /usr/lib64
 else
-    USR_LIB := /usr/lib
+    USR_LIB_SUFFIX := /usr/lib
 endif
 
 # The following -rpath-link= are needed for ld.bfd (default for MIPS) when
@@ -96,7 +96,7 @@ $(PRIVATE_CXX) \
     -Wl,--gc-sections \
     -Wl,-z,nocopyreloc \
     --sysroot=$(call host-path,$(PRIVATE_SYSROOT_LINK)) \
-    -Wl,-rpath-link=$(call host-path,$(PRIVATE_SYSROOT_LINK)/usr/lib) \
+    -Wl,-rpath-link=$(call host-path,$(PRIVATE_SYSROOT_LINK)$(USR_LIB_SUFFIX)) \
     -Wl,-rpath-link=$(call host-path,$(TARGET_OUT)) \
     $(PRIVATE_LINKER_OBJECTS_AND_LIBRARIES) \
     $(PRIVATE_LDFLAGS) \
