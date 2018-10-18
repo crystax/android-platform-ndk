@@ -80,6 +80,13 @@ $(PRIVATE_CXX) \
     -o $(call host-path,$(LOCAL_BUILT_MODULE))
 endef
 
+# zuav: with /usr/lib mips64 fails to link when objs and libs are built with default options
+ifneq ($(filter mips64,$(TARGET_ARCH_ABI)),)
+    USR_LIB := /usr/lib64
+else
+    USR_LIB := /usr/lib
+endif
+
 # The following -rpath-link= are needed for ld.bfd (default for MIPS) when
 # linking executables to supress warning about missing symbol from libraries not
 # directly needed. ld.gold (default for ARM and X86) doesn't emulate this buggy
